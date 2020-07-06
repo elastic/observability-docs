@@ -1,0 +1,55 @@
+#!/usr/bin/env groovy
+@Library('apm@current') _
+
+pipeline {
+  agent { label 'linux && immutable' }
+  environment {
+    REPO = 'apm-server'
+    BASE_DIR = "src/github.com/elastic/${env.REPO}"
+    NOTIFY_TO = credentials('notify-to')
+    JOB_GCS_BUCKET = credentials('gcs-bucket')
+    JOB_GCS_CREDENTIALS = 'apm-ci-gcs-plugin'
+    CODECOV_SECRET = 'secret/apm-team/ci/apm-server-codecov'
+    ITS_PIPELINE = 'apm-integration-tests-selector-mbp/master'
+    DIAGNOSTIC_INTERVAL = "${params.DIAGNOSTIC_INTERVAL}"
+    ES_LOG_LEVEL = "${params.ES_LOG_LEVEL}"
+    DOCKER_SECRET = 'secret/apm-team/ci/docker-registry/prod'
+    DOCKER_REGISTRY = 'docker.elastic.co'
+    DOCKER_IMAGE = "${env.DOCKER_REGISTRY}/observability-ci/apm-server"
+  }
+  options {
+    timeout(time: 2, unit: 'HOURS')
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
+    timestamps()
+    ansiColor('xterm')
+    disableResume()
+    durabilityHint('PERFORMANCE_OPTIMIZED')
+    rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
+    quietPeriod(10)
+  }
+  triggers {
+    issueCommentTrigger('(?i).*(?:jenkins\\W+)?run\\W+(?:the\\W+)?(?:hey-apm\\W+)?tests(?:\\W+please)?.*')
+  }
+  stages {
+    /**
+     Checkout the code and stash it, to use it on other stages.
+    */
+    stage('Generate Docs Link') {
+      environment {
+        PATH = "${env.PATH}:${env.WORKSPACE}/bin"
+        HOME = "${env.WORKSPACE}"
+        GOPATH = "${env.WORKSPACE}"
+      }
+      options { skipDefaultCheckout() }
+      steps {
+        deleteDir()
+        echo "Testing"
+    }
+
+  }
+  post {
+    cleanup {
+      notifyBuildResult()
+    }
+  }
+}
