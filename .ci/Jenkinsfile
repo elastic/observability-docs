@@ -1,0 +1,31 @@
+#!/usr/bin/env groovy
+@Library('apm@current') _
+
+pipeline {
+  agent { label 'metal || darwin || master' }
+  options {
+    timeout(time: 10)
+    buildDiscarder(logRotator(numToKeepStr: '100', artifactNumToKeepStr: '30', daysToKeepStr: '30'))
+    timestamps()
+    ansiColor('xterm')
+    disableResume()
+    durabilityHint('PERFORMANCE_OPTIMIZED')
+    rateLimitBuilds(throttle: [count: 60, durationName: 'hour', userBoost: true])
+    quietPeriod(10)
+  }
+  stages {
+    /**
+     Checkout the code and stash it, to use it on other stages.
+    */
+    stage('Generate Docs Link') {
+      steps {
+        deleteDir()
+        script {
+            def PRnum = sh(script: "echo ${CHANGE_URL} | cut -d / -f7", returnStdout: true)
+            githubPrComment(message: "Docs preview will be available at: `https://observability-docs_${PRnum}.docs-preview.app.elstc.co/guide/en/observability/current/index.html`")
+        }
+        
+      }
+    }
+  }
+}
