@@ -1,0 +1,148 @@
+[chapter, role="xpack"]
+[[observability-collect-uptime]]
+
+:beatname_uc: Heartbeat
+:beatname_lc: heartbeat
+
+= Ingest uptime data
+
+{heartbeat} tells you whether your services are available and helps 
+verify that you’re meeting your service level agreements for service uptime.
+
+Unlike most Beats, which you install on edge nodes, you typically install 
+{beatname_uc} as part of a monitoring service that runs on a separate machine 
+and possibly even outside of the network where the services that you want to monitor are running.
+
+[[install-heartbeat]]
+== Step 1: Install {beatname_uc}
+
+To download and install {beatname_uc}, use the commands that work with your system:
+
+include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
+
+[[other-heartbeat-installations]]
+=== Other installation options
+
+* {heartbeat-ref}/running-on-docker.html[Docker]
+* {heartbeat-ref}/setup-repositories.html[APT or YUM]
+* https://www.elastic.co/downloads/beats/heartbeat[Download page]
+
+[[connect-heartbeat-stack]]
+== Step 2: Connect to {es} and {kib}
+
+Connections to {es} and {kib} are required to set up Filebeat.
+
+Set the connection information in `filebeat.yml`. To locate this configuration file,
+see {heartbeat-ref}/directory-layout.html[Directory layout].
+
+include::{beats-repo-dir}/tab-widgets/set-connection-widget.asciidoc[]
+
+[NOTE]
+=====
+
+You can send data to other {heartbeat-ref}/configuring-output.html[outputs], such as Logstash, 
+but that requires additional configuration and setup.
+
+=====
+
+To learn more about required roles and privileges, see {heartbeat-ref}/feature-roles.html[Grant users access to secured resources].
+
+[[heartbeat-configuration]]
+== Step 3: Configure Heartbeat monitors
+
+Heartbeat provides monitors to check the status of hosts at set intervals.
+Heartbeat currently provides monitors for ICMP, TCP, and HTTP (see
+{heartbeat-ref}/heartbeat-overview.html[heartbeat-overview] for more about these monitors). 
+
+You configure each monitor individually. In +{beatname_lc}.yml+, specify the
+list of monitors that you want to enable. Each item in the list begins with a
+dash (-). The following example configures Heartbeat to use two monitors, an
+`icmp` monitor and a `tcp` monitor:
+
+[source,yaml]
+----------------------------------------------------------------------
+heartbeat.monitors:
+- type: icmp
+  schedule: '*/5 * * * * * *' <1>
+  hosts: ["myhost"]
+- type: tcp
+  schedule: '@every 5s' <2>
+  hosts: ["myhost:12345"]
+  mode: any <3>
+----------------------------------------------------------------------
+<1> The `icmp` monitor is scheduled to run exactly every 5 seconds (10:00:00,
+10:00:05, and so on). The `schedule` option uses a cron-like syntax based on
+https://github.com/gorhill/cronexpr#implementation[this `cronexpr` implementation].
+<2> The `tcp` monitor is set to run every 5 seconds from the time when Heartbeat
+was started. Heartbeat adds the `@every` keyword to the syntax provided by the
+`cronexpr` package.
+<3> The `mode` specifies whether to ping one IP (`any`) or all resolvable IPs
+(`all`).
+
+[TIP]
+=====
+
+To test your configuration file, change to the directory where the Heartbeat binary 
+is installed, and run Heartbeat in the foreground with the following options specified: 
+./heartbeat test config -e. Make sure your config files are in the path expected by 
+Heartbeat (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the 
+-c flag to specify the path to the config file.
+=====
+
+For more information about configuring Heartbeat, also see:
+
+* {heartbeat-ref}/configuring-howto-heartbeat.html[Configure Heartbeat]
+* {heartbeat-ref}/config-file-format.html[Config file format]
+* {heartbeat-ref}/heartbeat-reference-yml.html[`heartbeat.reference.yml`]: This 
+reference configuration file shows all non-deprecated options. You’ll find it in the same location as heartbeat.yml.
+
+[[set-heartbeat-assets]]
+== Step 4: Set up assets
+
+{beatname_uc} comes with predefined assets for parsing, indexing, and
+visualizing your data. To load these assets:
+
+. Make sure the user specified in +{beatname_lc}.yml+ is
+{heartbeat-ref}/privileges-to-setup-beats.html[authorized to set up {beatname_uc}].
+
+. From the installation directory, run:
++
+--
+include::{beats-repo-dir}/tab-widgets/setup-widget.asciidoc[]
+--
++
+`-e` is optional and sends output to standard error instead of the configured log output.
+
+This step loads the recommended {ref}/indices-templates.html[index template] for writing to {es}.
+It does not install {beatname_uc} dashboards.  Heartbeat dashboards and 
+installation steps are available in the
+https://github.com/elastic/uptime-contrib[uptime-contrib] GitHub repository.
+
+[TIP]
+=====
+A connection to {es} (or {ess}) is required to set up the initial
+environment. If you're using a different output, such as {ls}, see
+{heartbeat-ref}//heartbeat-template.html#load-template-manually[Load the index template manually].
+=====
+
+== Step 5: Start {beatname_uc}
+
+Before starting {beatname_uc}, modify the user credentials in
++{beatname_lc}.yml+ and specify a user who is
+{heartbeat-ref}/privileges-to-publish-events.html[authorized to publish events].
+
+To start {beatname_uc}, run:
+
+// tag::start-step[]
+:requires-sudo:
+include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
+:requires-sudo!:
+// end::start-step[]
+
+{beatname_uc} is now ready to check the status of your services and send events to your defined output.
+
+// Add Javascript and CSS for tabbed panels
+include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
+
+:!beatname_uc: Heartbeat
+:!beatname_lc: heartbeat

@@ -1,9 +1,176 @@
 [chapter, role="xpack"]
 [[observability-ingest-logs]]
-= Step 1: Ingest logs
+
+:beatname_uc: Filebeat
+:beatname_lc: filebeat
+
+= Ingest logs
 
 {filebeat} monitors the log files or locations that you specify, collects log events, 
 and forwards them to {es}.
 
-//TODO: add enable integration info
+[[install-filebeat]]
+== Step 1: Install {beatname_uc}
+
+Install {beatname_uc} on all the servers you want to monitor.
+
+To download and install {beatname_uc}, use the commands that work with your system:
+
+include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
+
+[[other-filebeat-installations]]
+=== Other installation options
+
+* {filebeat-ref}/running-on-kubernetes.html[Kubernetes]
+* {filebeat-ref}/running-on-docker.html[Docker]
+* {filebeat-ref}/running-on-cloudfoundry.html[Cloud Foundry]
+* {filebeat-ref}/setup-repositories.html[APT or YUM]
+* https://www.elastic.co/downloads/beats/filebeat[Download page]
+
+[[connect-logs-stack]]
+== Step 2: Connect to {es} and {kib}
+
+// To include the set-connection-widget, this id and content had to be assigned.
+[[configure-cloud-id]]
+
+Connections to {es} and {kib} are required to set up Filebeat.
+
+Set the connection information in `filebeat.yml`. To locate this configuration file,
+see {filebeat-ref}/directory-layout.html[Directory layout].
+
+include::{beats-repo-dir}/tab-widgets/set-connection-widget.asciidoc[]
+
+// To include the set-connection-widget, this id and content had to be assigned.
+[[keystore]]
+
+To learn more about required roles and privileges, see {filebeat-ref}/eature-roles.html[Grant users access to secured resources].
+
+[NOTE]
+=====
+
+You can send data to other {filebeat-ref}/configuring-output.html[outputs], such as Logstash, 
+but that requires additional configuration and setup.
+
+=====
+
+[[enable-logs-integrations]]
+== Step 3: Enable and configure integrations
+
+. To identify the integrations you need to enable, run:
++
+--
+include::{beats-repo-dir}/tab-widgets/list-modules-widget.asciidoc[]
+--
++
+Can’t find an integration for your file type? Skip this section and
+{filebeat-ref}/configuration-filebeat-options.html[configure the input manually].
+
+. From the installation directory, enable one or more integrations. For example, the
+following command enables the `system`, `nginx`, and `mysql` integration
+configs:
++
+--
+include::{beats-repo-dir}/tab-widgets/enable-modules-widget.asciidoc[]
+--
+
+. In the module configs under `modules.d`, change the module settings to match
+your environment.
++
+For example, log locations are set based on the OS. If your logs aren't in
+default locations, set the `paths` variable:
++
+--
+[source,yaml]
+----
+- module: nginx
+  access:
+    var.paths: ["/var/log/nginx/access.log*"] <1> 
+----
+--
+
+To see the full list of variables for an integration, see the documentation under
+{filebeat-ref}/filebeat-modules.html[Modules].
+
+[TIP]
+=====
+To test your configuration file, change to the directory where the Filebeat binary
+is installed, and run Filebeat in the foreground with the following options specified: 
+./filebeat test config -e. Make sure your config files are in the path expected by 
+Filebeat (see {filebeat-ref}/directory-layout.html[Directory layout]),
+or use the -c flag to specify the path to the config file.
+=====
+
+For more information about configuring Filebeat, also see:
+
+* {filebeat-ref}/configuring-howto-filebeat.html[Configure Filebeat]
+* {filebeat-ref}/config-file-format.html[Config file format]
+* {filebeat-ref}/filebeat-reference-yml.html[`filebeat.reference.yml`]: This reference 
+configuration file shows all non-deprecated options. You’ll find it in the same location as filebeat.yml.
+
+[[set-filebeat-assets]]
+== Step 4: Set up assets
+{beatname_uc} comes with predefined assets for parsing, indexing, and
+visualizing your data. To load these assets:
+
+. Make sure the user specified in +{beatname_lc}.yml+ is
+{filebeat-ref}/privileges-to-setup-beats.html[authorized to set up {beatname_uc}].
+
+. From the installation directory, run:
++
+--
+include::{beats-repo-dir}/tab-widgets/setup-widget.asciidoc[]
+--
++
+`-e` is optional and sends output to standard error instead of the configured log output.
+
+This step loads the recommended {ref}/indices-templates.html[index template] for writing to {es}
+and deploys the sample dashboards for visualizing the data in {kib}.
+
+This step does not load the ingest pipelines used to parse log lines. By
+default, ingest pipelines are set up automatically the first time you run the
+module and connect to {es}.
+
+[TIP]
+=====
+A connection to {es} (or {ess}) is required to set up the initial
+environment. If you're using a different output, such as {ls}, see:
+
+* {filebeat-ref}/filebeat-template.html#load-template-manually[Load the index template manually]
+* {filebeat-ref}/load-kibana-dashboards.html[Load Kibana dashboards]
+* {filebeat-ref}/load-ingest-pipelines.html[Load ingest pipelines]
+=====
+
+== Step 5: Start {beatname_uc}
+
+Before starting {beatname_uc}, modify the user credentials in
++{beatname_lc}.yml+ and specify a user who is
+{filebeat-ref}/privileges-to-publish-events.html[authorized to publish events].
+
+To start {beatname_uc}, run:
+
+// tag::start-step[]
+:requires-sudo:
+include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
+:requires-sudo!:
+// end::start-step[]
+
+{beatname_uc} should begin streaming events to {es}.
+
+// Add Javascript and CSS for tabbed panels
+include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
+
+:!beatname_uc: Filebeat
+:!beatname_lc: filebeat
+
+
+// To include this start-widget, this id and content had to be assigned.
+[[command-line-options]]
+
+Placeholder. 
+
+// To include this start-widget, this id and content had to be assigned.
+[[running-with-systemd]]
+
+Placeholder.
+
 

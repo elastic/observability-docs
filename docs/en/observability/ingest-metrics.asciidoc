@@ -1,7 +1,122 @@
 [chapter, role="xpack"]
 [[observability-ingest-metrics]]
-= Step 2: Ingest metrics
 
-{metricbeat} takes the metrics and statistics that it collects and ships them to {es}.
+:beatname_uc: Metricbeat
+:beatname_lc: metricbeat
 
-//TODO: add enable integration info
+= Ingest metrics
+
+{beatname_uc} comes with predefined assets for parsing, indexing, and
+visualizing your data. To load these assets, {beatname_uc} uses
+https://www.elastic.co/integrations?solution=observability[integrations]
+to collect metrics from operating systems and services and sends them to {es}.
+Each integration defines the basic logic for collecting data
+from specific services, such as Redis or MySQL. An integration consists of metricsets
+that fetch and structure the data. To learn more, see
+https://www.elastic.co/guide/en/beats/metricbeat/master/how-metricbeat-works.html[How Metricbeat works].
+
+[[install-metricbeat]]
+== Step 1: Install {metricbeat}
+
+Install {metricbeat} as close as possible to the service you want to monitor. 
+
+To download and install {metricbeat}, use the commands that work with your system:
+
+include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
+
+[[connect-metrics-stack]]
+== Step 2: Connect to {es} and {kib}
+
+Connections to {es} and {kib} are required to set up Filebeat.
+
+Set the connection information in `filebeat.yml`. To locate this configuration file,
+see {metricbeat-ref}/directory-layout.html[Directory layout].
+
+include::{beats-repo-dir}/tab-widgets/set-connection-widget.asciidoc[]
+
+To learn more about required roles and privileges, see {metricbeat-ref}/feature-roles.html[Grant users access to secured resources].
+
+[[enable-metrics-integrations]]
+== Step 3: Enable and configure integrations
+
+. To identify the integrations you need to enable, run:
++
+--
+include::{beats-repo-dir}/tab-widgets/list-modules-widget.asciidoc[]
+--
+
+. From the installation directory, enable one or more integrations. If you accept the default configuration without enabling additional
+modules, Metricbeat collects system metrics only.
++
+The following command enables the apache and mysql configs in the modules.d directory:
++
+--
+include::{beats-repo-dir}/tab-widgets/list-modules-widget.asciidoc[]
+--
++
+See the https://www.elastic.co/guide/en/beats/metricbeat/master/command-line-options.html#modules-command[modules command]
+to learn more about this command. If you are using a Docker image,
+see https://www.elastic.co/guide/en/beats/metricbeat/master/running-on-docker.html[Run Metricbeat on Docker].
+
+. In the module configs under `modules.d`, change the module settings to match your environment. 
+See https://www.elastic.co/guide/en/beats/metricbeat/master/configuration-metricbeat.html#module-config-options[Standard config options]
+for more about available settings.
+
+TIP: To test your configuration file, change to the directory where the Metricbeat binary is installed, and run 
+Metricbeat in the foreground with the following options specified: ./metricbeat test config -e. Make sure
+your config files are in the path expected by Metricbeat (see 
+https://www.elastic.co/guide/en/beats/metricbeat/master/directory-layout.html[Directory layout]), or use 
+the `-c` flag to specify the path to the config file.
+
+For more information about configuring Metricbeat, also see:
+
+* https://www.elastic.co/guide/en/beats/metricbeat/master/configuring-howto-metricbeat.html[Configure Metricbeat]
+* https://www.elastic.co/guide/en/beats/libbeat/master/config-file-format.html[Config file format]
+* https://www.elastic.co/guide/en/beats/metricbeat/master/metricbeat-reference-yml.html[`metricbeat.reference.yml`]:
+This reference configuration file shows all non-deprecated options. You’ll find it in the same location as metricbeat.yml.
+
+[[set-metricbeat-assets]]
+== Step 4: Set up assets
+
+{beatname_uc} comes with predefined assets for parsing, indexing, and
+visualizing your data. To load these assets:
+
+. Make sure the user specified in metricbeat.yml is authorized to set up https://www.elastic.co/guide/en/beats/metricbeat/master/privileges-to-setup-beats.html[{beatname_uc}].
+
+. From the installation directory, run:
++
+--
+include::{beats-repo-dir}/tab-widgets/setup-widget.asciidoc[]
+--
++
+`-e` is optional and sends output to standard error instead of the configured log output.
+
+This step loads the recommended https://www.elastic.co/guide/en/elasticsearch/reference/master/indices-templates.html[index template]
+for writing to {es} and deploys the sample dashboards for visualizing the data in {kib}.
+
+TIP: A connection to Elasticsearch (or Elasticsearch Service) is required to set up the initial environment.
+If you’re using a different output, such as Logstash, see
+https://www.elastic.co/guide/en/beats/metricbeat/master/metricbeat-template.html#load-template-manually[Load the index template manually]
+and https://www.elastic.co/guide/en/beats/metricbeat/master/load-kibana-dashboards.html[Load Kibana dashboards].
+
+== Step 5: Start {beatname_uc}
+
+Before starting {beatname_uc}, modify the user credentials in
++{beatname_lc}.yml+ and specify a user who is
+{metricbeat-ref}/privileges-to-publish-events.html[authorized to publish events].
+
+To start {beatname_uc}, run:
+
+// tag::start-step[]
+:requires-sudo:
+include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
+:requires-sudo!:
+// end::start-step[]
+
+{beatname_uc} should begin streaming events to {es}.
+
+// Add Javascript and CSS for tabbed panels
+include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
+
+:!beatname_uc: Metricbeat
+:!beatname_lc: metricbeat
