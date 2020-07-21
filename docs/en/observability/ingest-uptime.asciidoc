@@ -3,17 +3,11 @@
 
 :beatname_uc: Heartbeat
 :beatname_lc: heartbeat
+:beatname_pkg: heartbeat-elastic
 :beatname_url: {beats-ref-root}/{beatname_lc}/{branch}
 
 [[ingest-uptime]]
 = Ingest uptime data
-
-{beatname_uc} uses probing to monitor the availability of services and helps 
-verify that you’re meeting your service level agreements for service uptime.
-
-Unlike most Beats, which you install on edge nodes, you typically install 
-{beatname_uc} as part of a monitoring service that runs on a separate machine 
-and possibly even outside of the network where the services that you want to monitor are running.
 
 [NOTE]
 =====
@@ -38,9 +32,9 @@ include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
 [[uptime-connect-to-stack]]
 == Step 2: Connect to {es} and {kib}
 
-Connections to {es} and {kib} are required to set up Filebeat.
+Connections to {es} and {kib} are required to set up {beatname_uc}.
 
-Set the connection information in `filebeat.yml`. To locate this configuration file,
+Set the connection information in `heartbeat.yml`. To locate this configuration file,
 see {heartbeat-ref}/directory-layout.html[Directory layout].
 
 include::{beats-repo-dir}/tab-widgets/set-connection-widget.asciidoc[]
@@ -58,13 +52,13 @@ To learn more about required roles and privileges, see {heartbeat-ref}/feature-r
 [[heartbeat-configuration]]
 == Step 3: Configure Heartbeat monitors
 
-Heartbeat provides monitors to check the status of hosts at set intervals.
-Heartbeat currently provides monitors for ICMP, TCP, and HTTP (see
-{heartbeat-ref}/heartbeat-overview.html[Heartbeat overview] for more about these monitors). 
+{beatname_uc} provides monitors to check the status of hosts at set intervals.
+{beatname_uc} currently provides monitors for ICMP, TCP, and HTTP (see
+{heartbeat-ref}/heartbeat-overview.html[{beatname_uc} overview] for more about these monitors). 
 
-You configure each monitor individually. In +{beatname_lc}.yml+, specify the
+You configure each monitor individually. In `heartbeat.yml`, specify the
 list of monitors that you want to enable. Each item in the list begins with a
-dash (-). The following example configures Heartbeat to use two monitors, an
+dash (-). The following example configures {beatname_uc} to use two monitors, an
 `icmp` monitor and a `tcp` monitor:
 
 [source,yaml]
@@ -81,8 +75,8 @@ heartbeat.monitors:
 <1> The `icmp` monitor is scheduled to run exactly every 5 seconds (10:00:00,
 10:00:05, and so on). The `schedule` option uses a cron-like syntax based on
 https://github.com/gorhill/cronexpr#implementation[this `cronexpr` implementation].
-<2> The `tcp` monitor is set to run every 5 seconds from the time when Heartbeat
-was started. Heartbeat adds the `@every` keyword to the syntax provided by the
+<2> The `tcp` monitor is set to run every 5 seconds from the time when {beatname_uc}
+was started. {beatname_uc} adds the `@every` keyword to the syntax provided by the
 `cronexpr` package.
 <3> The `mode` specifies whether to ping one IP (`any`) or all resolvable IPs
 (`all`).
@@ -90,19 +84,19 @@ was started. Heartbeat adds the `@every` keyword to the syntax provided by the
 [TIP]
 =====
 
-To test your configuration file, change to the directory where the Heartbeat binary 
-is installed, and run Heartbeat in the foreground with the following options specified: 
-./heartbeat test config -e. Make sure your config files are in the path expected by 
-Heartbeat (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the 
--c flag to specify the path to the config file.
+To test your configuration file, change to the directory where the {beatname_uc} binary 
+is installed, and run {beatname_uc} in the foreground with the following options specified: 
+`./heartbeat test config -e`. Make sure your config files are in the path expected by 
+{beatname_uc} (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the 
+`-c` flag to specify the path to the config file.
 =====
 
-For more information about configuring Heartbeat, also see:
+For more information about configuring {beatname_uc}, also see:
 
-* {heartbeat-ref}/configuring-howto-heartbeat.html[Configure Heartbeat]
+* {heartbeat-ref}/configuring-howto-heartbeat.html[Configure {beatname_uc}]
 * {beats-ref}/config-file-format.html[Config file format]
 * {heartbeat-ref}/heartbeat-reference-yml.html[`heartbeat.reference.yml`]: This 
-reference configuration file shows all non-deprecated options. You’ll find it in the same location as heartbeat.yml.
+reference configuration file shows all non-deprecated options. You’ll find it in the same location as `heartbeat.yml`.
 
 [[set-heartbeat-assets]]
 == Step 4: Set up assets
@@ -110,7 +104,7 @@ reference configuration file shows all non-deprecated options. You’ll find it 
 {beatname_uc} comes with predefined assets for parsing, indexing, and
 visualizing your data. To load these assets:
 
-. Make sure the user specified in +{beatname_lc}.yml+ is
+. Make sure the user specified in `heartbeat.yml` is
 {heartbeat-ref}/privileges-to-setup-beats.html[authorized to set up {beatname_uc}].
 
 . From the installation directory, run:
@@ -122,7 +116,7 @@ include::{beats-repo-dir}/tab-widgets/setup-widget.asciidoc[]
 `-e` is optional and sends output to standard error instead of the configured log output.
 
 This step loads the recommended {ref}/indices-templates.html[index template] for writing to {es}.
-It does not install {beatname_uc} dashboards.  Heartbeat dashboards and 
+It does not install {beatname_uc} dashboards. {beatname_uc} dashboards and 
 installation steps are available in the
 https://github.com/elastic/uptime-contrib[uptime-contrib] GitHub repository.
 
@@ -130,14 +124,14 @@ https://github.com/elastic/uptime-contrib[uptime-contrib] GitHub repository.
 =====
 A connection to {es} (or {ess}) is required to set up the initial
 environment. If you're using a different output, such as {ls}, see
-{heartbeat-ref}//heartbeat-template.html#load-template-manually[Load the index template manually].
+{heartbeat-ref}/heartbeat-template.html#load-template-manually[Load the index template manually].
 =====
 
 [[start-heartbeat]]
 == Step 5: Start {beatname_uc}
 
 Before starting {beatname_uc}, modify the user credentials in
-+{beatname_lc}.yml+ and specify a user who is
+`heartbeat.yml` and specify a user who is
 {heartbeat-ref}/privileges-to-publish-events.html[authorized to publish events].
 
 To start {beatname_uc}, run:
@@ -168,3 +162,4 @@ include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
 
 :!beatname_uc: Heartbeat
 :!beatname_lc: heartbeat
+:!beatname_pkg: heartbeat-elastic

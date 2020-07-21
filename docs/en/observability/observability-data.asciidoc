@@ -1,21 +1,46 @@
 [[add-observability-data]]
 = Send data to {es}
 
-Now that you have provisioned your first deployment of your Elasticsearch cluster, 
+Now that you have provisioned your first deployment of your {es} cluster, 
 you’re ready to ingest your logs, metrics, uptime, and APM data.
 
 To make full use of Elastic Observability, we recommend that you install the observability 
 products in the following order:
 
 1. Install and configure {filebeat} on your servers to collect log events.
++
+{filebeat} allows you ship log data from sources that come
+in the form of files. It monitors the log files or locations that you specify,
+collects log events, and forwards them to {es}. To ease the collection and parsing of
+log formats for common applications such as Apache, MySQL, and Kafka, a number of
+{filebeat-ref}/filebeat-modules.html[modules], also known as
+https://www.elastic.co/integrations?solution=observability[integrations], are available.
 
-2. Install and configure {metricbeat} on your servers to collect metrics from 
-the operating system and from services running on the server.
+2. Install and configure {metricbeat} on your servers to collect and preprocess system 
+and service metrics, such as information about running processes, as well as CPU, memory,
+disk, and network utilization numbers.
++
+{metricbeat} comes with predefined assets for parsing, indexing, and
+visualizing your data. To load these assets, {metricbeat} uses
+{metricbeat-ref}/metricbeat-modules.html[modules], also known as https://www.elastic.co/integrations?solution=observability[integrations],
+to collect metrics from operating systems and services, before sending them to {es}. Each
+integration defines the basic logic for collecting data from specific services, such as
+Redis or MySQL. A module consists of metricsets that fetch and structure the data.
++
+To learn more, see {metricbeat-ref}/how-metricbeat-works.html[How Metricbeat works].
 
 3. Install and configure {heartbeat} on your servers to periodically check the status of your 
 services.
++
+{heartbeat} uses probing to monitor the availability of services and helps 
+verify that you’re meeting your service level agreements for service uptime.
+Unlike most Beats, which you install on edge nodes, you typically install 
+{heartbeat} as part of a monitoring service that runs on a separate machine 
+and possibly even outside of the network where the services that you want to monitor are running.
 
-4. If you have added an APM Server as part of a https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}]
-deployment, configure your APM agents  to send data to your {es} cluster.
-
-
+4. If you have added an APM Server as part of an {ess-trial}[{ess}] deployment, configure your
+APM agents to send data to your {es} cluster.
++
+Elastic APM monitors software services and applications in real time, collects 
+unhandled errors and exceptions, and automatically picks up basic host-level 
+metrics and agent specific metrics.
