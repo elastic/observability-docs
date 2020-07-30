@@ -1,100 +1,107 @@
 [[install-metrics-monitoring]]
 [role="xpack"]
-== Install Metrics
+== Get started
 
-The easiest way to get started with Elastic Logs is by using our hosted {es} Service on Elastic Cloud.
-The {es} Service is available on both AWS and GCP, and automatically configures {es} and {kib}.
+To use the {metrics-app}, you need {es} for storing and searching your data, and {kib}
+for visualizing and managing it.
 
-NOTE: If your data uses nonstandard fields, you may need to modify some default <<configure-metrics-source,configuration settings>>.
-
-[float]
-=== Hosted Elasticsearch Service
-
-Skip installing and managing your own {es} and {kib} instance by using our hosted {es} Service.
-{ess-trial}[Try out the {es} Service for free].
+To ingest data, you can use {metricbeat} installed on each server you want to monitor, or
+third-party collectors that are configured to ship ECS-compliant data. The <<metrics-fields-reference>>
+provides a list of all fields used in the {metrics-app}. 
 
 [float]
-=== Install the stack yourself
+[[before-you-begin-metricbeat]]
+=== Before you begin
 
-If you'd rather install the stack yourself,
-first see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
-
-* <<install-elasticsearch-metrics>>
-* <<install-kibana-metrics>> (version 6.5 or later) with a basic license
-* <<install-beats-for-metrics>> (version 6.5 or later) on each of the systems you want to monitor
-
-[[install-elasticsearch-metrics]]
-=== Step 1: Install Elasticsearch
-
-Install an {es} cluster, start it up, and make sure it's running.
-
-. Verify that your system meets the
-https://www.elastic.co/support/matrix#matrix_jvm[minimum JVM requirements] for {es}.
-. {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[Install Elasticsearch].
-. {stack-gs}/get-started-elastic-stack.html#_make_sure_elasticsearch_is_up_and_running[Make sure elasticsearch is up and running].
-
-[[install-kibana-metrics]]
-=== Step 2: Install Kibana
-
-Install {kib}, start it up, and open up the web interface:
-
-. {stack-gs}/get-started-elastic-stack.html#install-kibana[Install Kibana].
-. {stack-gs}/get-started-elastic-stack.html#_launch_the_kibana_web_interface[Launch the Kibana Web Interface].
-
-[[install-beats-for-metrics]]
-=== Step 3: Set up and run {metricbeat}
-
-To start collecting metrics data, you need to install {metricbeat} and configure the {metricbeat} modules directly from {kib}.
-
-Alternatively, you can install {metricbeat} and configure the {metricbeat} modules yourself.
-
-[float]
-==== Install {metricbeat} from {kib}
+To get started quickly, spin up a deployment of our {ess-product}[hosted {ess}]. The deployment includes
+{es} and {kib}, and is available on AWS, GCP, and Azure. {ess-trial}[Try {ess} for free].
 
 To install {metricbeat} from {kib}, on the machine where you want to collect the data, open a {kib} browser window.
 In the *Observability* section displayed on the home page of {kib}, click *Add metric data*.
 Now follow the instructions for the type of data you want to collect.
-The instructions include how to install and configure {metricbeat}, and enable the appropriate {metricbeat} module for your data.
+The instructions include how to install and configure {metricbeat}, and enable the appropriate {metricbeat} integration for your data.
 
 [role="screenshot"]
 image::images/add-data.png[Add metrics data]
 
-[float]
-==== Install {metricbeat} yourself
-
-If your data source doesn't have a {metricbeat} module, or if you want to install one the old fashioned way, follow the instructions in {metricbeat-ref}/metricbeat-installation-configuration.html[{metricbeat} quick start] and enable modules for the metrics you want to collect.
-
-[float]
-=== Enable {metricbeat} modules
-
-To start collecting metrics data, to enable the appropriate modules in {metricbeat}.
-
-To populate the *Hosts* view with metrics data, enable:
-
-* {metricbeat-ref}/metricbeat-module-system.html[{metricbeat} `system` module] (enabled by default)
-* {metricbeat-ref}/add-host-metadata.html[{metricbeat} `add_host_metadata` processor] (enabled by default)
-* {metricbeat-ref}/add-cloud-metadata.html[{metricbeat} `add_cloud_metadata` processor] (enabled by default)
-
-To populate the *Docker* view with metrics data, enable:
-
-* {metricbeat-ref}/metricbeat-module-docker.html[{metricbeat} `docker` module]
-* {metricbeat-ref}/add-docker-metadata.html[{metricbeat} `add_docker_metadata` processor]
-
-To populate the *Kubernetes* view with metrics data, enable:
-
-* {metricbeat-ref}/metricbeat-module-kubernetes.html[{metricbeat} `kubernetes` module]
-* {metricbeat-ref}/add-kubernetes-metadata.html[{metricbeat} `add_kubernetes_metadata` processor]
+Alternatively, you can install and self manage {stack-gs}/get-started-elastic-stack.html#install-elasticsearch[{es}]
+and {stack-gs}/get-started-elastic-stack.html#install-kibana[{kib}]. First see the
+https://www.elastic.co/support/matrix[Elastic Support Matrix]
+for information about supported operating systems and product compatibility.
 
 [float]
-=== Configure your data sources
+[[download-install-metricbeat]]
+=== Step 1: Download and install {metricbeat}
 
-If your metrics data has nonstandard fields, you may need to modify some configuration settings in {kib}, such as the index pattern used to query the data, and the timestamp field used for sorting.
-To modify configurations, use the <<configure-metrics-source,Settings tab>> tab in the {metrics-app}.
-Alternatively, see {kibana-ref}/infrastructure-ui-settings-kb.html[{metrics} settings] for a complete list of metrics configuration settings.
+Install {metricbeat} as close as possible to the service you want to monitor. For example, if you have four servers with
+MySQL running, it’s recommended that you run {metricbeat} on each server. This allows {metricbeat} to access your service from
+localhost and does not cause any additional network traffic or prevent {metricbeat} from collecting metrics when there are
+network problems. Metrics from multiple {metricbeat} instances will be combined on the Elasticsearch server.
+
+To download and install {metricbeat}, see {metricbeat-ref}/metricbeat-installation-configuration.html#install[Installing {metricbeat}]
+and use the commands that work with your system.
 
 [float]
-=== More about container monitoring
+[[configuring-metricbeat]]
+=== Step 2: Configure {metricbeat}
 
+Now that you have completed the Metricbeat download and installation process, the next step is to configure {metricbeat}.
+
+. Connect to {es} and {kib}.
++
+Connections to {es} and {kib} are required to set up Metricbeat. Set the connection information in `metricbeat.yml`.
+To locate this configuration file, see {metricbeat-ref}/directory-layout.html[Directory layout].
++
+For information on how to connect to the {es} and {kib}, see {metricbeat-ref}/metricbeat-installation-configuration.html#set-connection[Connecting
+to Elastic Stack].
+
+. Enable {metricbeat} integrations.
++
+{metricbeat} uses integrations to collect metrics for populating the {metrics-app} with data. Each integration defines the basic
+logic for collecting data from a specific service, such as Redis or MySQL. An
+integration consists of metricsets that fetch and structure the data. Read
+{metricbeat-ref}/how-metricbeat-works.html[How Metricbeat works] to learn more.
++
+See {metricbeat-ref}/metricbeat-installation-configuration.html#enable-modules[Enabling and configuring metrics collection modules]
+for information on how to identify which integrations are available, how to enable them, and how to
+configure them.
++
+[TIP]
+========= 
 If you're monitoring Docker containers or Kubernetes pods, you can use autodiscovery to automatically change the configuration settings in response to changes in your containers.
 Autodiscovery ensures that even when your container configuration changes, data is still collected.
 To learn how to do this, see {metricbeat-ref}/configuration-autodiscover.html[{metricbeat} autodiscover configuration]
+=========
+
+. Set up assets.
++
+{metricbeat} comes with predefined assets for parsing, indexing, and visualizing your data. For information on how to load these assets, see
+{metricbeat-ref}/metricbeat-installation-configuration.html#setup-assets[Setting up assets].
+
+[float]
+[[starting-metricbeat]]
+=== Step 3: Start {metricbeat}
+
+Before starting {metricbeat}, modify the user credentials in `metricbeat.yml` and specify a user who is {metricbeat-ref}/privileges-to-publish-events.html[authorized to publish events].
+
+To start {metricbeat}, see {metricbeat-ref}/metricbeat-installation-configuration.html#start[Starting {metricbeat}]
+and use the commands that work with your system.
+
+[float]
+[[verify-metricbeat-data]]
+=== Step 4: Verify your data in {kib}
+
+{metricbeat} comes with pre-built {kib} dashboards and UIs for visualizing log data. You loaded the dashboards earlier when you
+ran the `setup` command as part of setting up assets.  The dashboards are provided as examples. We recommend that you {kibana-ref}/dashboard.html[customize them]
+to meet your needs.
+
+For more information, see {metricbeat-ref}/metricbeat-installation-configuration.html#view-data[Viewing your data in {kib}].
+
+[NOTE]
+==========
+If your metrics have custom index patterns, or use non-default fields, you can override the default <<configure-metrics-source,configuration settings>>.
+To modify configurations, use the <<configure-metrics-source,Settings tab>> in the {metrics-app}.
+Alternatively, see {kibana-ref}/infrastructure-ui-settings-kb.html[{metrics} settings] for
+a complete list of metrics configuration settings.
+==========
+
