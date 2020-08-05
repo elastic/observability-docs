@@ -22,6 +22,7 @@ Contact us in the {im-forum}[discuss forum]. Your feedback is very valuable to u
 * <<ingest-manager-app-crashes>>
 * <<agent-enrollment-timeout>>
 * <<es-apikey-failed>>
+* <<agent-hangs-while-unenrolling>>
 
 **Frequently asked questions:**
 
@@ -35,13 +36,10 @@ Contact us in the {im-forum}[discuss forum]. Your feedback is very valuable to u
 
 [discrete]
 [[ingest-manager-not-in-kibana]]
-== The {ingest-manager} app is not listed in the {kib} side navigation
+== {ingest-manager} is not listed in the {kib} side navigation
 
 The {ingest-manager} app is enabled by default. If you are unable to 
 see the app in {kib}, make sure it's enabled.
-
-//TODO: Add platform tabs when the tabbed panel widget is stable (possibly after
-// 7.8)
 
 **To enable {ingest-manager} on {ecloud}:**
 
@@ -108,7 +106,7 @@ server must be able to connect to `https://epr.elastic.co` on port 443.
 
 [discrete]
 [[ingest-manager-app-crashes]]
-== The {ingest-manager} app in {kib} crashes
+== {ingest-manager} in {kib} crashes
 
 To find more about the error, open your browser's development console, navigate
 to the **Network** tab, and refresh the page. One of the requests to the
@@ -121,7 +119,7 @@ us in the {im-forum}[discuss forum].
 == {agent} enrollment fails on the host with `Client.Timeout exceeded` message
 
 {agent} must be able to connect to the {kib} instance to enroll in {fleet}.
-If the Agent is unable to connect, you will see the following failure:
+If the agent is unable to connect, you will see the following failure:
 
 [source,output]
 -----
@@ -159,28 +157,25 @@ xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters"
 ----
 
 [discrete]
+[[agent-hangs-while-unenrolling]]
+== {agent} hangs while unenrolling
+
+When you unenroll an agent, {fleet} waits for acknowledgement from the agent
+before it completes the unenrollment process. If {fleet} doesn't receive
+acknowledgement, the status hangs at `unenrolling.`
+
+If this happens, select **Force unenroll** from the *Actions* menu in {fleet}.
+
+This will invalidate all API keys related to the agent and change the status to
+`inactive` so that the agent no longer appears in {fleet}. 
+
+
+[discrete]
 [[enrolled-agent-not-showing-up]]
 == Why doesn't my enrolled Agent show up in the {ingest-manager} app?
 
 If {agent} was successfully enrolled, but doesn't show up in the {fleet} list,
-it might not be started. You need to start the Agent.
-
-// TODO: This should be single sourced. Update it when we add the tabbed widget
-// (probably after 7.8).
-
-On linux and macOS hosts, run:
-
-[source,shell]
-----
-./elastic-agent run
-----
-
-On Windows hosts, run:
-
-[source,shell]
-----
-elastic-agent.exe run
-----
+it might not be started. You need to <<run-elastic-agent,start {agent}>>.
 
 [discrete]
 [[where-are-the-agent-logs]]
@@ -188,7 +183,7 @@ elastic-agent.exe run
 
 When started successfully, {metricbeat} logs are stored in
 `data/logs/metricbeat` under the folder where {agent} was started. If that log
-path does not exist, the Agent was unable to start {metricbeat}, which is a
+path does not exist, {agent} was unable to start {metricbeat}, which is a
 higher level problem to triage.
 
 [discrete]
@@ -196,7 +191,7 @@ higher level problem to triage.
 == What configuration is the {agent} running?
 
 To find the configuration file, inspect the `elastic-agent.yml` file in the
-folder where you ran {agent}. If you're running the Agent in {fleet} mode, this
+folder where you ran {agent}. If you're running the agent in {fleet} mode, this
 file contains the following citation:
 
 [source,yaml]
@@ -257,7 +252,7 @@ run {agent}.
 [[i-rebooted-my-host]]
 == How do I restart {agent} after rebooting my host?
 
-On Windows, if you used Powershell to install {agent} as a service, the Agent
+On Windows, if you used Powershell to install {agent} as a service, the agent
 should still be running after rebooting the host.
 
 On macOS and Linux, you need to restart {agent} from the command line after
@@ -278,3 +273,6 @@ integration that will allow the Elastic Security app to have a dedicated
 executable running like {beats} to protect the host and respond to detected
 security concerns. Endpoint will be managed by {agent} in the same way that
 {beats} are managed.
+
+// Add Javascript and CSS for tabbed panels
+include::{code-path}.asciidoc[]

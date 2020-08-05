@@ -1,18 +1,21 @@
 [[ingest-management-getting-started]]
 [role="xpack"]
-= Quick start: Send logs and metrics to the {stack}
+= Quick start: Get logs and metrics into the {stack}
 
 :release-state: released
 
 ++++
-<titleabbrev>Quick start: send logs and metrics</titleabbrev>
+<titleabbrev>Quick start</titleabbrev>
 ++++
 
 beta[]
 
-//TODO: Improve intro before GA.
-This guide describes how to use the {ingest-management} capabilities in
-this release to collect data and send it to the {stack}.
+This guide describes how to use the {ingest-management} capabilities in the
+{stack} to:
+
+* Collect logs and metrics from systems and services across your organization
+* Send the data to the {stack}
+* Explore and visualize the data in real-time
 
 For feedback and questions, please contact us in the {im-forum}[discuss forum].
 
@@ -44,20 +47,20 @@ infrastructure, and want to collect logs and metrics from it. To do so:
 . Log in to {kib} and go to **Management > {ingest-manager}**.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-start.png[{ingest-manager} app in {kib}]
+image::images/kibana-ingest-manager-start.png[{ingest-manager} in {kib}]
 
-. In the {ingest-manager} app, click the **Integrations** tab and use the
-search bar to find the Nginx integration.
+. In {ingest-manager}, click the **Integrations** tab and use the search bar to
+find the Nginx integration.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-integrations-nginx.png[{ingest-manager} app showing Nginx integration]
+image::images/kibana-ingest-manager-integrations-nginx.png[{ingest-manager} showing Nginx integration]
 . Click the Nginx integration to see more details about it, and then click
 **Add Nginx**.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-integrations-nginx-overview.png[{ingest-manager} app showing Nginx integration overview]
+image::images/kibana-ingest-manager-integrations-nginx-overview.png[{ingest-manager} showing Nginx integration overview]
 
-. On the **Add Nginx integration** page, click the default Agent configuration
+. On the **Add Nginx integration** page, click the default agent configuration
 to select it, then scroll down to inspect or change the default settings.
 
 . If your logs are not in the default location, click the down arrow next to
@@ -66,7 +69,7 @@ enabled streams and change the **Paths** field.
 . When you're done, click **Save integration**. 
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-integrations-nginx-add-datasource.png[{ingest-manager} app Add data source screen]
+image::images/kibana-ingest-manager-integrations-nginx-add-datasource.png[{ingest-manager} Add data source screen]
 
 . To verify that the integration is installed, click the **Integrations** tab
 and then click **Installed Integrations**.
@@ -76,28 +79,37 @@ that the **System** and **Elastic Endpoint Security** integrations are installed
 by default.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-integrations-list-installed.png[{ingest-manager} app showing installed integrations]
+image::images/kibana-ingest-manager-integrations-list-installed.png[{ingest-manager} showing installed integrations]
 
-. Select the **Configurations** tab, and in the Agent configurations list, click
-the default config.
+. Select the **Configurations** tab, and in the list of agent configurations,
+click **Default config**.
 +
-The newly added Nginx integration should appear on the **Ingegrations** tab.
+The newly added Nginx integration should appear under **Ingegrations**.
 Note that the `system-1` integration has been created by default.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-configurations-default-with-nginx.png[{ingest-manager} app showing default Agent configuration with nginx-1 datasource]
+image::images/kibana-ingest-manager-configurations-default-with-nginx.png[{ingest-manager} showing default agent configuration with nginx-1 datasource]
 
 [discrete]
 [[install-run-elastic-agent]]
 == Step 3: Install and run {agent}
 
+//TODO: Test commands on all platforms (only tested macOS so far)
+
 include::{beats-repo-dir}/x-pack/elastic-agent/docs/elastic-agent.asciidoc[tag=agent-install-intro]
 
 include::{beats-repo-dir}/x-pack/elastic-agent/docs/install-elastic-agent.asciidoc[tag=install-elastic-agent]
 
-To configure {agent}, you can use the {ingest-manager} app in {kib} (see
-<<agent-fleet-mode,{fleet} mode>>), or configure it manually (see
-<<agent-standalone-mode, Standalone mode>>).
+See the https://www.elastic.co/downloads/elastic-agent[download page] for other
+installation options.
+
+After the download is complete, decide which mode you want to run in: {fleet}
+or standalone. What's the difference?
+
+* With <<agent-fleet-mode,_{fleet} mode_>>, you use {ingest-manager} in {kib} to
+define and manage {agent} configurations from a central location.
+* With <<agent-standalone-mode,_standalone mode_>>, you configure {agent}
+manually on the system where the agent is installed.
 
 [discrete]
 [[agent-fleet-mode]]
@@ -105,66 +117,50 @@ To configure {agent}, you can use the {ingest-manager} app in {kib} (see
 
 To use {fleet} to configure {agent}:
 
-//REVIEWERS: I'm leaving the installation steps in this flow earlier because
-//I don't the instructions on the download page are not complete wrt platforms.
-//This section will be a little awkward until we get that fixed.
-
-. Enable {fleet} in the {ingest-manager} app. To do so, click the **{fleet}**
-tab and click **Create user and enable Fleet**.
+. Enable {fleet} in {ingest-manager}. To do so, click the **{fleet}**
+tab and click **Create user and enable {fleet}**.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-fleet-enable.png[{ingest-manager} app showing prompt to enable {fleet}]
+image::images/kibana-ingest-manager-fleet-enable.png[{ingest-manager} showing prompt to enable {fleet}]
 
-. On the **Fleet** tab, click **Add agent** and complete the steps under
-**Enroll with Fleet**. Skip the first step because you downloaded the Agent earlier.
+. On the **{fleet}** tab, click **Add agent** and complete the steps under
+**Enroll with {fleet}**. Skip the first step because you downloaded {agent}
+earlier.
 
-. Select an Agent configuration (or accept the default).
+. Select an agent configuration (or accept the default).
 
-. Copy the command for enrolling the Agent.
+. Copy the command for enrolling the agent.
 +
 The copied command contains your {kib} URL and an enrollment key that was
-generated by the {ingest-manager} app.
+generated by {ingest-manager}.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-fleet-enrol.png[{ingest-manager} app showing Agent enrollment dialog]
+image::images/kibana-ingest-manager-fleet-enrol.png[{ingest-manager} showing agent enrollment dialog]
 
-. In the directory where you installed {agent}, run the copied command to
-enroll the Agent. Note that this command will overwrite the `elastic-agent.yml`
-file in that directory.
+. In the directory where you installed {agent}, run the command you copied. Note
+that this command will overwrite the `elastic-agent.yml` file in that directory.
 +
-["source","sh",subs="attributes"]
-----
-./elastic-agent enroll KIBANA_URL ENROLLMENT_KEY
+--
+include::{beats-repo-dir}/x-pack/elastic-agent/docs/tab-widgets/enroll-widget.asciidoc[]
+--
 
-This will replace your current settings. Do you want to continue? [Y/n]:
-----
-
-. Run the Agent:
+. Run {agent}:
 +
 --
 // tag::run-agent[]
-[source,shell]
-----
-./elastic-agent run <1>
-----
-<1> On Windows, you must run {agent} under the SYSTEM account if you plan
-to use the {elastic-endpoint} integration.
+include::{beats-repo-dir}/x-pack/elastic-agent/docs/tab-widgets/run-widget.asciidoc[]
 // end::run-agent[]
 --
 
-. In the {ingest-manager} app, click **Continue** to go to the **{fleet}**
-tab, where you should see the newly enrolled Agent.
+. In {ingest-manager}, click **Continue** to go to the **{fleet}**
+tab, where you should see the newly enrolled agent.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-fleet-agents.png[{ingest-manager} app showing enrolled Agents]
+image::images/kibana-ingest-manager-fleet-agents.png[{ingest-manager} showing enrolled agents]
 
 If you run into problems, see <<ingest-management-troubleshooting>>.
 
-TIP: To unenroll an Agent, choose **Unenroll** from the **Actions**
-menu for the Agent. This will invalidate the API key the Agent uses to
-connect to {es}. The {agent} will continue to run, but will not be able to send
-data. It will show this error instead:
-`invalid api key to authenticate with fleet`.
+TIP: To unenroll an agent, see <<unenroll-elastic-agent>>.
 
 [discrete]
 [[agent-standalone-mode]]
@@ -172,19 +168,19 @@ data. It will show this error instead:
 
 To configure {agent} manually:
 
-. On the **Fleet** tab, click **Add agent** and complete the steps under
-**Standalone mode**. Skip the first step because you downloaded the Agent
+. On the **{fleet}** tab, click **Add agent** and complete the steps under
+**Standalone mode**. Skip the first step because you downloaded {agent}
 earlier.
 
-. Select an Agent configuration (or accept the default).
+. Select an agent configuration (or accept the default).
 
 . Copy the content of the agent configuration and put it into a file named
 `elastic-agent.yml` on the system where {agent} is installed.
 +
 [role="screenshot"]
-image::images/kibana-ingest-manager-configurations-default-yaml.png[{ingest-manager} app showing default Agent configuration in YAML format]
+image::images/kibana-ingest-manager-configurations-default-yaml.png[{ingest-manager} showing default agent configuration in YAML format]
 +
-NOTE: The configuration file generated by the {ingest-manager} app already
+NOTE: The configuration file generated by {ingest-manager} already
 contains the correct {es} address and port for your setup. If you run everything
 locally, the address is `127.0.0.1:9200`. If you use our
 https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}] on
@@ -220,22 +216,22 @@ include::getting-started.asciidoc[tag=run-agent]
 [[view-data]]
 == Step 4: View your data
 
-In the {ingest-manager} app, click the **Datasets** tab to inspect the data
-that is sent by the Agent. From the **Actions** column, you can navigate to the
+In {ingest-manager}, click the **Datasets** tab to inspect the data
+that is sent by {agent}. From the **Actions** column, you can navigate to the
 dashboards corresponding to the data type that is sent.
 
 [role="screenshot"]
-image::images/kibana-ingest-manager-datastreams.png[{ingest-manager} app showing data streams list]
+image::images/kibana-ingest-manager-datastreams.png[{ingest-manager} showing data streams list]
 
 //Adding this section for future use. Might be premature to add this for the
 //beta release.
 
-//[discrete]
-//== What's next?
+[discrete]
+== What's next?
 
-//Now that you have your logs streaming into {es}, learn how to unify your logs,
-//metrics, uptime, and application performance data. Use the Observability apps in
-//{kib} to search across all your data.
+Now that you have your logs streaming into {es}, learn how to unify your logs,
+metrics, uptime, and application performance data by using
+https://www.elastic.co/observability[Elastic {observability}]. 
 
 // Add Javascript and CSS for tabbed panels
-include::tab-widgets/code.asciidoc[]
+include::{code-path}.asciidoc[]
