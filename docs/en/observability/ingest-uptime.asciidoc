@@ -1,0 +1,168 @@
+[chapter, role="xpack"]
+[[ingest-uptime]]
+
+:beatname_uc: Heartbeat
+:beatname_lc: heartbeat
+:beatname_pkg: heartbeat-elastic
+:beatname_url: {beats-ref-root}/{beatname_lc}/{branch}
+
+[[ingest-uptime]]
+= Ingest uptime data
+
+[NOTE]
+=====
+If you haven't already, you need to install {es} for storing and searching your data, and {kib} for visualizing and
+managing it. For more information, see <<install-observability,Get started>>.
+=====
+
+[[install-heartbeat]]
+== Step 1: Install {beatname_uc}
+
+You typically install {heartbeat} as part of a monitoring service that runs on a separate machine 
+and possibly even outside of the network where the services that you want to monitor are running.
+
+To download and install {beatname_uc}, use the commands that work with your system:
+
+include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
+
+[[other-heartbeat-installations]]
+=== Other installation options
+
+* {heartbeat-ref}/running-on-docker.html[Docker]
+* {heartbeat-ref}/setup-repositories.html[APT or YUM]
+* https://www.elastic.co/downloads/beats/heartbeat[Download page]
+
+[[uptime-connect-to-stack]]
+== Step 2: Connect to {es} and {kib}
+
+Connections to {es} and {kib} are required to set up {beatname_uc}.
+
+Set the connection information in `heartbeat.yml`. To locate this configuration file,
+see {heartbeat-ref}/directory-layout.html[Directory layout].
+
+include::{beats-repo-dir}/tab-widgets/set-connection-widget.asciidoc[]
+
+[NOTE]
+=====
+
+You can send data to other {heartbeat-ref}/configuring-output.html[outputs], such as Logstash, 
+but that requires additional configuration and setup.
+
+=====
+
+To learn more about required roles and privileges, see {heartbeat-ref}/feature-roles.html[Grant users access to secured resources].
+
+[[heartbeat-configuration]]
+== Step 3: Configure {beatname_uc} monitors
+
+{beatname_uc} provides monitors to check the status of hosts at set intervals.
+{beatname_uc} currently provides monitors for ICMP, TCP, and HTTP (see
+{heartbeat-ref}/heartbeat-overview.html[{beatname_uc} overview] for more about these monitors). 
+
+You configure each monitor individually. In `heartbeat.yml`, specify the
+list of monitors that you want to enable. Each item in the list begins with a
+dash (-). The following example configures {beatname_uc} to use two monitors, an
+`icmp` monitor and a `tcp` monitor:
+
+[source,yaml]
+----------------------------------------------------------------------
+heartbeat.monitors:
+- type: icmp
+  schedule: '*/5 * * * * * *' <1>
+  hosts: ["myhost"]
+- type: tcp
+  schedule: '@every 5s' <2>
+  hosts: ["myhost:12345"]
+  mode: any <3>
+----------------------------------------------------------------------
+<1> The `icmp` monitor is scheduled to run exactly every 5 seconds (10:00:00,
+10:00:05, and so on). The `schedule` option uses a cron-like syntax based on
+https://github.com/gorhill/cronexpr#implementation[this `cronexpr` implementation].
+<2> The `tcp` monitor is set to run every 5 seconds from the time when {beatname_uc}
+was started. {beatname_uc} adds the `@every` keyword to the syntax provided by the
+`cronexpr` package.
+<3> The `mode` specifies whether to ping one IP (`any`) or all resolvable IPs
+(`all`).
+
+[TIP]
+=====
+
+To test your configuration file, change to the directory where the {beatname_uc} binary 
+is installed, and run {beatname_uc} in the foreground with the following options specified: 
+`./heartbeat test config -e`. Make sure your config files are in the path expected by 
+{beatname_uc} (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the 
+`-c` flag to specify the path to the config file.
+=====
+
+For more information about configuring {beatname_uc}, also see:
+
+* {heartbeat-ref}/configuring-howto-heartbeat.html[Configure {beatname_uc}]
+* {beats-ref}/config-file-format.html[Config file format]
+* {heartbeat-ref}/heartbeat-reference-yml.html[`heartbeat.reference.yml`]: This 
+reference configuration file shows all non-deprecated options. You’ll find it in the same location as `heartbeat.yml`.
+
+[[set-heartbeat-assets]]
+== Step 4: Set up assets
+
+{beatname_uc} comes with predefined assets for parsing, indexing, and
+visualizing your data. To load these assets:
+
+. Make sure the user specified in `heartbeat.yml` is
+{heartbeat-ref}/privileges-to-setup-beats.html[authorized to set up {beatname_uc}].
+
+. From the installation directory, run:
++
+--
+include::{beats-repo-dir}/tab-widgets/setup-widget.asciidoc[]
+--
++
+`-e` is optional and sends output to standard error instead of the configured log output.
+
+This step loads the recommended {ref}/indices-templates.html[index template] for writing to {es}.
+It does not install {beatname_uc} dashboards. {beatname_uc} dashboards and 
+installation steps are available in the
+https://github.com/elastic/uptime-contrib[uptime-contrib] GitHub repository.
+
+[TIP]
+=====
+A connection to {es} (or {ess}) is required to set up the initial
+environment. If you're using a different output, such as {ls}, see
+{heartbeat-ref}/heartbeat-template.html#load-template-manually[Load the index template manually].
+=====
+
+[[start-heartbeat]]
+== Step 5: Start {beatname_uc}
+
+Before starting {beatname_uc}, modify the user credentials in
+`heartbeat.yml` and specify a user who is
+{heartbeat-ref}/privileges-to-publish-events.html[authorized to publish events].
+
+To start {beatname_uc}, run:
+
+// tag::start-step[]
+:requires-sudo:
+include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
+:requires-sudo!:
+// end::start-step[]
+
+{beatname_uc} is now ready to check the status of your services and send events to your defined output.
+
+[[view-uptime-kibana]]
+== Step 6: View your data in {kib}
+
+To view the <<observability-ui,Observability Overview>> page:
+
+. Launch {kib}:
++
+--
+include::{beats-repo-dir}/tab-widgets/open-kibana-widget.asciidoc[]
+--
+
+. In the side navigation, select *Observability*, and click *Overview*. 
+
+// Add Javascript and CSS for tabbed panels
+include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
+
+:!beatname_uc:
+:!beatname_lc:
+:!beatname_pkg:
