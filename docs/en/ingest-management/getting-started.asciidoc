@@ -21,7 +21,7 @@ Before you begin, please read <<ingest-management-limitations>>.
 
 To use this **beta** release of {ingest-management}, you need:
 
-* An {es} cluster and {kib} (version 7.8) with a basic license.
+* An {es} cluster and {kib} (version 7.9) with a basic license.
 You can use our https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}]
 on {ecloud}, or {stack-gs}/get-started-elastic-stack.html[install the {stack} on
 your own hardware].
@@ -53,40 +53,8 @@ at least 32 characters. For example:
 requires this setting in order to save API keys and encrypt them in {kib}.
 
 [discrete]
-[[enable-ingest-management]]
-== Step 1: Enable {ingest-management}
-
-To enable {ingest-management}:
-
-. Add the following setting to the {kib} configuration:
-+
-[source,yaml]
-----
-xpack.ingestManager.enabled: true
-----
-+
-* On our
-https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}] on
-{ecloud}, add the setting to the {kib} user settings as described in 
-{cloud}/ec-manage-kibana-settings.html[Add {kib} user settings].
-* On a self-managed stack, add the setting to the {kib} configuration as
-described in
-{kibana-ref}/ingest-manager-settings-kb.html[{ingest-manager} settings].
-
-. Verify that {ingest-management} has been correctly enabled:
-.. Log in to {kib} and go to **Management > {ingest-manager}**.
-+
-If the menu entry is visible, and you see the following start page
-for {ingest-manager}, {ingest-management} is successfully enabled.
-+
-[role="screenshot"]
-image::images/kibana-ingest-manager-start.png[{ingest-manager} app in {kib}]
-
-//TODO: Add tabbed panel when the code is stable.
-
-[discrete]
-[[install-integration]]
-== Step 2: Install an integration and create a data source
+[[add-integration]]
+== Step 1: Add an integration
 
 {ingest-manager} provides _integrations_ that bundle various assets needed to
 ingest and visualize data.
@@ -100,18 +68,18 @@ search bar to find the Nginx integration.
 [role="screenshot"]
 image::images/kibana-ingest-manager-integrations-nginx.png[{ingest-manager} app showing Nginx Integration]
 . Click the Nginx integration to see more details about it, and then click
-**Create data source**.
+**Add Nginx**.
 +
 [role="screenshot"]
 image::images/kibana-ingest-manager-integrations-nginx-overview.png[{ingest-manager} app showing Nginx Integration overview]
 
-. On the **Add data source** page, click the default Agent configuration
+. On the **Add integration** page, click the default Agent configuration
 to select it, then scroll down to inspect or change the default settings.
 
 . If your logs are not in the default location, click the down arrow next to
 enabled streams and change the **Paths** field. 
 
-. When you're done, click **Save data source**. 
+. When you're done, click **Save integration**. 
 +
 [role="screenshot"]
 image::images/kibana-ingest-manager-integrations-nginx-add-datasource.png[{ingest-manager} app Add data source screen]
@@ -120,8 +88,7 @@ image::images/kibana-ingest-manager-integrations-nginx-add-datasource.png[{inges
 and then click **Installed Integrations**.
 +
 The Nginx integration has been installed and should show up in this list. Note
-that the **System** and **Elastic Endpoint** integrations are installed by
-default.
+that the **System** integration is installed by default.
 +
 [role="screenshot"]
 image::images/kibana-ingest-manager-integrations-list-installed.png[{ingest-manager} app showing installed integrations]
@@ -129,15 +96,15 @@ image::images/kibana-ingest-manager-integrations-list-installed.png[{ingest-mana
 . Select the **Configurations** tab, and in the Agent configurations list, click
 the default config.
 +
-The newly created data source should appear on the **Data sources** tab.
-Note that the `system-1` data source has been created by default.
+The newly created integration configuration should appear on the **Integrations** tab.
+Note that the `system-1` integration configuration has been created by default.
 +
 [role="screenshot"]
 image::images/kibana-ingest-manager-configurations-default-with-nginx.png[{ingest-manager} app showing default Agent configuration with nginx-1 datasource]
 
 [discrete]
 [[install-run-elastic-agent]]
-== Step 3: Install and run {agent}
+== Step 2: Install and run {agent}
 
 include::{beats-repo-dir}/x-pack/elastic-agent/docs/elastic-agent.asciidoc[tag=agent-install-intro]
 
@@ -257,7 +224,7 @@ include::getting-started.asciidoc[tag=run-agent]
 
 [discrete]
 [[view-data]]
-== Step 4: View your data
+== Step 3: View your data
 
 In the {ingest-manager} app, click the **Data streams** tab to inspect the data
 that is sent by the Agent. From the **Actions** column, you can navigate to the
