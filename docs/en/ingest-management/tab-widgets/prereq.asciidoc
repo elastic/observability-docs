@@ -1,0 +1,40 @@
+// tag::cloud[]
+* Access to a deployment of our https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}]
+on {ecloud}. The {ess} is available on AWS, GCP, and Azure. {ess-trial}[Try it out for free].
+
+* User with the superuser role. See {ref}/built-in-roles.html[Built-in roles].
+// end::cloud[]
+
+// tag::self-managed[]
+
+//REVIEWERS: Removed details here because I feel that we should direct users
+//to the actual security docs instead of showing settings. The problem with
+//showing settings here is that we might inadvertently encourage users to set up
+//an environment that's less secure.
+
+* Access to an {es} cluster and {kib} (version {minor-version}) with a basic
+license. {stack-gs}/get-started-elastic-stack.html[Learn how to install the
+{stack} on your own hardware].
+
+* Secure, encrypted connection between {kib} and {es}. See:
+** {ref}/configuring-security.html[Configuring security in {es}]
+** {kibana-ref}/using-kibana-with-security.html[Configuring security in {kib}]
+** {kibana-ref}/configuring-tls.html[Encrypt communications in {kib}]
++
+TIP: You can disable the TLS check by setting
+`xpack.ingestManager.fleet.tlsCheckDisabled: true` in the {kib}
+configuration. For example, you might want to do this if {kib} is
+behind a proxy that terminates the SSL connection.
+
+* User with the superuser role. See {ref}/built-in-roles.html[Built-in roles].
+
+* In the {es} configuration, the
+{ref}/security-settings.html#api-key-service-settings[built-in API key
+service] must be enabled.
+(`xpack.security.authc.api_key.enabled: true`)
+
+* In the {kib} configuration, the saved objects encryption key
+(`xpack.encryptedSavedObjects.encryptionKey`) must be set to any alphanumeric
+value of at least 32 characters. {fleet} requires this setting in order to save
+API keys and encrypt them in {kib}.
+// end::self-managed[]
