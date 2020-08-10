@@ -22,6 +22,7 @@ Contact us in the {im-forum}[discuss forum]. Your feedback is very valuable to u
 * <<ingest-manager-app-crashes>>
 * <<agent-enrollment-timeout>>
 * <<es-apikey-failed>>
+* <<process-not-root>>
 * <<agent-hangs-while-unenrolling>>
 
 **Frequently asked questions:**
@@ -155,6 +156,36 @@ property in the `kibana.yml` configuration file. For example:
 ----
 xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters"
 ----
+
+[discrete]
+[[process-not-root]]
+== {agent} fails with `Agent process is not root/admin or validation failed` message
+
+Make sure the user running {agent} has root privileges. If you're running
+{agent} in the foreground (and not as a service) on Linux or macOS, run the
+agent under the root user, for example, `sudo` or `su`. Some integrations
+require root privileges to collect sensitive data.
+
+If you're using the {elastic-endpoint} integration, also make sure you're
+running {agent} under the SYSTEM account.
+
+TIP: If you install {agent} as a service as described in
+<<elastic-agent-installation>>, {agent} runs under the SYSTEM account by
+default.
+
+To run {agent} under the SYSTEM account, you can:
+
+. Download https://docs.microsoft.com/en-us/sysinternals/downloads/psexec[PsExec]
+and extract the contents to a folder, for example, `d:\tools`.
+. Open a command prompt as an Administrator (right-click the Command Prompt
+icon and select *Run As Administrator*).
+. From the command prompt, run {agent} under the SYSTEM account:
++
+[source,sh]
+----
+d:\tools\psexec.exe -sid "C:\Program Files\Elastic-Agent\elastic-agent.exe" run
+----
+
 
 [discrete]
 [[agent-hangs-while-unenrolling]]
