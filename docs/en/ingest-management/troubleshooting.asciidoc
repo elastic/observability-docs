@@ -161,10 +161,17 @@ xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters"
 [[process-not-root]]
 == {agent} fails with `Agent process is not root/admin or validation failed` message
 
-Make sure the user has administrator-level privileges.
+Make sure the user running {agent} has root privileges. If you're running
+{agent} in the foreground (and not as a service) on Linux or macOS, run the
+agent under the root user, for example, `sudo` or `su`. Some integrations
+require root privileges to collect sensitive data.
 
 If you're using the {elastic-endpoint} integration, also make sure you're
 running {agent} under the SYSTEM account.
+
+TIP: If you install {agent} as a service as described in
+<<elastic-agent-installation>>, {agent} runs under the SYSTEM account by
+default.
 
 To run {agent} under the SYSTEM account, you can:
 
@@ -179,10 +186,6 @@ icon and select *Run As Administrator*).
 d:\tools\psexec.exe -sid "C:\Program Files\Elastic-Agent\elastic-agent.exe" run
 ----
 
-
-TIP: If you install {agent} as a service as described in
-<<elastic-agent-installation>>, the Agent runs under the SYSTEM account by
-default.
 
 [discrete]
 [[agent-hangs-while-unenrolling]]
