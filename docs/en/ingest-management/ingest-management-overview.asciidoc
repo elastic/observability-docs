@@ -2,15 +2,15 @@
 [role="xpack"]
 = Ingest management overview
 
-experimental[]
+beta[]
 
 [discrete]
 [[elastic-agent]]
 == {agent}
 
 {agent} is a single, unified way to add monitoring for logs, metrics, and
-other types of data to each host. A single Agent makes it easier and faster
-to deploy monitoring across your infrastructure. The Agent's single, unified
+other types of data to each host. A single agent makes it easier and faster
+to deploy monitoring across your infrastructure. The agent's single, unified
 configuration makes it easier to add integrations for new data sources.
 
 [discrete]
@@ -36,16 +36,16 @@ data sources. This includes popular services and platforms like Nginx or AWS,
 as well as many generic input types like log files.
 
 The {agent} configuration allows you to use any number of integrations for
-data sources. You can apply the {agent} configuration to multiple Agents,
+data sources. You can apply the {agent} configuration to multiple agents,
 making it even easier to manage configuration at scale.
 
 [role="screenshot"]
-image::images/data-source.png[Configuring a data source]
+image::images/add-integration.png[Add integration page]
 
-You define a data source by supplying a name and description. Then you
+When you add an integration, you select the agent configuration to use then
 configure inputs for logs and metrics, such as the path to your Nginx access
-logs. When you're done, you save the data source to update the {agent}
-configuration. The next time enrolled Agents check in, they receive the update.
+logs. When you're done, you save the integration to update the {agent}
+configuration. The next time enrolled agents check in, they receive the update.
 Having the configurations automatically deployed is more convenient
 than doing it yourself by using SSH, Ansible playbooks, or some other tool.
 
@@ -59,17 +59,19 @@ other systems.
 == Central management in {fleet}
 
 You can see the state of all your {agent}s on the {fleet} page. Here you can see
-which Agents are online, which have errors, and the last time they checked in.
+which agents are online, which have errors, and the last time they checked in.
 You can also see the version of the {agent} binary and configuration. 
+
+//TODO: Replace this screen after testing (to show a number of agents).
 
 [role="screenshot"]
 image::images/fleet.png[{fleet} page]
 
 {fleet} serves as the communication channel back to the {agent}s. Agents check
-in for the latest updates on a regular basis. You can have any number of Agents
-enrolled into each Agent configuration, which allows you to scale up to
-thousands of hosts. When you make a change to an Agent configuration, all the
-Agents receive the update during their next check-in. You no longer have to
+in for the latest updates on a regular basis. You can have any number of agents
+enrolled into each agent configuration, which allows you to scale up to
+thousands of hosts. When you make a change to an agent configuration, all the
+agents receive the update during their next check-in. You no longer have to
 distribute configuration updates yourself using SSH, Ansible playbooks, or other
 configuration methods.
 
@@ -80,14 +82,13 @@ configuration methods.
 The data collected by {agent} is stored in indices that are more granular than
 you’d get by default with {filebeat}. This gives you more visibility into the
 sources of data volume, and control over lifecycle management policies and index
-permissions. These indices are called _data streams_. We will have more
-improvements on this concept in future releases.
+permissions. These indices are called _data streams_. 
 
 As you can see in the following screen, each data stream (or index) is broken
 out by dataset, type, and namespace. 
 
 [role="screenshot"]
-image::images/data-streams.png[Data streams page]
+image::images/datasets.png[Datasets page]
 
 The _dataset_ is defined by the integration and describes the fields and other
 settings for each index. For example, you might have one dataset for process
