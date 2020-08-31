@@ -1,0 +1,118 @@
+[id="ingest-management-faq",titleabbrev="FAQ"]
+[role="xpack"]
+= Frequently asked questions
+
+beta[]
+
+We have collected the most frequently asked questions here. If your question
+isn't answered here, contact us in the {im-forum}[discuss forum]. Your feedback
+is very valuable to us.
+
+Also read <<ingest-management-troubleshooting>>.
+
+[discrete]
+[[enrolled-agent-not-showing-up]]
+== Why doesn't my enrolled Agent show up in the {ingest-manager} app?
+
+If {agent} was successfully enrolled, but doesn't show up in the {fleet} list,
+it might not be started. You need to <<run-elastic-agent,start {agent}>>.
+
+[discrete]
+[[where-are-the-agent-logs]]
+== Where does {agent} store logs after startup?
+
+When started successfully, {metricbeat} logs are stored in
+`data/logs/metricbeat` under the folder where {agent} was started. If that log
+path does not exist, {agent} was unable to start {metricbeat}, which is a
+higher level problem to triage.
+
+[discrete]
+[[what-is-my-agent-config]]
+== What configuration is the {agent} running?
+
+To find the configuration file, inspect the `elastic-agent.yml` file in the
+folder where you ran {agent}. If you're running the agent in {fleet} mode, this
+file contains the following citation:
+
+[source,yaml]
+----
+Management: mode: "fleet"
+----
+
+The `action_store.yml` contains the entire, unencrypted configuration:
+
+* To see the {es} location, look at `outputs:hosts`.
+* To see the {agent} version, look at the download folder and zip filenames.
+
+This file also shows the version of all packages used by the current
+configuration.
+
+[discrete]
+[[where-is-the-data-agent-is-sending]]
+== Why can't I see the data {agent} is sending?
+
+If {elastic-agent} is set up and running, but you don't see data in {kib}:
+
+
+
+. Go to **Management > Dev Tools** in {kib}, and in the Console, search your
+index for data. For example:
++
+[source,console]
+----
+GET metrics-*/_search
+----
++
+Or if you prefer, go to the **Discover** app.
+
+. Look at the data that {elastic-agent} has sent and see if the `name.host`
+field contains your host machine name.
+
+If you don't see data for your host, it's possible that the data is blocked
+in the network, or that a firewall or security problem is preventing the {agent}
+from sending the data.
+
+Although it's redundant to install stand-alone {metricbeat}, you might want to
+try installing it to see if it's able to send data successfully to {es}. For
+more information, see
+{metricbeat-ref}/metricbeat-installation-configuration.html[{metricbeat} quick start].
+
+If {metricbeat} is able to send data to {es}, there is possibly a bug or
+problem with {agent}, and you should report it.
+
+[discrete]
+[[i-deleted-my-agent]]
+== How do I restore an {agent} that I deleted from {fleet}?
+
+It's ok, we've got your back! The data is still in {es}. To add {agent}
+to {fleet} again, <<stop-elastic-agent>>, re-enroll it on the host, then
+run {agent}.
+
+[discrete]
+[[i-rebooted-my-host]]
+== How do I restart {agent} after rebooting my host?
+
+On Windows, if you used PowerShell to install {agent} as a service, the agent
+should still be running after rebooting the host.
+
+On Linux, if you used the DEB or RPM packages, the agent should still be running
+after rebooting the host. 
+
+On macOS, you need to restart {agent} from the command line after
+rebooting the host, or follow the steps described in
+<<elastic-agent-install-service-macos>> to run the agent as a service. 
+
+Support for installing {agent} as a service on all supported systems will be
+available in a future release.
+
+[discrete]
+[[what-is-the-endpoint-package]]
+== What is the Elastic {endpoint-sec} integration in {ingest-manager}?
+
+The Elastic {endpoint-sec} integration provides protection on your {agent}
+controlled host. The integration monitors your host for security-related events,
+allowing for investigation of security data through the Elastic Security
+application in {kib}. The Elastic {endpoint-sec} integration is managed by
+{agent} in in the same way as other integrations. Try it out! For more
+information, see the {security-guide}/index.html[Elastic Security solution
+documentation].
