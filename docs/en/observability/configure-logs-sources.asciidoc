@@ -1,0 +1,69 @@
+[[configure-data-sources]]
+= Configure data sources
+
+Specify the source configuration for logs in the
+{kibana-ref}/logs-ui-settings-kb.html[{logs-app} settings] in the
+{kibana-ref}/settings.html[Kibana configuration file].
+By default, the configuration uses the `filebeat-*` index pattern to query the data.
+The configuration also defines field settings for things like timestamps
+and container names, and the default columns displayed in the logs stream.
+
+If your logs have custom index patterns, use non-default field settings, or contain
+parsed fields that you want to expose as individual columns, you can override the
+default configuration settings.
+
+[[edit-config-settings]]
+== Edit configuration settings
+
+[NOTE]
+===============================
+These settings are shared with metrics. Changes you make here may also affect the
+settings used by the {metrics-guide}/configure-metrics-source.html[{metrics-app}].
+===============================
+
+To change the configuration settings, select the *Settings* page, and modify the following values.
+
+|=== 
+
+| *Name* | Name of the source configuration. 
+
+| *Indices* | Index pattern or patterns in the {es} indices to read log data from.
+
+| *Fields* | Names of specific fields in the indices that are used to query and interpret the data correctly.
+
+| *Log columns* | Columns that are displayed in the logs *Stream* page.
+
+|=== 
+
+[[customize-stream-page]]
+== Customize Stream page
+
+[TIP]
+===============================
+If {kibana-ref}/xpack-spaces.html[Spaces] are enabled in your Kibana instance,
+any configuration changes you make here are specific to the current space.
+You can make different subsets of data available by creating multiple spaces
+with other data source configurations.
+===============================
+
+By default, the *Stream* page within the {logs-app} displays the following columns.
+
+|=== 
+
+| *Timestamp* | The timestamp of the log entry from the `timestamp` field. 
+
+| *Message* | The message extracted from the document.
+The content of this field depends on the type of log message.
+If no special log message type is detected, the {ecs-ref}/ecs-base.html[Elastic Common Schema (ECS)]
+base field, `message`, is used.
+
+|=== 
+
+1. To add a new column to the logs stream, in the *Settings* tab, click *Add column*.
+2. In the list of available fields, select the field you want to add.
+To filter the field list by that name, you can start typing a field name in the search box.
+3. To remove an existing column, click the *Remove this column* icon.
+4. When you have completed your changes, click *Apply*.
+
+If the fields are greyed out and cannot be edited, you may not have sufficient privileges
+to modify the source configuration. For more information, see {kibana-ref}/xpack-security-authorization.html[Granting access to Kibana].
