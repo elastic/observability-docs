@@ -1,26 +1,26 @@
 [[monitor-java-app]]
 == Monitor a Java application
 
-In this tutorial, you learn how to monitor a Java application using the Elastic
-Observability apps: Logs, Metrics, APM, and Uptime.
+In this tutorial, you'll learn how to monitor a Java application using Elastic
+Observability: Logs, Metrics, APM, and Uptime.
 
 [discrete]
 === What you'll learn
 
-You will learn how to:
+You'll learn how to:
 
 - Create a sample Java application.
 - Ingest logs using {filebeat} and view your logs in {kib}.
-- Ingest metrics using the https://www.elastic.co/guide/en/beats/metricbeat/current/metricbeat-module-prometheus.html[Metricbeat
+- Ingest metrics using the {metricbeat-ref}/metricbeat-module-prometheus.html[Metricbeat
 Prometheus Module] and view your metrics in {kib}.
-- Instrument your application using the https://www.elastic.co/guide/en/apm/agent/java/current/[Elastic APM
+- Instrument your application using the {apm-java-ref}/index.html[Elastic APM
 Java agent].
 - Monitor your services using {heartbeat} and view your uptime data in {kib}.
 
 [discrete]
 === Before you begin
 
-Create a deployment using our hosted {ess} on https://www.elastic.co/cloud/[Elastic Cloud]. The deployment includes
+Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}]. The deployment includes
 an {es} cluster for storing and searching your data, {kib} for visualizing and managing
 your data, and an APM server. For more information, see <<set-up-on-cloud,Set up on Cloud>>.
 
@@ -98,7 +98,7 @@ public class App {
 . Run `./gradlew assemble`
 +
 This command compiled the `App.class` file in the `build` directory.
-However, there is no way to start the server. Let’s create a jar which
+However, there is no way to start the server. Let’s create a jar that
 contains our compiled class along with all the required dependencies.
 +
 . In the `build.gradle` file, edit `plugins` as shown here.
@@ -133,8 +133,8 @@ jar {
 java -jar build/libs/javalin-app-all.jar
 ----
 +
-Opening another terminal and running
-`curl localhost:7000` displays an HTTP response.
+Open another terminal and run
+`curl localhost:7000` to display an HTTP response.
 +
 . Test the code. Placing everything into the `main()` method makes it difficult to test
 the code. However, a dedicated handler fixes this.
@@ -354,7 +354,7 @@ Before ingesting logs into {ess}, create an ISO8601 timestamp by editing the `lo
 Creating an ISO8601 timestamp removes the need to do any calculation for timestamps when ingesting
 logs, as this is a unique point in time, including the timezone. Having a
 timezone becomes more important once you are running across data centers
-whilst trying to follow data streams.
+while trying to follow data streams.
 =====
 
 [source,text]
@@ -404,7 +404,7 @@ The log entries are ingested containing timestamps like the following.
 
 . To read the log file and send it to {es}, {filebeat} is required. For details, see <<install-filebeat,Install {filebeat}>>.
 +
-. Use the {filebeat} keystore to store https://www.elastic.co/guide/en/beats/filebeat/current/keystore.html[secure
+. Use the {filebeat} keystore to store {filebeat-ref}/keystore.html[secure
 settings].
 +
 Let’s store the cloud id in the keystore.
@@ -462,8 +462,8 @@ To see if both settings have been stored, run `./filebeat keystore list`.
 +
 [TIP]
 =====
-If you prefer not to store credentials in the
-`.history` file of your shell, add a space at the beginning of the line.
+If you prefer not to store credentials in your shell's
+`.history` file, add a space at the beginning of the line.
 Depending on the shell configuration, these commands are not added to
 the history.
 =====
@@ -506,7 +506,7 @@ like https://github.com/wg/wrk[wrk] and run the following command to send reques
 ----
 +
 This command results in roughly 8k requests per
-second, and the equivalent of log lines are also written.
+second, and the equivalent number of log lines are also written.
 
 [discrete]
 == Step 3: View logs in Kibana
@@ -518,8 +518,8 @@ There is a summary of the documents at the top, but let’s take a look at a sin
 image:./images/monitor-java-app-kibana-single-document.png[Kibana single document view]
 +
 You can see that a lot more data is indexed than just the event. There is information about
-the offset in the file, information about the component shipping the logs, the name of the shipper
-in the output, and there is a `message` field which contains log line contents.
+the offset in the file, information about the component shipping the logs, the name of the shipper's
+name in the output, and there is a `message` field containing log line contents.
 +
 You can see there is a flaw in the request logging. If the user agent is `null`,
 something other than `null` is returned. Reading our logs is
@@ -569,11 +569,9 @@ GET filebeat-*/_search
 Things to note:
 
 * When you compare the `@timestamp` field with the timestamp of the log message, you will
-notice that it differs. This means that when filtering based on the
-`@timestamp` field, you do not get the results you expect. The current
-`@timestamp` field reflects the timestamp of when the event was created within
-{filebeat}, not the timestamp of when the log event occurred in the
-application.
+notice that it differs. This means that you don't get the results you expect when filtering based on the
+`@timestamp` field. The current `@timestamp` field reflects the timestamp when the event was created within
+{filebeat}, not the timestamp of when the log event occurred in the application.
 * The log level cannot be filtered, and the same applies to the class name.
 
 [discrete]
@@ -593,11 +591,10 @@ This message has four parts: `timestamp`, `log level`, `class`, and `message`. T
 rules of splitting are apparent as well, as most of them involve
 white space.
 
-The good news is that all Beats have capabilities to process a logline before
-sending it to {es} by using https://www.elastic.co/guide/en/beats/filebeat/current/filtering-and-enhancing-data.html[processors].
+The good news is that all {beats} can process a logline before
+sending it to {es} by using {filebeat-ref}/filtering-and-enhancing-data.html[processors].
 If the capabilities of these processors are not enough, you can always let {es} do the heavy lifting by using
-https://www.elastic.co/guide/en/elasticsearch/reference/7.8/ingest.html[an
-ingest node]. This is what many modules in {filebeat} do. A module in {filebeat}
+{ref}/ingest.html[an ingest node]. This is what many modules in {filebeat} do. A module in {filebeat}
 is a way to parse a specific log file format for a particular software.
 
 Let’s try this by using a couple of processors and only a {filebeat}
@@ -659,9 +656,9 @@ Fixing the timestamp parsing is another way, as you do not always have
 full control over your logs and change their format. Imagine using some
 third-party software. For now, this will be good enough.
 
-Restart {filebeat} after the change, and have a look what
-changed in an indexed JSON document by running this search (and of
-course having another log message indexed).
+Restart {filebeat} after the change, and look at what
+changed in an indexed JSON document by running this search (and having
+another log message indexed).
 
 [source,console]
 ----
@@ -743,9 +740,9 @@ message. Also, there is a `log.level` and `log.logger` field.
 
 When the log level is `INFO`, it is logged with
 additional space at the end. You could use a
-https://www.elastic.co/guide/en/beats/filebeat/current/processor-script.html[script
+{filebeat-ref}/processor-script.html[script
 processor] and call `trim()`. However, it might be easier to fix our logging
-configuration not always emit 5 characters, regardless of
+configuration to not always emit 5 characters, regardless of
 the log level length. You can still keep this when writing to standard out.
 
 [source,xml]
@@ -758,9 +755,9 @@ the log level length. You can still keep this when writing to standard out.
 [discrete]
 ==== Parse exceptions
 
-Exceptions ware a special treat in the case of logging.
+Exceptions are a special treat in the case of logging.
 They span multiple lines, so the old rule of one message per line does not exist
-in the case of exceptions.
+in exceptions.
 
 Add an endpoint that triggers an exception first and make sure it
 is logged by using an exception mapper.
@@ -796,7 +793,7 @@ java.lang.IllegalArgumentException: not yet implemented
 There is one attribute that helps to parse this stack trace. It seems different
 compared to a regular log message. Each new line starts
 with white space, thus different from a log message beginning with the date.
-Let’s add this logic to our Beats configuration.
+Let’s add this logic to our {beats} configuration.
 
 [source,yaml]
 ----
@@ -819,7 +816,7 @@ prefer to wrap the date in `[]` to make this easier to understand.
 This introduces state into your logging. You cannot split a
 log file among several processors now, as every log line could still be
 belonging to the current event. This is not a bad thing, but again
-something to be aware off.
+something to be aware of.
 =====
 
 After restarting {filebeat} and your Javalin app, trigger an
@@ -872,12 +869,11 @@ the potentially twenty files on disk will be much smaller each.
 ==== Ingest node
 
 The built-in modules are almost entirely using the
-https://www.elastic.co/guide/en/elasticsearch/reference/7.8/ingest.html[Ingest node]
-feature of {es} instead of the Beats processors.
+{ref}/ingest.html[Ingest node]
+feature of {es} instead of the {beats} processors.
 
 One of the most helpful parts of the ingest pipeline is the ability to debug by using
-the https://www.elastic.co/guide/en/elasticsearch/reference/current/simulate-pipeline-api.html[Simulate
-Pipeline API].
+the {ref}/simulate-pipeline-api.html[Simulate Pipeline API].
 
 . Let’s write a pipeline that is similar to our {filebeat} processors.
 +
@@ -922,7 +918,7 @@ POST _ingest/pipeline/javalin_pipeline/_simulate
 }
 ----
 +
-You can see the created fields of the pipeline in the output which now
+You can see the pipeline's created fields in the output, which now
 looks like the earlier {filebeat} processors. As the ingest pipeline
 works on a document level, you still need to check for exceptions where
 the logs are generated and let {filebeat} create a single message out
@@ -931,10 +927,10 @@ processor, and date parsing was also pretty easy, as the {es}
 ISO8601 parser correctly identifies a comma instead of a dot when
 splitting seconds and milliseconds.
 +
-. Now, on to the {filebeat} configuration. First let’s remove all the
+. Now, on to the {filebeat} configuration. First, let’s remove all the
 processors, except the
-https://www.elastic.co/guide/en/beats/filebeat/7.8/add-host-metadata.html[add_host_metadata
-processor] to add some host information like the host name and operating
+{filebeat-ref}/add-host-metadata.html[add_host_metadata
+processor], to add some host information like the host name and operating
 system.
 +
 [source,yaml]
@@ -944,7 +940,7 @@ processors:
 ----
 +
 . Edit the {es} output to ensure the pipeline will be
-referred to when a document is indexed from this Beat.
+referred to when a document is indexed from {filebeat}.
 +
 [source,yaml]
 ----
@@ -954,12 +950,12 @@ output.elasticsearch:
   pipeline: javalin_pipeline
 ----
 +
-. Restart your Beat and see if logs are flowing in as expected.
+. Restart {filebeat} and see if logs are flowing in as expected.
 
 [discrete]
 ==== Write logs as JSON
 
-You have now learned about parsing logs in either Beats or {es}. What if
+You have now learned about parsing logs in either {beats} or {es}. What if
 we didn't need to think about parsing our logs?
 
 Writing out logs as plain text works and is easy to read for humans.
@@ -972,7 +968,7 @@ https://logging.apache.org/log4j/2.x/manual/layouts.html#JSONLayout[JSONLayout],
 you can go further and use a Library called
 https://github.com/elastic/ecs-logging-java[ecs-logging-java]. The advantage of
 ECS logging is that it uses the https://www.elastic.co/guide/en/ecs/current/index.html[Elastic Common
-Schema]. ECS defines a standard set of fields that are used when storing event data in
+Schema]. ECS defines a standard set of fields used when storing event data in
 {es}, such as logs and metrics.
 
 . Instead of writing our logging standard, use an existing one. Let’s add
@@ -1007,9 +1003,9 @@ in the logging setup for the rolling file appender
 </RollingFile>
 ----
 +
-Once you restart your app, you will see pure JSON written to your
-log file. When you are triggering an exception, you will see, that the
-stack trace is within your single document already. This means the
+When you restart your app, you will see pure JSON written to your
+log file. When you trigger an exception, you will see, that the
+stack trace is already within your single document. This means the
 {filebeat} configuration can become stateless and even more lightweight.
 Also, the ingest pipeline on the {es} side can be deleted
 again.
@@ -1046,16 +1042,16 @@ write your logs as JSON.
 [discrete]
 == Step 4: Ingest metrics
 
-A metric is considered a point in time value, that can change anytime. The
+A metric is considered a point in time value that can change anytime. The
 number of current requests can change any millisecond. You could have a
-spike of a 1000 requests, and then everything goes back to one requests. This
+spike of 1000 requests, and then everything goes back to one request. This
 also means that these kinds of metrics may not be accurate, and you also
 want to pull min/max values to get some more indication. Furthermore, this
 implies that you need to think about the duration of those metrics as well.
 Do you need those once per minute or every 10 seconds?
 
 To get a different angled view of your application, let's ingest some metrics. In this example,
-we will use the https://www.elastic.co/guide/en/beats/metricbeat/current/metricbeat-module-prometheus.html[Metricbeat
+we will use the {metricbeat-ref}/metricbeat-module-prometheus.html[Metricbeat
 Prometheus Module] to send data to {es}.
 
 The underlying library used in our app is
@@ -1107,9 +1103,9 @@ app.get("/metrics", ctx -> {
 });
 ----
 +
-The `MicroMeter` class here is a self-written class that sets up a
-couple of metrics monitor, and also creates the registry
-for Prometheus, which in turn provides the text-based Prometheus output.
+Here, the `MicroMeter` class is a self-written class that sets up a
+couple of metrics monitors and creates the registry
+for Prometheus, which provides the text-based Prometheus output.
 +
 [source,java]
 ----
@@ -1178,7 +1174,7 @@ standard Prometheus format.
 For details, see <<install-metricbeat,Install {metricbeat}>>.
 +
 . Similar to the {filebeat} setup, run the initial set up of all the dashboards
-using the admin user, and then use an API key as well.
+using the admin user, and then use an API key.
 +
 [source,console]
 ----
@@ -1308,15 +1304,15 @@ visualization called `Lens`.
 . Create a line chart and select `metricbeat-*` as the source. 
 +
 The basic idea is to have a
-https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-metrics-max-aggregation.html[max
+{ref}/search-aggregations-metrics-max-aggregation.html[max
 aggregation] on the y-axis on the `prometheus.log4j2_events_total.rate`
 field, whereas the x-axis, is split by date using a
-https://www.elastic.co/guide/en/elasticsearch/reference/current/search-aggregations-bucket-datehistogram-aggregation.html[date_histogram
+{ref}/search-aggregations-bucket-datehistogram-aggregation.html[date_histogram
 aggregation] on the `@timestamp` field.
 +
 There is one more split within
 each date histogram bucket, split by log level, using a
-https://www.elastic.co/guide/en/elasticsearch/reference/7.8/search-aggregations-bucket-terms-aggregation.html[terms
+{ref}/search-aggregations-bucket-terms-aggregation.html[terms
 aggregation] on the `prometheus.labels.level`, which contains the log
 level. Also, increase the size of the log level to six to display
 every log level.
@@ -1332,7 +1328,7 @@ the log rate per log level]
 The second visualization is to be a check for the number of open
 files in our application.
 
-As no one can remember all the field names, let’s take a look at the metrics
+As no one can remember all the field names, let’s again look at the metrics
 output again first.
 
 [source,bash]
@@ -1345,9 +1341,9 @@ process_start_time_seconds 1.594048883317E9
 process_files_open_files 61.0
 ----
 
-Let's look at the `process_files_open_files` metric. This should be a rather static value, that rarely changes.
+Let's look at the `process_files_open_files` metric. This should be a rather static value that rarely changes.
 If you run an application which stores data within the JVM or opens and closes network
-sockets, this increases and decreases depending on the load. With a web application,
+sockets, this metric increases and decreases depending on the load. With a web application,
 this is rather static. Let’s figure out why there are 60 files open on our
 small web application.
 
@@ -1401,7 +1397,7 @@ given the processing time.
 +
 Now let’s build a visualization using
 https://www.elastic.co/guide/en/kibana/current/lens.html[Lens], a
-relatively new tool in Kibana which makes it easier to create
+relatively new tool in {kib} which makes it easier to create
 visualizations.
 +
 image:./images/monitor-java-app-metrics-kibana-create-visualization-open-files.png[Lens
@@ -1418,7 +1414,7 @@ stable, but the maximum value of the documents in the buckets. Click on the righ
 the field name on the y-axis and select `Max`. This gives you a similar
 visualization than shown, with a peak where you ran the `wrk` command above.
 +
-. Now let's have a look at the Metrics app in {kib}. Select *Observability* -> *Metrics*.
+. Now let's have a look at the {metrics-app} in {kib}. Select *Observability* -> *Metrics*.
 +
 You will only see data from a single shipper. Still, the moment
 you are running several services and the ability to group this per
@@ -1434,7 +1430,7 @@ Counter]
 +
 This is an area chart of the total events counter the Javalin app emits.
 It’s rising because there is a component
-polling an endpoint that in turn produces another log message. The
+polling an endpoint that, in turn, produces another log message. The
 steeper peek was due to sending more requests. But where is the sudden
 drop-off coming from? A JVM restart. As those metrics are not
 persisted, they reset on a JVM restart. With that in mind, it’s
@@ -1445,14 +1441,14 @@ often better to log the `rate` instead of the `counter` field.
 
 The third piece of Observability is Application Performance Management (APM).
 An APM setup consists of an APM server which accepts the data (and is
-already running within our Elastic Cloud setup) and an agent delivering
+already running within our {ecloud} setup) and an agent delivering
 the data to the server.
 
-The agent has two tasks: instrumenting the java application to
-extract application performance information and sending that data to the APM server.
+The agent has two tasks: instrumenting the Java application to
+extract application performance information and sending that data to the APM Server.
 
-One of the core ideas of APM is the ability to follow the flow of a user
-session across your whole stack, regardless if you have dozens of
+One of the APM's core ideas is the ability to follow the flow of a user
+session across your whole stack, regardless of whether you have dozens of
 microservices or a monolith answering your user requests. This implies
 the ability to tag a request across your entire stack.
 
@@ -1467,7 +1463,7 @@ Despite a heavily fragmented APM landscape, the terminology roughly is
 the same everywhere. The two most important terms are *Spans* and
 *Transactions*.
 
-A transaction encapsulates a series of spans, which in turn contain
+A transaction encapsulates a series of spans, which contain
 information about the execution of a piece of code. Let’s take a look at
 this screenshot from the Kibana APM UI.
 
@@ -1482,13 +1478,12 @@ rendering in this case.
 
 The Java APM agent can instrument specific frameworks
 automatically. Spring and Spring Boot are supported well, and the
-above data was created by just adding the agent to the Spring Boot
-application without doing any configuration.
+above data was created by adding the agent to the Spring Boot
+application; there is no configuration necessary.
 
-Also, there are more agents than just the Java one. There are
-agents for Go, .NET, Node, Python, Ruby and the browser (RUM). Agents
+There are currently agents for Go, .NET, Node, Python, Ruby, and the browser (RUM). Agents
 keep getting added so you may want to check the
-https://www.elastic.co/guide/en/apm/agent/index.html[APM agent
+{apm-agents-ref}/index.html[APM agent
 documentation].
 
 [discrete]
@@ -1497,7 +1492,7 @@ documentation].
 You have two options to add Java agent instrumentation to your
 application.
 
-First, you can add the agent via a parameter, when calling the `java`
+First, you can add the agent via a parameter when calling the `java`
 binary. This way, it does not interfere with the packaging of the
 application. This mechanism instruments the application when starting
 up.
@@ -1515,7 +1510,7 @@ Specify the agent on startup as well as the configuration
 parameters of where to send the APM data to. Before starting the Java application,
 let’s get an API key for our APM server running in Elastic Cloud.
 
-When you check your deployment in Elastic Cloud and click on `APM` on
+When you check your deployment in {ecloud} and click on `APM` on
 the left, you will see the `APM Server Secret Token`, which you can use.
 Also you can copy the APM endpoint URL from there.
 
@@ -1577,7 +1572,7 @@ So now the agent was attached to a running application with a special
 configuration.
 
 While both of the first two possibilities work, you can also use the third
-one: using the APM agent as a direct dependency. This will allow to write
+one: using the APM agent as a direct dependency. This allows you to write
 custom spans and transactions within our application.
 
 [discrete]
@@ -1723,12 +1718,12 @@ see a one-line response about the current weather. Let’s check the APM
 UI.
 +
 In the overview, you can see that most time is spent in the HTTP
-client, which is not too surprising.
+client, which is not surprising.
 +
 image:./images/monitor-java-app-apm-ui-javalin-wttr-1.png[Overview]
 +
-Our transactions for the `/weather/Munich` now contains a span, that
-shows how much time is spent on retrieving the weather data. Because
+Our transactions for the `/weather/Munich` now contain a span,
+showing how much time is spent on retrieving the weather data. Because
 the HTTP client is instrumented automatically, there is no need to do
 anything.
 +
@@ -1845,7 +1840,7 @@ ELASTIC_APM_ENABLE_LOG_CORRELATION=true
 ----
 
 You can now check the generated log files that are sent
-to {es} via Filebeat. An entry looks like this.
+to {es} via {filebeat}. An entry looks like this.
 
 [source,json]
 ----
@@ -1868,9 +1863,9 @@ you will get an `error.id` field.
 [IMPORTANT]
 =====
 We have not covered the
-https://www.elastic.co/guide/en/apm/agent/java/current/opentracing-bridge.html[Elastic
+{apm-java-ref}/opentracing-bridge.html[Elastic
 APM OpenTracing bridge] or looked into the
-https://www.elastic.co/guide/en/apm/agent/java/current/metrics.html[additional
+{apm-java-ref}/metrics.html[additional
 metrics] the agent provides, which allows us to take a look at things
 like garbage collection or the memory footprint of our application.
 =====
@@ -1995,7 +1990,7 @@ application to be next to your users.
 The duration of the monitor is in the low milliseconds, as it is really
 fast. Check the monitor for the `httpbin.org` endpoint, and you will see a
 much higher duration. In this case, it is about 400ms for each request. This
-is not too surprising, because the endpoint is not nearby and you need to
+is not too surprising because the endpoint is not nearby, and you need to
 initiate a TLS connection for every request, which is costly.
 
 Do not underestimate the importance of this kind of
