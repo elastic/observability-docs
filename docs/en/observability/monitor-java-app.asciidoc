@@ -1283,8 +1283,7 @@ types of log files and formats), the Prometheus module needs to be enabled.
 ./metricbeat modules enable prometheus
 ----
 +
-Add the Prometheus endpoint to poll.
-`./modules.d/prometheus.yml`:
+Add the Prometheus endpoint to poll in `./modules.d/prometheus.yml`:
 +
 [source,yaml]
 ----
@@ -1298,15 +1297,15 @@ Add the Prometheus endpoint to poll.
   rate_counters: true
 ----
 +
-To improve security, add the username and the
-password to the keystore and refer it here as well.
+To improve security, you should add the username and the
+password to the keystore and refer to both in the configuration.
 +
 . Start {metricbeat} and verify that the Prometheus events are flowing into
 {es}.
 +
 [source,console]
 ----
-GET metricbeat-7.9.0/_search?filter_path=**.prometheus,hits.total
+GET metricbeat-*/_search?filter_path=**.prometheus,hits.total
 {
   "query": {
     "term": {
@@ -1326,7 +1325,7 @@ Let’s check for the number of logging messages per log level.
 
 [source,console]
 ----
-GET metricbeat-7.9.0/_search
+GET metricbeat-*/_search
 {
   "query": {
     "exists": {
@@ -1416,11 +1415,20 @@ against it.
 +
 [source,java]
 ----
-final Executor executor = CompletableFuture.delayedExecutor(20, TimeUnit.SECONDS);
-app.get("/wait", ctx -> {
-    CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> "done", executor);
-    ctx.result(future);
-});
+...
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+...
+
+public static void main(String[] args) {
+...
+    final Executor executor = CompletableFuture.delayedExecutor(20, TimeUnit.SECONDS);
+    app.get("/wait", ctx -> {
+        CompletableFuture<String> future = CompletableFuture.supplyAsync(() -> "done", executor);
+        ctx.result(future);
+    });
+...
 ----
 +
 Every future gets delayed by 20 seconds, which means that a single HTTP
@@ -1438,8 +1446,7 @@ given the processing time.
 +
 Now let’s build a visualization using
 https://www.elastic.co/guide/en/kibana/current/lens.html[Lens], a
-relatively new tool in {kib} which makes it easier to create
-visualizations.
+tool in {kib} allowing create visualizations easily.
 +
 image:./images/monitor-java-app-metrics-kibana-create-visualization-open-files.png[Lens
 visualization]
@@ -1500,8 +1507,8 @@ application, which sends a SQL query to your database.
 [discrete]
 ==== Data Model
 
-Despite a heavily fragmented APM landscape, the terminology roughly is
-the same everywhere. The two most important terms are *Spans* and
+Despite a heavily fragmented APM landscape, the terminology often is
+similar. The two most important terms are *Spans* and
 *Transactions*.
 
 A transaction encapsulates a series of spans, which contain
@@ -1511,7 +1518,7 @@ this screenshot from the Kibana APM app.
 image:./images/monitor-java-app-apm-transactions.png[A transaction with spans]
 
 This is a Spring Boot application. The
-`UserProfileController.showProfile()` is called, which is marked as the
+`UserProfileController.showProfile()` method is called, which is marked as the
 transaction. There are two spans within. First, a request is sent to
 {es} using the {es} REST client, and after the
 response is rendered using Thymeleaf. The request to {es} is faster than the
@@ -1544,7 +1551,7 @@ the most recent version].
 
 [source,bash]
 ----
-wget https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.17.0/elastic-apm-agent-1.17.0.jar
+wget https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.18.0/elastic-apm-agent-1.18.0.jar
 ----
 
 Specify the agent on startup as well as the configuration
@@ -1558,7 +1565,7 @@ Also you can copy the APM endpoint URL from there.
 
 [source,bash]
 ----
-java -javaagent:/path/to/elastic-apm-agent-1.17.0.jar\
+java -javaagent:/path/to/elastic-apm-agent-1.18.0.jar\
   -Delastic.apm.service_name=javalin-app \
   -Delastic.apm.application_packages=de.spinscale.javalin \
   -Delastic.apm.server_urls=$APM_ENDPOINT_URL \
@@ -1568,7 +1575,7 @@ java -javaagent:/path/to/elastic-apm-agent-1.17.0.jar\
 
 You could now go ahead and open up the APM UI and you should see the
 data flowing in.
-+
+
 
 [discrete]
 ==== Automatic attachment
@@ -1585,7 +1592,7 @@ To list your locally running java application, you can run
 
 [source,bash]
 ----
-java -jar /path/to/apm-agent-attach-1.17.0-standalone.jar --list
+java -jar /path/to/apm-agent-attach-1.18.0-standalone.jar --list
 ----
 
 As I usually run more than a single java app on my system, I specify the
@@ -1595,7 +1602,7 @@ regular Javalin app without the agent configured to attach.
 
 [source,bash]
 ----
-java -jar /tmp/apm-agent-attach-1.17.0-standalone.jar --pid 30730 \
+java -jar /tmp/apm-agent-attach-1.18.0-standalone.jar --pid 30730 \
   --config service_name=javalin-app \
   --config application_packages=de.spinscale.javalin \
   --config server_urls=$APM_ENDPOINT_URL \
@@ -1620,13 +1627,16 @@ custom spans and transactions within our application.
 [discrete]
 ==== Programmatic setup
 
+A programmatic setup allows you to attach the agent via a line of java in
+your source code.
+
 . Add the java agent dependency.
 +
 [source,gradle]
 ----
 dependencies {
   ... 
-  implementation 'co.elastic.apm:apm-agent-attach:1.17.0'
+  implementation 'co.elastic.apm:apm-agent-attach:1.18.0'
   ...
 }
 ----
@@ -1635,6 +1645,10 @@ dependencies {
 +
 [source,java]
 ----
+import co.elastic.apm.attach.ElasticApmAttacher;
+
+...
+
 public static void main(String[] args) {
     ElasticApmAttacher.attach();
     ...
@@ -1707,8 +1721,8 @@ Let’s try to fix this by introducing custom programmatic transactions.
 ----
 dependencies {
   ...
-  implementation 'co.elastic.apm:apm-agent-attach:1.17.0'
-  implementation 'co.elastic.apm:apm-agent-api:1.17.0'
+  implementation 'co.elastic.apm:apm-agent-attach:1.18.0'
+  implementation 'co.elastic.apm:apm-agent-api:1.18.0'
   ...
 }
 ----
@@ -1747,12 +1761,21 @@ This is our new endpoint.
 +
 [source,java]
 ----
-app.get("/weather/:city", ctx -> {
-  String city = ctx.pathParam("city");
-  ctx.result(Request.Get("https://wttr.in/" + city + "?format=3").execute()
-      .returnContent().asBytes())
-    .contentType("text/plain; charset=utf-8");
-});
+import org.apache.http.client.fluent.Request;
+
+...
+
+public static void main(String[] args) {
+...
+
+    app.get("/weather/:city", ctx -> {
+        String city = ctx.pathParam("city");
+        ctx.result(Request.Get("https://wttr.in/" + city + "?format=3").execute()
+            .returnContent().asBytes())
+            .contentType("text/plain; charset=utf-8");
+    });
+
+...
 ----
 +
 . Curl `http://localhost:7000/weather/Munich` and
@@ -1773,13 +1796,7 @@ image:./images/monitor-java-app-apm-ui-javalin-wttr-2.png[Transaction with span]
 +
 If the `city` parameter if that URL is of high
 cardinality, this will result in a high amount of URLs mentioned instead of
-the generic endpoint. The solution to this is to fix the transaction naming to this:
-+
-[source,java]
-----
-// better transaction names for each URL
-app.before(ctx -> ElasticApm.currentTransaction().setName(ctx.method() + " " + ctx.matchedPath()));
-----
+the generic endpoint.
 
 [discrete]
 ==== Method tracing via agent configuration
