@@ -108,6 +108,7 @@ contains our compiled class along with all the required dependencies.
 ----
 plugins {
   id 'com.github.johnrengelman.shadow' version '6.0.0'
+  id 'application'
   id 'java'
 }
 ----
@@ -169,8 +170,8 @@ Add a Mockito and an Assertj dependency to the `build.gradle` file.
 dependencies {
   implementation 'io.javalin:javalin:3.10.1'
 
-  testImplementation 'org.mockito:mockito-core:3.3.3'
-  testImplementation 'org.assertj:assertj-core:3.16.1'
+  testImplementation 'org.mockito:mockito-core:3.5.10'
+  testImplementation 'org.assertj:assertj-core:3.17.2'
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 }
@@ -227,7 +228,7 @@ public class AppTests {
 [discrete]
 === Step 2: Ingest logs
 
-Logs are events such as checkout, an exception, or an HTTP request. For this tutorial,
+Logs can be events such as checkout, an exception, or an HTTP request. For this tutorial,
 let's use log4j2 as our logging implementation. 
 
 [discrete]
@@ -255,6 +256,13 @@ the log message is logged only during startup.
 +
 [source,java]
 ----
+package de.spinscale.javalin;
+
+import io.javalin.Javalin;
+import io.javalin.http.Handler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 public class App {
 
     private static final Logger logger = LoggerFactory.getLogger(App.class);
@@ -274,7 +282,8 @@ public class App {
 }
 ----
 +
-. Create a log4j2 configuration in the `src/main/resources/log4j2.xml` file.
+. Create a log4j2 configuration in the `src/main/resources/log4j2.xml` file
+- you might need to create that directory first.
 +
 [source,xml]
 ----
@@ -413,12 +422,15 @@ Let’s store the cloud id in the keystore.
 +
 [source,bash]
 ----
+./filebeat keystore create
 echo -n "observability-javalin-app:ZXUtY2VudHJhbC0xLmF3cy5jbG91ZC5lcy5pbyQ4NDU5M2I1YmQzYTY0N2NhYjA2MWQ3NTJhZWFhNWEzYyQzYmQwMWE2OTQ2MmQ0N2ExYjdhYTkwMzI0YjJiOTMyYQ==" | ./filebeat keystore add CLOUD_ID --stdin
 ----
 +
 To store logs in {es} with minimal permissions, create an API key to send data from {filebeat} to {ess}.
 +
-. Log into Kibana as the `elastic` user and select *Management* -> *Dev Tools*. Send this request.
+. Log into Kibana user (you can do so from the Cloud Console without typing
+in any permissions) and select *Management* -> *Dev Tools*. Send the
+following request:
 +
 [source,console]
 ----
@@ -505,7 +517,7 @@ like https://github.com/wg/wrk[wrk] and run the following command to send reques
 +
 [source,bash]
 ----
-./wrk -t1 -c 100 -d10s http://localhost:7000
+wrk -t1 -c 100 -d10s http://localhost:7000
 ----
 +
 This command results in roughly 8k requests per
@@ -540,8 +552,18 @@ Javalin app = Javalin.create(config -> {
 });
 ----
 +
-You may also want to fix this in the logging message in the main handler. And to speed things up,
-you'll want to call `ctx.userAgent()` only once.
+You may also want to fix this in the logging message in the main handler.
++
+[source,java]
+----
+static Handler mainHandler() {
+    return ctx -> {
+        String userAgent = ctx.userAgent() != null ? ctx.userAgent() : "-";
+        logger.info("This is an informative logging message, user agent [{}]", userAgent);
+        ctx.result("Appsolutely perfect");
+    };
+}
+----
 +
 . Now let's have a look at the Logs app in {kib}. Select *Observability* -> *Logs*.
 +
@@ -575,7 +597,8 @@ Things to note:
 notice that it differs. This means that you don't get the results you expect when filtering based on the
 `@timestamp` field. The current `@timestamp` field reflects the timestamp when the event was created within
 {filebeat}, not the timestamp of when the log event occurred in the application.
-* The log level cannot be filtered, and the same applies to the class name.
+* One cannot filter on specific fields like the HTTP verb, the HTTP status
+  code, the log level or the class that generated the log message
 
 [discrete]
 ==== Structure logs
@@ -665,7 +688,7 @@ another log message indexed).
 
 [source,console]
 ----
-GET filebeat-7.9.0/_search?filter_path=**._source
+GET filebeat-*/_search?filter_path=**._source
 {
   "size": 1,
   "_source": {
@@ -762,7 +785,7 @@ Exceptions are a special treat in the case of logging.
 They span multiple lines, so the old rule of one message per line does not exist
 in exceptions.
 
-Add an endpoint that triggers an exception first and make sure it
+Add an endpoint in `App.java` that triggers an exception first and make sure it
 is logged by using an exception mapper.
 
 [source,java]
@@ -829,7 +852,7 @@ your logs.
 [discrete]
 ==== Configure log rotation
 
-So logs don't endlessly grow, let’s add some log rotation to your
+To ensure that logs don't grow infinitely, let’s add some log rotation to your
 logging configuration.
 
 [source,xml]
@@ -852,7 +875,8 @@ logging configuration.
   </Appenders>
 
   <Loggers>
-    <Root level="error">
+    <Logger name="de.spinscale.javalin.App" level="INFO"/>
+    <Root level="ERROR">
       <AppenderRef ref="Console" />
       <AppenderRef ref="JavalinAppLogRolling" />
     </Root>
@@ -960,7 +984,7 @@ output.elasticsearch:
 ==== Write logs as JSON
 
 You have now learned about parsing logs in either {beats} or {es}. What if
-we didn't need to think about parsing our logs?
+we didn't need to think about parsing our logs and extract data manually?
 
 Writing out logs as plain text works and is easy to read for humans.
 However, first writing them out as plain text, parsing them using
@@ -983,10 +1007,10 @@ the logging dependency to our Javalin application.
 dependencies {
   implementation 'io.javalin:javalin:3.10.1'
   implementation 'org.apache.logging.log4j:log4j-slf4j18-impl:2.13.3'
-  implementation 'co.elastic.logging:log4j2-ecs-layout:0.4.0'
+  implementation 'co.elastic.logging:log4j2-ecs-layout:0.5.0'
 
-  testImplementation 'org.mockito:mockito-core:3.3.3'
-  testImplementation 'org.assertj:assertj-core:3.16.1'
+  testImplementation 'org.mockito:mockito-core:3.5.10'
+  testImplementation 'org.assertj:assertj-core:3.17.2'
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 }
@@ -1023,7 +1047,8 @@ again.
 . You can configure a few
 https://github.com/elastic/ecs-logging-java/tree/master/log4j2-ecs-layout[more
 parameters] for the `EcsLayout`, but the defaults have been selected wisely. Let’s
-fix the {filebeat} configuration:
+fix the {filebeat} configuration and remove the multiline setup along with
+pipeline:
 +
 [source,yaml]
 ----
@@ -1082,15 +1107,20 @@ the surrounding tools.
 [source,gradle]
 ----
   // metrics via micrometer
-  implementation 'io.micrometer:micrometer-core:1.5.2'
-  implementation 'io.micrometer:micrometer-registry-prometheus:1.5.2'
-  implementation 'org.apache.commons:commons-lang3:3.10'
+  implementation 'io.micrometer:micrometer-core:1.5.4'
+  implementation 'io.micrometer:micrometer-registry-prometheus:1.5.4'
+  implementation 'org.apache.commons:commons-lang3:3.11'
 ----
 +
 . Add the micrometer plugin and its corresponding import to our Javalin app.
 +
 [source,java]
 ----
+...
+import io.javalin.plugin.metrics.MicrometerPlugin;
+import io.javalin.core.security.BasicAuthCredentials;
+...
+
 Javalin app = Javalin.create(config -> {
    ...
    config.registerPlugin(new MicrometerPlugin());
@@ -1168,7 +1198,7 @@ public class Micrometer {
 }
 ----
 +
-. Restart your app and poll the metrics endpoint.
+. Rebuild your app and poll the metrics endpoint.
 +
 [source,bash]
 ----
@@ -1228,7 +1258,7 @@ basic `metricbeat.yaml`.
 [source,yaml]
 ----
 metricbeat.config.modules:
-  path: ${path.config}/modules.d/\*.yml
+  path: ${path.config}/modules.d/*.yml
   reload.enabled: false
 
 name: javalin-metrics-shipper
@@ -1400,7 +1430,7 @@ request stays open for 20 seconds.
 +
 [source,bash]
 ----
-./wrk -c 100 -t 20 -d 5m http://localhost:7000/wait
+wrk -c 100 -t 20 -d 5m http://localhost:7000/wait
 ----
 +
 Results show that only twenty requests were sent, which makes sense
