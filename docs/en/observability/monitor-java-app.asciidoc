@@ -221,7 +221,7 @@ public class AppTests {
 +
 [source,bash]
 ----
-./gradle clean check shadowJar
+./gradlew clean check shadowJar
 ----
 
 [discrete]
@@ -439,7 +439,8 @@ POST /_security/api_key
 }
 ----
 +
-The response contains an `api_key` and an `id` field, which can be stored in the {filebeat} keystore.
+The response contains an `api_key` and an `id` field, which can be stored in
+the {filebeat} keystore in the following format: `id:api_key`.
 +
 [source,bash]
 ----
@@ -877,7 +878,8 @@ feature of {es} instead of the {beats} processors.
 One of the most helpful parts of the ingest pipeline is the ability to debug by using
 the {ref}/simulate-pipeline-api.html[Simulate Pipeline API].
 
-. Let’s write a pipeline that is similar to our {filebeat} processors.
+. Let’s write a pipeline that is similar to our {filebeat} processors using
+the Dev Tools panel in Kibana, run the following:
 +
 [source,console]
 ----
@@ -988,6 +990,12 @@ dependencies {
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.2'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 }
+
+// this is needed to ensure JSON logging works as expected when building 
+// a shadow jar
+shadowJar {
+  transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer)
+}
 ----
 +
 The log4j2-ecs-layout ships with a custom `<EcsLayout>` which can be used
@@ -1079,7 +1087,7 @@ the surrounding tools.
   implementation 'org.apache.commons:commons-lang3:3.10'
 ----
 +
-. Add the micrometer plugin to our Javalin app.
+. Add the micrometer plugin and its corresponding import to our Javalin app.
 +
 [source,java]
 ----
@@ -1089,7 +1097,8 @@ Javalin app = Javalin.create(config -> {
 );
 ----
 +
-. Add a new metrics endpoint.
+. Add a new metrics endpoint and ensure the `BasicAuthCredentials` class is
+imported as well.
 +
 [source,java]
 ----
@@ -1105,9 +1114,9 @@ app.get("/metrics", ctx -> {
 });
 ----
 +
-Here, the `MicroMeter` class is a self-written class that sets up a
-couple of metrics monitors and creates the registry
-for Prometheus, which provides the text-based Prometheus output.
+Here, the `MicroMeter` class is a self-written class named `MicroMeter.java`
+that sets up a couple of metrics monitors and creates the registry for
+Prometheus, which provides the text-based Prometheus output.
 +
 [source,java]
 ----
@@ -1197,13 +1206,6 @@ POST /_security/api_key
 }
 ----
 +
-Don’t forget to do the initial setup like this.
-+
-[source,bash]
-----
-./metricbeat setup -e -E 'cloud.id=${CLOUD_ID}' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
-----
-+
 . Store the combination of `id` and `api_key` fields in the keystore.
 +
 [source,bash]
@@ -1211,6 +1213,13 @@ Don’t forget to do the initial setup like this.
 ./metricbeat keystore create
 echo -n "IhrJJHMB4JmIUAPLuM35:1GbfxhkMT8COBB4JWY3pvQ" | ./metricbeat keystore add ES_API_KEY --stdin
 echo -n "observability-javalin-app:ZXUtY2VudHJhbC0xLmF3cy5jbG91ZC5lcy5pbyQ4NDU5M2I1YmQzYTY0N2NhYjA2MWQ3NTJhZWFhNWEzYyQzYmQwMWE2OTQ2MmQ0N2ExYjdhYTkwMzI0YjJiOTMyYQ==" | ./metricbeat keystore add CLOUD_ID --stdin
+----
++
+Don’t forget to do the initial setup like this.
++
+[source,bash]
+----
+./metricbeat setup -e -E 'cloud.id=${CLOUD_ID}' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
 ----
 +
 . Configure {metricbeat} to read our Prometheus metrics. Start with a
@@ -1467,7 +1476,7 @@ the same everywhere. The two most important terms are *Spans* and
 
 A transaction encapsulates a series of spans, which contain
 information about the execution of a piece of code. Let’s take a look at
-this screenshot from the Kibana APM UI.
+this screenshot from the Kibana APM app.
 
 image:./images/monitor-java-app-apm-transactions.png[A transaction with spans]
 
@@ -1529,6 +1538,7 @@ java -javaagent:/path/to/elastic-apm-agent-1.17.0.jar\
 
 You could now go ahead and open up the APM UI and you should see the
 data flowing in.
++
 
 [discrete]
 ==== Automatic attachment
