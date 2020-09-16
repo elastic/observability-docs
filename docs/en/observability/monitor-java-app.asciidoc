@@ -1799,20 +1799,32 @@ cardinality, this will result in a high amount of URLs mentioned instead of
 the generic endpoint. If you would like to prevent this, a possibility would
 be to use `ctx.matchedPath()` to log every call to the weather API as 
 `GET /weather/:city`. This however requires some refactoring by removing the
-`app.before()` handler and wrapping a logging handler to all handlers.
+`app.before()` handler and adding the transaction setting in the request
+logger like this.
 +
 [source,java]
 ----
-app.get("/", log(mainHandler()));
+package de.spinscale.javalin;
 
-// wrap all other handlers within log() as well
-// left as an exercise for the reader
+import co.elastic.apm.api.ElasticApm;
+import io.javalin.http.Context;
+import io.javalin.http.RequestLogger;
+import org.jetbrains.annotations.NotNull;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public static Handler log(final Handler handler) {
-    return ctx -> {
+public class Log4j2RequestLogger implements RequestLogger  {
+
+    private final Logger logger = LoggerFactory.getLogger(Log4j2RequestLogger.class);
+
+    @Override
+    public void handle(@NotNull Context ctx, @NotNull Float executionTimeMs) throws Exception {
         ElasticApm.currentTransaction().setName(ctx.method() + " " + ctx.matchedPath());
-        handler.handle(ctx);
-    };
+        String userAgent = ctx.userAgent() != null ? ctx.userAgent() : "-";
+        logger.info("{} {} {} {} \"{}\" {}",
+                ctx.method(), ctx.req.getPathInfo(), ctx.res.getStatus(),
+                ctx.req.getRemoteHost(), userAgent, executionTimeMs.longValue());
+    }
 }
 ----
 
