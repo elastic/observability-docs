@@ -1551,7 +1551,7 @@ the most recent version].
 
 [source,bash]
 ----
-wget https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.18.0/elastic-apm-agent-1.18.0.jar
+wget https://repo1.maven.org/maven2/co/elastic/apm/elastic-apm-agent/1.17.0/elastic-apm-agent-1.17.0.jar
 ----
 
 Specify the agent on startup as well as the configuration
@@ -1565,7 +1565,7 @@ Also you can copy the APM endpoint URL from there.
 
 [source,bash]
 ----
-java -javaagent:/path/to/elastic-apm-agent-1.18.0.jar\
+java -javaagent:/path/to/elastic-apm-agent-1.17.0.jar\
   -Delastic.apm.service_name=javalin-app \
   -Delastic.apm.application_packages=de.spinscale.javalin \
   -Delastic.apm.server_urls=$APM_ENDPOINT_URL \
@@ -1592,7 +1592,7 @@ To list your locally running java application, you can run
 
 [source,bash]
 ----
-java -jar /path/to/apm-agent-attach-1.18.0-standalone.jar --list
+java -jar /path/to/apm-agent-attach-1.17.0-standalone.jar --list
 ----
 
 As I usually run more than a single java app on my system, I specify the
@@ -1602,7 +1602,7 @@ regular Javalin app without the agent configured to attach.
 
 [source,bash]
 ----
-java -jar /tmp/apm-agent-attach-1.18.0-standalone.jar --pid 30730 \
+java -jar /tmp/apm-agent-attach-1.17.0-standalone.jar --pid 30730 \
   --config service_name=javalin-app \
   --config application_packages=de.spinscale.javalin \
   --config server_urls=$APM_ENDPOINT_URL \
@@ -1636,7 +1636,7 @@ your source code.
 ----
 dependencies {
   ... 
-  implementation 'co.elastic.apm:apm-agent-attach:1.18.0'
+  implementation 'co.elastic.apm:apm-agent-attach:1.17.0'
   ...
 }
 ----
@@ -1721,8 +1721,8 @@ Let’s try to fix this by introducing custom programmatic transactions.
 ----
 dependencies {
   ...
-  implementation 'co.elastic.apm:apm-agent-attach:1.18.0'
-  implementation 'co.elastic.apm:apm-agent-api:1.18.0'
+  implementation 'co.elastic.apm:apm-agent-attach:1.17.0'
+  implementation 'co.elastic.apm:apm-agent-api:1.17.0'
   ...
 }
 ----
@@ -1733,7 +1733,7 @@ and the request path
 [source,java]
 ----
 app.before(ctx -> ElasticApm.currentTransaction()
-  .setName(ctx.method() + " " + ctx.req.getPathInfo()));
+  .setName(ctx.method() + " " + ctx.path()));
 ----
 +
 . Restart your app and see data flowing in. Test a few different
@@ -1796,7 +1796,25 @@ image:./images/monitor-java-app-apm-ui-javalin-wttr-2.png[Transaction with span]
 +
 If the `city` parameter if that URL is of high
 cardinality, this will result in a high amount of URLs mentioned instead of
-the generic endpoint.
+the generic endpoint. If you would like to prevent this, a possibility would
+be to use `ctx.matchedPath()` to log every call to the weather API as 
+`GET /weather/:city`. This however requires some refactoring by removing the
+`app.before()` handler and wrapping a logging handler to all handlers.
++
+[source,java]
+----
+app.get("/", log(mainHandler()));
+
+// wrap all other handlers within log() as well
+// left as an exercise for the reader
+
+public static Handler log(final Handler handler) {
+    return ctx -> {
+        ElasticApm.currentTransaction().setName(ctx.method() + " " + ctx.matchedPath());
+        handler.handle(ctx);
+    };
+}
+----
 
 [discrete]
 ==== Method tracing via agent configuration
@@ -1813,7 +1831,7 @@ methods] based on their signature.
 The interface to monitor would be the `io.javalin.http.RequestLogger`
 interface with the `handle` method. So let’s try
 `io.javalin.http.RequestLogger#handle` to identify the method to log
-and put this in your `.envrc`.
+and put this in your `.env`.
 
 [source,bash]
 ----
@@ -1935,7 +1953,7 @@ like garbage collection or the memory footprint of our application.
 There are some basic monitoring capabilities in our application so far. We index
 logs (with traces), we index metrics, and we even can look in our app to
 figure out single performance bottlenecks thanks to APM. However, there is
-still one weak spot. Everything done so far was within the application, and all
+still one weak spot. Everything done so far was within the application, but all
 the users are reaching the application from the internet.
 
 How about checking if our users have the same experience that our APM data
@@ -1965,7 +1983,7 @@ POST /_security/api_key
 {
   "name": "heartbeat_javalin-app",
   "role_descriptors": {
-    "metricbeat_writer": {
+    "heartbeat_writer": {
       "cluster": ["monitor", "read_ilm"],
       "index": [
         {
