@@ -282,8 +282,7 @@ public class App {
 }
 ----
 +
-. Create a log4j2 configuration in the `src/main/resources/log4j2.xml` file
-- you might need to create that directory first.
+. Create a log4j2 configuration in the `src/main/resources/log4j2.xml` file. You might need to create that directory first.
 +
 [source,xml]
 ----
@@ -413,12 +412,13 @@ The log entries are ingested containing timestamps like the following.
 [discrete]
 ==== Install and configure {filebeat}
 
-. To read the log file and send it to {es}, {filebeat} is required. For details, see <<install-filebeat,Install {filebeat}>>.
-+
+To read the log file and send it to {es}, {filebeat} is required. To download and install {filebeat},
+use the commands that work with your system:
+
+include::{beats-repo-dir}/tab-widgets/install-widget-filebeat.asciidoc[]
+
 . Use the {filebeat} keystore to store {filebeat-ref}/keystore.html[secure
-settings].
-+
-Let’s store the cloud id in the keystore.
+settings]. Let’s store the cloud id in the keystore.
 +
 [source,bash]
 ----
@@ -1211,9 +1211,11 @@ standard Prometheus format.
 [discrete]
 ==== Install and configure {metricbeat}
 
-. Time to install and configure {metricbeat}.
-For details, see <<install-metricbeat,Install {metricbeat}>>.
-+
+To send metrics to {es}, {metricbeat} is required. To download and install {metricbeat},
+use the commands that work with your system:
+
+include::{beats-repo-dir}/tab-widgets/install-widget-metricbeat.asciidoc[]
+
 . Similar to the {filebeat} setup, run the initial set up of all the dashboards
 using the admin user, and then use an API key.
 +
@@ -1960,14 +1962,16 @@ of a service, but also graph latencies over time, and get notified about expirin
 [discrete]
 ==== Setup
 
-Let’s first download {heartbeat} (the polling component) and configure it
-to check for our application. For details, see <<install-heartbeat,Install {heartbeat}>>.
+To send uptime data to {es}, {heartbeat} (the polling component) is required. To download
+and install {heartbeat}, use the commands that work with your system:
+
+include::{beats-repo-dir}/tab-widgets/install-widget-heartbeat.asciidoc[]
 
 After downloading and unpacking, we have to set up the cloud id and the
-password one more time.
+password one more time. 
 
-We need to create another `API_KEY` as an elastic admin user in {kib}.
-
+. We need to create another `API_KEY` as an elastic admin user in {kib}.
++
 [source,console]
 ----
 POST /_security/api_key
@@ -1986,9 +1990,9 @@ POST /_security/api_key
   }
 }
 ----
-
-Let’s setup the {heartbeat} keystore and run the setup.
-
++
+. Let’s setup the {heartbeat} keystore and run the setup.
++
 [source,bash]
 ----
 ./heartbeat keystore create
@@ -1997,9 +2001,9 @@ echo -n "SCdUSHMB1JmLUFPLgWAY:R3PQzBWW3faJT01wxXD6uw" | ./heartbeat keystore add
 
 ./heartbeat setup -e -E 'cloud.id=${CLOUD_ID}' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
 ----
-
-Add some services to monitor.
-
++
+. Add some services to monitor.
++
 [source,yaml]
 ----
 name: heartbeat-shipper
@@ -2035,34 +2039,37 @@ processors:
         name: europe-munich
         location: "48.138791, 11.583030"
 ----
-
-Now start {heartbeat} and wait a couple of minutes to get some data. To view the Uptime app, 
++
+. Now start {heartbeat} and wait a couple of minutes to get some data. To view the Uptime app, 
 select *Observability* -> *Uptime*. The overview looks
 like this.
-
++
 image:./images/monitor-java-app-uptime-overview.png[Uptime Overview]
-
++
 You can see the list of monitors and a global overview. Let’s see the
 details for one of those alerts. Click *Javalin Web Application*.
-
++
 You can see the execution for the last
 scheduled checks, but the duration for each check might be more interesting.
 You can see if the latency for one of your checks is going up. 
-
++
 The interesting part is the world map at the top. You can specify in the
 configuration where the check originated, which in this case was in Munich in Europe.
 By configuring several {heartbeat}s running across the world, you
 can compare latencies and figure out which data center you need to run your
 application to be next to your users.
-
++
 The duration of the monitor is in the low milliseconds, as it is really
 fast. Check the monitor for the `httpbin.org` endpoint, and you will see a
 much higher duration. In this case, it is about 400ms for each request. This
 is not too surprising because the endpoint is not nearby, and you need to
 initiate a TLS connection for every request, which is costly.
-
++
 Do not underestimate the importance of this kind of
 monitoring. Also, consider this just the beginning as the next step is
 to have synthetics that monitor the correct behavior of your
 application, for example, to ensure that your checkout process works all
 the time.
+
+// Add Javascript and CSS for tabbed panels
+include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
