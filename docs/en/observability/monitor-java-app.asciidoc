@@ -524,7 +524,7 @@ This command results in roughly 8k requests per
 second, and the equivalent number of log lines are also written.
 
 [discrete]
-== Step 3: View logs in Kibana
+=== Step 3: View logs in Kibana
 
 . Log into Kibana and select the *Discover* app.
 +
@@ -599,6 +599,9 @@ notice that it differs. This means that you don't get the results you expect whe
 {filebeat}, not the timestamp of when the log event occurred in the application.
 * One cannot filter on specific fields like the HTTP verb, the HTTP status
   code, the log level or the class that generated the log message
+
+[discrete]
+=== Step 4: Work with your logs
 
 [discrete]
 ==== Structure logs
@@ -995,7 +998,7 @@ While log4j2 has a
 https://logging.apache.org/log4j/2.x/manual/layouts.html#JSONLayout[JSONLayout],
 you can go further and use a Library called
 https://github.com/elastic/ecs-logging-java[ecs-logging-java]. The advantage of
-ECS logging is that it uses the https://www.elastic.co/guide/en/ecs/current/index.html[Elastic Common
+ECS logging is that it uses the {ecs-ref}/index.html[Elastic Common
 Schema]. ECS defines a standard set of fields used when storing event data in
 {es}, such as logs and metrics.
 
@@ -1075,7 +1078,7 @@ setup got a ton easier, so whenever possible, try to directly
 write your logs as JSON.
 
 [discrete]
-== Step 4: Ingest metrics
+== Step 5: Ingest metrics
 
 A metric is considered a point in time value that can change anytime. The
 number of current requests can change any millisecond. You could have a
@@ -1318,7 +1321,7 @@ GET metricbeat-*/_search?filter_path=**.prometheus,hits.total
 ----
 
 [discrete]
-== Step 5: View metrics in {kib}
+== Step 6: View metrics in {kib}
 
 As this is custom data from our Javalin app, there is no pre-defined
 dashboard for displaying this data.
@@ -1487,7 +1490,7 @@ persisted, they reset on a JVM restart. With that in mind, it’s
 often better to log the `rate` instead of the `counter` field.
 
 [discrete]
-== Step 6: Instrument the application
+== Step 7: Instrument the application
 
 The third piece of Observability is Application Performance Management (APM).
 An APM setup consists of an APM server which accepts the data (and is
@@ -1587,7 +1590,7 @@ the standalone agent allows you to attach to running JVMs on a host.
 
 This requires you to download the standalone jar. You can find the link
 on the
-https://www.elastic.co/guide/en/apm/agent/java/current/setup-attach-cli.html[official
+{apm-java-ref}/setup-attach-cli.html[official
 docs].
 
 To list your locally running java application, you can run
@@ -1658,7 +1661,7 @@ public static void main(String[] args) {
 ----
 +
 We did not configure any endpoint or API tokens yet. While the
-https://www.elastic.co/guide/en/apm/agent/java/current/setup-attach-api.html#setup-attach-api-configuration[documentation]
+{apm-java-ref}/setup-attach-api.html#setup-attach-api-configuration[documentation]
 recommends using the `src/main/resources/elasticapm.properties` file, I
 prefer the use of environment variables, as this prevents
 either committing API tokens to your source or merging another
@@ -1818,7 +1821,7 @@ logging is a bottleneck for our application and trace the request logger
 statements we added earlier.
 
 The agent can
-https://www.elastic.co/guide/en/apm/agent/java/current/config-core.html#config-trace-methods[trace
+{apm-java-ref}/config-core.html#config-trace-methods[trace
 methods] based on their signature.
 
 The interface to monitor would be the `io.javalin.http.RequestLogger`
@@ -1884,7 +1887,7 @@ requests.
 
 Once you have a bigger application with more code paths than our sample
 app, you can try to enable the
-https://www.elastic.co/guide/en/apm/agent/java/current/config-profiling.html#config-profiling-inferred-spans-enabled[automatic
+{apm-java-ref}/config-profiling.html#config-profiling-inferred-spans-enabled[automatic
 profiling of inferred spans] by setting the following.
 
 [source,bash]
@@ -1901,7 +1904,7 @@ find bottlenecks faster.
 ==== Log correlation
 
 By configuring the agent, let's ease the
-https://www.elastic.co/guide/en/apm/agent/java/current/config-logging.html#config-enable-log-correlation[correlation
+{apm-java-ref}/config-logging.html#config-enable-log-correlation[correlation
 of logs] by adding the transaction ids to our logs.
 
 [source,bash]
@@ -1941,7 +1944,7 @@ like garbage collection or the memory footprint of our application.
 =====
 
 [discrete]
-=== Step 7: Ingest Uptime data
+=== Step 8: Ingest Uptime data
 
 There are some basic monitoring capabilities in our application so far. We index
 logs (with traces), we index metrics, and we even can look in our app to
