@@ -503,23 +503,25 @@ output.elasticsearch:
 [discrete]
 ==== Send data to {es}
 
-. To send data to {es}, start {filebeat}. Run `./filebeat -e`.
-+
+To send data to {es}, start {filebeat}.
+
+include::{beats-repo-dir}/tab-widgets/start-widget-filebeat.asciidoc[]
+
 In the log output, you should see the following line.
-+
+
 [source,text]
 ----
 2020-07-03T15:41:56.532+0200    INFO    log/harvester.go:297    Harvester started for file: /tmp/javalin/app.log
 ----
-+
-. Let's create some log entries for the application. You can use a tool
+
+Let's create some log entries for the application. You can use a tool
 like https://github.com/wg/wrk[wrk] and run the following command to send requests to the application.
-+
+
 [source,bash]
 ----
 wrk -t1 -c 100 -d10s http://localhost:7000
 ----
-+
+
 This command results in roughly 8k requests per
 second, and the equivalent number of log lines are also written.
 
@@ -1302,12 +1304,16 @@ Add the Prometheus endpoint to poll in `./modules.d/prometheus.yml`:
   rate_counters: true
 ----
 +
-To improve security, you should add the username and the
+. To improve security, you should add the username and the
 password to the keystore and refer to both in the configuration.
-+
-. Start {metricbeat} and verify that the Prometheus events are flowing into
+
+. Start {metricbeat}.
+
+include::{beats-repo-dir}/tab-widgets/start-widget-metricbeat.asciidoc[]
+
+Verify that the Prometheus events are flowing into
 {es}.
-+
+
 [source,console]
 ----
 GET metricbeat-*/_search?filter_path=**.prometheus,hits.total
@@ -2043,36 +2049,46 @@ processors:
         location: "48.138791, 11.583030"
 ----
 +
-. Now start {heartbeat} and wait a couple of minutes to get some data. To view the Uptime app, 
+. Now start {heartbeat} and wait a couple of minutes to get some data.
+
+include::{beats-repo-dir}/tab-widgets/start-widget-heartbeat.asciidoc[]
+
+To view the Uptime app, 
 select *Observability* -> *Uptime*. The overview looks
 like this.
-+
+
 image:./images/monitor-java-app-uptime-overview.png[Uptime Overview]
-+
+
 You can see the list of monitors and a global overview. Let’s see the
 details for one of those alerts. Click *Javalin Web Application*.
-+
+
 You can see the execution for the last
 scheduled checks, but the duration for each check might be more interesting.
 You can see if the latency for one of your checks is going up. 
-+
+
 The interesting part is the world map at the top. You can specify in the
 configuration where the check originated, which in this case was in Munich in Europe.
 By configuring several {heartbeat}s running across the world, you
 can compare latencies and figure out which data center you need to run your
 application to be next to your users.
-+
+
 The duration of the monitor is in the low milliseconds, as it is really
 fast. Check the monitor for the `httpbin.org` endpoint, and you will see a
 much higher duration. In this case, it is about 400ms for each request. This
 is not too surprising because the endpoint is not nearby, and you need to
 initiate a TLS connection for every request, which is costly.
-+
+
 Do not underestimate the importance of this kind of
 monitoring. Also, consider this just the beginning as the next step is
 to have synthetics that monitor the correct behavior of your
 application, for example, to ensure that your checkout process works all
 the time.
+
+[discrete]
+=== What's next?
+
+For more information about using  Elastic
+Observability, see the {observability-guide}/observability-introduction.html[Observability documentation].
 
 // Add Javascript and CSS for tabbed panels
 include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
