@@ -106,6 +106,43 @@ Support for installing {agent} as a service on all supported systems will be
 available in a future release.
 
 [discrete]
+[[does-agent-download-packages]]
+== Does {agent} or {kib} download integration packages?
+
+{agent} does not download integration packages. When you add an integration in
+{ingest-manager}, {kib} connects to the {package-registry} at `epr.elastic.co`,
+downloads the integration package, and stores its assets in {es}. This means
+that you no longer have to run a manual setup command to load integrations as
+you did previously with {beats} modules.
+
+[discrete]
+[[does-agent-download-anything-from-internet]]
+== Does {agent} download anything from the Internet?
+
+In most cases, the data collection software required by {agent} is bundled
+with the agent. There is one special exception: {elastic-endpoint}. When an
+{agent} configuration is set to include {elastic-endpoint}, {agent} must download
+software from the Elastic download site.
+
+NOTE: Bundling {elastic-endpoint} with {agent} is a known feature request scoped
+for a future release. 
+
+[discrete]
+[[do-i-need-to-setup-elastic-agent]]
+== Do I need to set up the {beats} managed by {agent}?
+
+You might have noticed that {agent} runs {beats} under the hood. But note that
+the {beats} managed by {agent} are set up and run differently from standalone
+{beats}. 
+
+For example, standalone {beats} use modules and require you to run a setup
+command on the host to load assets, such as ingest pipelines and dashboards. In
+contrast, {beats} managed by {agent} use integration packages that {kib}
+downloads from the {package-registry} at `epr.elastic.co`. This means that
+{agent} does not need extra privileges to set up assets because
+{ingest-manager} manages the assets.
+
+[discrete]
 [[what-is-the-endpoint-package]]
 == What is the Elastic {endpoint-sec} integration in {ingest-manager}?
 
