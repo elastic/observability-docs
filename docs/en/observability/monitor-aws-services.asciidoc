@@ -1,0 +1,101 @@
+[[aws-metrics]]
+= AWS metrics
+
+[NOTE]
+=====
+If you haven't already, you need to install and configure {metricbeat} to populate
+the {metrics-app} with data. For more information, see <<ingest-metrics,Ingest metrics>>.
+=====
+
+To ingest metrics from AWS CloudWatch using the
+https://docs.aws.amazon.com/AmazonCloudWatch/latest/APIReference/API_GetMetricData.html[GetMetricData API],
+you can install {metricbeat} on any machine that can make the API requests and enable the
+{metricbeat-ref}/metricbeat-module-aws.html[AWS module].
+
+[IMPORTANT]
+=====
+Additional AWS charges for GetMetricData API requests are generated using this module.
+=====
+
+[[monitor-ec2-instances]]
+== Monitor EC2 instances
+
+To help you analyze the EC2 instance metrics listed on the *Inventory* page, you can select
+view filters based on the following predefined metrics or you can add <<custom-metrics,custom metrics>>.
+
+|=== 
+
+| *CPU Usage* | Average of `aws.ec2.cpu.total.pct`. 
+
+| *Inbound Traffic* | Average of `aws.ec2.network.in.bytes_per_sec`.
+
+| *Outbound Traffic* | Average of `aws.ec2.network.out.bytes_per_sec`.
+
+| *Disk Reads (Bytes)* | Average of `aws.ec2.diskio.read.bytes_per_sec`.
+
+| *Disk Writes (Bytes)* | Average of `aws.ec2.diskio.write.bytes_per_sec`.
+
+|===
+
+[[monitor-s3-buckets]]
+== Monitor S3 buckets
+
+To help you analyze the S3 bucket metrics listed on the *Inventory* page, you can select
+view filters based on the following predefined metrics or you can add <<custom-metrics,custom metrics>>.
+
+|=== 
+
+| *Bucket Size* | Average of `aws.s3_daily_storage.bucket.size.bytes`. 
+
+| *Total Requests* | Average of `aws.s3_request.requests.total`.
+
+| *Number of Objects* | Average of `aws.s3_daily_storage.number_of_objects`.
+
+| *Downloads (Bytes)* | Average of `aws.s3_request.downloaded.bytes`.
+
+| *Uploads (Bytes)* | Average of `aws.s3_request.uploaded.bytes`.
+
+|===
+
+[[monitor-sqs-queues]]
+== Monitor SQS queues
+
+To help you analyze the SQS queue metrics listed on the *Inventory* page, you can select
+view filters based on the following predefined metrics or you can add <<custom-metrics,custom metrics>>.
+
+|=== 
+
+| *Messages Available* | Max of `aws.sqs.messages.visible`. 
+
+| *Messages Delayed* | Max of `aws.sqs.messages.delayed`.
+
+| *Messages Added* | Max of `aws.sqs.messages.sent`.
+
+| *Messages Returned Empty* | Max of `aws.sqs.messages.not_visible`.
+
+| *Oldest Message* | Max of `aws.sqs.oldest_message_age.sec`.
+
+|===
+
+[[monitor-rds-databases]]
+== Monitor RDS databases
+
+To help you analyze the RDS database metrics listed on the *Inventory* page, you can select
+view filters based on the following predefined metrics or you can add <<custom-metrics,custom metrics>>.
+
+|=== 
+
+| *CPU Usage* | Average of `aws.rds.cpu.total.pct`. 
+
+| *Connections* | Average of `aws.rds.database_connections`.
+
+| *Queries Executed* | Average of `aws.rds.queries`.
+
+| *Active Transactions* | Average of `aws.rds.transactions.active`.
+
+| *Latency* | Average of `aws.rds.latency.dml`.
+
+|===
+
+For information about which required fields the {metrics-app} uses to display AWS services metrics, see the
+<<metrics-app-fields,Metrics field reference>>.
