@@ -52,37 +52,37 @@ You can extend your alerts by connecting them to actions that use the following 
 image::images/action-type-metrics.png[Action types]
 
 [float]
-=== Action variables
+== Action variables
 
 This section details the variables that metrics threshold alerts will send to your actions.
 
 [float]
-==== Basic variables
+=== Basic variables
 
 [role="screenshot"]
 image::images/basic-variables.png[The default metrics threshold alert message detailing basic variables]
 
-The default message for a metrics threshold alert shows an example of how to use its most basic variables.
+The default message for a metrics threshold alert displays the basic variables you can use.
 
-context.group:: This variable resolves to the **group** on which the alert's condition was detected. For Inventory alerts, this will be the name of a monitored host, pod, container, etc. For Metric Threshold alerts, this will be the value of the field specified in the **Create alert per** field, or `*` if the alert is configured to aggregate your entire infrastructure.
-context.alertState:: This variable will resolve to `ALERT`, `NO DATA`, or `ERROR`, depending on why this action is firing. `ALERT` means the alert's condition has been detected, `NO DATA` means no data was returned for the time period that the alert queried, and `ERROR` indicates an error when trying to query the data.
-context.reason:: This variable provides a plain English description of why the alert is in its current state. For each of the alert's conditions, it will include the **detected value** of the monitored **metric**, and a description of the **threshold** it crossed.
-context.timestamp:: This variable resolves to the timestamp at which the alert evaluated.
+- `context.group`: This variable resolves to the **group** that the alert's condition detected. For Inventory alerts, this is the name of a monitored host, pod, container, etc. For metric threshold alerts, this is the value of the field specified in the **Create alert per** field or `*` if the alert is configured to aggregate your entire infrastructure.
+- `context.alertState`: Depending on why the action is triggered, this variable resolves to `ALERT`, `NO DATA`, or `ERROR`. `ALERT` means the alert's condition is detected, `NO DATA` means that no data was returned for the time period that the alert queried, and `ERROR` indicates an error when querying the data.
+- `context.reason`: This variable describes why the alert is in its current state. For each of the alert's conditions, it includes the **detected value** of the monitored **metric**, and a description of the **threshold**.
+- `context.timestamp`: This variable resolves to the timestamp of when the alert was evaluated.
 
 
 [float]
-==== Advanced variables
+=== Advanced variables
 
 [role="screenshot"]
 image::images/advanced-variables.png[The default metrics threshold alert message detailing advanced variables]
 
-There may be cases when you'd like to customize your action message instead of using `context.reason` to provide all the information you need. Metrics threshold alerts will also provide some advanced context variables that have a tree structure.
+Instead of using `context.reason` to provide all the information you need, there may be cases when you’d like to customize your action message. Metrics threshold alerts provide advanced context variables that have a tree structure.
 
 [IMPORTANT]
 ==============================================
-These variables have to be used with the structure of `{{context.[Variable Name].condition[Number]}}`. For example, `{{context.value.condition0}}`, `{{context.value.condition1}}`, and so on. Do this even if your alert has only one condition (accessible with `.condition0`). Using just `{{context.[Variable Name]}}` will evaluate to a blank line or `[object Object]` depending on the action type.
+These variables must use the structure of `{{context.[Variable Name].condition[Number]}}`. For example, `{{context.value.condition0}}`, `{{context.value.condition1}}`, and so on. This is required even if your alert has only one condition (accessible with `.condition0`). Using just `{{context.[Variable Name]}}` evaluates to a blank line or `[object Object]` depending on the action type.
 ==============================================
 
-context.value.condition[X]:: This variable resolves to the detected value of conditions 0, 1, 2, etc.
-context.value.threshold[X]:: This variable resolves to the threshold values of conditions 0, 1, 2, etc.
-context.value.metric[X]:: This variable resolves to the monitored metric of conditions 0, 1, 2, etc.
+- `context.value.condition[X]`: This variable resolves to the detected value of conditions 0, 1, 2, and so on.
+- `context.value.threshold[X]`: This variable resolves to the threshold values of conditions 0, 1, 2, and so on.
+- `context.value.metric[X]`: This variable resolves to the monitored metric of conditions 0, 1, 2, and so on.
