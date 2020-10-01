@@ -13,9 +13,11 @@ conditions that combine metrics and thresholds to create precise notifications.
 
 [TIP]
 =====
-You can create an alert from every graph displayed on the *Metrics Explorer* page. Click *Actions* and 
-then select *Create alert*. The condition, filter, and the create per sections of the threshold alert
-are automatically populated. 
+When you select *Alerts > Create alert*, the alert will automatically be populated with the same parameters you've configured on the *Metrics Explorer* page. If you've chosen a *graph per* value, your alert will be pre-configured to separately monitor and notify about each individual graph displayed on the page.
+
+You can also create an alert based on a single graph on the *Metrics Explorer* page. Click *Actions* and 
+then select *Create alert*. The condition and filter sections of the threshold alert
+are automatically populated.
 =====
 
 [[metrics-conditions]]
@@ -47,4 +49,39 @@ image::images/alert-preview-metric.png[Preview metric alert]
 You can extend your alerts by connecting them to actions that use the following supported built-in integrations.
 
 [role="screenshot"]
-image::images/action-type-metrics.png[Anomalies chart]
+image::images/action-type-metrics.png[Action types]
+
+== Action variables
+
+This section details the variables that metrics threshold alerts will send to your actions.
+
+[float]
+=== Basic variables
+
+[role="screenshot"]
+image::images/basic-variables.png[The default metrics threshold alert message detailing basic variables]
+
+The default message for a metrics threshold alert displays the basic variables you can use.
+
+- `context.group`: This variable resolves to the **group** that the alert's condition detected. For Inventory alerts, this is the name of a monitored host, pod, container, etc. For metric threshold alerts, this is the value of the field specified in the **Create alert per** field or `*` if the alert is configured to aggregate your entire infrastructure.
+- `context.alertState`: Depending on why the action is triggered, this variable resolves to `ALERT`, `NO DATA`, or `ERROR`. `ALERT` means the alert's condition is detected, `NO DATA` means that no data was returned for the time period that the alert queried, and `ERROR` indicates an error when querying the data.
+- `context.reason`: This variable describes why the alert is in its current state. For each of the alert's conditions, it includes the **detected value** of the monitored **metric**, and a description of the **threshold**.
+- `context.timestamp`: This variable resolves to the timestamp of when the alert was evaluated.
+
+
+[float]
+=== Advanced variables
+
+[role="screenshot"]
+image::images/advanced-variables.png[The default metrics threshold alert message detailing advanced variables]
+
+Instead of using `context.reason` to provide all the information you need, there may be cases when you’d like to customize your action message. Metrics threshold alerts provide advanced context variables that have a tree structure.
+
+[IMPORTANT]
+==============================================
+These variables must use the structure of `{{context.[Variable Name].condition[Number]}}`. For example, `{{context.value.condition0}}`, `{{context.value.condition1}}`, and so on. This is required even if your alert has only one condition (accessible with `.condition0`). Using just `{{context.[Variable Name]}}` evaluates to a blank line or `[object Object]` depending on the action type.
+==============================================
+
+- `context.value.condition[X]`: This variable resolves to the detected value of conditions 0, 1, 2, and so on.
+- `context.value.threshold[X]`: This variable resolves to the threshold values of conditions 0, 1, 2, and so on.
+- `context.value.metric[X]`: This variable resolves to the monitored metric of conditions 0, 1, 2, and so on.
