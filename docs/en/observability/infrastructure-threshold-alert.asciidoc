@@ -11,6 +11,14 @@ conditions that combine metrics and thresholds to create precise notifications a
 . In the side navigation, expand *Observability*, and then click *Metrics*.
 . On the *Inventory* page, click *Alerts*, and then select *Create alert*.
 
+[role="screenshot"]
+image::images/inventory-create-alert.png[Closeup of the open Alerts menu on the Inventory page]
+
+[TIP]
+==============================================
+When you select *Create alert*, the alert will automatically be populated with the same parameters that you've configured on the *Inventory* page. You can use the Inventory view to first visualize which nodes in your infrastructure you'd like to be notified about, and then quickly create an alert in just a few clicks.
+==============================================
+
 [[inventory-conditions]]
 == Inventory conditions
 
@@ -37,4 +45,39 @@ image::images/alert-preview.png[Preview alerts]
 You can extend your alerts by connecting them to actions that use the following supported built-in integrations.
 
 [role="screenshot"]
-image::images/action-type-metrics.png[Anomalies chart]
+image::images/action-type-metrics.png[Action types]
+
+== Action variables
+
+This section details the variables that infrastructure threshold alerts will send to your actions.
+
+[float]
+=== Basic variables
+
+[role="screenshot"]
+image::images/basic-variables.png[The default infrastructure threshold alert message detailing basic variables]
+
+The default message for an infrastructure threshold alert displays the basic variables you can use.
+
+- `context.group`: This variable resolves to the **group** that the alert's condition detected. For inventory alerts, this is the name of a monitored host, pod, container, etc. For metric threshold alerts, this is the value of the field specified in the **Create alert per** field or `*` if the alert is configured to aggregate your entire infrastructure.
+- `context.alertState`: Depending on why the action is triggered, this variable resolves to `ALERT`, `NO DATA`, or `ERROR`. `ALERT` means the alert's condition is detected, `NO DATA` means that no data was returned for the time period that the alert queried, and `ERROR` indicates an error when querying the data.
+- `context.reason`: This variable describes why the alert is in its current state. For each of the alert's conditions, it includes the **detected value** of the monitored **metric**, and a description of the **threshold**.
+- `context.timestamp`: This variable resolves to the timestamp of when the alert was evaluated.
+
+
+[float]
+=== Advanced variables
+
+[role="screenshot"]
+image::images/advanced-variables.png[The default infrastructure threshold alert message detailing advanced variables]
+
+Instead of using `context.reason` to provide all the information you need, there may be cases when you'd like to customize your action message. Infrastructure threshold alerts provide advanced context variables that have a tree structure.
+
+[IMPORTANT]
+==============================================
+These variables must use the structure of `{{context.[Variable Name].condition[Number]}}`. For example, `{{context.value.condition0}}`, `{{context.value.condition1}}`, and so on. This is required even if your alert has only one condition (accessible with `.condition0`). Using just `{{context.[Variable Name]}}` evaluates to a blank line or `[object Object]` depending on the action type.
+==============================================
+
+- `context.value.condition[X]`: This variable resolves to the detected value of conditions 0, 1, 2, etc.
+- `context.value.threshold[X]`: This variable resolves to the threshold values of conditions 0, 1, 2, and so on.
+- `context.value.metric[X]`: This variable resolves to the monitored metric of conditions 0, 1, 2, and so on.
