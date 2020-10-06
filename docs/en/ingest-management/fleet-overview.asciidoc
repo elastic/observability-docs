@@ -1,6 +1,6 @@
-[[ingest-management-overview]]
+[[fleet-overview]]
 [role="xpack"]
-= Ingest management overview
+= Overview
 
 beta[]
 
@@ -11,13 +11,13 @@ beta[]
 {agent} is a single, unified way to add monitoring for logs, metrics, and
 other types of data to each host. A single agent makes it easier and faster
 to deploy monitoring across your infrastructure. The agent's single, unified
-configuration makes it easier to add integrations for new data sources.
+policy makes it easier to add integrations for new data sources.
 
 [discrete]
-[[ingest-manager]]
-== {ingest-manager}
+[[fleet]]
+== {fleet}
 
-{ingest-manager} provides a web-based UI in {kib} to add and manage integrations
+{fleet} provides a web-based UI in {kib} to add and manage integrations
 for popular services and platforms, as well as manage a fleet of {agent}s. Our
 integrations provide an easy way to add new sources of data, plus they ship
 with out-of-the-box assets like dashboards, visualizations, and pipelines to
@@ -29,28 +29,28 @@ image::images/integrations.png[Integrations page]
 
 [discrete]
 [[configuring-integrations]]
-== {integrations} in {ingest-manager}
+== {integrations} in {fleet}
 
-{ingest-manager} provides a web-based UI for configuring integrations with your
+{fleet} provides a web-based UI for configuring integrations with your
 data sources. This includes popular services and platforms like Nginx or AWS,
 as well as many generic input types like log files.
 
-The {agent} configuration allows you to use any number of integrations for
-data sources. You can apply the {agent} configuration to multiple agents,
+The {agent} policy allows you to use any number of integrations for
+data sources. You can apply the {agent} policy to multiple agents,
 making it even easier to manage configuration at scale.
 
 [role="screenshot"]
 image::images/add-integration.png[Add integration page]
 
-When you add an integration, you select the agent configuration to use then
+When you add an integration, you select the agent policy to use then
 configure inputs for logs and metrics, such as the path to your Nginx access
 logs. When you're done, you save the integration to update the {agent}
-configuration. The next time enrolled agents check in, they receive the update.
-Having the configurations automatically deployed is more convenient
+policy. The next time enrolled agents check in, they receive the update.
+Having the policies automatically deployed is more convenient
 than doing it yourself by using SSH, Ansible playbooks, or some other tool.
 
 If you prefer infrastructure as code, you may use YAML files and APIs.
-{ingest-manager} has an API-first design. Anything you can do in the UI, you
+{fleet} has an API-first design. Anything you can do in the UI, you
 can also do using the API. This makes it easy to automate and integrate with
 other systems.
 
@@ -58,21 +58,22 @@ other systems.
 [[central-management]]
 == Central management in {fleet}
 
-You can see the state of all your {agent}s on the {fleet} page. Here you can see
-which agents are online, which have errors, and the last time they checked in.
-You can also see the version of the {agent} binary and configuration. 
+You can see the state of all your {agent}s in {fleet}. On the **Agents** page,
+you can see which agents are online, which have errors, and the last time
+they checked in. You can also see the version of the {agent} binary and
+policy.
 
-//TODO: Replace this screen after testing (to show a number of agents).
+//TODO: Replace this screenshot with one that shows more than one agent.
 
 [role="screenshot"]
-image::images/fleet.png[{fleet} page]
+image::images/kibana-fleet-agents.png[Agents page] 
 
 {fleet} serves as the communication channel back to the {agent}s. Agents check
 in for the latest updates on a regular basis. You can have any number of agents
-enrolled into each agent configuration, which allows you to scale up to
-thousands of hosts. When you make a change to an agent configuration, all the
+enrolled into each agent policy, which allows you to scale up to
+thousands of hosts. When you make a change to an agent policy, all the
 agents receive the update during their next check-in. You no longer have to
-distribute configuration updates yourself.
+distribute policy updates yourself.
 
 [discrete]
 [[data-streams]]
@@ -86,8 +87,12 @@ permissions. These indices are called _data streams_.
 As you can see in the following screen, each data stream (or index) is broken
 out by dataset, type, and namespace. 
 
+// REVIEWERS: Have I gotten the terminology right here? It sounds
+// like datasets is still a concept, but when we talk about the indices created
+// here, they are data streams. Is that correct?
+
 [role="screenshot"]
-image::images/datasets.png[Datasets page]
+image::images/kibana-fleet-datastreams.png[Data streams page]
 
 The _dataset_ is defined by the integration and describes the fields and other
 settings for each index. For example, you might have one dataset for process
