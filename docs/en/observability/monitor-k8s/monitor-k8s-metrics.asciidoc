@@ -9,48 +9,379 @@ the monitoring overview. Again lots of good introductory info under
 "K8s metrics collection with Metricbeat"
 https://www.elastic.co/blog/kubernetes-observability-tutorial-k8s-metrics-collection-and-analysis[here].
 
+Collection metrics in order to monitor Kubernetes clusters along with the workloads running on top of them
+is also a key factor when we talk about Kubernetes observability. However, this is not an easy problem to solve
+since we need to collect metrics from various resources from both "physical" machines but also from containers/pods.
 
 [discrete]
 === Metrics you should monitor
 
-TODO: Discuss the metrics that users should monitor: cluster-level
-metrics from Kubernetes, pod metrics, metrics about nodes, technology-specific
-metrics (like nginx),etc. Explain where the metrics come from (kubelet API,kube-state-metrics,
-apiserver, etc) and why to monitor them.
+If we want to make it more specific we can split the target resources into:
+
+. Kubernetes components on different hosts that need to be monitored by collecting metrics
+like CPU, memory, disk utilisation, and disk and network I/O.
+. The Kubernetes Pods also produce their own set of metrics
 
 
 [discrete]
 === Deploy {metricbeat} to collect metrics
 
-TODO: Describe how to configure and deploy Metricbeat as a daemonset. Rough list
-of what we need to cover:
+Metricbeat is the only component we are going to use to collect various metrics from pods running in
+our Kubernetes cluster, as well as Kubernetes' own cluster metrics. Metricbeat modules provide a quick and
+easy way to pick up metrics from various sources and shipp them to Elasticsearch as ECS-compatible events,
+ready to be correlated with logs, uptime and APM data.
+
+Let's go over the steps of deploying Metricbeat:
 
 * Download the Metricbeat deployment manifest
+First of all we need to download the Kubernetes manifest file. To download the manifest file, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+curl -L -O https://raw.githubusercontent.com/elastic/beats/master/deploy/kubernetes/metricbeat-kubernetes.yaml
+------------------------------------------------
 
 * Set the connection information for Elasticsearch (also describe how to create
 secrets or point to earlier section for reminder)
+By default, Filebeat sends events to an existing Elasticsearch deployment,
+if present. To specify a different destination, change the following parameters
+in the manifest file:
+
+[source,yaml]
+------------------------------------------------
+- name: ELASTICSEARCH_HOST
+value: elasticsearch
+- name: ELASTICSEARCH_PORT
+value: "9200"
+- name: ELASTICSEARCH_USERNAME
+value: elastic
+- name: ELASTICSEARCH_PASSWORD
+value: changeme
+------------------------------------------------
+
+Those settings can be consumed by Kubernetes secret as well:
+
+Create the Secret
+["source", "sh", subs="attributes"]
+------------------------------------------------
+$ echo -n 'changeme' | base64
+Y2hhbmdlbWU=
+$ kubectl create secret generic es-secret --from-literal='password=Y2hhbmdlbWU='
+------------------------------------------------
+
+
+Use the secret value in Filebeat's env:
+[source,yaml]
+------------------------------------------------
+env:
+- name: ELASTICSEARCH_PASSWORD
+valueFrom:
+secretKeyRef:
+name: es-secret
+key: password
+------------------------------------------------
+
+As we can see Metricbeat will be running on each of the cluster's nodes as a Daemonset's Pod.
+Also various key paths are mounted from the host to the Pod so as to be able to collect
+system level metrics:
+
+[source,yaml]
+------------------------------------------------
+- name: proc
+  hostPath:
+  path: /proc
+- name: cgroup
+  hostPath:
+  path: /sys/fs/cgroup
+------------------------------------------------
 
 * Configure metrics collection:
 
 ** Collect system metrics.
+As we can see Metricbeat comes with system module enabled so as to collect system's level
+metrics from the running node:
 
-** Collect Docker metrics.
+[source,yaml]
+------------------------------------------------
+- module: system
+  period: 10s
+  metricsets:
+    - cpu
+    - load
+    - memory
+    - network
+    - process
+    - process_summary
+------------------------------------------------
 
-** Collect Kubernetes pod metrics.
+** Collect metrics from each Kubernetes node.
+
+Having Metribceat running on each of the nodes gives us the opportunity to collect metrics from the Kubelet's API.
+These metrics are really important since provide information about the state of the Kubernetes Node, the Pods,
+the Containers and various others.
+This collection happens due to the the enablement of the following metricsets:
+[source,yaml]
+------------------------------------------------
+- module: kubernetes
+  metricsets:
+    - node
+    - system
+    - pod
+    - container
+    - volume
+------------------------------------------------
+
+These metricsets collect metrics from the Kubelet's API and hence require access to the specific
+endpoints. Depending on the version and configuration of Kubernetes nodes, kubelet might provide a read only
+http port (typically 10255), which is used in some configuration examples. But in general, and lately,
+this endpoint requires SSL (https) access (to port 10250 by default) and token based authentication.
 
 ** Collect Kubernetes state metrics
+
+All metricsets with the state_ prefix require hosts field pointing to kube-state-metrics
+service within the cluster. As the service provides cluster-wide metrics, there’s no need to fetch them per node.
+In order to ensure this singleton approach we leverage a leader election method, where only one Pod per time will
+hold a leader lock and this Pod would be responsible for collecting these cluster-wide metrics.
+You can find more information about leader election configuration options at
+https://www.elastic.co/guide/en/beats/metricbeat/7.x/configuration-autodiscover.html[Autodiscover].
+
+[source,yaml]
+------------------------------------------------
+metricbeat.autodiscover:
+    providers:
+    - type: kubernetes
+      scope: cluster
+      node: ${NODE_NAME}
+      unique: true
+      templates:
+        - config:
+            - module: kubernetes
+              hosts: ["kube-state-metrics:8080"]
+              period: 10s
+              add_metadata: true
+              metricsets:
+                - state_node
+                - state_deployment
+                - state_daemonset
+                - state_replicaset
+                - state_pod
+                - state_container
+                - state_cronjob
+                - state_resourcequota
+                - state_statefulset
+------------------------------------------------
+
+Note: The size and the number of nodes in a Kubernetes cluster can be fairly large at times,
+and in such cases the Pod that will be collecting cluster level metrics might face performance
+issues due to resources limitations. In this case users might consider to avoid using the leader election
+strategy and instead run a dedicated, standalone Metribceat instance using a Deployment in addition to the DaemonSet.
 
 ** Collect application-specific metrics (use hint-based autodiscovery).
 Examples: NGINX, MySQL
 
+Metricbeat supports autodiscover based on hints from the provider. The hints system looks for hints
+in Kubernetes Pod annotations or Docker labels which have the prefix co.elastic.metrics.
+As soon as the container starts, Metricbeat will check if it contains any hints and launch the proper
+config for it. Hints tell Metricbeat how to get metrics for the given container.
+To enable it just set hints.enabled:
+
+
+[source,yaml]
+------------------------------------------------
+metricbeat.autodiscover:
+  providers:
+    - type: kubernetes
+      hints.enabled: true
+------------------------------------------------
+
+You can annotate Kubernetes Pods with useful info to spin up Metricbeat modules:
+
+[source,yaml]
+------------------------------------------------
+apiVersion: v1
+kind: Pod
+metadata:
+    name: nginx-autodiscover
+    annotations:
+        co.elastic.metrics/module: nginx
+        co.elastic.metrics/metricsets: stubstatus
+        co.elastic.metrics/hosts: '${data.host}:80'
+        co.elastic.metrics/period: 10s
+------------------------------------------------
+
 ** Collect metrics from Prometheus.
+We can enrich our collection resources by leveraging the Prometheus module and collect metrics
+from every application that runs on the cluster and exposes a Prometheus exporter. For instance let's
+say that on the cluster we run multiple applications that expose Prometheus metrics with the default
+Prometheus standards. Taking it for granted that these applications are annotated properly we can define an extra
+autodiscover provider so as to automatically identify them and start collecting their exposed metrics using
+Prometheus module:
+
+[source,yaml]
+------------------------------------------------
+metricbeat.autodiscover:
+  providers:
+    - type: kubernetes
+      include_annotations: ["prometheus.io.scrape"]
+      templates:
+        - condition:
+            contains:
+              kubernetes.annotations.prometheus.io/scrape: "true"
+          config:
+            - module: prometheus
+              metricsets: ["collector"]
+              hosts: "${data.host}:${data.port}"
+------------------------------------------------
+
+This configuration launches a prometheus module for all containers of pods annotated prometheus.io/scrape=true
 
 * Add metadata to events. Describe how the events are enriched with
 metadata coming from Docker, Kubernetes, host, and the cloud providers
 
+Additionally we can add more metadata to the events by adding the proper processors:
+
+[source,yaml]
+------------------------------------------------
+processors:
+- add_cloud_metadata:
+- add_host_metadata:
+------------------------------------------------
+
+This allows correlation of metrics with the hosts, Kubernetes pods, Docker containers, and cloud-provider
+infrastructure metadata and correlation with other pieces of observability puzzle, such as
+application performance monitoring data and logs.
+
 * Deploy Metricbeat as a DaemonSet on Kubernetes
+
+Metricbeat gets some metrics from https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics].
+If kube-state-metrics is not already running, deploy it now
+(see the Kubernetes deployment https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs])
+
+
+To deploy Metricbeat to Kubernetes, run:
+
+[source,console]
+------------------------------------------------
+kubectl create -f metricbeat-kubernetes.yaml
+------------------------------------------------
+
+[source,console]
+------------------------------------------------
+$ kubectl --namespace=kube-system  get ds/metricbeat
+
+NAME       DESIRED   CURRENT   READY     UP-TO-DATE   AVAILABLE   NODE-SELECTOR   AGE
+metricbeat   32        32        0         32           0           <none>          1m
+------------------------------------------------
+
+Metrics should start flowing to Elasticsearch.
+
+** Red Hat OpenShift configuration
+
+If you are using Red Hat OpenShift, you need to specify additional settings in
+the manifest file and enable the container to run as privileged.
+
+. Modify the `DaemonSet` container spec in the manifest file:
++
+[source,yaml]
+-----
+  securityContext:
+    runAsUser: 0
+    privileged: true
+-----
+
+. In the manifest file, edit the metricbeat-daemonset-modules ConfigMap, and specify the
+following settings under kubernetes.yml in the data section:
++
+[source,yaml]
+-----
+kubernetes.yml: |-
+    - module: kubernetes
+      metricsets:
+        - node
+        - system
+        - pod
+        - container
+        - volume
+      period: 10s
+      host: ${NODE_NAME}
+      hosts: ["https://${NODE_NAME}:10250"]
+      bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+      ssl.certificate_authorities:
+        - /path/to/kubelet-service-ca.crt
+-----
+
+Note:
+
+kubelet-service-ca.crt can be any CA bundle that contains the issuer of the certificate used
+in the Kubelet API. According to each specific installation of Openshift this can be found either
+in secrets or in configmaps. In some installations it can be available as part of the service account
+secret, in /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt. In case of using
+https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[Openshift installer]
+for GCP then the following configmap can be mounted in Metricbeat Pod and use ca-bundle.crt
+in ssl.certificate_authorities:
++
+[source,yaml]
+-----
+Name:         kubelet-serving-ca
+Namespace:    openshift-kube-apiserver
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+ca-bundle.crt:
+-----
+
+. Under the metricbeat ClusterRole, add the following resources:
++
+[source,yaml]
+-----
+- nodes/metrics
+- nodes/stats
+-----
+
+. Grant the `filebeat` service account access to the privileged SCC:
++
+[source,shell]
+-----
+oc adm policy add-scc-to-user privileged system:serviceaccount:kube-system:filebeat
+-----
++
+This command enables the container to be privileged as an administrator for
+OpenShift.
+
+. Override the default node selector for the `kube-system` namespace (or your
+custom namespace) to allow for scheduling on any node:
++
+[source,shell]
+----
+oc patch namespace kube-system -p \
+'{"metadata": {"annotations": {"openshift.io/node-selector": ""}}}'
+----
++
+This command sets the node selector for the project to an empty string. If you
+don't run this command, the default node selector will skip master nodes.
+
 
 [discrete]
 === View performance and health metrics
 
-TODO: Describe how to use the Metrics app and pre-built dashboards/visualizations.
+** Metrics App
+
+The Metricbeat configuration in our tutorial drives the following views in the
+https://www.elastic.co/infrastructure-monitoring[Metrics app].
+Feel free to click around and review those. Notice how everywhere you go in Kibana, there is a search
+bar that allows you to, you know, search for things. It’s a great way to filter the views and zoom
+in into things when you are looking for that needle in a haystack. In our tutorial, we only have one host,
+so here it is:
+
+TODO: add screenshots
+
+
+** Out-of-the-box Kibana dashboards
+Metricbeat ships with a variety of pre-built Kibana dashboards that can easily be added to your cluster with
+a single https://www.elastic.co/guide/en/beats/metricbeat/7.8/load-kibana-dashboards.html[command].
+You can then use these dashboards as they are, or as a starting point for custom
+dashboards tailored to your needs. Here are dashboards that will help clearly display the data
+from your tutorial environment.
+
