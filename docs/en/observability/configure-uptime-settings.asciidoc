@@ -13,12 +13,15 @@ different uptime use cases and domains, use different settings in other spaces.
 +
 [IMPORTANT]
 =====
-To modify items on this page, you must enable {heartbeat-ref}/securing-heartbeat.html[`all`]
-permission.
+To modify items on this page, you must have the {kibana-ref}/space-rbac-tutorial.html[`all`]
+privilege granted to your role. The `all` privilege grants cluster administration operations, like snapshotting,
+node shutdown/restart, settings update, rerouting, or managing users and roles.
 =====
 
 [[configure-uptime-indices]]
 == Configure indices
+
+Specify a comma-separated list of index patterns to match indices in {es} that contain {heartbeat} data.
 
 [NOTE]
 =====
@@ -26,30 +29,29 @@ The pattern set here only restricts what the {uptime-app} displays. You can stil
 data outside of this pattern.
 =====
 
-If your organization has one team for internal IT services, and another
-for public services, with each group operating independently, you may want separate {heartbeat} instances per team.
-
-For example, you could create an `it-heartbeat-\*` index pattern and an `external-heartbeat-\*` index pattern.
-For each index pattern, you can then create separate roles and users in {es}, each with access to their own spaces,
-name them `it` and `external` respectively. For each space, you would set the correct index pattern to match only
-the indices that space is allowed to access.
-
 [role="screenshot"]
 image::images/heartbeat-indices.png[Heartbeat indices]
 
 [[configure-uptime-alert-connectors]]
 == Configure alert connectors
 
-Alert connectors can be created by clicking the *Create connector* button, which will guide you through selecting the type of
-connector and configuring its properties. Once you create a connector it is made available to you anytime you set
-up an alert action in the current space.
+*Alerts* work by running checks on a schedule to detect conditions. When a condition is met, the alert tracks
+it as an *alert instance* and responds by triggering one or more *actions*. 
+Actions typically involve interaction with {kib} services or third party integrations. *Connectors* allow actions
+to talk to these services and integrations.
+
+Click *Create connector* and follow the prompts to select a connector type and configure its properties.
+After you create a connector, it's available to you anytime you set up an alert action in the current space.
 
 For more information about each connector, see {kibana-ref}/action-types.html[action types and connectors].
+
+[role="screenshot"]
+image::images/alert-connector.png[Alert connector]
 
 [[configure-cert-thresholds]]
 == Configure certificate thresholds
 
-You can modify certificate thresholds to control how Uptime visualizes your TLS values in
+You can modify certificate thresholds to control how Uptime displays your TLS values in
 the <<view-certificate-status,Certificates>> page. These settings also determine which certificates are
 selected by any TLS alert you create.
 
