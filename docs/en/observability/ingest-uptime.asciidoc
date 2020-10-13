@@ -15,6 +15,47 @@ If you haven't already, you need to install {es} for storing and searching your 
 managing it. For more information, see <<install-observability,Get started>>.
 =====
 
+Install and configure {heartbeat} on your servers to periodically check the status of your 
+services. {heartbeat} uses probing to monitor the availability of services and helps 
+verify that you’re meeting your service level agreements for service uptime.
+You typically install {heartbeat} as part of a monitoring service that runs on a separate machine 
+and possibly even outside of the network where the services that you want to monitor are running.
+
+[[deployment-considerations]]
+== Deployment considerations
+
+There are multiple ways to deploy Uptime and Heartbeat. A guiding principle is that when
+an outage takes down the service being monitored, it should not take down {heartbeat}.
+
+{heartbeat} is commonly run as a centralized service within a data center.
+While it's possible to run it as a separate "sidecar" process paired with each process/container,
+we recommend against it. Running {heartbeat} centrally ensures you will still be able to see
+monitoring data in the event of an overloaded, disconnected, or otherwise malfunctioning server.
+
+For further redundancy, you may want to deploy multiple instances of {heartbeat} across geographic and network boundaries
+to provide more data.
+
+For example:
+
+* A site served from a content delivery network (CDN) with points of presence (POPs) around the globe.
++
+To check if your site is reachable via CDN POPS, deploy multiple {heartbeat} instances at
+different data centers around the world.
++
+* A service within a single data center that is accessed across multiple VPNs.
++ 
+Set up one {heartbeat} instance within the VPN the service operates from, and another within an additional
+VPN that users access the service from. In the event of an outage, having both instances helps pinpoint
+the network errors.
++
+* A single service running primarily in a US east coast data center, with a hot failover located in
+a US west coast data center.
++
+In each data center, run a {heartbeat} instance that checks both the local
+copy of the service and its counterpart across the country. Set up two monitors in each region, one for
+the local service, and one for the remote service. In the event of a data center failure, it will be
+immediately apparent if the service has a connectivity issue to the outside world, or if the failure is only internal.
+
 [[install-heartbeat]]
 == Step 1: Install {beatname_uc}
 
@@ -150,7 +191,7 @@ include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
 [[view-uptime-kibana]]
 == Step 6: View your data in {kib}
 
-To view the <<observability-ui,Observability Overview>> page:
+Let's confirm your data is correctly ingested to your cluster.
 
 . Launch {kib}:
 +
@@ -158,7 +199,9 @@ To view the <<observability-ui,Observability Overview>> page:
 include::{beats-repo-dir}/tab-widgets/open-kibana-widget.asciidoc[]
 --
 
-. In the side navigation, expand *Observability*, and then click *Overview*.
+. In the side navigation, click *Observability > Uptime*.
+
+Now let's have a look at the <<monitor-uptime,Uptime app>>.
 
 // Add Javascript and CSS for tabbed panels
 include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
