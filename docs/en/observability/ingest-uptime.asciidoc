@@ -101,8 +101,49 @@ For more information about configuring {beatname_uc}, also see:
 * {heartbeat-ref}/heartbeat-reference-yml.html[`heartbeat.reference.yml`]: This 
 reference configuration file shows all non-deprecated options. You’ll find it in the same location as `heartbeat.yml`.
 
+[[configure-heartbeat-location]]
+== Step 4: Configure {beatname_uc} location
+
+{beatname_uc} can be deployed in multiple locations so that you can detect 
+differences in availability and response times across those locations.
+Configure the {beatname_uc} location to allow {kib} to display location-specific
+information on Uptime maps and perform Uptime anomaly detection based
+on location.
+
+To configure the location of a {beatname_uc} instance, modify the 
+`add_observer_metadata` processor in +{beatname_lc}.yml+.  The following 
+example specifies the `geo.name` of the `add_observer_metadata` processor as
+`us-east-1a`:
+
+[source,yaml]
+----------------------------------------------------------------------
+# ============================ Processors ============================
+
+processors:
+  - add_observer_metadata:
+      # Optional, but recommended geo settings for the location Heartbeat is running in
+      geo: <1>
+        # Token describing this location
+        name: us-east-1a <2>
+        # Lat, Lon "
+        #location: "37.926868, -78.024902" <3>
+----------------------------------------------------------------------
+<1> Uncomment the `geo` setting.
+<2> Uncomment `name` and assign the name of the location of the Heartbeat server.
+<3> Optionally uncomment `location` and assign the latitude and longitude.
+
+[TIP]
+=====
+
+To test your configuration file, change to the directory where the {beatname_uc} binary 
+is installed, and run {beatname_uc} in the foreground with the following options specified: 
+`./heartbeat test config -e`. Make sure your config files are in the path expected by 
+{beatname_uc} (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the 
+`-c` flag to specify the path to the config file.
+=====
+
 [[set-heartbeat-assets]]
-== Step 4: Set up assets
+== Step 5: Set up assets
 
 {beatname_uc} comes with predefined assets for parsing, indexing, and
 visualizing your data. To load these assets:
@@ -131,7 +172,7 @@ environment. If you're using a different output, such as {ls}, see
 =====
 
 [[start-heartbeat]]
-== Step 5: Start {beatname_uc}
+== Step 6: Start {beatname_uc}
 
 Before starting {beatname_uc}, modify the user credentials in
 `heartbeat.yml` and specify a user who is
@@ -148,7 +189,7 @@ include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
 {beatname_uc} is now ready to check the status of your services and send events to your defined output.
 
 [[view-uptime-kibana]]
-== Step 6: View your data in {kib}
+== Step 7: View your data in {kib}
 
 To view the <<observability-ui,Observability Overview>> page:
 
