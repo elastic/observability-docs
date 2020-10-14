@@ -1,0 +1,129 @@
+[[user-experience]]
+= User experience
+
+// These need to move into the docs repo
+:user-experience: User experience
+:user-experience-tab: {user-experience} tab
+
+How are your users experiencing your web application?
+
+The {user-experience-tab} in {kib} provides a way to quantify important aspects of your web application.
+Unlike testing environments, Elastic {user-experience} data reflects actual users' real-world experiences.
+With just a few lines of code, you can surface key user experience metrics and investigative tools
+to begin improving your users experiences.
+Drill down further by looking at data by device type, operating system, browser, and location --
+all of which can have an impact on how your code preforms when an end-user is accessing your site.
+
+[role="screenshot"]
+image::images/user-experience-tab.png[User experience tab]
+
+[discrete]
+[[why-user-experience]]
+== Why is User experience important?
+
+In one study, 40% of users said they abandon a website if it takes more than three seconds to load.
+footnote:[Source: https://neilpatel.com/blog/loading-time/[https://neilpatel.com/blog/loading-time/]]
+In another, Amazon calculated that a page load slowdown of just one second would cut conversions by
+7% -- costing them $1.6B in sales each year.
+footnote:[Source: https://www.fastcompany.com/1825005/how-one-second-could-cost-amazon-16-billion-sales[https://www.fastcompany.com/1825005/how-one-second-could-cost-amazon-16-billion-sales]]
+In short, a good {user-experience} keeps your users happy and improves your website's odds of success.
+
+[discrete]
+[[how-user-experience-works]]
+== How does it work?
+
+// help me
+// high level only
+How does it work? After page load, downloads a script, collects data, sends it to APM Server where it is processed, and then onto ES?
+// link to RUM agent here
+
+[discrete]
+[[user-experience-tab]]
+== User experience tab
+
+There are four key sections:
+
+* Page load duration
+* Core web vitals
+* Load/view distribution
+* Error breakdown
+
+[discrete]
+[[user-experience-page-load]]
+=== Page load duration
+
+High-level overview
+
+How long is my server taking to respond to requests?
+How much time is spent parsing and painting that content?
+How many pageviews has my site gotten?
+
+The high-level overview is your analysis starting point.
+You won't be able to fix any problems from viewing these metrics alone,
+but you'll get a sense of the big picture, and hopefully an idea of where to look next.
+
+[role="screenshot"]
+image::images/page-load-duration.png[User experience page load duration metrics]
+
+User experience metrics:
+* First contentful paint: The timestamp when the browser begins rendering content (images, text, etc.) from the DOM. This is when the user can tell that the page is loading.
+* Total blocking time: The total amount of time that the user is blocked from providing input to the page -- no mouse clicks, button presses, etc.
+* Number of long tasks: Long tasks are periods of time where the main UI thread is working for 50ms or longer. This could be because of a rerender, event handler, or something else.
+* Longest long task duration: The longest of the long tasks?
+* Total long tasks duration: Sum duration of all long tasks
+
+[discrete]
+[[user-experience-core-vitals]]
+=== Core web vitals
+
+Developers shouldn't have to become experts at interpreting and acting on metrics like paint timings,
+long tasks, and blocking times; they should spend their time coding.
+
+For that reason (and many others) Elastic has embraced Core Web Vitals --
+A recent initiative from Google to introduce a new set of metrics that better categorize good and bad sites
+by quantifying the real-world user experience.
+This is done by looking at three key metrics: loading performance, visual stability, and interactivity.
+
+[role="screenshot"]
+image::images/user-exp-metrics.png[User experience metrics]
+
+[role="screenshot"]
+image::images/web-dev-vitals.png[Web dev vitals (image source: https://web.dev/vitals)]
+
+^Image source: https://web.dev/vitals/[web.dev/vitals]^
+
+* Largest contentful paint: Loading performance. Measures the perceived load speed for a user as it measures the time to when the page's main content has likely loaded.
+* First input delay: Load responsiveness. How quickly can users interact with your page?
+* Cumulative layout shift: Visual stability. Are users experiencing unexpected layout shifts? Is content moving around because of async resource loading or dynamic content additions? These experiences can be frustrating for users.
+
+TIP: Starting in 2021, Google will start using core web vitals as part of their ranking algorithm,
+and will open up the opportunity for websites to rank in the "top stories"
+position without needing to leverage https://amp.dev/[AMP].
+footnote:[Source: https://webmasters.googleblog.com/2020/05/evaluating-page-experience.html[https://webmasters.googleblog.com/2020/05/evaluating-page-experience.html]]
+
+[discrete]
+[[user-experience-distribution]]
+=== Load/view distribution
+
+Operating system, browser family, and geographic location can all have a massive impact on how visitors
+experience your website.
+This data can help you understand when and where your users are visiting from, and can help you
+prioritize optimizations -- for example, prioritizing improvements for the most popular browsers visiting your site.
+
+[role="screenshot"]
+image::images/visitor-breakdown.png[User experience visitor breakdown]
+
+[discrete]
+[[user-experience-errors]]
+=== Error breakdown
+
+As JavaScript continues to get more and more complex,
+the need for user experience monitoring and error reporting only increases.
+In addition, variation in software and hardware makes it nearly impossible to test for every user's combination.
+{user-experience} removes this blindspot by surfacing JavaScript errors that are
+occurring on your website in production.
+
+[role="screenshot"]
+image::images/js-errors.png[User experience javascript errors]
+
+**References**
