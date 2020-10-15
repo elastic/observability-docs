@@ -4,59 +4,41 @@
 
 [Author: @ChrsMark]
 
-TODO: Provide a brief intro. We'll need to decide how much to cover here vs
-the monitoring overview. Again lots of good introductory info here:
-https://www.elastic.co/blog/kubernetes-observability-tutorial-k8s-log-monitoring-and-analysis-elastic-stack)
+Collecting and analyzing logs of both Kubernetes Core components and various
+applications running on top of Kubernetes is a powerful tool for Kubernetes
+observability. Containers running within Kubernetes Pods produce logs as stdout
+or stderr. These logs are written to a location known to Kubelet.
 
-
-Collecting and analysing logs of both Kubernetes Core components and various applications running
-on top of Kubernetes is a powerful tool for Kubernetes Observability.
-Containers running within Kubernetes pods produce logs as stdout or stderr. These logs are written to a
-location known to Kubelet.
-All we need in order to collect pod logs is Filebeat running as DaemonSet in our Kubernetes cluster.
-Filebeat can be configured to communicate with the Kubernetes API server, get the list of pods running on the
-current host, and collect the logs the pods are producing. Those logs are annotated with all the relevant
-Kubernetes metadata, such as pod id, container name, container labels and annotations and so on.
-
-
-TODO: Completely remove?
-[discrete]
-=== Logs you should monitor
-
-TODO: Discuss the various logs (Kubernetes cluster, nodes, host, container logs)
-that users might want to collect. I'm not sure if this deserves a separate
-section or should be part of the previous section.
+To collect Pod logs, all you need is {filebeat} running as a DaemonSet
+in your Kubernetes cluster. You configure {filebeat} to communicate with the
+Kubernetes API server, get the list of Pods running on the current host, and
+collect the logs the Pods are producing. Those logs are annotated with all the
+relevant Kubernetes metadata, such as Pod ID, container name, container labels
+and annotations, and so on.
 
 [discrete]
 === Deploy {filebeat} to collect logs
 
-TODO: Describe how to configure and deploy Filebeat as a daemonset. We should
-walk users through the parts of the deployment YAMLs, explain what they do, and point
-out the settings they might want to change or add. Rough list of what
-we need to cover:
+To start collecting logs, deploy and run an instance of {filebeat} on each
+Kubernetes host. {filebeat} communicates with the Kubernetes API server to
+retrieve information about the Pods running on the host, all the metadata
+annotations, and the location of the log files.
 
-Filebeat should be deployed and running as one instance per Kubernetes host communicating with Kubernetes API
-server retrieving the information about the pods running on that host,
-all the metadata annotations as well as the location of the log files. In order to deploy Filebeat on our Kubernetes
-cluster and start collecting logs we can follow these steps:
+To deploy {filebeat} to your Kubernetes cluster:
 
-
-* Download the Filebeat deployment manifest
-
-To download the manifest file, run:
-
+. **Download the {filebeat} deployment manifest.**
++
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
-curl -L -O https://raw.githubusercontent.com/elastic/beats/master/deploy/kubernetes/filebeat-kubernetes.yaml
+curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/filebeat-kubernetes.yaml
 ------------------------------------------------
 
-* Set the connection information for Elasticsearch (also describe how to create
-secrets)
-
-By default, Filebeat sends events to an existing Elasticsearch deployment,
-if present. To specify a different destination, change the following parameters
-in the manifest file:
-
+. **Set the connection information for {es}.**
++
+By default, {filebeat} sends events to an existing {es} deployment, if present.
+To specify a different destination, change the following parameters in the
+manifest file:
++
 [source,yaml]
 ------------------------------------------------
 - name: ELASTICSEARCH_HOST
@@ -68,19 +50,19 @@ in the manifest file:
 - name: ELASTICSEARCH_PASSWORD
   value: changeme
 ------------------------------------------------
-
-Those settings can be consumed by Kubernetes secret as well:
-
-Create the Secret
++
+Those settings can be consumed by a Kubernetes secret as well. To
+create a secret:
++
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 $ echo -n 'changeme' | base64
 Y2hhbmdlbWU=
 $ kubectl create secret generic es-secret --from-literal='password=Y2hhbmdlbWU='
 ------------------------------------------------
-
-
-Use the secret value in Filebeat's env:
++
+Use the secret value in {filebeat}'s env:
++
 [source,yaml]
 ------------------------------------------------
 env:
@@ -91,20 +73,11 @@ env:
           key: password
 ------------------------------------------------
 
-* Configure log collection:
-
-** Collect Kubernetes logs (cluster, node)
-TODO: Do we actually want to mention this? I don't think we have a spesific module to do this
-and only `journalbeat` comes to mind for collecting `kubelet`'s logs for instance.
-
-** Collect host logs
-
-** Collect container logs (use inputs)
-We should probably explain what the default config with the container input does
-then focus on documenting how to use autodiscovery.
-
-To collect container logs, each Filebeat needs access to the local log's path which is
-actually a log directory mounted from the host:
+. **Configure log collection.**
++
+To collect container logs, each {filebeat} instance needs access to the local
+log's path, which is actually a log directory mounted from the host:
++
 [source,yaml]
 ------------------------------------------------
 filebeat.inputs:
@@ -112,17 +85,20 @@ filebeat.inputs:
   paths:
     - /var/log/containers/*.log
 ------------------------------------------------
++
+With this configuration {filebeat} can collect logs from all the files that
+exist under the `/var/log/containers/` directory.
 
-With this configuration Filebeat will be able to collect logs from all the files that exist
-under /var/log/containers/ directory.
-
-
-* Add metadata to events. Enrich the event with metadata coming from Docker,
-Kubernetes, host, and the cloud providers.
-
-Collecting logs from containers is good, however adding metadata on these logs is really powerful.
-In order to add Kubernetes and container related metadata to the logs we need to expand the previous configuration:
-
+. *Add metadata to events.*
++
+Collecting logs from containers is good, however, adding metadata to these logs
+is really powerful. {filebeat} provides processors that you can use in your
+configuration to enrich events with metadata coming from Docker, Kubernetes,
+hosts, and cloud providers.
++
+To add Kubernetes and container-related metadata to the logs, add the 
+`add_kubernetes_metadata` processor to the configuration:
++
 [source,yaml]
 ------------------------------------------------
 filebeat.inputs:
@@ -137,13 +113,18 @@ filebeat.inputs:
             logs_path: "/var/log/containers/"
 ------------------------------------------------
 
-** Collect container logs with Autodiscovery
-
-We already managed to collect containers' logs and enrich them with metadata. However we can take it
-further by leveraging Autodiscover mechanism. Filebeat with Autodiscover can be used so as to discover what kind
-of components are running in the pod and can decide which logging module to apply to the logs it is processing.
-
-Autodiscover can be configured with static templates:
+. *Collect container logs through autodiscovery.*
++
+Earlier you learned how to collect container logs and enrich them with metadata.
+However you can take it further by leveraging the autodiscovery mechanism in
+{filebeat}. With autodiscovery, {filebeat} can automatically discover what kind
+of components are running in a Pod and apply the logging modules needed to
+capture logs for those components.
++
+To configure autodiscovery, you use static templates. For example, the template
+in this example configures {filebeat} to collect Nginx logs from any Pod
+labeled as `nginx`.
++
 [source,yaml]
 ------------------------------------------------
 filebeat.autodiscover:
@@ -159,11 +140,12 @@ filebeat.autodiscover:
               fileset.stdout: access
               fileset.sterr: error
 ------------------------------------------------
-With this template we can identify any Pod labeled as nginx and start collecting its logs using the respective module.
-
-This is good but requires knowledge of the workloads we are running and each time we want to monitor something new
-we need to re-configure and restart Filebeat. To avoid this we can leverage hints based autodiscover:
-
++
+This is good, but requires advanced knowledge of the workloads running in
+Kubernetes. Each time you want to monitor something new, you'll need to
+re-configure and restart {filebeat}. To avoid this, you can use hints-based
+autodiscovery:
++
 [source,yaml]
 ------------------------------------------------
 filebeat.autodiscover:
@@ -176,9 +158,9 @@ filebeat.autodiscover:
         paths:
           - /var/log/containers/*${data.kubernetes.container.id}.log
 ------------------------------------------------
-
-and then annotate the Pods accordingly:
-
++
+Then annotate the Pods accordingly:
++
 [source,yaml]
 ------------------------------------------------
 apiVersion: v1
@@ -190,11 +172,15 @@ metadata:
     co.elastic.logs/fileset.stdout: access
     co.elastic.logs/fileset.stderr: error
 ------------------------------------------------
++
+With this setup, {filebeat} identifies the nginx app and starts collecting its
+logs by using nginx module.
 
-With this setup Filebeat will be able to identify the nginx app and start collecting its logs using nginx module.
-
-* (optional) Drop unwanted events
-We can enrich our configuration with additional processors so as to drop unwanted events:
+. *(optional) Drop unwanted events.*
++
+You can enrich your configuration with additional processors to drop unwanted
+events. For example:
++
 [source,yaml]
 ------------------------------------------------
 processors:
@@ -204,9 +190,11 @@ processors:
               kubernetes.container.name: "metricbeat"
 ------------------------------------------------
 
-* Enrich with cloud metadata and host metadata
-Additionally we can add more metadata to the events by adding the proper processors:
-
+. *Enrich events with cloud metadata and host metadata.*
++
+You can also enrich events with cloud and host metadata by specifying these
+processors:
++
 [source,yaml]
 ------------------------------------------------
 processors:
@@ -214,14 +202,13 @@ processors:
 - add_host_metadata:
 ------------------------------------------------
 
-* Deploy Filebeat as a DaemonSet on Kubernetes
-
-** Running Filebeat on master nodes
-
-Kubernetes master nodes can use https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints]
-to limit the workloads that can run on them. To run {agent} on master nodes you may need to
-update the Daemonset spec to include proper tolerations:
-
+. *Deploy {filebeat} as a DaemonSet on Kubernetes.*
++
+.. If you're running {filebeat} on master nodes, check to see if the nodes use
+https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints].
+Taints limit the workloads that can run on master nodes. If necessary, update
+the DaemonSet spec to include tolerations:
++
 [source,yaml]
 ------------------------------------------------
 spec:
@@ -230,17 +217,15 @@ spec:
    effect: NoSchedule
 ------------------------------------------------
 
-** Deploy
-
-To deploy Filebeat to Kubernetes, run:
-
+.. Deploy {filebeat} to Kubernetes:
++
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 kubectl create -f filebeat-kubernetes.yaml
 ------------------------------------------------
-
++
 To check the status, run:
-
++
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 $ kubectl --namespace=kube-system get ds/filebeat
@@ -248,13 +233,13 @@ $ kubectl --namespace=kube-system get ds/filebeat
 NAME       DESIRED   CURRENT   READY     UP-TO-DATE   AVAILABLE   NODE-SELECTOR   AGE
 filebeat   32        32        0         32           0           <none>          1m
 ------------------------------------------------
++
+Log events should start flowing to {es}.
 
-Log events should start flowing to Elasticsearch.
+[discrete]
+==== Red Hat OpenShift configuration
 
-
-** Red Hat OpenShift configuration
-
-If you are using Red Hat OpenShift, you need to specify additional settings in
+If you're using Red Hat OpenShift, you need to specify additional settings in
 the manifest file and enable the container to run as privileged.
 
 . Modify the `DaemonSet` container spec in the manifest file:
@@ -292,32 +277,33 @@ don't run this command, the default node selector will skip master nodes.
 [discrete]
 === View logs in {kib}
 
+//TODO: It would be good to add a realistic scenario to talk through and
+//highlight a specific use cases.
 
-[discrete]
-==== Using the Logs app in Kibana
-
-TODO: Describe how to view logs in Kibana. Show how to use the Logs app and how to
-set up and view pre-built dashboards and visualizations.
-
-The https://www.elastic.co/log-monitoring[Logs app] in Kibana allows you to search, filter and tail all the logs
-collected into Elastic Stack. Instead of having to ssh into different servers, having to cd into the directory
-and tail individual files, all the logs are available in one tool under Logs app.
+The https://www.elastic.co/log-monitoring[Logs app] in {kib} allows you to
+search, filter and tail all the logs collected into the {stack}. Instead of
+having to ssh into different servers and tail individual files, all the logs are
+available in one tool under the Logs app.
 
 * Check out filtering logs using the keyword or plain text search.
-* You can move back and forth in time using the time picker or the timeline view on the side.
-* If you just want to watch the logs update in front of you tail -f style, click on the Streaming button
-and use highlighting to accentuate that important bit of the info you are waiting to see.
+* You can move back and forth in time using the time picker or the timeline
+view on the side.
+* If you just want to watch the logs update in front of you tail -f style, click
+the Streaming button and use highlighting to accentuate that important bit of
+the info you are waiting to see.
 
-TODO: Add screenshot here?
-
-
+//TODO: Add screenshot here?
 
 [discrete]
-==== Out-of-the-box Kibana visualisations
+==== Out-of-the-box {kib} visualisations
 
-When we run the filebeat-setup job, among other things, it pre-created a set of
-https://www.elastic.co/guide/en/beats/filebeat/7.8/view-kibana-dashboards.html[out-of-the-box dashboards] in Kibana.
-Once our sample petclinic application is finally deployed, we can navigate to the out of the box Filebeat
-dashboards for MySQL, NGINX and see that Filebeat modules not only capture logs but can also capture metrics
-that the components log. Enabling these visualisations requires running MySQL and NGINX components
-of the example application.
+If you've run the {filebeat} setup job, it creates a set of
+{filebeat-ref}/view-kibana-dashboards.html[out-of-the-box dashboards] in {kib}.
+
+Assuming you've deployed the sample petclinic application and it's running,
+you can navigate to the {filebeat} dashboards for MySQL and NGINX.
+
+//TODO: Add screen capture here
+
+Notice that modules capture more than logs. You can also use them to capture
+metrics. 
