@@ -1,105 +1,156 @@
-[[user-experience]]
-= User experience
-
 // These need to move into the docs repo
-:user-experience: User experience
+:user-experience: User Experience
 :user-experience-tab: {user-experience} tab
 
-How are your users experiencing your web application?
+// At some point we need to add a page that talks about how synthetics and
+// RUM/UE work together. Passive/Active, etc.
 
-The {user-experience-tab} in {kib} provides a way to quantify important aspects of your web application.
-Unlike testing environments, Elastic {user-experience} data reflects actual users' real-world experiences.
+[[user-experience]]
+= {user-experience}
+
+{user-experience} provides a way to quantify and analyze the perceived performance of your web application.
+Unlike testing environments, {user-experience} data reflects actual users' real-world experiences.
 With just a few lines of code, you can surface key user experience metrics and investigative tools
 to begin improving your users experiences.
-Drill down further by looking at data by device type, operating system, browser, and location --
-all of which can have an impact on how your code preforms when an end-user is accessing your site.
+Drill down further by looking at data by URL, device type, operating system, browser, and location --
+all of which can have a large impact on how your code preforms when an end-user is accessing your site.
 
 [role="screenshot"]
 image::images/user-experience-tab.png[User experience tab]
 
 [discrete]
 [[why-user-experience]]
-== Why is User experience important?
+== Why is {user-experience} important?
 
-In one study, 40% of users said they abandon a website if it takes more than three seconds to load.
-footnote:[Source: https://neilpatel.com/blog/loading-time/[https://neilpatel.com/blog/loading-time/]]
+Every website has goals -- some sites want users to buy a product, sign up for a mailing list, download an app,
+or share something on social media.
+But no matter how great your product is, a poor {user-experience} can negatively impact your goal completion rate.
+For example, in one study, 40% of users said they abandon a website if it takes more than three seconds to load.
+footnote:[Source and more info: https://neilpatel.com/blog/loading-time/[neilpatel.com]]
 In another, Amazon calculated that a page load slowdown of just one second would cut conversions by
 7% -- costing them $1.6B in sales each year.
-footnote:[Source: https://www.fastcompany.com/1825005/how-one-second-could-cost-amazon-16-billion-sales[https://www.fastcompany.com/1825005/how-one-second-could-cost-amazon-16-billion-sales]]
+footnote:[Source and more info: https://www.fastcompany.com/1825005/how-one-second-could-cost-amazon-16-billion-sales[fastcompany.com]]
 In short, a good {user-experience} keeps your users happy and improves your website's odds of success.
 
 [discrete]
 [[how-user-experience-works]]
-== How does it work?
+== How does {user-experience} work?
 
-// help me
-// high level only
-How does it work? After page load, downloads a script, collects data, sends it to APM Server where it is processed, and then onto ES?
-// link to RUM agent here
+// I'm not even sure if this section is necessary
+// Some of this is taken from the RUM docs
+
+{user-experience} metrics are powered by the {apm-rum-ref}[APM Real User Monitoring (RUM) agent].
+The RUM agent is installed as a dependency to your application,
+and it only takes a few lines of code to <<instrument-apps,get started>>.
+
+The RUM agent uses browser timing APIs, like https://w3c.github.io/navigation-timing/[Navigation Timing],
+https://w3c.github.io/resource-timing/[Resource Timing], https://w3c.github.io/paint-timing/[Paint Timing],
+and https://w3c.github.io/user-timing/[User Timing], to capture {user-experience}
+metrics every time a user hits one of your pages.
+This data is stored in {es}, where it can be visualized using {kib}.
 
 [discrete]
 [[user-experience-tab]]
-== User experience tab
+== {user-experience} in {kib}
 
-There are four key sections:
-
-* Page load duration
-* Core web vitals
-* Load/view distribution
-* Error breakdown
+// Need some kind of app introduction here
+// Not quite sure yet...
+// ...any ideas?
 
 [discrete]
 [[user-experience-page-load]]
 === Page load duration
 
-High-level overview
-
 How long is my server taking to respond to requests?
 How much time is spent parsing and painting that content?
-How many pageviews has my site gotten?
-
-The high-level overview is your analysis starting point.
+How many page views has my site received?
+This high-level overview is your analysis starting point.
 You won't be able to fix any problems from viewing these metrics alone,
-but you'll get a sense of the big picture, and hopefully an idea of where to look next.
+but you'll get a sense of the big picture as you dive deeper into your data.
 
 [role="screenshot"]
 image::images/page-load-duration.png[User experience page load duration metrics]
 
-User experience metrics:
-* First contentful paint: The timestamp when the browser begins rendering content (images, text, etc.) from the DOM. This is when the user can tell that the page is loading.
-* Total blocking time: The total amount of time that the user is blocked from providing input to the page -- no mouse clicks, button presses, etc.
-* Number of long tasks: Long tasks are periods of time where the main UI thread is working for 50ms or longer. This could be because of a rerender, event handler, or something else.
-* Longest long task duration: The longest of the long tasks?
-* Total long tasks duration: Sum duration of all long tasks
-
 [discrete]
-[[user-experience-core-vitals]]
-=== Core web vitals
+[[user-experience-metrics]]
+=== {user-experience} metrics
 
-Developers shouldn't have to become experts at interpreting and acting on metrics like paint timings,
-long tasks, and blocking times; they should spend their time coding.
-
-For that reason (and many others) Elastic has embraced Core Web Vitals --
-A recent initiative from Google to introduce a new set of metrics that better categorize good and bad sites
-by quantifying the real-world user experience.
-This is done by looking at three key metrics: loading performance, visual stability, and interactivity.
+{user-experience} metrics help you understand the perceived performance of your website.
+For example, first contentful paint is the timestamp when the browser begins rendering content.
+In other words, it's around this time that a user first gets feedback that the page is actually loading.
 
 [role="screenshot"]
 image::images/user-exp-metrics.png[User experience metrics]
 
+// This is collapsed by default
+[%collapsible]
+.Metric reference
+====
+First contentful paint::
+The timestamp when the browser begins rendering content (images, text, etc.) from the DOM.
+This is when the user can tell that the page is loading.
+footnote:[Source and more info: https://developer.mozilla.org/en-US/docs/Glossary/First_contentful_paint[developer.mozilla.org]]
+
+Total blocking time::
+The total amount of time that the user is blocked from providing input to the page
+-- no mouse clicks, button presses, etc.
+footnote:[Source and more info: https://web.dev/tbt/[web.dev]]
+
+Number of long tasks::
+Long tasks are periods of time where the main UI thread is working for 50ms or longer.
+This could be because of a rerender, event handler, etc., and causes problems like delayed time to interactivity
+and variable input latency.
+footnote:[Source and more info: https://web.dev/tbt/[developer.mozilla.org]]
+
+// Is this right?
+Longest long task duration::
+The longest of the long tasks.
+
+// Is this right?
+Total long tasks duration::
+Sum duration of all long tasks.
+====
+
+These metrics tell an important story about how users may judge your website.
+The problem is that developers shouldn't have to become experts at interpreting and acting on metrics like paint timings,
+long tasks, and blocking times; they should spend their time coding.
+For that reason (and many others) Elastic has embraced Google's Core web vitals.
+
+[discrete]
+[[user-experience-core-vitals]]
+==== Core web vitals
+
+https://web.dev/vitals/[Core web vitals] is recent initiative from Google to introduce a new set of metrics that
+better categorize good and bad sites by quantifying the real-world {user-experience}.
+This is done by looking at three key metrics: loading performance, visual stability, and interactivity:
+
 [role="screenshot"]
 image::images/web-dev-vitals.png[Web dev vitals (image source: https://web.dev/vitals)]
 
-^Image source: https://web.dev/vitals/[web.dev/vitals]^
+Image source: https://web.dev/vitals/[web.dev/vitals]
 
-* Largest contentful paint: Loading performance. Measures the perceived load speed for a user as it measures the time to when the page's main content has likely loaded.
-* First input delay: Load responsiveness. How quickly can users interact with your page?
-* Cumulative layout shift: Visual stability. Are users experiencing unexpected layout shifts? Is content moving around because of async resource loading or dynamic content additions? These experiences can be frustrating for users.
+Largest contentful paint (LCP)::
+Loading performance. LCP is the timestamp when the main content of a page has likely loaded.
+To users, this is the _perceived_ loading speed of your site.
+To provide a good user experience, Google recommends an LCP of less than 2.5 seconds.
+footnote:[Source and more info: https://web.dev/lcp/[web.dev]]
 
-TIP: Starting in 2021, Google will start using core web vitals as part of their ranking algorithm,
+First input delay (FID)::
+Load responsiveness. FID measures the time between a user's first interaction with a page, like a click,
+and when the page can respond to those interactions.
+To provide a good user experience, Google recommends a FID of less than 100 milliseconds.
+footnote:[Source and more info: https://web.dev/fid/[web.dev]]
+
+Cumulative layout shift (CLS)::
+Visual stability. Is content moving around because of async resource loading or dynamic content additions?
+CLS measures these frustrating unexpected layout shifts.
+To provide a good user experience, Google recommends a CLS score of less than `.1`.
+footnote:[Source and more info: https://web.dev/cls/[web.dev]]
+
+TIP: Beginning in 2021, Google will start using core web vitals as part of their ranking algorithm,
 and will open up the opportunity for websites to rank in the "top stories"
 position without needing to leverage https://amp.dev/[AMP].
-footnote:[Source: https://webmasters.googleblog.com/2020/05/evaluating-page-experience.html[https://webmasters.googleblog.com/2020/05/evaluating-page-experience.html]]
+footnote:[Source and more info: https://webmasters.googleblog.com/2020/05/evaluating-page-experience.html[webmasters.googleblog.com]]
 
 [discrete]
 [[user-experience-distribution]]
@@ -117,13 +168,18 @@ image::images/visitor-breakdown.png[User experience visitor breakdown]
 [[user-experience-errors]]
 === Error breakdown
 
-As JavaScript continues to get more and more complex,
+Variation in users' software and hardware makes it nearly impossible to test for every combination.
+And, as JavaScript continues to get more and more complex,
 the need for user experience monitoring and error reporting only increases.
-In addition, variation in software and hardware makes it nearly impossible to test for every user's combination.
 {user-experience} removes this blindspot by surfacing JavaScript errors that are
 occurring on your website in production.
 
 [role="screenshot"]
 image::images/js-errors.png[User experience javascript errors]
 
-**References**
+Error messages can be opened in APM for additional analysis tools,
+like occurrence rates, transaction ids, user data, and more.
+
+[discrete]
+[[user-experience-references]]
+==== References
