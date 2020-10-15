@@ -10,8 +10,8 @@
 
 {user-experience} provides a way to quantify and analyze the perceived performance of your web application.
 Unlike testing environments, {user-experience} data reflects actual users' real-world experiences.
-With just a few lines of code, you can surface key user experience metrics and investigative tools
-to begin improving your users experiences.
+Powered by the APM Real user monitoring (RUM) agent, all it takes is a few lines of code to begin
+surfacing key user experience metrics and investigative tools.
 Drill down further by looking at data by URL, device type, operating system, browser, and location --
 all of which can have a greater impact on how your application performs on end-users' machines.
 
@@ -61,10 +61,11 @@ This data is stored in {es}, where it can be visualized using {kib}.
 [[user-experience-page-load]]
 === Page load duration
 
+This high-level overview is your analysis starting point and answers questions like:
 How long is my server taking to respond to requests?
 How much time is spent parsing and painting that content?
 How many page views has my site received?
-This high-level overview is your analysis starting point.
+
 You won't be able to fix any problems from viewing these metrics alone,
 but you'll get a sense of the big picture as you dive deeper into your data.
 
@@ -77,7 +78,7 @@ image::images/page-load-duration.png[User experience page load duration metrics]
 
 {user-experience} metrics help you understand the perceived performance of your website.
 For example, first contentful paint is the timestamp when the browser begins rendering content.
-In other words, it's around this time that a user first gets feedback that the page is actually loading.
+In other words, it's around this time that a user first gets feedback that the page is loading.
 
 [role="screenshot"]
 image::images/user-exp-metrics.png[User experience metrics]
@@ -87,41 +88,53 @@ image::images/user-exp-metrics.png[User experience metrics]
 .Metric reference
 ====
 First contentful paint::
-The timestamp when the browser begins rendering content (images, text, etc.) from the DOM.
-This is when the user can tell that the page is loading.
-footnote:[Source and more info: https://developer.mozilla.org/en-US/docs/Glossary/First_contentful_paint[developer.mozilla.org]]
+Focusses on the initial rendering and measures the time from when the page starts loading to when
+any part of the page's content is displayed on the screen.
+The agent uses the https://www.w3.org/TR/paint-timing/#first-contentful-paint[Paint timing API] available
+in the browser to capture the timing information.
+FCP is captured as transaction mark for `page-load` transaction for all chromium-based browsers
+(Chrome >60, Edge >79, Opera >47, etc.).
+footnote:[More info: https://developer.mozilla.org/en-US/docs/Glossary/First_contentful_paint[developer.mozilla.org]]
 
 Total blocking time::
-The total amount of time that the user is blocked from providing input to the page
--- no mouse clicks, button presses, etc.
-footnote:[Source and more info: https://web.dev/tbt/[web.dev]]
+The sum of the blocking time (duration above 50 ms) for each long task that occurs between the
+First contentful paint and the time when the transaction is completed.
+Total blocking time is a great companion metric for https://web.dev/tti/[Time to interactive]
+(TTI) which is lab metric and not available in the field through browser APIs.
+The agent captures TBT based on the number of long tasks that occurred during the page load lifecycle.
+Captured as `Total Blocking Time` span for `page-load` transaction.
+footnote:[More info: https://web.dev/tbt/[web.dev]]
+
+`Long Tasks`::
+A long task is any user activity or browser task that monopolize the UI thread for extended periods
+(greater than 50 milliseconds) and block other critical tasks (frame rate or input latency)
+from being executed.
+The agent uses the https://www.w3.org/TR/longtasks/[Long Task API], which is only available in
+chromium-based browsers (Chrome >58, Edge >79, Opera >69).
+Captured as `Longtask<name>` span for all managed transactions.
+footnote:[More info: https://developer.mozilla.org/en-US/docs/Web/API/Long_Tasks_API[developer.mozilla.org]]
 
 Number of long tasks::
-Long tasks are periods of time where the main UI thread is working for 50ms or longer.
-This could be because of a rerender, event handler, etc., and causes problems like delayed time to interactivity
-and variable input latency.
-footnote:[Source and more info: https://web.dev/tbt/[web.dev]]
+The number of long tasks.
 
-// Is this right?
 Longest long task duration::
-Duration of the longest long task on the page. 
+Duration of the longest long task on the page.
 
-// Is this right?
 Total long tasks duration::
 Total duration of all long tasks
 ====
 
 These metrics tell an important story about how users may experience your website.
-The problem is that developers shouldn't have to become experts at interpreting and acting on metrics like paint timings,
-long tasks, and blocking times; they should spend their time coding.
-For that reason (and many others) Elastic has embraced Google's Core web vitals.
+The problem is that developers shouldn't have to become experts at interpreting and acting on these signals;
+they should spend their time reacting to the opportunities that these metrics present.
+For that reason (and many others), Elastic has embraced Google's Core web vitals.
 
 [discrete]
 [[user-experience-core-vitals]]
 ==== Core web vitals
 
-https://web.dev/vitals/[Core web vitals] is recent initiative from Google to introduce a new set of metrics that
-better categorize good and bad sites by quantifying the real-world {user-experience}.
+https://web.dev/vitals/[Core web vitals] is arecent initiative from Google to introduce a new set of
+metrics that better categorize good and bad sites by quantifying the real-world {user-experience}.
 This is done by looking at three key metrics: loading performance, visual stability, and interactivity:
 
 [role="screenshot"]
@@ -132,7 +145,7 @@ Image source: https://web.dev/vitals/[web.dev/vitals]
 Largest contentful paint (LCP)::
 Loading performance. LCP is the timestamp when the main content of a page has likely loaded.
 To users, this is the _perceived_ loading speed of your site.
-To provide a good user experience, Google recommends an LCP of less than 2.5 seconds.
+To provide a good user experience, Google recommends an LCP of fewer than 2.5 seconds.
 footnote:[Source and more info: https://web.dev/lcp/[web.dev]]
 
 First input delay (FID)::
@@ -147,7 +160,7 @@ CLS measures these frustrating unexpected layout shifts.
 To provide a good user experience, Google recommends a CLS score of less than `.1`.
 footnote:[Source and more info: https://web.dev/cls/[web.dev]]
 
-TIP: Beginning in 2021, Google will start using core web vitals as part of their ranking algorithm,
+TIP: Beginning in 2021, Google will start using core web vitals as part of their ranking algorithm
 and will open up the opportunity for websites to rank in the "top stories"
 position without needing to leverage https://amp.dev/[AMP].
 footnote:[Source and more info: https://webmasters.googleblog.com/2020/05/evaluating-page-experience.html[webmasters.googleblog.com]]
@@ -177,7 +190,7 @@ occurring on your website in production.
 [role="screenshot"]
 image::images/js-errors.png[User experience javascript errors]
 
-Error messages can be opened in APM for additional analysis tools,
+Open error messages in APM for additional analysis tools,
 like occurrence rates, transaction ids, user data, and more.
 
 [discrete]
