@@ -8,7 +8,7 @@
 Unlike testing environments, {user-experience} data reflects actual users' real-world experiences.
 Powered by the APM Real user monitoring (RUM) agent, all it takes is a few lines of code to begin
 surfacing key user experience metrics and investigative tools.
-Drill down further by looking at data by URL, device type, operating system, browser, and location --
+Drill down further by looking at data by URL, operating system, browser, and location --
 all of which can have a greater impact on how your application performs on end-users' machines.
 
 [role="screenshot"]
@@ -18,15 +18,24 @@ image::images/user-experience-tab.png[User experience tab]
 [[why-user-experience]]
 == Why is {user-experience} important?
 
-Every website has goals -- some sites want users to buy a product, sign up for a mailing list, download an app,
-or share something on social media.
-But no matter how great your product is, a poor {user-experience} can negatively impact your goal completion rate.
-For example, in one study, 40% of users said they abandon a website if it takes more than three seconds to load.
-footnote:[Source and more info: https://neilpatel.com/blog/loading-time/[neilpatel.com]]
-In another, Amazon calculated that a page load slowdown of just one second would cut conversions by
-7% -- costing them $1.6B in sales each year.
-footnote:[Source and more info: https://www.fastcompany.com/1825005/how-one-second-could-cost-amazon-16-billion-sales[fastcompany.com]]
-In short, a good {user-experience} keeps your users happy and improves your website's odds of success.
+Search engines are placing an increasing importance on {user-experience} when organically ranking websites.
+Elastic makes it easy to view your website data in the context of Google's Core Web Vitals --
+metrics that score three key areas of user experience: loading performance, visual stability, and interactivity.
+These Core Web Vitals are set to become the main performance measurement in Google's ranking factors.
+If you’re a content-based site that wants to appear in the “Top Stories” section of Google’s search results,
+you must have good Core Web Vitals.
+
+// We don't support business outcome capture yet.
+// Focus on CWV
+// Every website has goals -- some sites want users to buy a product, sign up for a mailing list, download an app,
+// or share something on social media.
+// But no matter how great your product is, a poor {user-experience} can negatively impact your goal completion rate.
+// For example, in one study, 40% of users said they abandon a website if it takes more than three seconds to load.
+// footnote:[Source and more info: https://neilpatel.com/blog/loading-time/[neilpatel.com]]
+// In another, Amazon calculated that a page load slowdown of just one second would cut conversions by
+// 7% -- costing them $1.6B in sales each year.
+// footnote:[Source and more info: https://www.fastcompany.com/1825005/how-one-second-could-cost-amazon-16-billion-sales[fastcompany.com]]
+// In short, a good {user-experience} keeps your users happy and improves your website's odds of success.
 
 [discrete]
 [[how-user-experience-works]]
@@ -36,7 +45,7 @@ In short, a good {user-experience} keeps your users happy and improves your webs
 // Some of this is taken from the RUM docs
 
 {user-experience} metrics are powered by the {apm-rum-ref}[APM Real User Monitoring (RUM) agent].
-The RUM agent is installed as a dependency to your application,
+The RUM agent can be installed as a dependency to your application, or with just a few lines of JavaScript,
 and it only takes a few lines of code to <<instrument-apps,get started>>.
 
 The RUM agent uses browser timing APIs, like https://w3c.github.io/navigation-timing/[Navigation Timing],
@@ -88,8 +97,6 @@ Focusses on the initial rendering and measures the time from when the page start
 any part of the page's content is displayed on the screen.
 The agent uses the https://www.w3.org/TR/paint-timing/#first-contentful-paint[Paint timing API] available
 in the browser to capture the timing information.
-FCP is captured as transaction mark for `page-load` transaction for all chromium-based browsers
-(Chrome >60, Edge >79, Opera >47, etc.).
 footnote:[More info: https://developer.mozilla.org/en-US/docs/Glossary/First_contentful_paint[developer.mozilla.org]]
 
 Total blocking time::
@@ -98,16 +105,12 @@ First contentful paint and the time when the transaction is completed.
 Total blocking time is a great companion metric for https://web.dev/tti/[Time to interactive]
 (TTI) which is lab metric and not available in the field through browser APIs.
 The agent captures TBT based on the number of long tasks that occurred during the page load lifecycle.
-Captured as `Total Blocking Time` span for `page-load` transaction.
 footnote:[More info: https://web.dev/tbt/[web.dev]]
 
 `Long Tasks`::
 A long task is any user activity or browser task that monopolize the UI thread for extended periods
 (greater than 50 milliseconds) and block other critical tasks (frame rate or input latency)
 from being executed.
-The agent uses the https://www.w3.org/TR/longtasks/[Long Task API], which is only available in
-chromium-based browsers (Chrome >58, Edge >79, Opera >69).
-Captured as `Longtask<name>` span for all managed transactions.
 footnote:[More info: https://developer.mozilla.org/en-US/docs/Web/API/Long_Tasks_API[developer.mozilla.org]]
 
 Number of long tasks::
@@ -129,7 +132,7 @@ For that reason (and many others), Elastic has embraced Google's Core web vitals
 [[user-experience-core-vitals]]
 ==== Core web vitals
 
-https://web.dev/vitals/[Core web vitals] is arecent initiative from Google to introduce a new set of
+https://web.dev/vitals/[Core web vitals] is a recent initiative from Google to introduce a new set of
 metrics that better categorize good and bad sites by quantifying the real-world {user-experience}.
 This is done by looking at three key metrics: loading performance, visual stability, and interactivity:
 
@@ -169,6 +172,9 @@ Operating system, browser family, and geographic location can all have a massive
 experience your website.
 This data can help you understand when and where your users are visiting from, and can help you
 prioritize optimizations -- for example, prioritizing improvements for the most popular browsers visiting your site.
+
+Don't forget, this data also influences search engine page rankings and placement in top stories for content sites --
+without requiring the use of AMP.
 
 [role="screenshot"]
 image::images/visitor-breakdown.png[User experience visitor breakdown]
