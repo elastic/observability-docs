@@ -5,12 +5,349 @@
 <titleabbrev>Alpha: Ingest synthetics</titleabbrev>
 ++++
 
+experimental::[]
+
+// -------------------------------------------------------------------------------------------
+// How it works
+// -------------------------------------------------------------------------------------------
+
+Elastic synthetics utilizes Heartbeat to
+
+[discrete]
+[[how-synthetics-works]]
+== How it works
+
+// Text goes here. It really does.
+// Maybe a diagram?
+// Who knows.
+
+// -------------------------------------------------------------------------------------------
+// Quickstart with provided template
+// -------------------------------------------------------------------------------------------
+
+// THIS SECTION NEEDS A NEW TITLE
+[discrete]
+[[get-started-synthetics]]
+== Get started
+
+[discrete]
+=== How it works
+
+[discrete]
+=== Get started
+
+A customizable project template is provided to quickly get started with Elastic Synthetics.
 
 Clone the https://github.com/elastic/synthetics[elastic/synthetics] repo
-git clone git@github.com:elastic/synthetics.git
+and `cd` into the `examples/docker` directory:
 
-Build the main package: npm run build
-Run: node dist/cli.js -s '{"homepage":"https://cloud.elastic.co"}' examples/inline/sample-inline-journey.js
+[source,sh]
+----
+git clone git@github.com:elastic/synthetics.git &&\
+cd examples/docker
+----
+
+The goal of this directory is to pull the Elastic synthetics image,
+build your synthetic tests, schedule and run them with Heartbeat, and send the data to Elasticsearch.
+
+There are two files in particular that you'll need to edit:
+
+[source,sh]
+----
+synthetics
+  |- examples
+     |- docker
+        |- heartbeat.docker.yml <1>
+        |- run.sh <2>
+----
+<1> `heartbeat.docker.yml` is your Heartbeat configuration file.
+This is where you'll configure your synthetic suites.
+<2> `run.sh` provides the main `docker run` command that pulls the
+Elastic synthetics image and runs Heartbeat.
+
+Let's first look at `heartbeat.docker.yml`.
+There are two different ways to configure your synthetic tests:
+
+Running a simple test::
+If you're running a simple, browser based test, you can use the traditional Heartbeat flow to configure your
+synthetic testing directly in `heartbeat.docker.yml`:
++
+[source,yml]
+----
+heartbeat.monitors:
+- type: browser
+  id: my-monitor
+  name: My Monitor
+  schedule: "@every 1m"
+  script: |-
+    step("load homepage", async () => {
+        await page.goto('https://www.elastic.co');
+    });
+    step("hover over products menu", async () => {
+        await page.hover('css=[data-nav-item=products]');
+    });
+----
+
+Running a test suite::
+If you'd like to run a suite of tests, you might be better off creating a library of tests and using
+`heartbeat.synthetic_suites`. This, for example, allows your tests to live with your app,
+or in a Git repo somewhere.
++
+[source,yml]
+----
+heartbeat.synthetic_suites:
+- name: Sample app
+  path: "/opt/sample-app"
+  schedule: "@every 1m"
+- name: Docs Suite
+  path: "/opt/elastic-docs"
+  schedule: "@every 1m"
+----
+
+With Heartbeat's basics out of the way, we can shift focus to `run.sh`.
+`run.sh` pulls the Elastic/synthetics image, shares your configuration details and test suites with Heartbeat,
+and defines the location of your {es} instance.
+
+[source,sh]
+----
+#!/bin/sh
+VERSION=${1:-7.11.0}
+IMAGE=docker.elastic.co/observability-ci/synthetics:master-$VERSION-synthetics
+echo "Using image $IMAGE"
+docker run \
+  --rm \
+  --name=heartbeat \
+  --user=heartbeat \
+  --net=host \
+  --security-opt seccomp=seccomp_profile.json \ <1>
+  --volume="$(pwd)/heartbeat.docker.yml:/usr/share/heartbeat/heartbeat.yml:ro" \ <2>
+  --volume="$(pwd)/../sample-app/journeys:/opt/sample-app:ro" \ <3>
+  --volume="$(pwd)/../elastic-docs:/opt/elastic-docs:ro" \ <4>
+  $IMAGE \
+  --strict.perms=false -e \
+  -E cloud.id=<cloud-id> \ <5>
+  -E cloud.auth=elastic:<cloud-pass> <6>
+----
+<1> Running a Chrome browser requires elevated privileges. Synthetic monitoring scripts can
+escape the docker container. Do not run any scripts that you don't trust.
+<2> Provides your `heartbeat.docker.yml` file as a volume.
+<3> Provides the example `sample-app` journey as a volume.
+<4> Provides the example `elastic-docs` journey as a volume.
+<5> Your Elastic Cloud ID.
+<6> Your Elastic Cloud `username:password`.
+
+If you aren't using {elastic-cloud}, replace `-E cloud.id` and `-E cloud.auth` with your Elasticsearch hosts,
+username, and password:
+
+[source,sh]
+----
+  -E output.elasticsearch.hosts=["localhost:9200"] \
+  -E output.elasticsearch.username=elastic \
+  -E output.elasticsearch.password=changeme \
+----
+
+That's it! As you've seen, the Synthetics docker template comes with three sample synthetic tests:
+two `synthetic_suites`, and one inline `monitor`. After updating `run.sh` with your {es} credentials,
+you can spin up the example docker image:
+
+[source,sh]
+----
+sh run.sh 8.0.0
+----
+
+// TO DO -- add screenshots of this
+You can now navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
+set up alerts in case the test fails, etc. Failed tests will show as `down`.
+
+If a test fails (goes `down`), you'll be able to view the step script that failed,
+any errors, and a stack trace.
+
+// OLD WAY OF DOING THINGS
+// Do we want to include this?
+// Build the main package: npm run build
+// Run: node dist/cli.js -s '{"homepage":"https://cloud.elastic.co"}' examples/inline/sample-inline-journey.js
+
+What's next?
+Now you can customize the docker template and add your own tests.
+Head on over to <link-goes-here> to learn how.
+
+// -------------------------------------------------------------------------------------------
+// How to create your tests
+// -------------------------------------------------------------------------------------------
+
+[discrete]
+[[synthetics-syntax]]
+=== Synthetics syntax
+
+Elastic synthetics utilizes Node.js, JavaScript, and https://github.com/Microsoft/playwright[Playwright]
+to create tests for your website.
+Creating tests consist of two elements of Elastic syntax:
+
+* `journey` -- A journey tests one discrete unit of functionality.
+For example, logging in to website, adding something to a cart, or joining a mailing list.
+* `step` -- A journey consists of multiple steps, or actions, that should be completed in order.
+Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
+
+Everything else is JavaScript (mostly Playwright).
+Everything is promises, so you need to use
+https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async_await[async/await].
+
+The `journey` function takes two main parameters, `page` and `params`:
+
+* `page` -- A `page` object from Playwright that lets you control the browsers current page.
+* `params` -- User defined variables that allow you to invoke the Synthetics suite with custom parameters.
+For example, if you want to use a different homepage depending on the `env`
+(localhost for `dev`, and a URL for `prod`).
+
+// -------------------------------------------------------------------------------------------
+// How to run your tests
+// -------------------------------------------------------------------------------------------
+
+[discrete]
+[[running-synthetic-tests]]
+=== Running synthetic tests
+
+// REVIEWERS:
+// Should we doc required technologies?
+// Node.js, npx, typescript, etc.?
+
+There are two ways to run tests.
+
+**Copy/pasting into YML**
+
+// AKA an "inline journey"
+
+The easiest way to run your tests is by copy/pasting them into a JavaScript file and
+including that file in your `heartbeat.yml` configuration.
+In this instance, there's no `journey` required -- only `step`s.
+Access to variables like `page` and `params` is automatic.
+
+Here's a basic example:
+
+[source,js]
+----
+// test-homepage-hover.js
+step("load homepage", async () => {
+    await page.goto('https://www.elastic.co');
+});
+step("hover over products menu", async () => {
+    await page.hover('css=[data-nav-item=products]');
+});
+----
+
+Test your script with the following command:
+
+// To do: link to command line arguments
+
+[source,sh]
+----
+npx @elastic/synthetics path/to/your/journey.js
+----
+
+The script can then be included in your `heartbeat.yml`:
+
+[source,yml]
+----
+- type: browser
+  id: test-homepage-hover
+  name: Homepage hover test
+  schedule: "@every 1m"
+  file: test-homepage-hover.js
+----
+
+**Test suite**
+
+// AKA using Elastic/synthetics as a library
+
+If you have a suite of tests you'd like to implement, you can use Elastic synthetics as a library.
+The basic process is below, and it acts like the `npx @elastic/synthetics` command seen in the inline-journey.
+
+. Create a Node.js project
+. Write an `index.ts` file that imports your tests
+. Call `run`, which is imported from `@elastic/synthetics`.
+This runs the CLI application.
+. Compile everything together.
+
+// example: examples/elastic-docs
+
+Full NPM project oriented around these tests.
+* Run `cat run-journeys` to compile the typescript (essentially by running `tsc`)
+* Run `node ./dist` (or for help, append `-h`)
+
+// -------------------------------------------------------------------------------------------
+// Command line option
+// -------------------------------------------------------------------------------------------
+
+[discrete]
+[[command-line-options]]
+=== Command line options
+
+[discrete]
+==== `npx @elastic/synthetics` command
+
+// A few sentences on what this command does
+// should go here
+
+*SYNOPSIS*
+
+[source,sh]
+----
+npx @elastic/synthetics [FLAGS]
+----
+
+*FLAGS*
+
+You will not need to use most command line flags -- they have been implemented
+purely to interact with Heartbeat.
+However, there are some you may find useful.
+They are documented below.
+
+*`--debug`*::
+Prints debug info.
+
+*`--environment`*::
+Sets the environment. For example, dev, staging, prod, etc..
+
+*`-h, --help`*::
+Shows help for the `npx @elastic/synthetics` command.
+
+*`--journey-name <name>`*::
+Filters by journey name.
+
+*`--json`*::
+Output as JSON.
+
+*`--no-headless`*::
+Runs with the browser in headful mode.
+
+*`--pause-on-error`*::
+Pause on an error until a key press is made in the console.
+Useful when combined with `--no-headless` during development.
+
+*`--stdin`*::
+Instead of reading from a file, `cat` it and pipe it in through `stdin`.
+
+// -------------------------------------------------------------------------------------------
+// Next section
+// -------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 ## Use case -- Whole app testing (big)
@@ -19,3 +356,5 @@ Run: node dist/cli.js -s '{"homepage":"https://cloud.elastic.co"}' examples/inli
 - Playwright is provided - link to docs (API ref is the most interesting)
 - Which variables are provided to journey (step receives none)
 - And journey and step keywords
+
+// Designing your own tests
