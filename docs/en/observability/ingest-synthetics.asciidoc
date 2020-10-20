@@ -1,3 +1,6 @@
+:playwright-api-docs: https://github.com/microsoft/playwright/blob/master/docs/api.md
+
+
 [[ingest-synthetics]]
 = Ingest synthetics
 
@@ -7,15 +10,44 @@
 
 experimental::[]
 
+// PR description
+// -------------------------------------------------------------------------------------------
+// The following topics stuck out to me as key topics for documentation:
+// * How synthetics works
+// * Quickstart with Docker template
+// * Create your own tests
+//   * Single test
+//   * Test suite
+// * Command line reference
+
+// I'm not entirely sure how this fits into the Observability documentation at this point. I'm combining everything into one file as a start.
+
+I may be completely off base here, but I think it makes sense to keep the Uptime instructions separate from the Synthetics instructions. There are a couple reasons:
+* One is still in alpha and it easily separates the two
+* Uptime is much..simpler to get started with. I don't think we should clutter the getting started experience of either by including more information.
+// -------------------------------------------------------------------------------------------
+
+Synthetics provides rich, consistent, and repeatable data that you can trend and alert on.
+
 // -------------------------------------------------------------------------------------------
 // How it works
 // -------------------------------------------------------------------------------------------
 
-Elastic synthetics utilizes Heartbeat to
-
 [discrete]
 [[how-synthetics-works]]
 == How it works
+
+
+
+[role="screenshot"]
+image::images/synthetics-overview.png[Synthetics overview]
+
+Fork a new NPM package
+That runs custom JavaScript
+Invokes the Playwright library
+Which starts a new browser process (completes your tests)
+Sends the data via JSON back to Heartbeat w/Synthetics module
+
 
 // Text goes here. It really does.
 // Maybe a diagram?
@@ -76,7 +108,7 @@ synthetic testing directly in `heartbeat.docker.yml`:
 ----
 heartbeat.monitors:
 - type: browser
-  id: my-monitor
+  id: my-monitor <1>
   name: My Monitor
   schedule: "@every 1m"
   script: |-
@@ -87,6 +119,8 @@ heartbeat.monitors:
         await page.hover('css=[data-nav-item=products]');
     });
 ----
+<1> Each `monitor` gets its own ID in the {uptime-app} and therefor its own schedule entry.
+This allows tests to be run in parallel.
 
 Running a test suite::
 If you'd like to run a suite of tests, you might be better off creating a library of tests and using
@@ -95,7 +129,7 @@ or in a Git repo somewhere.
 +
 [source,yml]
 ----
-heartbeat.synthetic_suites:
+heartbeat.synthetic_suites: <1>
 - name: Sample app
   path: "/opt/sample-app"
   schedule: "@every 1m"
@@ -103,6 +137,7 @@ heartbeat.synthetic_suites:
   path: "/opt/elastic-docs"
   schedule: "@every 1m"
 ----
+<1> Specify the path to your test suite.
 
 With Heartbeat's basics out of the way, we can shift focus to `run.sh`.
 `run.sh` pulls the Elastic/synthetics image, shares your configuration details and test suites with Heartbeat,
@@ -199,6 +234,10 @@ The `journey` function takes two main parameters, `page` and `params`:
 For example, if you want to use a different homepage depending on the `env`
 (localhost for `dev`, and a URL for `prod`).
 
+Playwright is browser testing library developed by Microsoft.
+It is reliable and fast and features a modern API that auto waits for page elements to be ready.
+The {playwright-api-docs}[API reference] will be your friend throughout this process.
+
 // -------------------------------------------------------------------------------------------
 // How to run your tests
 // -------------------------------------------------------------------------------------------
@@ -212,6 +251,11 @@ For example, if you want to use a different homepage depending on the `env`
 // Node.js, npx, typescript, etc.?
 
 There are two ways to run tests.
+
+Which option is right for me?
+
+From a workflow perspective, perhaps it makes more sense for you to paste your tests into yaml.
+Yaml is not a nice dev experience though.
 
 **Copy/pasting into YML**
 
@@ -274,6 +318,14 @@ Full NPM project oriented around these tests.
 * Run `cat run-journeys` to compile the typescript (essentially by running `tsc`)
 * Run `node ./dist` (or for help, append `-h`)
 
+[discrete]
+==== Caveats
+
+How do you get your test suite onto the same box as Heartbeat?::
+If you, for example, have a separate git repo with all of your tests, how do you get them onto the box?
+You need to write some orchestration to get Heartbeat on a box (or use the docker image),
+pull your source of tests, and then share it with Heartbeat.
+
 // -------------------------------------------------------------------------------------------
 // Command line option
 // -------------------------------------------------------------------------------------------
@@ -328,10 +380,24 @@ Useful when combined with `--no-headless` during development.
 Instead of reading from a file, `cat` it and pipe it in through `stdin`.
 
 // -------------------------------------------------------------------------------------------
-// Next section
+// Uptime app
 // -------------------------------------------------------------------------------------------
 
+Each journey can be visualized in the {uptime-app} side-by-side with your other Uptime monitors.
 
+[role="screenshot"]
+image::images/synthetic-app-overview.png[Synthetics app overview]
+
+[role="screenshot"]
+image::images/synthetic-app-journey.png[Synthetics app journey]
+
+[role="screenshot"]
+image::images/synthetic-app-error.png[Synthetics app error]
+
+History expansion
+* Step script (source)
+* Any errors
+* Stack trace
 
 
 
@@ -358,3 +424,12 @@ Instead of reading from a file, `cat` it and pipe it in through `stdin`.
 - And journey and step keywords
 
 // Designing your own tests
+
+
+
+// -------------------------------------------------------------------------------------------
+// Questions
+// -------------------------------------------------------------------------------------------
+
+. Are we shipping the boilerplate code ruby app test suite?
+. Would users be configuring their Uptime monitors side-by-side with their synthetic tests?
