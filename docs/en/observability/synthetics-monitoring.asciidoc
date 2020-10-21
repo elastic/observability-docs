@@ -1,11 +1,11 @@
 :playwright-api-docs: https://github.com/microsoft/playwright/blob/master/docs/api.md
 
 
-[[ingest-synthetics]]
-= Ingest synthetics
+[[synthetics-monitoring]]
+= Synthetics monitoring
 
 ++++
-<titleabbrev>Alpha: Ingest synthetics</titleabbrev>
+<titleabbrev>Synthetics monitoring</titleabbrev>
 ++++
 
 experimental::[]
@@ -22,9 +22,9 @@ experimental::[]
 
 // I'm not entirely sure how this fits into the Observability documentation at this point. I'm combining everything into one file as a start.
 
-I may be completely off base here, but I think it makes sense to keep the Uptime instructions separate from the Synthetics instructions. There are a couple reasons:
-* One is still in alpha and it easily separates the two
-* Uptime is much..simpler to get started with. I don't think we should clutter the getting started experience of either by including more information.
+// I may be completely off base here, but I think it makes sense to keep the Uptime instructions separate from the Synthetics instructions. There are a couple reasons:
+// * One is still in alpha and it easily separates the two
+// * Uptime is much..simpler to get started with. I don't think we should clutter the getting started experience of either by including more information.
 // -------------------------------------------------------------------------------------------
 
 Synthetics provides rich, consistent, and repeatable data that you can trend and alert on.
@@ -38,9 +38,13 @@ Synthetics provides rich, consistent, and repeatable data that you can trend and
 == How it works
 
 
-
-[role="screenshot"]
+// Operational use case
 image::images/synthetics-overview.png[Synthetics overview]
+// HB schedules test runs and supervises execution of @elastic/synthetics package
+// HB formats data for ES
+// @elasic/synthetics runs the tests and gathers performance data which it reports HB
+// Do we need a separate image for the --> suite of tests in user-controlled git repo?
+
 
 Fork a new NPM package
 That runs custom JavaScript
@@ -260,6 +264,8 @@ Yaml is not a nice dev experience though.
 **Copy/pasting into YML**
 
 // AKA an "inline journey"
+// Heartbeat will fork Node and start headless chrome
+// You don't have to worry about anything else
 
 The easiest way to run your tests is by copy/pasting them into a JavaScript file and
 including that file in your `heartbeat.yml` configuration.
@@ -302,6 +308,7 @@ The script can then be included in your `heartbeat.yml`:
 **Test suite**
 
 // AKA using Elastic/synthetics as a library
+// Dockerize everything --> Docker runs Heartbeat and @elastic/synthetics
 
 If you have a suite of tests you'd like to implement, you can use Elastic synthetics as a library.
 The basic process is below, and it acts like the `npx @elastic/synthetics` command seen in the inline-journey.
@@ -330,9 +337,9 @@ pull your source of tests, and then share it with Heartbeat.
 // Command line option
 // -------------------------------------------------------------------------------------------
 
-[discrete]
+
 [[command-line-options]]
-=== Command line options
+== Command line options
 
 [discrete]
 ==== `npx @elastic/synthetics` command
