@@ -12,9 +12,9 @@ Also read <<ingest-management-troubleshooting>>.
 
 [discrete]
 [[enrolled-agent-not-showing-up]]
-== Why doesn't my enrolled Agent show up in the {ingest-manager} app?
+== Why doesn't my enrolled agent show up in the {fleet} app?
 
-If {agent} was successfully enrolled, but doesn't show up in the {fleet} list,
+If {agent} was successfully enrolled, but doesn't show up in the *Agents* list,
 it might not be started. You need to <<run-elastic-agent,start {agent}>>.
 
 [discrete]
@@ -28,9 +28,9 @@ higher level problem to triage.
 
 [discrete]
 [[what-is-my-agent-config]]
-== What configuration is the {agent} running?
+== What policy is the {agent} running?
 
-To find the configuration file, inspect the `elastic-agent.yml` file in the
+To find the policy file, inspect the `elastic-agent.yml` file in the
 folder where you ran {agent}. If you're running the agent in {fleet} mode, this
 file contains the following citation:
 
@@ -39,13 +39,13 @@ file contains the following citation:
 Management: mode: "fleet"
 ----
 
-The `action_store.yml` contains the entire, unencrypted configuration:
+The `action_store.yml` contains the entire, unencrypted policy:
 
 * To see the {es} location, look at `outputs:hosts`.
 * To see the {agent} version, look at the download folder and zip filenames.
 
 This file also shows the version of all packages used by the current
-configuration.
+policy.
 
 [discrete]
 [[where-is-the-data-agent-is-sending]]
@@ -110,7 +110,7 @@ available in a future release.
 == Does {agent} or {kib} download integration packages?
 
 {agent} does not download integration packages. When you add an integration in
-{ingest-manager}, {kib} connects to the {package-registry} at `epr.elastic.co`,
+{fleet}, {kib} connects to the {package-registry} at `epr.elastic.co`,
 downloads the integration package, and stores its assets in {es}. This means
 that you no longer have to run a manual setup command to load integrations as
 you did previously with {beats} modules.
@@ -120,12 +120,12 @@ you did previously with {beats} modules.
 == Does {agent} download anything from the Internet?
 
 In most cases, the data collection software required by {agent} is bundled
-with the agent. There is one special exception: {elastic-endpoint}. When an
-{agent} policy is set to include {elastic-endpoint}, {agent} must download
-software from the Elastic download site.
+with the agent. There is one special exception: endpoint security. When an
+{agent} policy is set to include the {elastic-endpoint-integration} integration,
+{agent} must download software from the Elastic download site.
 
-NOTE: Bundling {elastic-endpoint} with {agent} is a known feature request scoped
-for a future release. 
+NOTE: Bundling endpoint security capabilities with {agent} is a known
+feature request scoped for a future release. 
 
 [discrete]
 [[do-i-need-to-setup-elastic-agent]]
@@ -140,16 +140,15 @@ command on the host to load assets, such as ingest pipelines and dashboards. In
 contrast, {beats} managed by {agent} use integration packages that {kib}
 downloads from the {package-registry} at `epr.elastic.co`. This means that
 {agent} does not need extra privileges to set up assets because
-{ingest-manager} manages the assets.
+{fleet} manages the assets.
 
 [discrete]
 [[what-is-the-endpoint-package]]
-== What is the Elastic {endpoint-sec} integration in {ingest-manager}?
+== What is the {elastic-endpoint-integration} integration in {ingest-manager}?
 
-The Elastic {endpoint-sec} integration provides protection on your {agent}
+The {elastic-endpoint-integration} integration provides protection on your {agent}
 controlled host. The integration monitors your host for security-related events,
-allowing for investigation of security data through the Elastic Security
-application in {kib}. The Elastic {endpoint-sec} integration is managed by
-{agent} in in the same way as other integrations. Try it out! For more
-information, see the {security-guide}/index.html[Elastic Security solution
-documentation].
+allowing for investigation of security data through the {security-app} in {kib}.
+The {elastic-endpoint-integration} integration is managed by {agent} in the
+same way as other integrations. Try it out! For more information, see the
+{security-guide}/index.html[{elastic-sec} solution documentation].
