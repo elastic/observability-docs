@@ -29,18 +29,19 @@ To deploy {filebeat} to your Kubernetes cluster:
 . **Download the {filebeat} deployment manifest.**
 +
 ["source", "sh", subs="attributes"]
-------------------------------------------------
+----
 curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/filebeat-kubernetes.yaml
-------------------------------------------------
+----
 
 . **Set the connection information for {es}.**
 +
 By default, {filebeat} sends events to an existing {es} deployment, if present.
-To specify a different destination, change the following parameters in the
+To specify a different destination, change the following settings in the
 manifest file:
 +
 [source,yaml]
-------------------------------------------------
+----
+env:
 - name: ELASTICSEARCH_HOST
   value: elasticsearch
 - name: ELASTICSEARCH_PORT
@@ -49,10 +50,15 @@ manifest file:
   value: elastic
 - name: ELASTICSEARCH_PASSWORD
   value: changeme
-------------------------------------------------
+- name: ELASTIC_CLOUD_ID <1>
+  value:
+- name: ELASTIC_CLOUD_AUTH <1>
+  value:
+----
+<1> Use the cloud settings if you're sending data to {ess} on {ecloud}.
 +
-Those settings can be consumed by a Kubernetes secret. To
-create a secret:
+To avoid exposing sensitive data, you can base64 encode the string then store it
+in a Kubernetes secret. For example:
 +
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
@@ -61,22 +67,23 @@ Y2hhbmdlbWU=
 $ kubectl create secret generic es-secret --from-literal='password=Y2hhbmdlbWU='
 ------------------------------------------------
 +
-Use the secret value in {filebeat}'s env:
+To use the secret, change the `env` setting in the manifest file:
 +
 [source,yaml]
 ------------------------------------------------
 env:
-    - name: ELASTICSEARCH_PASSWORD
-      valueFrom:
-        secretKeyRef:
-          name: es-secret
-          key: password
+- name: ELASTICSEARCH_PASSWORD
+  valueFrom:
+    secretKeyRef:
+      name: es-secret
+      key: password
 ------------------------------------------------
 
-. **Configure log collection.**
+. **Collect container logs.**
 +
 To collect container logs, each {filebeat} instance needs access to the local
-log's path, which is actually a log directory mounted from the host:
+log's path, which is actually a log directory mounted from the host. The
+default deployment manifest already contains the configuration to do this:
 +
 [source,yaml]
 ------------------------------------------------
@@ -86,18 +93,18 @@ filebeat.inputs:
     - /var/log/containers/*.log
 ------------------------------------------------
 +
-With this configuration {filebeat} can collect logs from all the files that
+With this configuration, {filebeat} can collect logs from all the files that
 exist under the `/var/log/containers/` directory.
 
-. *Add metadata to events.*
+. **Add metadata to events.**
 +
-Collecting logs from containers is good, however, adding metadata to these logs
-is really powerful. {filebeat} provides processors that you can use in your
-configuration to enrich events with metadata coming from Docker, Kubernetes,
-hosts, and cloud providers.
+Collecting logs from containers is good, however, adding metadata to the log
+events is really powerful. {filebeat} provides processors that you can use in
+your configuration to enrich events with metadata coming from Docker,
+Kubernetes, hosts, and cloud providers.
 +
-To add Kubernetes and container-related metadata to the logs, add the 
-`add_kubernetes_metadata` processor to the configuration:
+To add Kubernetes and container-related metadata to the logs, the 
+`add_kubernetes_metadata` processor is specified in the default configuration:
 +
 [source,yaml]
 ------------------------------------------------
@@ -113,17 +120,23 @@ filebeat.inputs:
             logs_path: "/var/log/containers/"
 ------------------------------------------------
 
-. *Collect container logs through autodiscovery.*
+. *Automatically discover container logs (use autodiscovery).*
 +
-Earlier you learned how to collect container logs and enrich them with metadata.
-However you can take it further by leveraging the autodiscovery mechanism in
-{filebeat}. With autodiscovery, {filebeat} can automatically discover what kind
-of components are running in a Pod and apply the logging modules needed to
-capture logs for those components.
+In the previous step, you learned how to collect container logs and enrich them
+with metadata. However you can take it further by leveraging the autodiscovery
+mechanism in {filebeat}. With autodiscovery, {filebeat} can automatically
+discover what kind of components are running in a Pod and apply the logging
+modules needed to capture logs for those components.
 +
-To configure autodiscovery, you use static templates. For example, the template
-in this example configures {filebeat} to collect Nginx logs from any Pod
-labeled as `nginx`.
+--
+NOTE: If you decide to use use autodiscovery, make sure you remove or comment
+out the `filebeat.inputs` configuration.
+
+--
++
+To configure autodiscovery, you can use static templates. For example, the
+template in this example configures {filebeat} to collect Nginx logs from any
+Pod labeled as `nginx`.
 +
 [source,yaml]
 ------------------------------------------------
