@@ -1,5 +1,3 @@
-:playwright-api-docs: https://github.com/microsoft/playwright/blob/master/docs/api.md
-
 [[synthetics-monitoring]]
 = Synthetics monitoring
 
@@ -9,46 +7,35 @@
 
 experimental::[]
 
-// PR description
-// -------------------------------------------------------------------------------------------
-// The following topics stuck out to me as key topics for documentation:
-// * How synthetics works
-// * Quickstart with Docker template
-// * Create your own tests
-//   * Single test
-//   * Test suite
-// * Command line reference
+Synthetic monitoring allows you to simulate user actions and requests at predefined intervals
+and in a controlled environment.
+The end result is rich, consistent, and repeatable data that you can trend and alert on.
+For example, test popular user journeys, like logging in, adding items to a cart, and checking
+out -- actions that need to consistently work for your users.
+Alerting ensures any degraded performance or broken actions are fixed prior to impacts on your
+bottom line or customers' experience.
 
-// I'm not entirely sure how this fits into the Observability documentation at this point. I'm combining everything into one file as a start.
-
-// I may be completely off base here, but I think it makes sense to keep the Uptime instructions separate from the Synthetics instructions. There are a couple reasons:
-// * One is still in alpha and it easily separates the two
-// * Uptime is much..simpler to get started with. I don't think we should clutter the getting started experience of either by including more information.
-// -------------------------------------------------------------------------------------------
-
-Synthetics provides rich, consistent, and repeatable data that you can trend and alert on.
-
+[role="screenshot"]
+image::images/synthetic-app-journey.png[Synthetics app journey]
 
 [discrete]
 [[how-synthetics-works]]
-== How it works
+== How does it work?
 
+While there are different ways to utilize Elastic's synthetic monitoring,
+the easiest is with our provided Docker image:
 
-// Operational use case
+// Operational use case screenshot
 image::images/synthetics-overview.png[Synthetics overview]
-// HB schedules test runs and supervises execution of @elastic/synthetics package
-// HB formats data for ES
-// @elasic/synthetics runs the tests and gathers performance data which it reports HB
+
+In this use-case, Docker spins up Heartbeat and the `@elastic/synthetics` package.
+Heartbeat handles the scheduling of test runs and supervises the execution of the
+`@elastic/synthetics` package.
+`@elasic/synthetics` runs your tests by invoking the Playwright library and starting a new
+browser process.
+Performance data is then gathered and reported back to Heartbeat,
+where it is formatted and sent to the Elastic Stack.
+At this point, the data is available in the Uptime app to view, analyze, and alert on.
+
+// REVIEWERS
 // Do we need a separate image for the --> suite of tests in user-controlled git repo?
-
-
-Fork a new NPM package
-That runs custom JavaScript
-Invokes the Playwright library
-Which starts a new browser process (completes your tests)
-Sends the data via JSON back to Heartbeat w/Synthetics module
-
-
-// Text goes here. It really does.
-// Maybe a diagram?
-// Who knows.
