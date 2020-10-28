@@ -7,18 +7,20 @@
 
 experimental::[]
 
-Elastic synthetics utilizes Node.js, JavaScript, and https://github.com/Microsoft/playwright[Playwright]
-to create tests for your website.
-Creating tests consist of two elements of Elastic syntax:
+To write synthetic tests for your application, you'll need to know basic JavaScript and
+{playwright-url}[Playwright] syntax.
+Elastic also provides two custom syntax elements:
 
 * `journey` -- A journey tests one discrete unit of functionality.
 For example, logging in to website, adding something to a cart, or joining a mailing list.
-* `step` -- A journey consists of multiple steps, or actions, that should be completed in order.
+* `step` -- A journey consists of multiple steps, or actions, that should be completed in a specific order.
 Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
 
-Everything else is JavaScript (mostly Playwright).
-Everything is promises, so you need to use
-https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async_await[async/await].
+TIP: {playwright-url}[Playwright] is browser testing library developed by Microsoft.
+It is reliable and fast and features a modern API that auto waits for page elements to be ready.
+
+[discrete]
+== Create a `journey`
 
 The `journey` function takes two main parameters, `page` and `params`:
 
@@ -27,9 +29,88 @@ The `journey` function takes two main parameters, `page` and `params`:
 For example, if you want to use a different homepage depending on the `env`
 (localhost for `dev`, and a URL for `prod`).
 
-Playwright is browser testing library developed by Microsoft.
-It is reliable and fast and features a modern API that auto waits for page elements to be ready.
-The {playwright-api-docs}[API reference] will be your friend throughout this process.
+Putting it all together, a basic, two step journey might look something like this:
+
+[source,js]
+----
+journey("Journey title", async ({page}) => {
+    step("Step 1 title", async () => {
+      // Do something here
+    })
+    step("Step 2 title", async () => {
+      // Do something else here
+    })
+});
+----
+
+// REVIEWERS
+// Should we add a note here about the `async` keyword / promises / link to mdn docs?
+// https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async_await[async/await].
+
+[discrete]
+== Create a `step`
+
+Steps can be as simple or complex as you need them to be.
+The {playwright-api-docs}[Playwright page API reference] will be your friend while writing tests.
+
+A basic first step might simply load a page:
+
+[source,js]
+----
+await page.goto('https://www.elastic.co'); <1>
+----
+<1> See the https://github.com/microsoft/playwright/blob/master/docs/api.md#pagegotourl-options[`page.goto` reference] for more information.
+
+A more complex second step might wait for a page element to be selected,
+and then ensure that it matches an expected value.
+Consider the following HTML snippet:
+
+[source,html]
+----
+<header class="header">
+  <h1>todos</h1>
+  <input class="new-todo"
+    autofocus autocomplete="off"
+    placeholder="What needs to be done?"
+    v-model="newTodo"
+    @keyup.enter="addTodo">
+</header>
+----
+
+You can verify that `new-todo` class element contains the expected `placeholder` (input hint)
+with the following test:
+
+[source,js]
+----
+const input = await page.$('input.new-todo'); <1>
+deepStrictEqual(await input.getAttribute('placeholder'), "What needs to be done?"); <2>
+----
+<1> Query the page for the `input.new-todo` selector.
+See the https://github.com/microsoft/playwright/blob/master/docs/api.md#pageselector[`page.$` reference] for more information.
+<2> Return the `placeholder` attribute for `new-todo` with https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute[`getAttribute()`], and ensure it equals the provided text.
+`deepStrictEqual` is provided by Node.js and tests for deep equality between the actual and
+expected parameters.
+See the https://nodejs.org/api/assert.html#assert_assert_deepstrictequal_actual_expected_message[Node.js API reference] for more information.
+
+[discrete]
+== Sample Synthetic test
+
+Example from above
+
+[source,js]
+----
+journey("Ensure placeholder is correct", async ({page}) => {
+    step("Go to elastic.co", async () => {
+      await page.goto('https://www.elastic.co');
+    })
+    step("Check placeholder text", async () => {
+      const input = await page.$('input.new-todo');
+      deepStrictEqual(await input.getAttribute('placeholder'), "What needs to be done?");
+    })
+});
+----
+
+// Everything below this is TODO
 
 // -------------------------------------------------------------------------------------------
 // How to run your tests
