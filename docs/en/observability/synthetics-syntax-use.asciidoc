@@ -95,6 +95,7 @@ See the https://nodejs.org/api/assert.html#assert_assert_deepstrictequal_actual_
 [discrete]
 == Sample Synthetic test
 
+// Need to expand on this text
 Example from above
 
 [source,js]
@@ -110,39 +111,42 @@ journey("Ensure placeholder is correct", async ({page}) => {
 });
 ----
 
-// Everything below this is TODO
-
-// -------------------------------------------------------------------------------------------
-// How to run your tests
-// -------------------------------------------------------------------------------------------
-
 [discrete]
 [[running-synthetic-tests]]
-== Running synthetic tests
+== Create a new synthetic test
 
 // REVIEWERS:
 // Should we doc required technologies?
 // Node.js, npx, typescript, etc.?
 
-There are two ways to run tests.
+// REVIEWERS:
+// A lot of this is described on the quickstart page. It feels repetitive.
+// It also still needs some work.
+// I think things have changed.
 
-Which option is right for me?
+As explained in the <<synthetics-get-started,quickstart>>, there are two ways to run synthetic tests:
 
+* Inline journey -- copy/paste into `heartbeat.yml`
+* Simple test -- using inline yaml
+* Test suite -- import your tests to
+
+Which option is right for you? That depends.
 From a workflow perspective, perhaps it makes more sense for you to paste your tests into yaml.
-Yaml is not a nice dev experience though.
+Yaml isn't a great dev experience though.
 
-**Copy/pasting into YML**
+[discrete]
+== Create an inline journey
 
-// AKA an "inline journey"
-// Heartbeat will fork Node and start headless chrome
-// You don't have to worry about anything else
+The easiest way to run a synthetic test is by creating an inline journey:
+Copy/paste your test steps into `heartbeat.yml`.
+The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic.
+Heartbeat will fork Node.js, schedule your tests, and start headless chrome.
+You don't need to worry about anything else.
 
-The easiest way to run your tests is by copy/pasting them into a JavaScript file and
-including that file in your `heartbeat.yml` configuration.
-In this instance, there's no `journey` required -- only `step`s.
-Access to variables like `page` and `params` is automatic.
+An example is provided in the elastic/synthetics GitHub repo.
+https://github.com/elastic/synthetics/tree/master/examples/inline
 
-Here's a basic example:
+Take a look at `short.js`:
 
 [source,js]
 ----
@@ -155,39 +159,58 @@ step("hover over products menu", async () => {
 });
 ----
 
-Test your script with the following command:
-
-// To do: link to command line arguments
+cd into the directory with your journey and test it with the `npx @elastic/synthetics` command.
+For example:
 
 [source,sh]
 ----
-npx @elastic/synthetics path/to/your/journey.js
+npx @elastic/synthetics short.js
 ----
 
-The script can then be included in your `heartbeat.yml`:
+If everything works as expected, you'll get the following response:
+
+[source,sh]
+----
+# Something goes here, but I can't get it to work yet
+----
+
+The script can then be copied into your in your `heartbeat.yml`:
 
 [source,yml]
 ----
+heartbeat.monitors:
 - type: browser
-  id: test-homepage-hover
-  name: Homepage hover test
+  id: my-monitor
+  name: My Monitor
   schedule: "@every 1m"
-  file: test-homepage-hover.js
+  script: |-
+    step("load homepage", async () => {
+        await page.goto('https://www.elastic.co');
+    });
+    step("hover over products menu", async () => {
+        await page.hover('css=[data-nav-item=products]');
+    });
 ----
 
-**Test suite**
+[discrete]
+== Prepare a test suite
 
 // AKA using Elastic/synthetics as a library
 // Dockerize everything --> Docker runs Heartbeat and @elastic/synthetics
 
 If you have a suite of tests you'd like to implement, you can use Elastic synthetics as a library.
-The basic process is below, and it acts like the `npx @elastic/synthetics` command seen in the inline-journey.
 
-. Create a Node.js project
-. Write an `index.ts` file that imports your tests
+. Create a new Node.js project
+. Create a `javascript` or `typescript` file that imports your tests
 . Call `run`, which is imported from `@elastic/synthetics`.
 This runs the CLI application.
 . Compile everything together.
+
+An example is provided in the `elastic/synthetics` repository.
+
+cd into `synthetics/examples/todos/`
+`npm i`
+`npm run build`
 
 // example: examples/elastic-docs
 
@@ -204,7 +227,6 @@ You need to write some orchestration to get Heartbeat on a box (or use the docke
 pull your source of tests, and then share it with Heartbeat.
 
 
-
 // NOTES BELOW
 Use case -- Whole app testing (big)
 
@@ -214,3 +236,10 @@ Use case -- Whole app testing (big)
 - And journey and step keywords
 
 // Designing your own tests
+
+
+// install first
+npm i
+
+// build it
+npm run build
