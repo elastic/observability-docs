@@ -205,11 +205,22 @@ heartbeat.monitors:
 [discrete]
 == Prepare a test suite
 
-// AKA using Elastic/synthetics as a library
-// Dockerize everything --> Docker runs Heartbeat and @elastic/synthetics
-
 If you have a suite of tests you'd like to implement, you can use Elastic synthetics as a library.
 This allows you to utilize Docker to run Heartbeat and `elastic-synthetics`.
+
+=== Step 1: Install `elastic-synthetics`
+
+Clone the https://github.com/elastic/synthetics[elastic/synthetics] repo and install it:
+
+[source,sh]
+----
+git clone git@github.com:elastic/synthetics.git
+npm install
+----
+
+// I need to run `npm link` now... why?
+
+=== Step 2: Create your tests
 
 . Create a new Node.js project.
 . Create a `javascript` or `typescript` file that imports your tests.
@@ -221,13 +232,54 @@ An example is provided in `synthetics/examples/todo`.
 
 [source,sh]
 ----
-cd into `synthetics/examples/todos/`
-`npm install`
+cd examples/todos/ && npm install
 ----
 
-Full NPM project oriented around these tests.
-* Run `cat run-journeys` to compile the typescript (essentially by running `tsc`)
-* Run `node ./dist` (or for help, append `-h`)
+From the root of the `synthetics` repo, you can now run the provided tests:
+
+[source,sh]
+----
+npx elastic-synthetics examples/todos
+----
+
+The results:
+
+[source,sh]
+----
+Journey: basic addition and completion of single task
+   ✓  Step: 'go to app' succeeded (150 ms)
+   ✓  Step: 'add task Dont put salt in your eyes' succeeded (79 ms)
+   ✓  Step: 'check that task list has exactly 1 elements' succeeded (7 ms)
+   ✓  Step: 'check for task 'Don't put salt in your eyes' in list' succeeded (50 ms)
+   ✓  Step: 'destroy task 'Don't put salt in your eyes'' succeeded (75 ms)
+   ✓  Step: 'check that task list has exactly 0 elements' succeeded (2 ms)
+
+Journey: adding and removing a few tasks
+   ✓  Step: 'go to app' succeeded (125 ms)
+   ✓  Step: 'add task Task 1' succeeded (40 ms)
+   ✓  Step: 'add task Task 2' succeeded (49 ms)
+   ✓  Step: 'add task Task 3' succeeded (21 ms)
+   ✓  Step: 'check that task list has exactly 3 elements' succeeded (8 ms)
+   ✓  Step: 'destroy task 'Task 2'' succeeded (94 ms)
+   ✓  Step: 'check that task list has exactly 2 elements' succeeded (5 ms)
+   ✓  Step: 'add task Task 4' succeeded (36 ms)
+   ✓  Step: 'check that task list has exactly 3 elements' succeeded (4 ms)
+
+Journey: check that title is present
+   ✓  Step: 'go to app' succeeded (139 ms)
+   ✓  Step: 'check title is present' succeeded (27 ms)
+
+Journey: check that input placeholder is correct
+   ✓  Step: 'go to app' succeeded (121 ms)
+   ✓  Step: 'check title is present' succeeded (18 ms)
+
+ 19 passed (2983 ms)
+----
+
+// Is this old?
+// Full NPM project oriented around these tests.
+// * Run `cat run-journeys` to compile the typescript (essentially by running `tsc`)
+// * Run `node ./dist` (or for help, append `-h`)
 
 [discrete]
 === Caveats
@@ -236,21 +288,3 @@ How do you get your test suite onto the same box as Heartbeat?::
 If you, for example, have a separate git repo with all of your tests, how do you get them onto the box?
 You need to write some orchestration to get Heartbeat on a box (or use the docker image),
 pull your source of tests, and then share it with Heartbeat.
-
-
-// NOTES BELOW
-Use case -- Whole app testing (big)
-
-** WHAT DO WE NEED TO DOC?
-- Playwright is provided - link to docs (API ref is the most interesting)
-- Which variables are provided to journey (step receives none)
-- And journey and step keywords
-
-// Designing your own tests
-
-
-// install first
-npm i
-
-// build it
-npm run build
