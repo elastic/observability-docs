@@ -22,7 +22,7 @@ Java agent].
 
 Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}]. The deployment includes
 an {es} cluster for storing and searching your data, {kib} for visualizing and managing
-your data, and an APM server. For more information, see <<set-up-on-cloud,Set up on Cloud>>.
+your data, and an APM server. For more information, see <<spin-up-stack,Spin up the Elastic Stack>>.
 If you do not want to follow all those steps listed here and take a look at
 the final java code, check out the
 https://github.com/elastic/observability-contrib/tree/main/monitor-java-app[observability-contrib
@@ -422,12 +422,18 @@ use the commands that work with your system:
 include::{beats-repo-dir}/tab-widgets/install-widget-filebeat.asciidoc[]
 
 . Use the {filebeat} keystore to store {filebeat-ref}/keystore.html[secure
-settings]. Let’s store the cloud id in the keystore.
+settings]. Let’s store the Cloud ID in the keystore.
++
+[NOTE]
+=====
+Substitute the Cloud ID from your deployment in the following command.  To find your Cloud ID
+Click on your deployment in https://cloud.elastic.co/deployments
+=====
 +
 [source,bash]
 ----
 ./filebeat keystore create
-echo -n "observability-javalin-app:ZXUtY2VudHJhbC0xLmF3cy5jbG91ZC5lcy5pbyQ4NDU5M2I1YmQzYTY0N2NhYjA2MWQ3NTJhZWFhNWEzYyQzYmQwMWE2OTQ2MmQ0N2ExYjdhYTkwMzI0YjJiOTMyYQ==" | ./filebeat keystore add CLOUD_ID --stdin
+echo -n "<Your Cloud ID>" | ./filebeat keystore add CLOUD_ID --stdin
 ----
 +
 To store logs in {es} with minimal permissions, create an API key to send data from {filebeat} to {ess}.
@@ -1463,8 +1469,7 @@ Results show that only twenty requests were sent, which makes sense
 given the processing time.
 +
 Now let’s build a visualization using
-https://www.elastic.co/guide/en/kibana/current/lens.html[Lens], a
-tool in {kib} allowing create visualizations easily.
+{kibana-ref}/dashboard.html#lens[Lens] in {kib}.
 +
 [role="screenshot"]
 image:./images/monitor-java-app-metrics-kibana-create-visualization-open-files.png[Lens
