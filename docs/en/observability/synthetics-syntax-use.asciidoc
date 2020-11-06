@@ -15,6 +15,11 @@ Elastic also provides two custom syntax elements:
 For example, logging in to website, adding something to a cart, or joining a mailing list.
 * `step` -- A journey consists of multiple steps, or actions, that should be completed in a specific order.
 Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
+// I believe there are now more syntax elements. Commenting out for now
+// * `before` --
+// * `beforeAll` --
+// * `after` --
+// * `afterAll` --
 
 TIP: {playwright-url}[Playwright] is browser testing library developed by Microsoft.
 It is reliable and fast and features a modern API that auto waits for page elements to be ready.
@@ -159,19 +164,24 @@ step("hover over products menu", async () => {
 });
 ----
 
-cd into the directory with your journey and test it with the `npx @elastic/synthetics` command.
+`cd` into the directory with your journey and test it by piping the file contents into
+the `elastic-synthetics` command.
 For example:
 
 [source,sh]
 ----
-npx @elastic/synthetics short.js
+cat examples/inline/short.js | npx synthetics --inline
 ----
 
 If everything works as expected, you'll get the following response:
 
 [source,sh]
 ----
-# Something goes here, but I can't get it to work yet
+Journey: inline
+   ✓  Step: 'load homepage' succeeded (1831 ms)
+   ✓  Step: 'hover over products menu' succeeded (97 ms)
+
+ 2 passed (2511 ms)
 ----
 
 The script can then be copied into your in your `heartbeat.yml`:
@@ -199,20 +209,21 @@ heartbeat.monitors:
 // Dockerize everything --> Docker runs Heartbeat and @elastic/synthetics
 
 If you have a suite of tests you'd like to implement, you can use Elastic synthetics as a library.
+This allows you to utilize Docker to run Heartbeat and `elastic-synthetics`.
 
-. Create a new Node.js project
-. Create a `javascript` or `typescript` file that imports your tests
-. Call `run`, which is imported from `@elastic/synthetics`.
-This runs the CLI application.
+. Create a new Node.js project.
+. Create a `javascript` or `typescript` file that imports your tests.
+. Call `run`, which is imported from `elastic-synthetics` and runs the CLI application.
 . Compile everything together.
 
-An example is provided in the `elastic/synthetics` repository.
+An example is provided in `synthetics/examples/todo`.
+`cd` into the directory and install the dependencies:
 
+[source,sh]
+----
 cd into `synthetics/examples/todos/`
-`npm i`
-`npm run build`
-
-// example: examples/elastic-docs
+`npm install`
+----
 
 Full NPM project oriented around these tests.
 * Run `cat run-journeys` to compile the typescript (essentially by running `tsc`)
