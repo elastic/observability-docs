@@ -25,7 +25,8 @@ Synthetics agent exposes a an API for creating and running tests:
 
 * `journey(name, ({ page, browser, client, params }) => {})` -- A journey tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
-Each journey provides a fresh playwright browser, context, and page instance.
+Each journey provides a fresh playwright `browser`, `context`, and `page` instance.
+See <<synthetics-create-journey>> for more information.
 * `step(name, function)` -- A journey consists of multiple steps, i.e., actions that should be completed in a specific order.
 Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
 * `beforeAll(function)` -- Runs a provided function prior to all `journey` runs.
@@ -45,30 +46,31 @@ It is reliable and fast and features a modern API that auto waits for page eleme
 [[synthetics-create-journey]]
 === Create a `journey`
 
-The `journey` function takes two main parameters, `page` and `params`:
+The `journey` function takes a single parameter, `name`,
+and provides access to `page`, `params`, `browser`, and `context`:
 
+* `browser` -- A browser is created by Playwright.
 * `page` -- A `page` object from Playwright that lets you control the browser's current page.
+* `context` -- A browser context that doesn't share cookies or cache with other browser contexts.
 * `params` -- User-defined variables that allow you to invoke the Synthetics suite with custom parameters.
 For example, if you want to use a different homepage depending on the `env`
 (localhost for `dev`, and a URL for `prod`).
+
+See the official https://playwright.dev/#version=v1.5.2&path=docs%2Fapi.md&q=class-browser[Playwright API documentation] for more information.
 
 Putting it all together, a basic, two step journey might look something like this:
 
 [source,js]
 ----
-journey("Journey title", async ({page}) => {
-    step("Step 1 title", async () => {
+journey("Journey name", async ({page}) => {
+    step("Step 1 name", async () => {
       // Do something here
     })
-    step("Step 2 title", async () => {
+    step("Step 2 name", async () => {
       // Do something else here
     })
 });
 ----
-
-// REVIEWERS
-// Should we add a note here about the `async` keyword / promises / link to mdn docs?
-// https://developer.mozilla.org/en-US/docs/Learn/JavaScript/Asynchronous/Async_await[async/await].
 
 [discrete]
 [[synthetics-create-step]]
@@ -96,8 +98,6 @@ Consider the following HTML snippet:
   <input class="new-todo"
     autofocus autocomplete="off"
     placeholder="What needs to be done?"
-    v-model="newTodo"
-    @keyup.enter="addTodo">
 </header>
 ----
 
@@ -106,8 +106,10 @@ with the following test:
 
 [source,js]
 ----
-const input = await page.$('input.new-todo'); <1>
-deepStrictEqual(await input.getAttribute('placeholder'), "What needs to be done?"); <2>
+step("Check placeholder text", async () => {
+  const input = await page.$('input.new-todo'); <1>
+  deepStrictEqual(await input.getAttribute('placeholder'), "What needs to be done?"); <2>
+})
 ----
 <1> Query the page for the `input.new-todo` selector.
 See the https://github.com/microsoft/playwright/blob/master/docs/api.md#pageselector[`page.$` reference] for more information.
@@ -125,6 +127,7 @@ A complete example of a basic synthetic test looks like this:
 [source,js]
 ----
 import { journey, step } from '@elastic/synthetics';
+import { deepStrictEqual } from 'assert';
 
 journey("Ensure placeholder is correct", async ({page}) => {
     step("Go to elastic.co", async () => {
@@ -164,7 +167,7 @@ The easiest way to run a synthetic test is by creating an inline journey.
 The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic.
 
 Copy and paste your test steps into `heartbeat.yml`.
-Heartbeat spawns a separate Node.js process, schedule your tests, and runs it on chromium browser.
+Heartbeat spawns a separate Node.js process, schedules your tests, and runs them on a chromium browser.
 You don't need to worry about anything else.
 
 An example, `short.js`, is provided in the
@@ -234,13 +237,11 @@ In this method, you use Docker to run both Heartbeat and `elastic-synthetics`.
 // [[synthetics-suite-install]]
 // ==== Step 1: Install `@elastic/synthetics`
 
-If you haven't already, clone the https://github.com/elastic/synthetics[elastic/synthetics] repository
-and install the project:
+Install the `@elastic/synthetics` package globally to get started:
 
 [source,sh]
 ----
-git clone git@github.com:elastic/synthetics.git &&\
-npm install
+npm install -g @elastic/synthetics
 ----
 
 // [discrete]
@@ -252,15 +253,17 @@ Now it's time to write your tests:
 . Create a new Node.js project.
 . Create a `javascript` or `typescript` file that imports your tests.
 All synthetic test files must use the `.journey.ts` or `.journey.js` file extension.
-. Call `run`, which is imported from `elastic-synthetics` and runs the CLI application.
 . Compile everything together.
 
-At Elastic, we're fans of examples, so one is provided in `synthetics/examples/todo`.
-Switch into the directory and install the application:
+At Elastic, we're fans of examples, so one is provided in the
+https://github.com/elastic/synthetics[elastic/synthetics] repository.
+If you'd like to test it locally, clone the repo, and install the example:
 
 [source,sh]
 ----
-cd examples/todos/ && npm install
+git clone git@github.com:elastic/synthetics.git &&\
+cd examples/todos/ &&\
+npm install
 ----
 
 From the root of the `synthetics` repo, you can now run the provided tests.
