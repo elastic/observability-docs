@@ -21,7 +21,7 @@ https://discuss.elastic.co/tags/c/observability/uptime/75/synthetics[Synthetics 
 
 To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
-Elastic also provides a few custom syntax elements:
+Synthetics agent exposes a an API for creating and running tests:
 
 * `journey(name, ({ page, browser, client, params }) => {})` -- A journey tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
@@ -30,7 +30,7 @@ Each journey provides a fresh playwright browser, context, and page instance.
 Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
 * `beforeAll(function)` -- Runs a provided function prior to all `journey` runs.
 If the provided function is a promise, the runner will wait for the promise to resolve before invoking the journey.
-This function is useful for setting up global state or a server that will be used multiple journeys.
+This function is useful for setting up global state or a server that will be used across multiple journeys.
 * `before(function)` -- Runs a provided function prior to a single `journey` runs.
 This function is useful for setting up global state or a server that will be used for a single journey.
 * `afterAll(function)` -- Runs a provided function after all the journeys have completed.
@@ -151,7 +151,7 @@ As explained in the <<synthetics-quickstart,quickstart>>, there are two ways to 
 * Run a test suite -- import your tests into Heartbeat
 
 Which option is right for you? That depends.
-If you only have a few tests, an inline journey might be the easiest workflow --
+If you want to invoke a single journey with few steps, an inline journey might be the easiest workflow --
 you only need paste your tests into your `heartbeat.yml` file.
 if you have a complex test suite, or your tests need to live with your application code,
 you're likely better off setting up a synthetic test suite.
@@ -164,7 +164,7 @@ The easiest way to run a synthetic test is by creating an inline journey.
 The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic.
 
 Copy and paste your test steps into `heartbeat.yml`.
-Heartbeat will fork Node.js, schedule your tests, and start headless chrome.
+Heartbeat spawns a separate Node.js process, schedule your tests, and runs it on chromium browser.
 You don't need to worry about anything else.
 
 An example, `short.js`, is provided in the
@@ -182,13 +182,13 @@ step("hover over products menu", async () => {
 ----
 
 To run this, or any other inline example locally, change into the directory of your test,
-and pipe the file contents to the `elastic-synthetics` command.
+and pipe the file contents to the `npx @elastic/synthetics` command.
 
 For example:
 
 [source,sh]
 ----
-cat examples/inline/short.js | npx synthetics --inline
+cat examples/inline/short.js | npx @elastic/synthetics --inline
 ----
 
 If everything works as expected, you'll get the following response:
@@ -232,7 +232,7 @@ In this method, you use Docker to run both Heartbeat and `elastic-synthetics`.
 
 // [discrete]
 // [[synthetics-suite-install]]
-// ==== Step 1: Install `elastic-synthetics`
+// ==== Step 1: Install `@elastic/synthetics`
 
 If you haven't already, clone the https://github.com/elastic/synthetics[elastic/synthetics] repository
 and install the project:
@@ -268,7 +268,7 @@ Any files matching the filename `*.journey.*` will be run.
 
 [source,sh]
 ----
-npx elastic-synthetics examples/todos
+npx @elastic/synthetics examples/todos
 ----
 
 Once you have your tests up and running, follow the steps in the <<synthetics-quickstart,quickstart guide>>
