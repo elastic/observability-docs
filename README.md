@@ -10,13 +10,10 @@ Within this repo the `/doc/en/` directory is structured as follows:
 | --------------------- | ----------- |
 | __observability__     | Contains the source files for the [Observability Guide](https://www.elastic.co/guide/en/observability/master/index.html), which includes content for the Logs, Metrics, and Uptime apps.|
 | __ingest-management__ | Contains the source files for the [Ingest Management Guide](https://www.elastic.co/guide/en/ingest-management/master/index.html).|
-| __logs__              | These source files for the [Logs Monitoring Guide](https://www.elastic.co/guide/en/logs/guide/master/index.html) are __no longer maintained__. Refer to the content in the __observability__ directory.|
-| __metrics__           | These source files for the [Metrics Monitoring Guide](https://www.elastic.co/guide/en/metrics/guide/master/index.html) are __no longer maintained__. Refer to the content in the __observability__ directory.|
-| __uptime__            | These source files for the [Uptime Monitoring Guide](https://www.elastic.co/guide/en/uptime/master/index.html) are __no longer maintained__. Refer to the content in the __observability__ directory.|
 
 ## Reviews
 
-When you open a pull request, please tag **@obs-docs** as a reviewer.
+When you open a pull request, please tag **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** as a reviewer.
 
 ## Backporting
 
