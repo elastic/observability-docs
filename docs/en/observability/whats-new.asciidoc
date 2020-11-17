@@ -259,16 +259,15 @@ Capturing insightful business metrics on applications with OpenTelemetry looks l
 [source,opentelemetry]
 ----
 // initialize metric
-Meter meter = OpenTelemetry.getMeter("my-frontend-frontend");
-DoubleValueRecorder orderValueRecorder = meter.doubleValueRecorderBuilder("order").build();
-
+Meter meter = OpenTelemetry.getGlobalMeter("my-frontend");
+DoubleCounter orderValueCounter = meter.doubleCounterBuilder("order_value").build();
 
 public void createOrder(HttpServletRequest request) {
 
    // create order in the database
    ...
    // increment business metrics for monitoring
-   orderValueRecorder.record(orderPrice);
+   orderValueCounter.add(orderPrice);
 }
 ----
 
