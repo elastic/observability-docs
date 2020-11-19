@@ -103,14 +103,15 @@ See <<synthetics-syntax>> for more information.
 
 [discrete]
 [[synthetics-quickstart-step-three]]
-== Step 3: Update `run.sh`
-
-// this needs to be fixed
-
-// Add parameters to cmd line.
+== Step 3: Run `run.sh`
 
 `run.sh` pulls the Elastic/synthetics image, shares your configuration details and test suites with Heartbeat,
-and defines the location of your {es} instance.
+and provides the location of your {es} instance.
+
+WARNING: Running a Chrome browser requires elevated privileges.
+Synthetic monitoring scripts can escape the docker container.
+It is recommend to run your tests on a separate box.
+Do not run any scripts that you don’t trust.
 
 [source,sh]
 ----
@@ -122,51 +123,41 @@ docker run \
   --net=host \
   --security-opt seccomp=seccomp_profile.json \ <1>
   --volume="$(pwd)/heartbeat.docker.yml:/usr/share/heartbeat/heartbeat.yml:ro" \ <2>
-  --volume="$(pwd)/../:/opt/examples:rw" \ <3>
+  --volume="$(pwd)/../../:/opt/elastic-synthetics:rw" \ <3>
   $IMAGE \
   --strict.perms=false -e \
-  -E cloud.id=<cloud-id> \ <4>
-  -E cloud.auth=elastic:<cloud-pass> <5>
+  $HEARTBEAT_ARGS
 #...
 ----
-<1> Running a Chrome browser requires elevated privileges. Synthetic monitoring scripts can
-escape the docker container. It is recommend to run your tests on a separate box.
+<1> Running a Chrome browser requires elevated privileges.
 Do not run any scripts that you don't trust.
 <2> Provides your `heartbeat.docker.yml` file as a volume.
-<3> Provides the `examples` directory as a volume.
-<4> Your Elastic Cloud ID.
-<5> Your Elastic Cloud `username:password`.
+<3> Provides the `elastic-synthetics` repo as a volume.
+
+Use the following command to run the provided sample tests (or your own).
+Don't forget to update the example with your {es} credentials.
+
+[source,sh,subs="attributes"]
+----
+sh run.sh {version} \
+  -E cloud.id=<cloud-id> \
+  -E cloud.auth=elastic:<cloud-pass>
+----
 
 If you aren't using {ecloud}, replace `-E cloud.id` and `-E cloud.auth` with your Elasticsearch hosts,
 username, and password:
 
-[source,sh]
+[source,sh,subs="attributes"]
 ----
+sh run.sh {version} \
   -E output.elasticsearch.hosts=["localhost:9200"] \
   -E output.elasticsearch.username=elastic \
   -E output.elasticsearch.password=changeme \
 ----
 
 [discrete]
-[[synthetics-quickstart-step-four]]
-== Step 4: Run `run.sh`
-
-WARNING: Running a Chrome browser requires elevated privileges.
-Synthetic monitoring scripts can escape the docker container.
-It is recommend to run your tests on a separate box.
-Do not run any scripts that you don’t trust.
-
-To run the provided sample tests (or your own), you need to run `run.sh`.
-Don't forget to update `run.sh` with your {es} credentials, as explained in the previous step.
-
-[source,sh,subs="attributes"]
-----
-sh run.sh {version}
-----
-
-[discrete]
 [[synthetics-quickstart-step-five]]
-== Step 5: View in {kib}
+== Step 4: View in {kib}
 
 That's it! Elastic synthetics is now sending synthetic monitoring data to the {stack}.
 Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
