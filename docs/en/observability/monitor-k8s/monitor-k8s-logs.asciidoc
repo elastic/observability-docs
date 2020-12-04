@@ -32,6 +32,9 @@ To deploy {filebeat} to your Kubernetes cluster:
 ----
 curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/filebeat-kubernetes.yaml
 ----
++
+The default manifest contains all the settings you need to run {filebeat} on
+Kubernetes. At a minimum, you need to set the connection information for {es}.
 
 . **Set the connection information for {es}.**
 +
@@ -57,7 +60,7 @@ env:
 ----
 <1> Use the cloud settings if you're sending data to {ess} on {ecloud}.
 +
-To avoid exposing sensitive data, you can base64 encode the string then store it
+To avoid exposing sensitive data, you can base64 encode the string, then store it
 in a Kubernetes secret. For example:
 +
 ["source", "sh", subs="attributes"]
@@ -102,7 +105,8 @@ exist under the `/var/log/containers/` directory.
 events with metadata coming from Docker, Kubernetes, hosts, and cloud providers.
 +
 To add Kubernetes and container-related metadata to the logs, the 
-`add_kubernetes_metadata` processor is specified in the default configuration:
+`add_kubernetes_metadata` processor is already specified in the default
+configuration:
 +
 [source,yaml]
 ------------------------------------------------
@@ -253,6 +257,11 @@ Log events should start flowing to {es}.
 If you're using Red Hat OpenShift, you need to specify additional settings in
 the manifest file and enable the container to run as privileged.
 
+// Begin collapsed section
+
+[%collapsible]
+.Click to see more
+====
 . Modify the `DaemonSet` container spec in the manifest file:
 +
 [source,yaml]
@@ -284,37 +293,51 @@ oc patch namespace kube-system -p \
 This command sets the node selector for the project to an empty string. If you
 don't run this command, the default node selector will skip master nodes.
 
+====
+// End collapsed section
 
 [discrete]
 === View logs in {kib}
 
-//TODO: It would be good to add a realistic scenario to talk through and
-//highlight a specific use cases.
+To view the log data collected by {filebeat}, open {kib} and go to
+**Observability > Logs**.
 
 The https://www.elastic.co/log-monitoring[Logs app] in {kib} allows you to
-search, filter and tail all the logs collected into the {stack}. Instead of
+search, filter, and tail all the logs collected into the {stack}. Instead of
 having to ssh into different servers and tail individual files, all the logs are
 available in one tool under the Logs app.
 
-* Check out filtering logs using the keyword or plain text search.
-* You can move back and forth in time using the time picker or the timeline
-view on the side.
-* If you just want to watch the logs update in front of you tail -f style, click
-the Streaming button and use highlighting to accentuate that important bit of
-the info you are waiting to see.
+[role="screenshot"]
+image::images/log-stream.png[Logs app streaming messages collected by {filebeat}]
 
-//TODO: Add screenshot here
+Explore the Logs app:
+
+* Enter a keyword or text string in the search field to filter logs. 
+* Use the time picker or timeline view on the side to move forward and back in
+time.
+* Click **Stream live** to watch the logs update in front of you `tail -f`
+style.
+* Place your cursor over a log message to highlight it, then use the context
+menu to view details or view the log message in context. 
+
 
 [discrete]
-==== Out-of-the-box {kib} visualisations
+==== Out-of-the-box {kib} dashboards
 
-If you've run the {filebeat} setup job, it creates a set of out-of-the-box
-dashboards in {kib}.
+{filebeat} ships with a variety of pre-built {kib} dashboards that you can
+use to visualize logs from Kubernetese Core components and applications running
+on top of Kubernetes. If these dashboards are not already loaded into {kib}, you
+must run the {filebeat} setup job. 
 
-//TODO: Add more info about the setup required. We should probably just document
-//the command here.
+TIP: To run the setup job, install {filebeat} on any system that can connect to
+the {stack}, enable the modules for the datasets you want to monitor, then run
+the `setup` command. To learn how, see the
+{filebeat-ref}/filebeat-installation-configuration.html[{filebeat} quick start].
 
-Assuming you've deployed the sample petclinic application and it's running,
+//TODO: We might want to provide these steps inline (maybe in a collapsed)
+//section.
+
+Assuming you've deployed the sample Petclinic application and it's running,
 you can navigate to the {filebeat} dashboards for MySQL and NGINX.
 
 //TODO: Add screen capture here
