@@ -67,8 +67,9 @@ in a Kubernetes secret. For example:
 ------------------------------------------------
 $ echo -n 'changeme' | base64
 Y2hhbmdlbWU=
-$ kubectl create secret generic es-secret --from-literal='password=Y2hhbmdlbWU='
+$ kubectl create secret generic es-secret --from-literal=password='Y2hhbmdlbWU=' --namespace=kube-system <1>
 ------------------------------------------------
+<1> Create the secret in the namespace you used when you deployed {filebeat}.
 +
 To use the secret, change the `env` setting in the manifest file:
 +
@@ -104,9 +105,9 @@ exist under the `/var/log/containers/` directory.
 {filebeat} provides processors that you can use in your configuration to enrich
 events with metadata coming from Docker, Kubernetes, hosts, and cloud providers.
 +
-To add Kubernetes and container-related metadata to the logs, the 
-`add_kubernetes_metadata` processor is already specified in the default
-configuration:
+The `add_kubernetes_metadata` processor is already specified in the default
+configuration. This processor add Kubernetes and container-related metadata to
+the logs :
 +
 [source,yaml]
 ------------------------------------------------
@@ -124,7 +125,7 @@ filebeat.inputs:
 
 . *Automatically discover container logs (use autodiscovery).*
 +
-In the previous step, you learned how to collect container logs and enrich them
+In the previous steps, you learned how to collect container logs and enrich them
 with metadata. However you can take it further by leveraging the autodiscovery
 mechanism in {filebeat}. With autodiscovery, {filebeat} can automatically
 discover what kind of components are running in a Pod and apply the logging
@@ -227,9 +228,9 @@ the DaemonSet spec to include tolerations:
 [source,yaml]
 ------------------------------------------------
 spec:
- tolerations:
- - key: node-role.kubernetes.io/master
-   effect: NoSchedule
+  tolerations:
+  - key: node-role.kubernetes.io/master
+    effect: NoSchedule
 ------------------------------------------------
 
 .. Deploy {filebeat} to Kubernetes:
