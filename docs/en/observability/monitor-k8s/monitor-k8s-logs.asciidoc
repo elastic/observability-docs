@@ -2,8 +2,6 @@
 [[monitor-kubernetes-logs]]
 == Part 1: Monitor logs
 
-[Author: @ChrsMark]
-
 Collecting and analyzing logs of both Kubernetes Core components and various
 applications running on top of Kubernetes is a powerful tool for Kubernetes
 observability. Containers running within Kubernetes Pods produce logs as stdout
@@ -26,22 +24,24 @@ annotations, and the location of the log files.
 
 To deploy {filebeat} to your Kubernetes cluster:
 
-. **Download the {filebeat} deployment manifest.**
-+
+[discrete]
+==== Step 1: Download the {filebeat} deployment manifest
+
 ["source", "sh", subs="attributes"]
 ----
 curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/filebeat-kubernetes.yaml
 ----
-+
+
 The default manifest contains all the settings you need to run {filebeat} on
 Kubernetes. At a minimum, you need to set the connection information for {es}.
 
-. **Set the connection information for {es}.**
-+
+[discrete]
+==== Step 2: Set the connection information for {es}
+
 By default, {filebeat} sends events to an existing {es} deployment, if present.
 To specify a different destination, change the following settings in the
 `filebeat-kubernetes.yaml` file:
-+
+
 [source,yaml]
 ----
 env:
@@ -59,10 +59,10 @@ env:
   value:
 ----
 <1> Use the cloud settings if you're sending data to {ess} on {ecloud}.
-+
+
 To avoid exposing sensitive data, you can base64 encode the string, then store it
 in a Kubernetes secret. For example:
-+
+
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 $ echo -n 'changeme' | base64
@@ -70,9 +70,9 @@ Y2hhbmdlbWU=
 $ kubectl create secret generic es-secret --from-literal=password='Y2hhbmdlbWU=' --namespace=kube-system <1>
 ------------------------------------------------
 <1> Create the secret in the namespace you used when you deployed {filebeat}.
-+
+
 To use the secret, change the `env` setting in the manifest file:
-+
+
 [source,yaml]
 ------------------------------------------------
 env:
@@ -83,12 +83,13 @@ env:
       key: password
 ------------------------------------------------
 
-. **Collect container logs.**
-+
+[discrete]
+==== Step 3: Collect container logs
+
 To collect container logs, each {filebeat} instance needs access to the local
 log's path, which is actually a log directory mounted from the host. The
 default deployment manifest already contains the configuration to do this:
-+
+
 [source,yaml]
 ------------------------------------------------
 filebeat.inputs:
@@ -96,19 +97,20 @@ filebeat.inputs:
   paths:
     - /var/log/containers/*.log
 ------------------------------------------------
-+
+
 With this configuration, {filebeat} can collect logs from all the files that
 exist under the `/var/log/containers/` directory.
 
-. **Add metadata to events.**
-+
+[discrete]
+==== Step 4: Add metadata to events
+
 {filebeat} provides processors that you can use in your configuration to enrich
 events with metadata coming from Docker, Kubernetes, hosts, and cloud providers.
-+
+
 The `add_kubernetes_metadata` processor is already specified in the default
 configuration. This processor adds Kubernetes and container-related metadata to
 the logs:
-+
+
 [source,yaml]
 ------------------------------------------------
 filebeat.inputs:
@@ -123,24 +125,22 @@ filebeat.inputs:
             logs_path: "/var/log/containers/"
 ------------------------------------------------
 
-. *Automatically discover container logs (use autodiscovery).*
-+
+[discrete]
+==== Step 5: Automatically discover container logs (use autodiscovery)
+
 In the previous steps, you learned how to collect container logs and enrich them
 with metadata. However you can take it further by leveraging the autodiscovery
 mechanism in {filebeat}. With autodiscovery, {filebeat} can automatically
 discover what kind of components are running in a Pod and apply the logging
 modules needed to capture logs for those components.
-+
---
+
 NOTE: If you decide to use use autodiscovery, make sure you remove or comment
 out the `filebeat.inputs` configuration.
 
---
-+
 To configure autodiscovery, you can use static templates. For example, the
 template in this example configures {filebeat} to collect Nginx logs from any
 Pod labeled as `nginx`.
-+
+
 [source,yaml]
 ------------------------------------------------
 filebeat.autodiscover:
@@ -156,12 +156,12 @@ filebeat.autodiscover:
               fileset.stdout: access
               fileset.sterr: error
 ------------------------------------------------
-+
+
 This is good, but requires advanced knowledge of the workloads running in
 Kubernetes. Each time you want to monitor something new, you'll need to
 re-configure and restart {filebeat}. To avoid this, you can use hints-based
 autodiscovery:
-+
+
 [source,yaml]
 ------------------------------------------------
 filebeat.autodiscover:
@@ -174,9 +174,9 @@ filebeat.autodiscover:
         paths:
           - /var/log/containers/*${data.kubernetes.container.id}.log
 ------------------------------------------------
-+
+
 Then annotate the Pods accordingly:
-+
+
 [source,yaml]
 ------------------------------------------------
 apiVersion: v1
@@ -188,15 +188,16 @@ metadata:
     co.elastic.logs/fileset.stdout: access
     co.elastic.logs/fileset.stderr: error
 ------------------------------------------------
-+
+
 With this setup, {filebeat} identifies the nginx app and starts collecting its
 logs by using nginx module.
 
-. *(optional) Drop unwanted events.*
-+
+[discrete]
+==== Step 6: (optional) Drop unwanted events
+
 You can enrich your configuration with additional processors to drop unwanted
 events. For example:
-+
+
 [source,yaml]
 ------------------------------------------------
 processors:
@@ -206,11 +207,12 @@ processors:
               kubernetes.container.name: "metricbeat"
 ------------------------------------------------
 
-. *Enrich events with cloud metadata and host metadata.*
-+
+[discrete]
+==== Step 7: Enrich events with cloud metadata and host metadata
+
 You can also enrich events with cloud and host metadata by specifying these
 processors:
-+
+
 [source,yaml]
 ------------------------------------------------
 processors:
@@ -218,9 +220,10 @@ processors:
 - add_host_metadata:
 ------------------------------------------------
 
-. *Deploy {filebeat} as a DaemonSet on Kubernetes.*
-+
-.. If you're running {filebeat} on master nodes, check to see if the nodes use
+[discrete]
+==== Step 8: Deploy {filebeat} as a DaemonSet on Kubernetes
+
+. If you're running {filebeat} on master nodes, check to see if the nodes use
 https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints].
 Taints limit the workloads that can run on master nodes. If necessary, update
 the DaemonSet spec to include tolerations:
@@ -233,7 +236,7 @@ spec:
     effect: NoSchedule
 ------------------------------------------------
 
-.. Deploy {filebeat} to Kubernetes:
+. Deploy {filebeat} to Kubernetes:
 +
 ["source", "sh", subs="attributes"]
 ------------------------------------------------

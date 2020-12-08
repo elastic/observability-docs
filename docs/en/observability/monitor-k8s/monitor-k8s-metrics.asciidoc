@@ -2,8 +2,6 @@
 [[monitor-kubernetes-health-and-performance-metrics]]
 == Part 2: Monitor health and performance metrics
 
-[Author: @ChrsMark]
-
 Collecting metrics about Kubernetes clusters and the workloads running on top of
 them is a key aspect of Kubernetes observability. However, collecting metrics
 from Kubernetes poses some challenges. You need to collect metrics about the
@@ -33,22 +31,24 @@ events, ready to be correlated with logs, uptime, and APM data.
 
 To deploy {metricbeat} to your Kubernetes cluster:
 
-. **Download the {metricbeat} deployment manifest.**
-+
+[discrete]
+==== Step 1: Download the {metricbeat} deployment manifest
+
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/metricbeat-kubernetes.yaml
 ------------------------------------------------
-+
+
 The default manifest contains all the settings you need to run {metricbeat} on
 Kubernetes. At a minimum, you need to set the connection information for {es}.
 
-. **Set the connection information for {es}.**
-+
+[discrete]
+==== Step 2: Set the connection information for {es}
+
 By default, {metricbeat} sends events to an existing {es} deployment, if present.
 To specify a different destination, change the following parameters in the
 `metricbeat-kubernetes.yaml` file:
-+
+
 [source,yaml]
 ----
 env:
@@ -66,10 +66,10 @@ env:
   value:
 ----
 <1> Use the cloud settings if you're sending data to {ess} on {ecloud}.
-+
+
 To avoid exposing sensitive data, you can base64 encode the string, then store
 it in a Kubernetes secret. For example:
-+
+
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 $ echo -n 'changeme' | base64
@@ -77,11 +77,11 @@ Y2hhbmdlbWU=
 $ kubectl create secret generic es-secret --from-literal=password='Y2hhbmdlbWU=' --namespace=kube-system <1>
 ------------------------------------------------
 <1> Create the secret in the namespace where you will deploy {metricbeat}.
-+
+
 To use the secret, change the env setting in the manifest file:
-+
+
 [source,yaml]
-+
+
 ------------------------------------------------
 env:
 - name: ELASTICSEARCH_PASSWORD
@@ -91,11 +91,12 @@ env:
       key: password
 ------------------------------------------------
 
-. **Mount paths.**
-+
+[discrete]
+==== Step 3: Mount paths
+
 {metricbeat} will run on each node in the cluster as a Daemonset's Pod.
 To collect system-level metrics, key paths are mounted from the host to the Pod:
-+
+
 [source,yaml]
 ------------------------------------------------
 - name: proc
@@ -106,12 +107,13 @@ To collect system-level metrics, key paths are mounted from the host to the Pod:
   path: /sys/fs/cgroup
 ------------------------------------------------
 
-. **Collect system metrics.**
-+
+[discrete]
+==== Step 4: Collect system metrics
+
 To collect system-level metrics from the running node, configure the system
 module. The metricsets that you're likely to want are already enabled in the
 manifest. Modify the settings as required for your environment: 
-+
+
 [source,yaml]
 ------------------------------------------------
 - module: system
@@ -125,16 +127,17 @@ manifest. Modify the settings as required for your environment:
     - process_summary
 ------------------------------------------------
 
-. *Collect metrics from each Kubernetes node.*
-+
+[discrete]
+==== Step 5: Collect metrics from each Kubernetes node
+
 Because {metricbeat} is running on each node, you can collect metrics from the
 Kubelet API. These metrics provide important information about the state of the
 Kubernetes Node, Pods, Containers, and other resources. 
-+
+
 To collect these metrics, configure the `kubernetes` module. The metricsets that
 you're likely to want are already enabled in the manifest. Modify the settings
 as required for your environment:
-+
+
 [source,yaml]
 ------------------------------------------------
 - module: kubernetes
@@ -145,7 +148,7 @@ as required for your environment:
     - container
     - volume
 ------------------------------------------------
-+
+
 These metricsets collect metrics from the Kubelet API and therefore require
 access to the specific endpoints. Depending on the version and configuration of
 Kubernetes nodes, kubelet might provide a read-only HTTP port (typically
@@ -153,18 +156,17 @@ Kubernetes nodes, kubelet might provide a read-only HTTP port (typically
 lately, this endpoint requires SSL (HTTPS) access (to port 10250 by default) and
 token-based authentication.
 
-. **Collect Kubernetes state metrics.**
-+
+[discrete]
+==== Step 6: Collect Kubernetes state metrics
+
 To collect state metrics:
-+
---
+
 . Enable metricsets that begin with the `state_` prefix. The metricsets that
 you're likely to want are already enabled in the manifest.
 
 . Set the `hosts` field to point to the kube-state-metrics service within the
 cluster.
---
-+
+
 [TIP]
 =====
 {metricbeat} gets some metrics from
@@ -173,14 +175,14 @@ If kube-state-metrics is not already running, deploy it now. To learn how,
 see the Kubernetes deployment
 https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs])
 =====
-+
+
 Because the kube-state-metrics service provides cluster-wide metrics, there’s no
 need to fetch them per node. To use this singleton approach, {metricbeat}
 leverages a leader election method, where one Pod holds a leader lock and is
 responsible for collecting cluster-wide metrics. For more information about
 leader election settings, see
 {metricbeat-ref}/configuration-autodiscover.html[Autodiscover]. 
-+
+
 [source,yaml]
 ------------------------------------------------
 metricbeat.autodiscover:
@@ -206,22 +208,23 @@ metricbeat.autodiscover:
                 - state_resourcequota
                 - state_statefulset
 ------------------------------------------------
-+
+
 NOTE: If your Kubernetes cluster contains a large number of large nodes, the Pod
 that collects cluster-level metrics might face performance issues caused by
 resource limitations. In this case, avoid using the leader election strategy and
 instead run a dedicated, standalone {metricbeat} instance using a Deployment in
 addition to the DaemonSet.
 
-. **Collect application-specific metrics (use hint-based autodiscovery).**
-+
+[discrete]
+==== Step 7: Collect application-specific metrics (use hint-based autodiscovery)
+
 {metricbeat} supports autodiscovery based on hints from the provider. The hints
 system looks for hints in Kubernetes Pod annotations or Docker labels that have
 the prefix `co.elastic.metrics`. When a container starts, {metricbeat} checks
 for hints and launches the proper configuration. The hints tell {metricbeat} how
 to get metrics for the given container. To enable hint-based autodiscovery, set
 `hints.enabled: true`:
-+
+
 [source,yaml]
 ------------------------------------------------
 metricbeat.autodiscover:
@@ -229,10 +232,10 @@ metricbeat.autodiscover:
     - type: kubernetes
       hints.enabled: true
 ------------------------------------------------
-+
+
 You can annotate Kubernetes Pods with useful info to spin up {metricbeat}
 modules:
-+
+
 [source,yaml]
 ------------------------------------------------
 apiVersion: v1
@@ -246,8 +249,9 @@ metadata:
         co.elastic.metrics/period: 10s
 ------------------------------------------------
 
-. **Collect metrics from Prometheus.**
-+
+[discrete]
+==== Step 8: Collect metrics from Prometheus
+
 To enrich your collection resources, you can use the Prometheus module to
 collect metrics from every application that runs on the cluster and exposes a
 Prometheus exporter. For instance, let's say that the cluster runs multiple
@@ -255,7 +259,7 @@ applications that expose Prometheus metrics with the default Prometheus
 standards. Assuming these applications are annotated properly, you can define
 an extra autodiscovery provider to automatically identify the applications and
 start collecting exposed metrics by using the Prometheus module:
-+
+
 [source,yaml]
 ------------------------------------------------
 metricbeat.autodiscover:
@@ -271,42 +275,44 @@ metricbeat.autodiscover:
               metricsets: ["collector"]
               hosts: "${data.host}:${data.port}"
 ------------------------------------------------
-+
+
 This configuration launches a prometheus module for all containers of pods
 annotated with `prometheus.io/scrape: "true"`.
 
-. **Add metadata to events.** 
-+
+[discrete]
+==== Step 9: Add metadata to events
+
 {metricbeat} provides processors that you can use in your configuration to
 enrich events with metadata coming from Docker, Kubernetes, hosts, and cloud
 providers.
-+
+
 The `add_cloud_metadata` and `add_host_metadata` processors are already
 specified in the default configuration: 
-+
+
 [source,yaml]
 ------------------------------------------------
 processors:
 - add_cloud_metadata:
 - add_host_metadata:
 ------------------------------------------------
-+
+
 This metadata allows correlation of metrics with the hosts, Kubernetes pods,
 Docker containers, and cloud-provider infrastructure metadata and with other
 pieces of observability puzzle, such as application performance monitoring data
 and logs.
 
-. **Deploy {metricbeat} as a DaemonSet on Kubernetes.**
-+
+[discrete]
+==== Step 10: Deploy {metricbeat} as a DaemonSet on Kubernetes
+
 To deploy {metricbeat} to Kubernetes, run:
-+
+
 [source,shell]
 ------------------------------------------------
 kubectl create -f metricbeat-kubernetes.yaml
 ------------------------------------------------
-+
+
 To check the status, run:
-+
+
 [source,shell]
 ------------------------------------------------
 $ kubectl --namespace=kube-system  get ds/metricbeat
@@ -314,7 +320,7 @@ $ kubectl --namespace=kube-system  get ds/metricbeat
 NAME       DESIRED   CURRENT   READY     UP-TO-DATE   AVAILABLE   NODE-SELECTOR   AGE
 metricbeat   32        32        0         32           0           <none>          1m
 ------------------------------------------------
-+
+
 Metrics should start flowing to {es}.
 
 //REVIEWERS: Can we add some guidance here for what to do when this doesn't
