@@ -29,7 +29,7 @@ cluster as well as metrics from the Kubernetes cluster itself.
 
 {metricbeat} modules provide a quick and easy way to pick up metrics from
 various sources and ship them to {es} as {ecs-ref}/index.html[ECS]-compatible
-events, ready to be correlated with logs, uptime and APM data.
+events, ready to be correlated with logs, uptime, and APM data.
 
 To deploy {metricbeat} to your Kubernetes cluster:
 
@@ -47,10 +47,11 @@ Kubernetes. At a minimum, you need to set the connection information for {es}.
 +
 By default, {metricbeat} sends events to an existing {es} deployment, if present.
 To specify a different destination, change the following parameters in the
-manifest file:
+`metricbeat-kubernetes.yaml` file:
 +
 [source,yaml]
-------------------------------------------------
+----
+env:
 - name: ELASTICSEARCH_HOST
   value: elasticsearch
 - name: ELASTICSEARCH_PORT
@@ -59,9 +60,15 @@ manifest file:
   value: elastic
 - name: ELASTICSEARCH_PASSWORD
   value: changeme
-------------------------------------------------
+- name: ELASTIC_CLOUD_ID <1>
+  value:
+- name: ELASTIC_CLOUD_AUTH <1>
+  value:
+----
+<1> Use the cloud settings if you're sending data to {ess} on {ecloud}.
 +
-Those settings can be consumed by a Kubernetes secret. To create a secret:
+To avoid exposing sensitive data, you can base64 encode the string, then store
+it in a Kubernetes secret. For example:
 +
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
@@ -69,9 +76,9 @@ $ echo -n 'changeme' | base64
 Y2hhbmdlbWU=
 $ kubectl create secret generic es-secret --from-literal=password='Y2hhbmdlbWU=' --namespace=kube-system <1>
 ------------------------------------------------
-<1> Create the secret in the namespace you used when you deployed {metricbeat}.
+<1> Create the secret in the namespace where you will deploy {metricbeat}.
 +
-Use the secret value in {metricbeat}'s env:
+To use the secret, change the env setting in the manifest file:
 +
 [source,yaml]
 +
@@ -87,8 +94,7 @@ env:
 . **Mount paths.**
 +
 {metricbeat} will run on each node in the cluster as a Daemonset's Pod.
-To collect system-level metrics, notice in the manifest that various key paths
-are mounted from the host to the Pod:
+To collect system-level metrics, key paths are mounted from the host to the Pod:
 +
 [source,yaml]
 ------------------------------------------------
@@ -149,12 +155,27 @@ token-based authentication.
 
 . **Collect Kubernetes state metrics.**
 +
-To collect state metrics, enable metricsets that begin with the `state_` prefix.
-Set the `hosts` field to point to the kube-state-metrics service within the
+To collect state metrics:
++
+--
+. Enable metricsets that begin with the `state_` prefix. The metricsets that
+you're likely to want are already enabled in the manifest.
+
+. Set the `hosts` field to point to the kube-state-metrics service within the
 cluster.
+--
++
+[TIP]
+=====
+{metricbeat} gets some metrics from
+https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics].
+If kube-state-metrics is not already running, deploy it now. To learn how,
+see the Kubernetes deployment
+https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs])
+=====
 +
 Because the kube-state-metrics service provides cluster-wide metrics, there’s no
-need to fetch them per node. In order to ensure this singleton approach, {metricbeat}
+need to fetch them per node. To use this singleton approach, {metricbeat}
 leverages a leader election method, where one Pod holds a leader lock and is
 responsible for collecting cluster-wide metrics. For more information about
 leader election settings, see
@@ -252,13 +273,16 @@ metricbeat.autodiscover:
 ------------------------------------------------
 +
 This configuration launches a prometheus module for all containers of pods
-annotated with `prometheus.io/scrape=true`.
+annotated with `prometheus.io/scrape: "true"`.
 
 . **Add metadata to events.** 
 +
 {metricbeat} provides processors that you can use in your configuration to
 enrich events with metadata coming from Docker, Kubernetes, hosts, and cloud
-providers. For example:
+providers.
++
+The `add_cloud_metadata` and `add_host_metadata` processors are already
+specified in the default configuration: 
 +
 [source,yaml]
 ------------------------------------------------
@@ -273,12 +297,6 @@ pieces of observability puzzle, such as application performance monitoring data
 and logs.
 
 . **Deploy {metricbeat} as a DaemonSet on Kubernetes.**
-+
-{metricbeat} gets some metrics from
-https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics].
-If kube-state-metrics is not already running, deploy it now. To learn how,
-see the Kubernetes deployment
-https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs])
 +
 To deploy {metricbeat} to Kubernetes, run:
 +
@@ -408,19 +426,21 @@ don't run this command, the default node selector will skip master nodes.
 To view the performance and health metrics collected by {metricbeat}, open
 {kib} and go to **Observability > Metrics**.
 
-The {metricbeat} configuration in this guide drives the following views in the
-https://www.elastic.co/infrastructure-monitoring[Metrics app].
+On the **Inventory** page, you can switch between different views to see an
+overview of the containers and Pods running on Kubernetes:
 
 [role="screenshot"]
-image::images/metrics-explorer.png[Kubernetes overview dashboard]
+image::images/metrics-inventory.png[Inventory page that shows Kubernetes Pods]
 
-Feel free to click around and review those. Notice how everywhere you go in
-{kib}, there is a search bar that allows you to, you know, search for things.
-It’s a great way to filter views and zoom into things when you're looking for
-that needle in a haystack.
+On the **Metrics Explorer** page, you can group and analyze metrics for the
+resources that you are monitoring. 
 
-//TODO: Improve description here. Maybe Eamonn has some stuff he wants us to
-//highlight?
+[role="screenshot"]
+image::images/metrics-explorer.png[Metrics dashboard that shows CPU usage for Kubernetes Pods]
+
+Notice how everywhere you go in {kib}, there is a search bar that allows you to,
+you know, search for things. It’s a great way to filter views and zoom into
+things when you're looking for that needle in a haystack.
 
 [discrete]
 ==== Out-of-the-box {kib} dashboards
@@ -434,14 +454,11 @@ the {stack}, enable the modules for the metricsets you want to monitor, then run
 the `setup` command. To learn how, see the
 {metricbeat-ref}/metricbeat-installation-configuration.html[{metricbeat} quick start].
 
-//TODO: We might want to provide these steps inline (maybe in a collapsed)
-//section.
-
-You can use these dashboards as they are, or as a starting point for custom
-dashboards tailored to your needs. Here are dashboards that will help clearly
-display the data from your tutorial environment.
+On the Kubernetes overview dashboard, you can see an overview of all the nodes,
+deployments, and pods running on your Kubernetes cluster:
 
 [role="screenshot"]
 image::images/k8s-overview.png[Kubernetes overview dashboard]
 
-
+You can use these dashboards as they are, or as a starting point for custom
+dashboards tailored to your needs.
