@@ -1,37 +1,89 @@
 [discrete]
-[[monitor-kubernetes-overview]]
-== Monitoring overview
+[[kubernetes-monitoring-architecture]]
+== Monitoring architecture
 
-[Author: DeDe]
+The {stack} provides 3 main components for monitoring Kubernetes:
 
-TODO: Provide an introduction to Kubernetes monitoring. Some things we might
-want to cover:
+//TODO: Need to figure out how to work APM into the diagram here without making
+//it even more complicated. Maybe we could just show a box that we expand later?
 
-* Describe challenges of monitoring a complex, distributed, transient system -
-monitoring multiple layers (host system, applications, container, orchestration
-software itself). Containers are a moving target, etc. These blog posts have
-some good introductory info:
-https://www.elastic.co/blog/kubernetes-observability-tutorial-k8s-log-monitoring-and-analysis-elastic-stack[here]
-and https://www.elastic.co/blog/monitoring-kubernetes-and-docker-containers-with-beats-logs-metrics-and-metadata[here].
+1. Lightweight agents, called {beats}, for collecting observability data from
+Kubernetes. Some {beats} include pre-configured data collection modules to ease
+the collection and parsing of data for common applications such as Apache,
+MySQL, and Kafka.
 
-* Provide an overview of monitoring capabilities, perhaps with a diagram. Might
-want to show an example deployment that’s running a couple of applications, like
-Nginx and MySQL. Describe the data to collect and the technology stack for
-collecting the data. Probably best to keep this as a broad overview and explore
-the finer details later, but should touch on these concepts:
+2. {es} for storing and searching your data.
 
-** Deployment: What is a DaemonSet? Why deploy as a DaemonSet?
+3. Observability apps in {kib} for visualizing and managing your observability
+data.
 
-** Filebeat for log collection
+image::images/k8s-monitoring-architecture.png[Kubernetes monitoring architecture]
 
-** Metricbeat for metrics collection
+[discrete]
+[[beats-deployment]]
+=== {beats} deployment
 
-** Metadata for correlating logs, metrics, and traces:
-add_cloud_metada, add_docker_metada, add_kubernetes_metadata
+//TODO: There is too much front loading of info here. I wonder if it's valuable
+//to explain the details of how the Beats collect data here, or it would be
+//better to expand later and provide a small diagram that shows more detail
+//than is possible in a big architecture diagram. 
 
-** Autodiscovery for automatically detecting and monitoring services as they appear
-dynamically. To avoid too much front loading, probably shouldn't talk about
-details like hints-based autodiscovery, labels, and templates, but will need to
-cover that some later.
+{beats} agents are deployed as DaemonSets on each Kubernetes node. This
+deployment architecture ensures that the agents are available to capture both
+system and application-level observability data:
+
+{filebeat}::
+Collects logs from pods, containers, and applications running on Kubernetes.
++
+{filebeat} communicates with the Kubernetes API server to retrieve information
+about the pods running on the host, all the metadata annotations, and the
+location of the log files. The {filebeat} autodisovery feature uses this
+information to apply the logging modules needed to capture logs for those
+components (you learn more about this later).
+
+{metricbeat}::
+Collects and preprocesses system and service metrics, such as information about
+running processes, as well as CPU, memory, disk, and network utilization
+numbers.
++
+Because Metricbeat runs on each node, it can collect metrics from the Kubelet
+API. These metrics provide important information about the state of the
+Kubernetes node, pods, containers, and other resources.
++
+For application metrics, {metricbeat} uses hints-based autodiscovery. The hints
+system looks for hints in Kubernetes pod annotations or Docker labels and
+launches the proper configuration.
++
+For cluster-wide metrics, {metricbeat} either accesses the `kube-state-metrics`
+service directly or gets metrics scraped by Prometheus.
+
+Other {beats} (not shown)::
+Collect and process other types of data, such as Uptime data and network
+traffic.
+
+To make deployment easier, Elastic provides YAML files that define all the
+required deployment settings. In many cases, all you need to do is change
+the connection details and deploy with default settings to get started quickly.
+
+[discrete]
+[[beats-metadata]]
+=== Metadata
+
+All {beats} agents provide processors for adding metadata to events. The
+metadata is valuable for grouping and exploring related data. For example, when
+you're analyzing container logs, you want to know the host and container ID, and
+you want to be able to correlate logs, metrics, and traces.
+
+The default deployments include processors, when needed, for enriching events
+with cloud, Kubernetes, and host metadata.
+
+image::images/metadata-processors.png[Metadata processors for cloud, Kubernetes, and host metadata]
+
+//REVIEWERS: Can you confirm that the info in the diagram is correct? I want
+//to provide examples without giving field names in case field names change
+//again.
+
+Now that you have a basic understanding of the monitoring architecture, let's
+learn how to deploy monitoring to your Kubernetes environment. 
 
 TODO: Provide setup instructions for the Petclinic sample app.

@@ -13,7 +13,7 @@ like CPU, memory, disk utilization, and disk and network I/O.
 
 * Kubernetes containers, which produce their own set of metrics.
 
-* The applications running as Kubernetes Pods, such as application servers and
+* The applications running as Kubernetes pods, such as application servers and
 databases, each producing its own set of metrics.
 
 Instead of using multiple technologies to collect metrics, you deploy
@@ -22,7 +22,7 @@ Instead of using multiple technologies to collect metrics, you deploy
 [discrete]
 === Deploy {metricbeat} to collect metrics
 
-You'll use {metricbeat} to collect metrics from Pods running in your Kubernetes
+You'll use {metricbeat} to collect metrics from pods running in your Kubernetes
 cluster as well as metrics from the Kubernetes cluster itself.
 
 {metricbeat} modules provide a quick and easy way to pick up metrics from
@@ -94,8 +94,8 @@ env:
 [discrete]
 ==== Step 3: Mount paths
 
-{metricbeat} will run on each node in the cluster as a Daemonset's Pod.
-To collect system-level metrics, key paths are mounted from the host to the Pod:
+{metricbeat} will run on each node in the cluster as a Daemonset's pod.
+To collect system-level metrics, key paths are mounted from the host to the pod:
 
 [source,yaml]
 ------------------------------------------------
@@ -132,7 +132,7 @@ manifest. Modify the settings as required for your environment:
 
 Because {metricbeat} is running on each node, you can collect metrics from the
 Kubelet API. These metrics provide important information about the state of the
-Kubernetes Node, Pods, Containers, and other resources. 
+Kubernetes node, pods, containers, and other resources. 
 
 To collect these metrics, configure the `kubernetes` module. The metricsets that
 you're likely to want are already enabled in the manifest. Modify the settings
@@ -178,7 +178,7 @@ https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs])
 
 Because the kube-state-metrics service provides cluster-wide metrics, there’s no
 need to fetch them per node. To use this singleton approach, {metricbeat}
-leverages a leader election method, where one Pod holds a leader lock and is
+leverages a leader election method, where one pod holds a leader lock and is
 responsible for collecting cluster-wide metrics. For more information about
 leader election settings, see
 {metricbeat-ref}/configuration-autodiscover.html[Autodiscover]. 
@@ -209,7 +209,7 @@ metricbeat.autodiscover:
                 - state_statefulset
 ------------------------------------------------
 
-NOTE: If your Kubernetes cluster contains a large number of large nodes, the Pod
+NOTE: If your Kubernetes cluster contains a large number of large nodes, the pod
 that collects cluster-level metrics might face performance issues caused by
 resource limitations. In this case, avoid using the leader election strategy and
 instead run a dedicated, standalone {metricbeat} instance using a Deployment in
@@ -219,7 +219,7 @@ addition to the DaemonSet.
 ==== Step 7: Collect application-specific metrics (use hint-based autodiscovery)
 
 {metricbeat} supports autodiscovery based on hints from the provider. The hints
-system looks for hints in Kubernetes Pod annotations or Docker labels that have
+system looks for hints in Kubernetes pod annotations or Docker labels that have
 the prefix `co.elastic.metrics`. When a container starts, {metricbeat} checks
 for hints and launches the proper configuration. The hints tell {metricbeat} how
 to get metrics for the given container. To enable hint-based autodiscovery, set
@@ -233,7 +233,7 @@ metricbeat.autodiscover:
       hints.enabled: true
 ------------------------------------------------
 
-You can annotate Kubernetes Pods with useful info to spin up {metricbeat}
+You can annotate Kubernetes pods with useful info to spin up {metricbeat}
 modules:
 
 [source,yaml]
@@ -378,7 +378,7 @@ installations it can be available as part of the service account secret, in
 the
 https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[Openshift
 installer] for GCP then the following configmap can be mounted in {metricbeat}
-Pod and use `ca-bundle.crt` in `ssl.certificate_authorities`:
+pod and use `ca-bundle.crt` in `ssl.certificate_authorities`:
 
 [source,yaml]
 -----
@@ -433,16 +433,16 @@ To view the performance and health metrics collected by {metricbeat}, open
 {kib} and go to **Observability > Metrics**.
 
 On the **Inventory** page, you can switch between different views to see an
-overview of the containers and Pods running on Kubernetes:
+overview of the containers and pods running on Kubernetes:
 
 [role="screenshot"]
-image::images/metrics-inventory.png[Inventory page that shows Kubernetes Pods]
+image::images/metrics-inventory.png[Inventory page that shows Kubernetes pods]
 
 On the **Metrics Explorer** page, you can group and analyze metrics for the
 resources that you are monitoring. 
 
 [role="screenshot"]
-image::images/metrics-explorer.png[Metrics dashboard that shows CPU usage for Kubernetes Pods]
+image::images/metrics-explorer.png[Metrics dashboard that shows CPU usage for Kubernetes pods]
 
 Notice how everywhere you go in {kib}, there is a search bar that allows you to,
 you know, search for things. It’s a great way to filter views and zoom into

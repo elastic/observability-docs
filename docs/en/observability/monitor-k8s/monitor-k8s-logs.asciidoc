@@ -4,14 +4,14 @@
 
 Collecting and analyzing logs of both Kubernetes Core components and various
 applications running on top of Kubernetes is a powerful tool for Kubernetes
-observability. Containers running within Kubernetes Pods produce logs as stdout
+observability. Containers running within Kubernetes pods produce logs as stdout
 or stderr. These logs are written to a location known to Kubelet.
 
-To collect Pod logs, all you need is {filebeat} running as a DaemonSet
+To collect pod logs, all you need is {filebeat} running as a DaemonSet
 in your Kubernetes cluster. You configure {filebeat} to communicate with the
-Kubernetes API server, get the list of Pods running on the current host, and
-collect the logs the Pods are producing. Those logs are annotated with all the
-relevant Kubernetes metadata, such as Pod ID, container name, container labels
+Kubernetes API server, get the list of pods running on the current host, and
+collect the logs the pods are producing. Those logs are annotated with all the
+relevant Kubernetes metadata, such as pod ID, container name, container labels
 and annotations, and so on.
 
 [discrete]
@@ -19,7 +19,7 @@ and annotations, and so on.
 
 To start collecting logs, deploy and run an instance of {filebeat} on each
 Kubernetes host. {filebeat} communicates with the Kubernetes API server to
-retrieve information about the Pods running on the host, all the metadata
+retrieve information about the pods running on the host, all the metadata
 annotations, and the location of the log files.
 
 To deploy {filebeat} to your Kubernetes cluster:
@@ -131,7 +131,7 @@ filebeat.inputs:
 In the previous steps, you learned how to collect container logs and enrich them
 with metadata. However you can take it further by leveraging the autodiscovery
 mechanism in {filebeat}. With autodiscovery, {filebeat} can automatically
-discover what kind of components are running in a Pod and apply the logging
+discover what kind of components are running in a pod and apply the logging
 modules needed to capture logs for those components.
 
 NOTE: If you decide to use use autodiscovery, make sure you remove or comment
@@ -139,7 +139,7 @@ out the `filebeat.inputs` configuration.
 
 To configure autodiscovery, you can use static templates. For example, the
 template in this example configures {filebeat} to collect Nginx logs from any
-Pod labeled as `nginx`.
+pod labeled as `nginx`.
 
 [source,yaml]
 ------------------------------------------------
@@ -175,7 +175,7 @@ filebeat.autodiscover:
           - /var/log/containers/*${data.kubernetes.container.id}.log
 ------------------------------------------------
 
-Then annotate the Pods accordingly:
+Then annotate the pods accordingly:
 
 [source,yaml]
 ------------------------------------------------
