@@ -34,13 +34,15 @@ To deploy {metricbeat} to your Kubernetes cluster:
 [discrete]
 ==== Step 1: Download the {metricbeat} deployment manifest
 
+To make deployment easier, Elastic provides a YAML file that defines all the
+required deployment settings. In many cases, you can change the connection
+details and deploy with default settings to get started quickly.
+
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/metricbeat-kubernetes.yaml
 ------------------------------------------------
 
-The default manifest contains all the settings you need to run {metricbeat} on
-Kubernetes. At a minimum, you need to set the connection information for {es}.
 
 [discrete]
 ==== Step 2: Set the connection information for {es}
@@ -110,7 +112,7 @@ To collect system-level metrics, key paths are mounted from the host to the pod:
 [discrete]
 ==== Step 4: Collect system metrics
 
-To collect system-level metrics from the running node, configure the system
+To collect system-level metrics from the running node, configure the `system`
 module. The metricsets that you're likely to want are already enabled in the
 manifest. Modify the settings as required for your environment: 
 
@@ -159,6 +161,12 @@ token-based authentication.
 [discrete]
 ==== Step 6: Collect Kubernetes state metrics
 
+{metricbeat} gets some metrics from
+https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics].
+If kube-state-metrics is not already running, deploy it now. To learn how,
+see the Kubernetes deployment
+https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs].
+
 To collect state metrics:
 
 . Enable metricsets that begin with the `state_` prefix. The metricsets that
@@ -166,15 +174,6 @@ you're likely to want are already enabled in the manifest.
 
 . Set the `hosts` field to point to the kube-state-metrics service within the
 cluster.
-
-[TIP]
-=====
-{metricbeat} gets some metrics from
-https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics].
-If kube-state-metrics is not already running, deploy it now. To learn how,
-see the Kubernetes deployment
-https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs])
-=====
 
 Because the kube-state-metrics service provides cluster-wide metrics, there’s no
 need to fetch them per node. To use this singleton approach, {metricbeat}
@@ -252,13 +251,13 @@ metadata:
 [discrete]
 ==== Step 8: Collect metrics from Prometheus
 
-To enrich your collection resources, you can use the Prometheus module to
+To enrich your collection resources, you can use the `prometheus` module to
 collect metrics from every application that runs on the cluster and exposes a
 Prometheus exporter. For instance, let's say that the cluster runs multiple
 applications that expose Prometheus metrics with the default Prometheus
 standards. Assuming these applications are annotated properly, you can define
 an extra autodiscovery provider to automatically identify the applications and
-start collecting exposed metrics by using the Prometheus module:
+start collecting exposed metrics by using the `prometheus` module:
 
 [source,yaml]
 ------------------------------------------------
@@ -276,7 +275,7 @@ metricbeat.autodiscover:
               hosts: "${data.host}:${data.port}"
 ------------------------------------------------
 
-This configuration launches a prometheus module for all containers of pods
+This configuration launches a `prometheus` module for all containers of pods
 annotated with `prometheus.io/scrape: "true"`.
 
 [discrete]

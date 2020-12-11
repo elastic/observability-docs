@@ -27,13 +27,14 @@ To deploy {filebeat} to your Kubernetes cluster:
 [discrete]
 ==== Step 1: Download the {filebeat} deployment manifest
 
+To make deployment easier, Elastic provides a YAML file that defines all the
+required deployment settings. In many cases, you can change the connection
+details and deploy with default settings to get started quickly.
+
 ["source", "sh", subs="attributes"]
 ----
 curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/filebeat-kubernetes.yaml
 ----
-
-The default manifest contains all the settings you need to run {filebeat} on
-Kubernetes. At a minimum, you need to set the connection information for {es}.
 
 [discrete]
 ==== Step 2: Set the connection information for {es}
@@ -101,6 +102,10 @@ filebeat.inputs:
 With this configuration, {filebeat} can collect logs from all the files that
 exist under the `/var/log/containers/` directory.
 
+This configuration assumes you know what kinds of components are running in a
+pod and where the container logs are stored. Later you'll learn how to use
+autodiscovery to <<autodiscover-containers, automatically discover containers>>.
+
 [discrete]
 ==== Step 4: Add metadata to events
 
@@ -126,6 +131,7 @@ filebeat.inputs:
 ------------------------------------------------
 
 [discrete]
+[[autodiscover-containers]]
 ==== Step 5: Automatically discover container logs (use autodiscovery)
 
 In the previous steps, you learned how to collect container logs and enrich them
@@ -138,7 +144,7 @@ NOTE: If you decide to use use autodiscovery, make sure you remove or comment
 out the `filebeat.inputs` configuration.
 
 To configure autodiscovery, you can use static templates. For example, the
-template in this example configures {filebeat} to collect Nginx logs from any
+template in this example configures {filebeat} to collect NGINX logs from any
 pod labeled as `nginx`.
 
 [source,yaml]
@@ -189,8 +195,8 @@ metadata:
     co.elastic.logs/fileset.stderr: error
 ------------------------------------------------
 
-With this setup, {filebeat} identifies the nginx app and starts collecting its
-logs by using nginx module.
+With this setup, {filebeat} identifies the NGINX app and starts collecting its
+logs by using the `nginx` module.
 
 [discrete]
 ==== Step 6: (optional) Drop unwanted events
@@ -210,8 +216,9 @@ processors:
 [discrete]
 ==== Step 7: Enrich events with cloud metadata and host metadata
 
-You can also enrich events with cloud and host metadata by specifying these
-processors:
+You can also enrich events with cloud and host metadata by specifying the
+`add_cloud_metadata` and `add_host_metadata` processors. These processors are
+already specified in the default configuration:
 
 [source,yaml]
 ------------------------------------------------
