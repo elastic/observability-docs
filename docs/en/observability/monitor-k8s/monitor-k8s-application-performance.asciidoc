@@ -15,6 +15,7 @@ Application monitoring data is streamed from your applications running in Kubern
 where it is validated, processed, and transformed into {es} documents.
 
 There are many ways to deploy APM Server when working with Kubernetes.
+
 This guide assumes you're using our hosted {ess} on {ecloud}.
 If you want to manage APM Server yourself, there are a few alternative options:
 
@@ -23,8 +24,8 @@ APM Server deployed with Kubernetes.
 Built on the Kubernetes Operator pattern, ECK extends basic Kubernetes orchestration capabilities
 to support the setup and management of APM Server on Kubernetes.
 
-* Deploy APM Server as a DaemonSet -- Ensure a running instance of APM Server on each node in your cluster,
-like when a single APM Server instance should be reused for any pod that may be allocated to a node.
+* Deploy APM Server as a DaemonSet -- Ensure a running instance of APM Server on each node in your cluster.
+Useful when all pods in a node should share a single APM Server instance.
 
 * Deploy APM Server as a sidecar -- For environments that should not share an APM Server,
 like when directing traces from multiple applications to separate {es} clusters.
@@ -35,7 +36,7 @@ like when directing traces from multiple applications to separate {es} clusters.
 === Step 2: Set up APM Agents
 
 In most cases, setting up APM agents and thereby instrumenting your applications
-is as simple as installing a library and adding a few lines of code.
+is as easy as installing a library and adding a few lines of code.
 See the relevant agent setup instructions for more information:
 
 * {apm-go-ref-v}/getting-started.html[Go agent]
@@ -112,7 +113,7 @@ kubectl create secret generic apm-secret --from-literal=ELASTIC_APM_SECRET_TOKEN
 <1> Create the secret in the same namespace that you'll be deploying your applications in.
 
 [discrete]
-=== Step 5: General agent configuration
+=== Step 5: Configure the agent
 
 Agent configuration values can be passed in as environment variables for your application's container.
 Here's a sample configuration:
@@ -122,6 +123,9 @@ Here's a sample configuration:
       # ...
       containers:
       - name: your-app-container
+        volumeMounts:
+        - mountPath: /elastic/apm/agent
+          name: elastic-apm-agent
         env:
         # ...
         - name: ELASTIC_APM_SERVER_URL
@@ -144,7 +148,7 @@ Here's a sample configuration:
 <2> Necessary only when attaching the agent
 
 [discrete]
-=== Step 6: Kubernetes data configuration
+=== Step 6: Configure Kubernetes data
 
 In most instances, APM agents automatically read Kubernetes data from inside the
 container and send it to APM Server.
@@ -193,11 +197,90 @@ The table below maps these environment variables to the APM metadata event field
 [discrete]
 === Step 7: Deploy your application
 
-APM agents are deployed with your application:
+APM agents are deployed with your application.
+
+[%collapsible]
+.Resource configuration file example
+====
+
+A complete resource configuration file based on the previous steps.
+
+[source,yml]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: <<your-app>>
+  namespace: kube-system
+  labels:
+    app: <<your-app>>
+    service: <<your-app>>
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: <<your-app>>
+  template:
+    metadata:
+      labels:
+        app: <<your-app>>
+        service: <<your-app>>
+    spec:
+      dnsPolicy: ClusterFirstWithHostNet
+      volumes:
+      - name: elastic-apm-agent
+        emptyDir: {}
+      initContainers:
+      - name: elastic-java-agent
+        image: docker.elastic.co/observability/apm-agent-java:1.12.0
+        volumeMounts:
+        - mountPath: /elastic/apm/agent
+          name: elastic-apm-agent
+        command: ['cp', '-v', '/usr/agent/elastic-apm-agent.jar', '/elastic/apm/agent']
+      containers:
+      - name: <<your-app>>
+        image: <<your-app>>
+        volumeMounts:
+        - mountPath: /elastic/apm/agent
+          name: elastic-apm-agent
+        env:
+        - name: ELASTIC_APM_SERVER_URL
+          value: "apm-server-url-goes-here"
+        - name: ELASTIC_APM_SECRET_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: apm-secret
+              key: ELASTIC_APM_SECRET_TOKEN
+        - name: ELASTIC_APM_SERVICE_NAME
+          value: "petclinic"
+        - name: ELASTIC_APM_APPLICATION_PACKAGES
+          value: "org.springframework.samples.petclinic"
+        - name: ELASTIC_APM_ENVIRONMENT
+          value: test
+        - name: JAVA_TOOL_OPTIONS
+          value: -javaagent:/elastic/apm/agent/elastic-apm-agent.jar
+        - name: KUBERNETES_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: KUBERNETES_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: KUBERNETES_POD_UID
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.uid
+----
+====
 
 [source,cmd]
 ----
-kubectl apply -f path-to-your-app.yml
+kubectl apply -f demo.yml
 ----
 
 [discrete]
