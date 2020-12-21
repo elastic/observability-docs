@@ -4,7 +4,7 @@
 
 Collecting and analyzing logs of both Kubernetes Core components and various
 applications running on top of Kubernetes is a powerful tool for Kubernetes
-observability. Containers running within Kubernetes pods produce logs as stdout
+observability. Containers running within Kubernetes pods publish logs to stdout
 or stderr. These logs are written to a location known to Kubelet.
 
 To collect pod logs, all you need is {filebeat} running as a DaemonSet
@@ -39,7 +39,7 @@ curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kuber
 [discrete]
 ==== Step 2: Set the connection information for {es}
 
-{filebeat} sends events to an existing {es} deployment, if present.
+By default {filebeat} sends events to an existing {es} deployment on `elasticsearch:9200`, if present.
 To specify a different destination, change the following settings in the
 `filebeat-kubernetes.yaml` file:
 
@@ -145,7 +145,7 @@ out the `filebeat.inputs` configuration.
 
 To configure autodiscovery, you can use static templates. For example, the
 template in this example configures {filebeat} to collect NGINX logs from any
-pod labeled as `nginx`.
+pod labeled as `app: nginx`.
 
 [source,yaml]
 ------------------------------------------------
@@ -336,7 +336,7 @@ menu to view details or view the log message in context.
 ==== Out-of-the-box {kib} dashboards
 
 {filebeat} ships with a variety of pre-built {kib} dashboards that you can
-use to visualize logs from Kubernetese Core components and applications running
+use to visualize logs from Kubernetes Core components and applications running
 on top of Kubernetes. If these dashboards are not already loaded into {kib}, you
 must run the {filebeat} setup job. 
 
