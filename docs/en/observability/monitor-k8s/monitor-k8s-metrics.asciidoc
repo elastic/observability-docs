@@ -47,7 +47,7 @@ curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kuber
 [discrete]
 ==== Step 2: Set the connection information for {es}
 
-By default, {metricbeat} sends events to an existing {es} deployment, if present.
+{metricbeat} sends events to an existing {es} deployment, if present.
 To specify a different destination, change the following parameters in the
 `metricbeat-kubernetes.yaml` file:
 
@@ -59,15 +59,17 @@ env:
 - name: ELASTICSEARCH_PORT
   value: "9200"
 - name: ELASTICSEARCH_USERNAME
-  value: elastic
+  value: elastic <1>
 - name: ELASTICSEARCH_PASSWORD
   value: changeme
-- name: ELASTIC_CLOUD_ID <1>
+- name: ELASTIC_CLOUD_ID <2>
   value:
-- name: ELASTIC_CLOUD_AUTH <1>
+- name: ELASTIC_CLOUD_AUTH <2>
   value:
 ----
-<1> Use the cloud settings if you're sending data to {ess} on {ecloud}.
+<1> This user must have the privileges required to publish events to {es}. For
+more information, see {metricbeat-ref}/feature-roles.html[Grant users access to secured resources].
+<2> Use the cloud settings if you're sending data to {ess} on {ecloud}.
 
 To avoid exposing sensitive data, you can base64 encode the string, then store
 it in a Kubernetes secret. For example:

@@ -4,7 +4,7 @@
 
 Collecting and analyzing logs of both Kubernetes Core components and various
 applications running on top of Kubernetes is a powerful tool for Kubernetes
-observability. Containers running within Kubernetes pods produce logs as stdout
+observability. Containers running within Kubernetes pods publish logs to stdout
 or stderr. These logs are written to a location known to Kubelet.
 
 To collect pod logs, all you need is {filebeat} running as a DaemonSet
@@ -39,7 +39,7 @@ curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kuber
 [discrete]
 ==== Step 2: Set the connection information for {es}
 
-By default, {filebeat} sends events to an existing {es} deployment, if present.
+By default {filebeat} sends events to an existing {es} deployment on `elasticsearch:9200`, if present.
 To specify a different destination, change the following settings in the
 `filebeat-kubernetes.yaml` file:
 
@@ -51,15 +51,17 @@ env:
 - name: ELASTICSEARCH_PORT
   value: "9200"
 - name: ELASTICSEARCH_USERNAME
-  value: elastic
+  value: elastic <1>
 - name: ELASTICSEARCH_PASSWORD
   value: changeme
-- name: ELASTIC_CLOUD_ID <1>
+- name: ELASTIC_CLOUD_ID <2>
   value:
-- name: ELASTIC_CLOUD_AUTH <1>
+- name: ELASTIC_CLOUD_AUTH <2>
   value:
 ----
-<1> Use the cloud settings if you're sending data to {ess} on {ecloud}.
+<1> This user must have the privileges required to publish events to {es}. For
+more information, see {filebeat-ref}/feature-roles.html[Grant users access to secured resources].
+<2> Use the cloud settings if you're sending data to {ess} on {ecloud}.
 
 To avoid exposing sensitive data, you can base64 encode the string, then store it
 in a Kubernetes secret. For example:
@@ -70,7 +72,7 @@ $ echo -n 'changeme' | base64
 Y2hhbmdlbWU=
 $ kubectl create secret generic es-secret --from-literal=password='Y2hhbmdlbWU=' --namespace=kube-system <1>
 ------------------------------------------------
-<1> Create the secret in the namespace you used when you deployed {filebeat}.
+<1> Create the secret in the namespace where you will deploy {filebeat}.
 
 To use the secret, change the `env` setting in the manifest file:
 
@@ -145,7 +147,7 @@ out the `filebeat.inputs` configuration.
 
 To configure autodiscovery, you can use static templates. For example, the
 template in this example configures {filebeat} to collect NGINX logs from any
-pod labeled as `nginx`.
+pod labeled as `app: nginx`.
 
 [source,yaml]
 ------------------------------------------------
@@ -336,7 +338,7 @@ menu to view details or view the log message in context.
 ==== Out-of-the-box {kib} dashboards
 
 {filebeat} ships with a variety of pre-built {kib} dashboards that you can
-use to visualize logs from Kubernetese Core components and applications running
+use to visualize logs from Kubernetes Core components and applications running
 on top of Kubernetes. If these dashboards are not already loaded into {kib}, you
 must run the {filebeat} setup job. 
 
@@ -348,8 +350,8 @@ the `setup` command. To learn how, see the
 //TODO: We might want to provide these steps inline (maybe in a collapsed)
 //section.
 
-Assuming you've deployed the sample Petclinic application and it's running,
-you can navigate to the {filebeat} dashboards for MySQL and NGINX.
+After loading the dashboards, navigate to **{kib} > Dashboards**
+and search for the services you want to monitor, like MySQL or NGINX.
 
 //TODO: Add screen capture here
 
