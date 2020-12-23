@@ -1,43 +1,41 @@
 [[add-observability-data]]
 = Send data to {es}
 
-Now that you have provisioned your first deployment of your {es} cluster, 
-you’re ready to ingest your logs, metrics, uptime, and APM data.
+To use Elastic Observability, you need {es} for storing and searching your
+data, and {kib} for visualizing and managing it.
 
-To make full use of Elastic Observability, we recommend that you install the observability 
+[float]
+[[spin-up-stack]]
+== Spin up the Elastic Stack
+
+You can use our
+https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}]
+on {ecloud} (recommended), or self-manage the {stack} on your own hardware.
+
+include::{shared}/spin-up-the-stack/widget.asciidoc[]
+
+[float]
+[[send-data-deployment]]
+== Get data into your deployment
+
+Now that you have provisioned your first deployment of your {es} cluster,
+you’re ready to ingest your logs, metrics, uptime data, and APM data.
+
+To make full use of Elastic Observability, we recommend that you install the observability
 products in the following order:
 
-1. Install and configure {filebeat} on your servers to collect log events.
-+
-{filebeat} allows you ship log data from sources that come
-in the form of files. It monitors the log files or locations that you specify,
-collects log events, and forwards them to {es}. To ease the collection and parsing of
-log formats for common applications such as Apache, MySQL, and Kafka, a number of
-{filebeat-ref}/filebeat-modules.html[modules] are available.
+1. Install and configure {filebeat} on your servers to collect log events. For details, see
+<<ingest-logs,Ingest logs>>.
 
-2. Install and configure {metricbeat} on your servers to collect and preprocess system 
+2. Install and configure {metricbeat} on your servers to collect and preprocess system
 and service metrics, such as information about running processes, as well as CPU, memory,
-disk, and network utilization numbers.
-+
-{metricbeat} comes with predefined assets for parsing, indexing, and
-visualizing your data. To load these assets, {metricbeat} uses
-{metricbeat-ref}/metricbeat-modules.html[modules], before sending them to {es}. Each
-integration defines the basic logic for collecting data from specific services, such as
-Redis or MySQL. A module consists of metricsets that fetch and structure the data.
-+
-To learn more, see {metricbeat-ref}/how-metricbeat-works.html[How {metricbeat} works].
+disk, and network utilization numbers. For details, see <<ingest-metrics,Ingest metrics>>.
 
-3. Install and configure {heartbeat} on your servers to periodically check the status of your 
-services.
-+
-{heartbeat} uses probing to monitor the availability of services and helps 
-verify that you’re meeting your service level agreements for service uptime.
-You typically install {heartbeat} as part of a monitoring service that runs on a separate machine 
-and possibly even outside of the network where the services that you want to monitor are running.
+3. Install and configure {heartbeat} on your servers to periodically check the status of your
+services. For details, see <<ingest-uptime,Ingest uptime data>>.
 
 4. If you have added an APM Server as part of an {ess-trial}[{ess}] deployment, configure your
-APM agents to send data to your {es} cluster.
-+
-Elastic APM monitors software services and applications in real time, collects 
-unhandled errors and exceptions, and automatically picks up basic host-level 
-metrics and agent specific metrics.
+APM agents to send data to your {es} cluster. For details, see <<instrument-apps,Instrument applications>>.
+
+// Add Javascript and CSS for tabbed panels
+include::{shared}/tab-widget-code/code.asciidoc[]

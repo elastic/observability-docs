@@ -1,0 +1,43 @@
+[[synthetic-monitoring]]
+= Synthetic monitoring
+
+++++
+<titleabbrev>Synthetic monitoring</titleabbrev>
+++++
+
+[WARNING]
+====
+This functionality is experimental and may be changed or removed completely in a future release.
+Elastic will take a best effort approach to fix any issues, but experimental features are not subject
+to the support SLA of official GA features.
+
+Have a question? Want to leave feedback? Visit the
+https://discuss.elastic.co/tags/c/observability/uptime/75/synthetics[Synthetics discussion forum].
+====
+
+[role="screenshot"]
+image::images/synthetic-app-overview.png[Synthetics app overview]
+
+Synthetic monitoring allows you to simulate actions and requests that an end-user would perform
+on your site at predefined intervals and in a controlled environment.
+The result is rich, consistent, and repeatable data that you can trend and alert on.
+For example, test popular user journeys, like logging in, adding items to a cart, and checking
+out -- actions that need to work for your users consistently.
+Alerting ensures any degraded performance or broken actions are fixed before impacting your
+bottom line or customers' experience.
+
+[discrete]
+[[how-synthetics-works]]
+== How does it work?
+
+// Operational use case screenshot
+image::images/synthetics-overview.png[Synthetics overview]
+
+A provided Docker image spins up Heartbeat, which has the `@elastic/synthetics` package installed.
+Heartbeat handles the scheduling of test runs and supervises the execution of the
+`@elastic/synthetics` package.
+`@elastic/synthetics` runs your tests by invoking the Playwright library and starting a new
+browser process.
+Performance data is then gathered and reported back to Heartbeat,
+where it is formatted and sent to the Elastic Stack.
+At this point, the data is available in the Uptime app to view, analyze, and alert on.
