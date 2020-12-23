@@ -14,11 +14,15 @@ Because you've also ingested and correlated logs and metrics, you can then link 
 Application monitoring data is streamed from your applications running in Kubernetes to APM Server,
 where it is validated, processed, and transformed into {es} documents.
 
-There are many ways to deploy APM Server when working with Kubernetes.
+There are many ways to deploy APM Server when working with Kubernetes,
+but this guide assumes that you're using our hosted {ess} on {ecloud}.
+If you haven't done so already, enable APM Server in the {ess-console}[{ess} console].
 
-This guide assumes you're using our hosted {ess} on {ecloud}.
 If you want to manage APM Server yourself, there are a few alternative options:
 
+[%collapsible]
+.Expand alternatives
+====
 * {eck-ref}/[Elastic Cloud on Kubernetes (ECK)] -- The Elastic recommended approach for managing
 APM Server deployed with Kubernetes.
 Built on the Kubernetes Operator pattern, ECK extends basic Kubernetes orchestration capabilities
@@ -31,78 +35,15 @@ Useful when all pods in a node should share a single APM Server instance.
 like when directing traces from multiple applications to separate {es} clusters.
 
 * {apm-server-ref-v}/installing.html[Download and install APM Server] -- The classic, non-Kubernetes option.
+====
 
 [discrete]
-=== Step 2: Set up APM Agents
-
-In most cases, setting up APM agents and thereby instrumenting your applications
-is as easy as installing a library and adding a few lines of code.
-See the relevant agent setup instructions for more information:
-
-* {apm-go-ref-v}/getting-started.html[Go agent]
-* {apm-java-ref-v}/setup.html[Java agent]
-* {apm-dotnet-ref-v}/setup.html[.NET agent]
-* {apm-node-ref-v}/set-up.html[Node.js agent]
-* {apm-py-ref-v}/set-up.html[Python agent]
-* {apm-ruby-ref-v}/set-up.html[Ruby agent]
-
-[discrete]
-=== Step 3: (Optional) Attach the agent
-
-Some agents offer the ability to instrument supported technologies without
-any changes to an application image or code.
-To do this, you'll need an https://kubernetes.io/docs/concepts/workloads/pods/init-containers/[init container]
-based on an official Elastic APM docker image.
-
-Before your application starts, copy the agent from the init container into a shared volume.
-For example, with the Java agent:
-
-[source,yml]
-----
-    # ...
-    spec:
-      volumes:
-      - name: elastic-apm-agent <1>
-        emptyDir: {}
-      initContainers:
-      - name: elastic-java-agent
-        image: docker.elastic.co/observability/apm-agent-java:1.12.0 <2>
-        volumeMounts:
-        - mountPath: /elastic/apm/agent
-          name: elastic-apm-agent
-        command: ['cp', '-v', '/usr/agent/elastic-apm-agent.jar', '/elastic/apm/agent'] <3>
-----
-<1> The shared volume
-<2> Build the initContainer from the official Elastic Java agent image
-<3> Copy the agent to the shared volume
-
-The Java command line needs a way to pick up this `javaagent` configuration.
-You can use the standard JVMTI https://docs.oracle.com/javase/8/docs/platform/jvmti/jvmti.html#tooloptions[JAVA_TOOL_OPTIONS] environment variable to do this.
-It doesn't have to be explicitly specified and is picked up automatically by the JVM when it starts.
-
-TIP: For JVMs that don't support this option, you can use any other environment variable --
-either one already defined in your startup script, like `JAVA_OPTS` in some servlet container scripts,
-or add a dedicated empty one that will have no effect if it's not set.
-
-[source,yml]
-----
-      # ...
-      containers:
-      - name: your-app-container
-        env:
-        # ...
-        - name: JAVA_TOOL_OPTIONS <1>
-          value: -javaagent:/elastic/apm/agent/elastic-apm-agent.jar
-----
-<1> Used for the command line to pick up the `javaagent` configuration
-
-[discrete]
-=== Step 4: Save the secret token
+=== Step 2: Save your secret token
 
 A {apm-server-ref-v}/secret-token.html[secret token] is used to secure communication between APM agents
-and APM Server. In your {ecloud} deployment page, select *APM* and copy your APM Server secret token.
-If you're managing APM Server yourself, see {apm-server-ref-v}/secret-token.html[secret token] for instructions
-on how to set up your secret token.
+and APM Server. On the {ecloud} deployment page, select *APM* and copy your APM Server secret token.
+If you're managing APM Server yourself,
+see {apm-server-ref-v}/secret-token.html[secret token] for instructions on how to set up your secret token.
 
 To avoid exposing the secret token, you can store it in a Kubernetes secret. For example:
 
@@ -113,50 +54,24 @@ kubectl create secret generic apm-secret --from-literal=ELASTIC_APM_SECRET_TOKEN
 <1> Create the secret in the same namespace that you'll be deploying your applications in.
 
 [discrete]
-=== Step 5: Configure the agent
+=== Step 3: Install and configure APM Agents
 
-Agent configuration values can be passed in as environment variables for your application's container.
-Here's a sample configuration:
+In most cases, setting up APM agents and thereby instrumenting your applications
+is as easy as installing a library and adding a few lines of code.
 
-[source,yml]
-----
-      # ...
-      containers:
-      - name: your-app-container
-        volumeMounts:
-        - mountPath: /elastic/apm/agent
-          name: elastic-apm-agent
-        env:
-        # ...
-        - name: ELASTIC_APM_SERVER_URL
-          value: "apm-server-url-goes-here"
-        - name: ELASTIC_APM_SECRET_TOKEN
-          valueFrom:
-            secretKeyRef:
-              name: apm-secret
-              key: ELASTIC_APM_SECRET_TOKEN <1>
-        - name: ELASTIC_APM_SERVICE_NAME
-          value: "petclinic"
-        - name: ELASTIC_APM_APPLICATION_PACKAGES
-          value: "org.springframework.samples.petclinic"
-        - name: ELASTIC_APM_ENVIRONMENT
-          value: test
-        - name: JAVA_TOOL_OPTIONS <2>
-          value: -javaagent:/elastic/apm/agent/elastic-apm-agent.jar
-----
-<1> Pass in `ELASTIC_APM_SECRET_TOKEN` from the `apm-secret` keystore created previously
-<2> Necessary only when attaching the agent
+Select your application's language for details:
+
+include::{shared}/install-apm-agents-kube/widget.asciidoc[]
 
 [discrete]
-=== Step 6: Configure Kubernetes data
+=== Step 4: Configure Kubernetes data
 
 In most instances, APM agents automatically read Kubernetes data from inside the
 container and send it to APM Server.
 If this is not the case, or if you wish to override this data,
 you can set environment variables for the agents to read.
-These environment variable are set via the https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/#the-downward-api[Downward API].
-
-For example, here’s how you would add the environment variables to your kubernetes pod spec:
+These environment variable are set via the https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/#the-downward-api[Downward API]
+in your kubernetes pod spec:
 
 [source,yml]
 ----
@@ -195,7 +110,7 @@ The table below maps these environment variables to the APM metadata event field
 |=====
 
 [discrete]
-=== Step 7: Deploy your application
+=== Step 5: Deploy your application
 
 APM agents are deployed with your application.
 
