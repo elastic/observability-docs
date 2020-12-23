@@ -1,4 +1,4 @@
-[[ingest-management-troubleshooting]]
+[[fleet-troubleshooting]]
 [role="xpack"]
 = Troubleshoot common problems
 
@@ -11,8 +11,8 @@ described here, please review open issues in the following GitHub repositories:
 * https://github.com/elastic/beats/issues[{beats}]
 * https://github.com/elastic/package-registry/issues[{package-registry}]
 
-Have a question? Read our <<ingest-management-faq,FAQ>>, or contact us in the
-{im-forum}[discuss forum]. Your feedback is very valuable to us.
+Have a question? Read our <<fleet-faq,FAQ>>, or contact us in the
+{forum}[discuss forum]. Your feedback is very valuable to us.
 
 [discrete]
 [[fleet-not-in-kibana]]
@@ -32,7 +32,7 @@ following setting:
 +
 [source,yaml]
 ----
-xpack.ingestManager.enabled: true
+xpack.fleet.enabled: true
 ----
 
 . Click **Save**.
@@ -56,11 +56,12 @@ and specify user credentials:
 +
 [source,yaml]
 ----
-xpack.ingestManager.enabled: true
-xpack.ingestManager.fleet.tlsCheckDisabled: true <1>
+xpack.fleet.enabled: true
+xpack.fleet.agents.tlsCheckDisabled: true <1>
+xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters"
 xpack.security.enabled: true
-elasticsearch.username: "elastic" <2>
-elasticsearch.password: "abc123iUnbRftkABC123"
+elasticsearch.username: "my_username" <2>
+elasticsearch.password: "my_password"
 ----
 <1> This setting is not required if you configure TLS checking.
 <2> Specify a user who is authorized to use {fleet}.
@@ -92,7 +93,7 @@ To find more about the error, open your browser's development console, navigate
 to the **Network** tab, and refresh the page. One of the requests to the
 {fleet} API will most likely have returned an error. If the error
 message doesn't give you enough information to fix the problem, please contact
-us in the {im-forum}[discuss forum].
+us in the {forum}[discuss forum].
 
 [discrete]
 [[agent-enrollment-timeout]]
@@ -103,7 +104,7 @@ If the agent is unable to connect, you will see the following failure:
 
 [source,output]
 -----
-fail to enroll: fail to execute request to {kib}:Post http://kibana:5601/api/ingest_manager/fleet/agents/enroll?: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+fail to enroll: fail to execute request to {kib}:Post http://kibana:5601/api/fleet/agents/enroll?: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
 -----
 
 This may occur if the host is unable to connect to {kib}. To troubleshoot the

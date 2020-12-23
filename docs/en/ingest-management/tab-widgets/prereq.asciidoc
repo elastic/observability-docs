@@ -17,7 +17,7 @@ license. {stack-gs}/get-started-elastic-stack.html[Learn how to install the
 ** {kibana-ref}/configuring-tls.html[Encrypt communications in {kib}]
 +
 TIP: You can disable the TLS check by setting
-`xpack.ingestManager.fleet.tlsCheckDisabled: true` in the {kib}
+`xpack.fleet.agents.tlsCheckDisabled: true` in the {kib}
 configuration. For example, you might want to do this if {kib} is
 behind a proxy that terminates the SSL connection.
 
@@ -32,4 +32,28 @@ service] must be enabled.
 (`xpack.encryptedSavedObjects.encryptionKey`) must be set to any alphanumeric
 value of at least 32 characters. {fleet} requires this setting in order to save
 API keys and encrypt them in {kib}.
+
+**Example security settings**
+
+For testing purposes, you can use the following settings to get started quickly,
+but make sure you properly secure the {stack} before sending real data.
+
+elasticsearch.yml example:
+
+[source,yaml]
+----
+xpack.security.enabled: true
+xpack.security.authc.api_key.enabled: true
+----
+
+kibana.yml example:
+
+[source,yaml]
+----
+xpack.security.enabled: true
+xpack.fleet.agents.tlsCheckDisabled: true
+xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters"
+elasticsearch.username: "my_username"
+elasticsearch.password: "my_password"
+----
 // end::self-managed[]
