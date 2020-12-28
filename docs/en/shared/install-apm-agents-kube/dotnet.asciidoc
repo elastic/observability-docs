@@ -1,0 +1,59 @@
+*Download the APM agent*
+
+Add the agent packages from https://www.nuget.org/packages?q=Elastic.apm[NuGet] to your .NET application.
+There are multiple NuGet packages available for different use cases.
+
+For an ASP.NET Core application with Entity Framework Core, download the
+https://www.nuget.org/packages/Elastic.Apm.NetCoreAll[Elastic.Apm.NetCoreAll] package.
+This package will automatically add every agent component to your application.
+
+To minimize the number of dependencies, you can use the
+https://www.nuget.org/packages/Elastic.Apm.AspNetCore[Elastic.Apm.AspNetCore] package for just ASP.NET Core monitoring, or the
+https://www.nuget.org/packages/Elastic.Apm.EntityFrameworkCore[Elastic.Apm.EfCore] package for just Entity Framework Core monitoring.
+
+If you only want to use the public agent API for manual instrumentation, use the
+https://www.nuget.org/packages/Elastic.Apm[Elastic.Apm] package.
+
+*Add the agent to your application*
+
+For an ASP.NET Core application with the `Elastic.Apm.NetCoreAll` package,
+call the `UseAllElasticApm` method in the `Configure` method within the `Startup.cs` file:
+
+[source,dotnet]
+----
+public class Startup
+{
+  public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+  {
+    app.UseAllElasticApm();
+    //…rest of the method
+  }
+  //…rest of the class
+}
+----
+
+*Configure the agent*
+
+Configure the agent using environment variables:
+
+[source,yml]
+----
+        # ...
+        - name: ELASTIC_APM_SERVER_URLS
+          value: "apm-server-url-goes-here" <1>
+        - name: ELASTIC_APM_SECRET_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: apm-secret
+              key: ELASTIC_APM_SECRET_TOKEN <2>
+        - name: ELASTIC_APM_SERVICE_NAME
+          value: "service-name-goes-here" <3>
+----
+<1> Defaults to `http://localhost:8200`
+<2> Pass in `ELASTIC_APM_SECRET_TOKEN` from the `apm-secret` keystore created previously
+<3> Allowed characters: a-z, A-Z, 0-9, -, _, and space
+
+*Learn more in the agent reference*
+
+* {apm-dotnet-ref-v}/supported-technologies.html[Supported technologies]
+* {apm-dotnet-ref-v}/configuration.html[Advanced configuration]
