@@ -1,35 +1,57 @@
-*Download the APM agent*
+NOTE: These instructions are for .NET Core v2.2+.
+All other use-cases require downloading the agent from NuGet and adding it to your application.
+See {apm-dotnet-ref-v}/setup.html[set up the Agent] for full details.
+Once agent set-up is complete, jump to the *Configure the agent* section on this page.
 
-Add the agent packages from https://www.nuget.org/packages?q=Elastic.apm[NuGet] to your .NET application.
-There are multiple NuGet packages available for different use cases.
+*Use an init container to download and extract the agent*
 
-For an ASP.NET Core application with Entity Framework Core, download the
-https://www.nuget.org/packages/Elastic.Apm.NetCoreAll[Elastic.Apm.NetCoreAll] package.
-This package will automatically add every agent component to your application.
+The .Net agent automatically instruments .NET Core version 2.2 and newer without
+any application code changes.
+To do this, you'll need an
+https://kubernetes.io/docs/concepts/workloads/pods/init-containers/[init container]
+that pulls and unzips the latest agent release:
 
-To minimize the number of dependencies, you can use the
-https://www.nuget.org/packages/Elastic.Apm.AspNetCore[Elastic.Apm.AspNetCore] package for just ASP.NET Core monitoring, or the
-https://www.nuget.org/packages/Elastic.Apm.EntityFrameworkCore[Elastic.Apm.EfCore] package for just Entity Framework Core monitoring.
-
-If you only want to use the public agent API for manual instrumentation, use the
-https://www.nuget.org/packages/Elastic.Apm[Elastic.Apm] package.
-
-*Add the agent to your application*
-
-For an ASP.NET Core application with the `Elastic.Apm.NetCoreAll` package,
-call the `UseAllElasticApm` method in the `Configure` method within the `Startup.cs` file:
-
-[source,dotnet]
+[source,yml]
 ----
-public class Startup
-{
-  public void Configure(IApplicationBuilder app, IHostingEnvironment env)
-  {
-    app.UseAllElasticApm();
-    //…rest of the method
-  }
-  //…rest of the class
-}
+    # ...
+    spec:
+      volumes:
+      - name: elastic-apm-agent <1>
+        emptyDir: {}
+      initContainers:
+      - name: elastic-dotnet-agent
+        image: busybox
+        command: ["/bin/sh","-c"] <2>
+        args: <3>
+          - wget -qO './elastic-apm-agent/ElasticApmAgent.zip' https://github.com/elastic/apm-agent-dotnet/releases/download/1.7.0/ElasticApmAgent_1.7.0.zip;
+            cd elastic-apm-agent;
+            cat ElasticApmAgent.zip | busybox unzip -;
+        volumeMounts:
+        - mountPath: /elastic-apm-agent
+          name: elastic-apm-agent
+----
+<1> The shared volume.
+<2> Runs a shell and executes the provided `args`.
+<3> Gets the latest `apm-agent-dotnet` release and saves it to `elastic-apm-agent/ElasticApmAgent.zip`.
+Then `cd` into the directory and unzip the file's contents. Don't forget to update the GitHub URL in this
+command with the version of the agent you'd like to use.
+
+To connect the agent to your application, point the `DOTNET_STARTUP_HOOKS` environment
+variable towards `ElasticApmAgentStartupHook.dll` file that now exists in the
+`/elastic-apm-agent` directory of the `elastic-apm-agent` volume.
+
+[source,yml]
+----
+      # ...
+      containers:
+      - name: your-app-container
+        volumeMounts:
+        - mountPath: /elastic-apm-agent
+          name: elastic-apm-agent
+        env:
+        # ...
+        - name: DOTNET_STARTUP_HOOKS
+          value: "/elastic-apm-agent/ElasticApmAgentStartupHook.dll"
 ----
 
 *Configure the agent*
@@ -48,10 +70,13 @@ Configure the agent using environment variables:
               key: ELASTIC_APM_SECRET_TOKEN <2>
         - name: ELASTIC_APM_SERVICE_NAME
           value: "service-name-goes-here" <3>
+        - name: DOTNET_STARTUP_HOOKS <4>
+          value: "/elastic-apm-agent/ElasticApmAgentStartupHook.dll"
 ----
 <1> Defaults to `http://localhost:8200`
 <2> Pass in `ELASTIC_APM_SECRET_TOKEN` from the `apm-secret` keystore created previously
 <3> Allowed characters: a-z, A-Z, 0-9, -, _, and space
+<4> Explained previously and only required when using the no-code instrumentation method.
 
 *Learn more in the agent reference*
 
