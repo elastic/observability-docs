@@ -48,6 +48,7 @@ deployment.
 . Modify `ES_USERNAME` and `ES_PASSWORD` in the outputs section of
 `elastic-agent.yml` to use your {es} credentials. For example:
 +
+--
 [source,yaml]
 ----
 [...]
@@ -60,9 +61,27 @@ outputs:
     password: ES_PASSWORD
 [...]
 ----
-<1> This user must have `write`, `create_index`, and `indices:admin/auto_create`
-privileges on the following indices: `logs-*`, `metrics-*`, `events-*`,
-`.ds-logs-*`, `.ds-metrics-*`, and `.ds-events-*`.
+<1> This user must have the privileges shown in the following example.
+
+To create a role that has the privileges need by the {agent} user, go to
+**Management > Dev Tools** in {kib} and run:
+
+[source,console]
+----
+POST /_security/role/standalone_agent
+{
+  "cluster": ["monitor"],
+  "indices": [
+    {
+      "names": ["logs-*", "metrics-*", "events-*", ".ds-logs-*", ".ds-metrics-*", ".ds-events-*"],
+      "privileges": ["write", "create_index", "indices:admin/auto_create"]
+    }
+  ]
+}
+----
+
+Make sure you assign this role to the user in {kib}.
+--
 
 . From the agent directory, run the appropriate command to install {agent} as a
 managed service and start the service:
