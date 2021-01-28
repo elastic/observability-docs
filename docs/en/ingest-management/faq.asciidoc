@@ -35,21 +35,41 @@ higher level problem to triage.
 == What policy is the {agent} running?
 
 To find the policy file, inspect the `elastic-agent.yml` file in the
-folder where you ran {agent}. If you're running the agent in {fleet} mode, this
-file contains the following citation:
+directory where {agent} is running. Not sure where the agent is running? See 
+<<installation-layout>>.
+
+If the agent is running in {fleet} mode, this file contains the following
+citation:
 
 [source,yaml]
 ----
-Management: mode: "fleet"
+fleet:
+  enabled: true
 ----
 
-The `action_store.yml` contains the entire, unencrypted policy:
+The `action_store.yml` file (located under `data/elastic-agent-*`) contains the
+entire, unencrypted policy.
 
-* To see the {es} location, look at `outputs:hosts`.
-* To see the {agent} version, look at the download folder and zip filenames.
+* To see the {es} location, look at the `hosts` setting under `outputs`. For
+example:
++
+--
+[source,json]
+----
+outputs:
+  default:
+    api_key: Aq-mPpcBDA7TmnriKCSD:Np6NAleNQ1mMpgN_JPYazw
+    hosts:
+    - https://3m63533c175a4036b3d8bbe7bd462fa3.us-east-1.aws.found.io:443
+    type: elasticsearch
+----
 
 This file also shows the version of all packages used by the current
 policy.
+--
+
+* To see the {agent} version, look at the download folder and zip filenames.
+
 
 [discrete]
 [[where-is-the-data-agent-is-sending]]
