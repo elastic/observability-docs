@@ -178,4 +178,37 @@ If this happens, select **Force unenroll** from the *Actions* menu in the
 Agents list.
 
 This will invalidate all API keys related to the agent and change the status to
-`inactive` so that the agent no longer appears in {fleet}. 
+`inactive` so that the agent no longer appears in {fleet}.
+
+[discrete]
+[[endpoint-unauthorized]]
+== API key is unauthorized to send telemetry to `.logs-endpoint.diagnostic.collection-*` indices
+
+Telemetry is turned on by default in {kib}. This helps us learn about the
+features that our users are most interested in, so we can focus our efforts on
+making them even better.
+
+If you've recently upgraded from version 7.10 to 7.11, you might see the
+following message when you view {endpoint-sec} logs:
+
+----
+action [indices:admin/auto_create] is unauthorized for API key id [KbvCi3YB96EBa6C9k2Cm]
+of user [fleet_enroll] on indices [.logs-endpoint.diagnostic.collection-default]
+----
+
+This message indicates that {elastic-endpoint} does not have the correct
+permissions to send telemetry. This is a known problem in 7.11 that will be
+fixed in an upcoming patch release. To remove this message from your logs, you
+can turn off telemetry for the {endpoint-sec} integration until the next patch
+release is available.
+
+. In {kib}, go to **{fleet} > Integrations** and click the
+**Installed integrations** tab.
+
+. Click **{endpoint-sec}**, and then click the **Policies** tab to see all the
+installed integrations. 
+
+. Click the integration to edit it.
+
+. Under advanced settings, set `windows.advanced.diagnostic.enabled`
+to `false`, then save the integration.
