@@ -161,8 +161,19 @@ filebeat.autodiscover:
               kubernetes.labels.app: "nginx"
           config:
             - module: nginx
-              fileset.stdout: access
-              fileset.sterr: error
+              access:
+                input:
+                  type: container
+                  stream: stdout
+                  paths:
+                    - /var/log/containers/*${data.kubernetes.container.id}.log
+              error:
+                input:
+                  type: container
+                  stream: stderr
+                  paths:
+                    - /var/log/containers/*${data.kubernetes.container.id}.log
+
 ------------------------------------------------
 
 This is good, but requires advanced knowledge of the workloads running in
