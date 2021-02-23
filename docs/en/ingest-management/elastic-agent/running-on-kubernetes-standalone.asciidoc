@@ -27,7 +27,10 @@ Kubernetes.
 * As a single {agent} instance created using a https://kubernetes.io/docs/concepts/workloads/controllers/Deployment/[Deployment].
 This instance is used to retrieve metrics that are unique for the whole
 cluster, such as Kubernetes events or
-https://github.com/kubernetes/kube-state-metrics[kube-state-metrics].
+https://github.com/kubernetes/kube-state-metrics[kube-state-metrics]. If `kube-state-metrics` is not already
+running, deploy it now (see the
+https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[Kubernetes
+deployment] docs)
 
 Everything is deployed under the `kube-system` namespace by default. To change
 the namespace, modify the manifest file.
@@ -36,19 +39,12 @@ To download the manifest file, run:
 
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
-curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/elastic-agent-standalonekubernetes.yaml
+curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/elastic-agent-standalone-kubernetes.yaml
 ------------------------------------------------
 
-This manifest includes the following:
-1. Kubernetes integration to collect k8s metrics from each nodes' kubelet
-2. Kubernetes integration to collect metrics from `kube-state-metrics`. https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics] is needed to be already deployed
-in the cluster. If `kube-state-metrics` is not already running, deploy it now (see the
-https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[Kubernetes
-deployment] docs)
-3. Kubernetes integration to collect metrics from `proxy` kubernetes component on each of the nodes.
-4. Kubernetes integration to collect metrics from Kubernetes API server, Scheduler and Controller-manager
-5. System integration to collect system level metrics from nodes.
-6. Pod's log collection using <<kubernetes-provider,dynamic inputs and kubernetes provider>>
+This manifest includes Kubernetes integration to collect Kubernetes metrics,
+System integration to collect system level metrics/logs from nodes and
+Pod's log collection using <<kubernetes-provider,dynamic inputs and kubernetes provider>>.
 
 [float]
 ==== Settings
