@@ -17,9 +17,8 @@ Also read <<fleet-troubleshooting>>.
 If {agent} was successfully enrolled, but doesn't show up in the *Agents* list,
 it might not be started. Make sure the `elastic-agent` process is running on
 the host. If it's not running, use the <<elastic-agent-run-command,`run`>>
-command to start it.
-
-//TODO: Verify that this is correct. Or would you use the restart command?
+command to start it.  The most common usage to deploy an Agent is to use the
+"install" command which takes care of starting the {agent} for you.
 
 [discrete]
 [[where-are-the-agent-logs]]
@@ -28,7 +27,9 @@ command to start it.
 When started successfully, {metricbeat} logs are stored in
 `data/logs/metricbeat` under the folder where {agent} was started. If that log
 path does not exist, {agent} was unable to start {metricbeat}, which is a
-higher level problem to triage.
+higher level problem to triage.  Usually you can see these logs in the Fleet
+UI, unless there are problems severe enough that the processes cannot send 
+data to Elasticsearch.
 
 [discrete]
 [[what-is-my-agent-config]]
@@ -152,13 +153,11 @@ you did previously with {beats} modules.
 [[does-agent-download-anything-from-internet]]
 == Does {agent} download anything from the Internet?
 
-In most cases, the data collection software required by {agent} is bundled
-with the agent. There is one special exception: endpoint security. When an
-{agent} policy is set to include the {elastic-endpoint-integration} integration,
-{agent} must download software from the Elastic download site.
-
-NOTE: Bundling endpoint security capabilities with {agent} is a known
-feature request scoped for a future release. 
+As of 7.10 and beyond, the endpoint security capabilities are bundled with {agent},
+so a fully capable artifact can be installed with no connection to the Elastic
+download site.  In most cases, however, the {elastic-endpoint-integration} process
+is instructed to download newer released versions of the malware model it uses, as
+well as other artifacts.  For more information, see the {security-guide}/index.html[Elastic Security solution documentation]
 
 [discrete]
 [[do-i-need-to-setup-elastic-agent]]
