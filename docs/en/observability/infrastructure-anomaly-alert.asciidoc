@@ -1,0 +1,90 @@
+[[infrastructure-anomaly-alert]]
+= Create an infrastructure anomaly alert
+
+[IMPORTANT]
+=====
+Make sure to enable anomaly detection for hosts and Kubernetes. For more information,
+see <<inspect-metric-anomalies,Inspect metric anomalies>>. 
+=====
+
+Within the {metrics-app}, create an infrastructure anomaly alert to receive
+notifications based on the memory usage and network traffic anomalies for hosts
+and Kubernetes pods.
+
+You can receive notifications when an anomaly severity score exceeds a defined threshold
+for increases in memory usage and unusually high inbound or outbound traffic across hosts or pods.
+
+. To access this page, go to *Observability > Metrics*.
+. On the *Inventory* page or the *Metrics Explorer* page, click *Alerts > Infrastructure*.
+. Select *Create anomaly alert*.
+
+[[anomaly-conditions]]
+== Anomaly conditions
+
+Conditions for each alert can be applied to specific metrics relating to the hosts or
+Kubernetes pods you select: memory usage, network in, and network out.
+
+For each alert, you can configure which severity score triggers the alert. The default
+level is `major`.
+
+|=== 
+
+| *warning* | Score `3` and above.
+
+| *minor* | Score `25` and above.
+
+| *major* | Score `50` and above.
+
+| *critical* | Score `75` and above.
+
+|=== 
+
+In this example, Kubernetes Pods is selected. The conditions state that
+an alert is triggered if memory usage has a severity score of `major` for any pods within the `ingress-nginx`
+namespace.
+
+[role="screenshot"]
+image::images/infra-anomaly-conditions.png[Alert conditions]
+
+Before creating an alert, you can preview whether the conditions would have triggered the alert in
+the last hour, day, week, or month.
+
+[[action-types-infra-anomaly]]
+== Action types
+
+You can extend your alerts by connecting them to actions that use the following supported
+built-in integrations.
+
+[role="screenshot"]
+image::images/alert-action-types.png[Action types]
+
+[[action-variables-infra-anomaly]]
+== Action variables
+
+This section details the variables that infrastructure threshold alerts will send to your
+actions.
+
+[float]
+=== Default variables
+
+[role="screenshot"]
+image::images/anomaly-variables.png[The default infrastructure anomaly alert message detailing basic variables]
+
+The notification message for an infrastructure anomaly alert contains the following default variables.
+
+- `context.alertState`: Depending on why the action is triggered, this variable resolves to `ALERT`
+(the alert condition is detected), `NO DATA` (no data was returned for the time period that was queried),
+or `ERROR` (indicates an error when querying the data).
+- `context.metric`: The metric name defined in the condition.
+- `context.summary`: A description of the anomaly.
+- `context.timestamp`: The timestamp of when the anomaly was detected.
+- `context.typical`: The typical value of the metric at the time of the anomaly.
+- `context.actual`: The actual value of the metric at the time of the anomaly.
+
+[float]
+=== Additional variables
+
+You can customize the default notification message by including the following additional variables.
+
+- `context.anomalyScore`: The severity score of the detected anomaly.
+- `context.influencers`: A list of nodes that influenced the anomaly.
