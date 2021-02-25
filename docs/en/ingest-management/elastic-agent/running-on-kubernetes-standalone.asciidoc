@@ -1,0 +1,138 @@
+[[running-on-kubernetes]]
+[role="xpack"]
+=== Run {agent} on Kubernetes
+
+You can use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
+retrieve cluster metrics.
+
+ifeval::["{release-state}"=="unreleased"]
+
+However, version {version} of {agent} has not yet been
+released, so no Docker image is currently available for this version.
+
+endif::[]
+
+
+[float]
+==== Kubernetes deploy manifests
+
+You deploy {agent} in two different ways at the same time:
+
+* As a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+to ensure that there's a running instance on each node of the cluster. These
+instances are used to retrieve most metrics from the host, such as system
+metrics, Docker stats, and metrics from all the services running on top of
+Kubernetes.
+
+* As a single {agent} instance created using a https://kubernetes.io/docs/concepts/workloads/controllers/Deployment/[Deployment].
+This instance is used to retrieve metrics that are unique for the whole
+cluster, such as Kubernetes events or
+https://github.com/kubernetes/kube-state-metrics[kube-state-metrics]. If `kube-state-metrics` is not already
+running, deploy it now (see the
+https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[Kubernetes
+deployment] docs)
+
+Everything is deployed under the `kube-system` namespace by default. To change
+the namespace, modify the manifest file.
+
+To download the manifest file, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/elastic-agent-standalone-kubernetes.yaml
+------------------------------------------------
+
+This manifest includes Kubernetes integration to collect Kubernetes metrics,
+System integration to collect system level metrics/logs from nodes and
+Pod's log collection using <<kubernetes-provider,dynamic inputs and kubernetes provider>>.
+
+[float]
+==== Settings
+
+User need to set Elasticsearch settings before deploying the manifest:
+
+[source,yaml]
+------------------------------------------------
+- name: ES_USERNAME
+  value: "elastic"
+- name: ES_PASSWORD
+  value: "passpassMyStr0ngP@ss"
+- name: ES_HOST
+  value: "https://somesuperhostiduuid.europe-west1.gcp.cloud.es.io:443"
+------------------------------------------------
+
+[float]
+===== Running {agent} on master nodes
+
+Kubernetes master nodes can use https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints]
+to limit the workloads that can run on them. The manifest for standalone {agent} defines
+tolerations so as to run on master nodes too and being able to collect metrics from the control plane
+components of Kuberentes (scheduler, controller manager)
+To disable {agent} from running on master nodes remove the following part of the Daemonset spec:
+
+[source,yaml]
+------------------------------------------------
+spec:
+ tolerations:
+ - key: node-role.kubernetes.io/master
+   effect: NoSchedule
+------------------------------------------------
+
+
+[float]
+==== Deploy
+To deploy to Kubernetes, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+kubectl create -f elastic-agent-standalone-kubernetes.yaml
+------------------------------------------------
+
+To check the status, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+$ kubectl -n kube-system get pods -l app=elastic-agent
+NAME                            READY   STATUS    RESTARTS   AGE
+elastic-agent-4665d             1/1     Running   0          81m
+elastic-agent-9f466c4b5-l8cm8   1/1     Running   0          81m
+elastic-agent-fj2z9             1/1     Running   0          81m
+elastic-agent-hs4pb             1/1     Running   0          81m
+------------------------------------------------
+
+[float]
+==== Autodiscover targeted Pods
+
+It is possible to define autodiscover conditions so as to allow {agent} to automatically
+identify Pods and start collecting from them using predefined integrations. For example if a
+user want to automatically identify a Redis Pod and start monitoring it using the Redis integration
+the following configuration should be added as an extra input in the Daemonset manifest:
+
+[source,yaml]
+------------------------------------------------
+- name: redis
+  type: redis/metrics
+  use_output: default
+  meta:
+    package:
+      name: redis
+      version: 0.3.6
+  data_stream:
+    namespace: default
+  streams:
+    - data_stream:
+        dataset: redis.info
+        type: metrics
+      metricsets:
+        - info
+      hosts:
+        - '${kubernetes.pod.ip}:6379'
+      idle_timeout: 20s
+      maxconn: 10
+      network: tcp
+      period: 10s
+      condition: ${kubernetes.pod.labels.app} == 'redis'
+------------------------------------------------
+
+Users can find more information about how to shape their dynamic inputs
+for autodiscover at <<kubernetes-provider,dynamic inputs and kubernetes provider>> docs.
