@@ -1,0 +1,156 @@
+:input-type: mqtt
+
+[[mqtt-input]]
+== MQTT input
+
+++++
+<titleabbrev>MQTT</titleabbrev>
+++++
+
+Use the `mqtt` input to read data transmitted using lightweight messaging
+protocol for small and mobile devices, optimized for high-latency or unreliable
+networks.
+
+This input connects to the MQTT broker, subscribes to selected topics, and
+parses data into common message lines. Everything happens before line filtering,
+multiline, and JSON decoding, so this input can be used in combination with
+those settings.
+
+Example configuration:
+
+[source,yaml]
+----
+inputs:
+  - type: mqtt
+    hosts:
+      - tcp://broker:1883
+      - ssl://secure_broker:8883
+    topics:
+      - sample_topic
+----
+
+The `mqtt` input supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-mqtt-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-mqtt-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+[[input-mqtt-commonly-used-settings]]
+=== Commonly used settings
+
+Settings frequently changed for this input type.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::client_id-setting[]
+|
+[id="input-{input-type}-client_id-setting"]
+`client_id`
+
+| (string) A unique identifier of each MQTT client connecting to a MQTT broker.
+// end::client_id-setting[]
+
+// =============================================================================
+
+// tag::hosts-setting[]
+|
+[id="input-{input-type}-hosts-setting"]
+`hosts` (required)
+
+| (list) A list of MQTT brokers to connect to.
+// end::hosts-setting[]
+
+// =============================================================================
+
+// tag::password-setting[]
+|
+[id="input-{input-type}-password-setting"]
+`password`
+
+| (string) A client password used for authentication provided on the application
+level by the MQTT protocol.
+// end::password-setting[]
+
+// =============================================================================
+
+// tag::qos-setting[]
+|
+[id="input-{input-type}-qos-setting"]
+`qos`
+
+| (int) An agreement level between the sender of a message and the receiver of a
+message that defines the guarantee of delivery.
+
+There are 3 QoS levels in MQTT:
+
+* At most once (`0`),
+* At least once (`1`),
+* Exactly once (`2`).
+
+//QUESTION: What is the default for this setting?
+
+// end::qos-setting[]
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=ssl-setting]
+
+// =============================================================================
+
+// tag::topics-setting[]
+|
+[id="input-{input-type}-topics-setting"]
+`topics` (required)
+
+| (list) A list of topics to subscribe to and read from.
+
+// end::topics-setting[]
+
+// =============================================================================
+
+// tag::username-setting[]
+|
+[id="input-{input-type}-username-setting"]
+`username`
+
+| (string) A client username used for authentication provided on the application
+level by the MQTT protocol.
+// end::username-setting[]
+
+// =============================================================================
+
+|===
+
+[[input-mqtt-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:

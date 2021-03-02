@@ -1,0 +1,222 @@
+:input-type: container
+
+[[container-input]]
+== Container input
+ 
+++++
+<titleabbrev>Container</titleabbrev>
+++++
+
+Use the `container` input to read logs from containers.
+
+This input searches for container logs under the given path, and parse them into
+common message lines, extracting timestamps too. Everything happens before line
+filtering, multiline, and JSON decoding, so this input can be used in
+combination with those settings.
+
+Example configuration:
+
+["source","yaml",subs="attributes"]
+----
+inputs:
+  - type: container
+    paths: <1>
+      - '/var/lib/docker/containers/*/*.log'
+----
+
+<1> `paths` is required. All other settings are optional.
+
+The `container` input supports the following settings, grouped by category.
+Most of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-container-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-container-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+<<input-container-file-handling-settings>>::
+Settings that control how and when {agent} opens, closes, and removes files.
+
+<<input-container-file-harvester-settings>>::
+Settings that control how {agent} harvests events from files.
+
+<<input-container-registry-state-settings>>::
+Settings that manage the registry used to store the state of harvested files.
+
+[[input-container-commonly-used-settings]]
+=== Commonly used settings
+
+Settings frequently changed for this input type.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=enabled-setting]
+
+// =============================================================================
+|
+[[format-setting]]
+`format`
+
+| (string) Use the specified format when reading the log file: `auto`, `docker`,
+or `cri`. 
+
+To disable auto detection, set any other option.
+
+*Default:* `auto` (automatically detects format)
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=paths-setting]
+
+// =============================================================================
+
+|
+[[stream-setting]]
+`stream`
+
+| (string) Reads from the specified streams only: `all`, `stdout` or `stderr`.
+
+*Default:* `all`
+
+The following input configures {agent} to read the `stdout` stream from
+all containers under the default Kubernetes logs path:
+
+[source,yaml]
+----
+- type: container
+  stream: stdout
+  paths:
+    - "/var/log/containers/*.log"
+    
+----
+
+// =============================================================================
+
+|===
+
+[[input-container-file-harvester-settings]]
+=== File harvester settings
+
+Settings that control how {agent} reads events from files.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=encoding-setting]
+
+include::input-shared-settings.asciidoc[tag=exclude_lines-setting]
+
+include::input-shared-settings.asciidoc[tag=harvester_buffer_size-setting]
+
+include::input-shared-settings.asciidoc[tag=include_lines-setting]
+
+include::input-shared-settings.asciidoc[tag=json-setting]
+
+include::input-shared-settings.asciidoc[tag=max_bytes-setting]
+
+include::input-shared-settings.asciidoc[tag=multiline-setting]
+
+|===
+
+
+[[input-container-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+[[input-container-file-handling-settings]]
+=== File handling settings
+
+Settings that control how and when {agent} opens, closes, and removes files.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=backoff-setting]
+
+include::input-shared-settings.asciidoc[tag=backoff_factor-setting]
+
+include::input-shared-settings.asciidoc[tag=max_backoff-setting]
+
+include::input-shared-settings.asciidoc[tag=close-setting]
+
+include::input-shared-settings.asciidoc[tag=close_eof-setting]
+
+include::input-shared-settings.asciidoc[tag=close_inactive-setting]
+
+include::input-shared-settings.asciidoc[tag=close_renamed-setting]
+
+include::input-shared-settings.asciidoc[tag=close_removed-setting]
+
+include::input-shared-settings.asciidoc[tag=close_timeout-setting]
+
+include::input-shared-settings.asciidoc[tag=file_identity-setting]
+
+include::input-shared-settings.asciidoc[tag=exclude_files-setting]
+
+include::input-shared-settings.asciidoc[tag=harvester_limit-setting]
+
+include::input-shared-settings.asciidoc[tag=ignore_older-setting]
+
+include::input-shared-settings.asciidoc[tag=scan_frequency-setting]
+
+include::input-shared-settings.asciidoc[tag=scan.order-setting]
+
+include::input-shared-settings.asciidoc[tag=scan.sort-setting]
+
+include::input-shared-settings.asciidoc[tag=tail_files-setting]
+
+include::input-shared-settings.asciidoc[tag=symlinks-setting]
+
+|===
+
+
+[[input-container-registry-state-settings]]
+=== Registry management settings
+
+Settings that manage the registry used to store the state of harvested files.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=clean-setting]
+
+include::input-shared-settings.asciidoc[tag=clean_inactive-setting]
+
+include::input-shared-settings.asciidoc[tag=clean_removed-setting]
+
+|===
+
+:input-type!:

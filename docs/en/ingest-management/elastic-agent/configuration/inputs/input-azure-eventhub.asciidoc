@@ -1,0 +1,191 @@
+[role="xpack"]
+
+:input-type: azure-eventhub
+
+[[azure-eventhub-input]]
+== Azure eventhub input
+
+++++
+<titleabbrev>Azure Event Hub</titleabbrev>
+++++
+
+Use the `azure-eventhub` input to read messages from Azure Event Hubs. The
+`azure-eventhub` input implementation is based on the event processor host
+(EPH). It is intended to be run across multiple processes and machines while
+load balancing message consumers. For more information, see the
+https://github.com/Azure/azure-event-hubs-go#event-processor-host[Event Processor Host readme]
+and the
+https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-event-processor-host[Event Processor Host]
+documentation.
+
+*Prerequisite:* State such as leases on partitions and checkpoints in the event
+stream is shared between receivers using an Azure storage container. For this
+reason, you must create a new storage account or use an existing one. 
+
+Example configuration:
+
+[source,yaml]
+----
+inputs:
+  - type: azure-eventhub
+    eventhub: "insights-operational-logs"
+    consumer_group: "test"
+    connection_string: "Endpoint=sb://....."
+    storage_account: "azureeph"
+    storage_account_key: "....."
+    storage_account_container: ""
+    resource_manager_endpoint: ""
+
+----
+
+The `azure-eventhub` input supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-azure-eventhub-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-azure-eventhub-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+[[input-azure-eventhub-commonly-used-settings]]
+=== Commonly used settings
+
+Settings frequently changed for this input type.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::connection_string-setting[]
+|
+[id="input-{input-type}-connection_string-setting"]
+`connection_string`
+
+| (string) The connection string required to communicate with Event Hubs. For
+more information, see the Azure documentation about 
+https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string[getting an Event Hubs connection string].
+
+A Blob storage account is required to store, retrieve, and update the offset or
+state of the event hub messages. This allows {agent} to restart at the correct
+location after it has been stopped. 
+
+//QUESTION: Is this a required setting too?
+
+// end::connection_string-setting[]
+
+// =============================================================================
+
+// tag::consumer_group-setting[]
+|
+[id="input-{input-type}-consumer_group-setting"]
+`consumer_group`
+
+| (string) The name of the consumer group. We recommend using a dedicated
+consumer group for the Azure input. Reusing consumer groups among non-related
+consumers can cause unexpected behavior and possibly lost events.
+// end::consumer_group-setting[]
+
+// =============================================================================
+
+// tag::eventhub-setting[]
+|
+[id="input-{input-type}-eventhub-setting"]
+`eventhub` (required)
+
+| (string) The name of the event hub to read from.
+// end::eventhub-setting[]
+
+// =============================================================================
+
+// tag::resource_manager_endpoint-setting[]
+|
+[id="input-{input-type}-resource_manager_endpoint-setting"]
+`resource_manager_endpoint`
+
+| (string) The resource manager endpoint to use.
+
+*Default:* the azure public environment
+
+//QUESTION: Is https://management.azure.com/ the default then?
+
+To use a different Azure environment, specify the endpoint. For example: 
+
+* `https://management.chinacloudapi.cn/` for azure ChinaCloud
+* `https://management.microsoftazure.de/` for azure GermanCloud
+* `https://management.azure.com/` for azure PublicCloud
+* `https://management.usgovcloudapi.net/` for azure USGovernmentCloud
+
+You can also use this setting for a Hybrid Cloud model, where you define
+your own endpoints.
+
+// end::resource_manager_endpoint-setting[]
+
+// =============================================================================
+
+// tag::storage_account-setting[]
+|
+[id="input-{input-type}-storage_account-setting"]
+`storage_account` (required)
+
+| (string) The name of the storage account.
+// end::storage_account-setting[]
+
+// =============================================================================
+
+// tag::storage_account_container-setting[]
+|
+[id="input-{input-type}-storage_account_container-setting"]
+`storage_account_container`
+
+| (string) The name of the storage account container to store the offset
+information in.
+// end::storage_account_container-setting[]
+
+// =============================================================================
+
+// tag::storage_account_key-setting[]
+|
+[id="input-{input-type}-storage_account_key-setting"]
+`storage_account_key` (required)
+
+| (string) The storage account key. This key is used to authorize access to data
+in your storage account.
+
+//TODO: If we mark "required" in this topic, we need to do it for other inputs.
+
+// end::storage_account_key-setting[]
+
+|===
+
+//QUESTION: Shared options seem to be missing from original docs. I assume we
+//need them here, no?
+
+
+[[input-azure-eventhub-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:

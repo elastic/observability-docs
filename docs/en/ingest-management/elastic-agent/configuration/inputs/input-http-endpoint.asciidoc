@@ -1,0 +1,286 @@
+[role="xpack"]
+
+:input-type: http_endpoint
+
+[id="{beatname_lc}-input-{type}"]
+== HTTP Endpoint input
+
+++++
+<titleabbrev>HTTP Endpoint</titleabbrev>
+++++
+
+beta[]
+
+Use the `http_endpoint` input to create a HTTP listener that can receive
+incoming HTTP POST requests.
+
+For example, this input can be used to receive incoming webhooks from a
+third-party application or service.
+
+Basic example:
+
+[source,yaml]
+----
+inputs:
+  - type: http_endpoint
+    enabled: true
+    listen_address: 192.168.1.1
+    listen_port: 8080
+----
+
+Custom response example:
+
+[source,yaml]
+----
+inputs:
+  - type: http_endpoint
+    enabled: true
+    listen_address: 192.168.1.1
+    listen_port: 8080
+    response_code: 200
+    response_body: '{"message": "success"}'
+    url: "/"
+    prefix: "json"
+----
+
+Disable Content-Type checks:
+
+[source,yaml]
+----
+inputs:
+  - type: http_endpoint
+    enabled: true
+    listen_address: 192.168.1.1
+    content_type: ""
+    prefix: "json"
+----
+
+Basic auth and SSL example:
+
+[source,yaml]
+----
+inputs:
+  - type: http_endpoint
+    enabled: true
+    listen_address: 192.168.1.1
+    listen_port: 8080
+    ssl.enabled: true
+    ssl.certificate: "/home/user/server.pem"
+    ssl.key: "/home/user/server.key"
+    ssl.verification_mode: "none"
+    ssl.certificate_authority: "/home/user/ca.pem"
+    basic_auth: true
+    username: someuser
+    password: somepassword
+----
+
+Authentication or checking that a specific header includes a specific value:
+
+[source,yaml]
+----
+inputs:
+  - type: http_endpoint
+    enabled: true
+    listen_address: 192.168.1.1
+    listen_port: 8080
+    secret.header: someheadername
+    secret.value: secretheadertoken
+----
+
+The `http_endpoint` input supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-http_endpoint-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-http_endpoint-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+[[input-http_endpoint-commonly-used-settings]]
+=== Commonly used settings
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+//QUESTION: Should we create another category for authentication settings?
+//All options will be alphabetized, so if we want to group by usage, we need
+//to use categories.
+
+// tag::basic_auth-setting[]
+|
+[id="input-{input-type}-basic_auth-setting"]
+`basic_auth`
+
+| (boolean) If `true`, HTTP basic auth is used for each incoming request. You
+must also set `username` and `password`.
+
+//QUESTION: What is the default? Docs don't say.
+
+*Default:* `????`
+// end::basic_auth-setting[]
+
+// =============================================================================
+// tag::content_type-setting[]
+|
+[id="input-{input-type}-content_type-setting"]
+`content_type`
+
+| (string) The Content-Type expected in the incoming POST.
+
+*Default:* `application/json`
+
+By default, the input expects the incoming POST to have a Content-Type of
+`application/json`. This ensures the incoming data is valid JSON. If the source
+of the request is unable to set the Content-Type to `application/json`, use this
+setting to specify a different value, or set it to null.
+// end::content_type-setting[]
+
+// =============================================================================
+
+// tag::listen_address-setting[]
+|
+[id="input-{input-type}-listen_address-setting"]
+`listen_address`
+
+| (string) If multiple interfaces are present, use this setting to control which
+IP address the listener binds to.
+
+*Default:* `127.0.0.1`
+// end::listen_address-setting[]
+
+// =============================================================================
+
+// tag::listen_port-setting[]
+|
+[id="input-{input-type}-listen_port-setting"]
+`listen_port`
+
+| (int) Which port the listener binds to.
+
+*Default:* `8000`
+// end::listen_port-setting[]
+
+// =============================================================================
+
+// tag::password-setting[]
+|
+[id="input-{input-type}-password-setting"]
+`password`
+
+| (string) If `basic_auth` is `true`, specify the password used to authenticate
+against the HTTP listener. You must also set `username`.
+
+*Default:* `????`
+// end::password-setting[]
+
+// =============================================================================
+
+// tag::prefix-setting[]
+|
+[id="input-{input-type}-prefix-setting"]
+`prefix`
+
+| (string) The prefix the incoming request will be mapped to.
+
+// end::prefix[]
+
+// =============================================================================
+
+// tag::response_body-setting[]
+|
+[id="input-{input-type}-response_body-setting"]
+`response_body`
+
+| (string) The response body returned upon success.
+// end::response_body-setting[]
+
+// =============================================================================
+// tag::response_code-setting[]
+|
+[id="input-{input-type}-response_code-setting"]
+`response_code`
+
+| (string) The HTTP response code returned upon success. This value should be in
+the 2XX range.
+// end::response_code-setting[]
+
+// =============================================================================
+
+// tag::secret.header-setting[]
+|
+[id="input-{input-type}-secret.header-setting"]
+`secret.header`
+
+| (string) The header to check for a specific value specified by `secret.value`.
+Some webhooks provide the ability to include a special header and secret to
+identify the source.
+// end::secret.header-setting[]
+
+// =============================================================================
+
+// tag::secret.value-setting[]
+|
+[id="input-{input-type}-secret.value-setting"]
+`secret.value`
+
+| (string) The secret stored in the header name specified by `secret.header`.
+Some webhooks provide the ability to include a special header and secret to
+identify the source.
+// end::secret.value-setting[]
+
+// =============================================================================
+
+// tag::url-setting[]
+|
+[id="input-{input-type}-url-setting"]
+`url`
+
+| (string) The URL path to accept requests on.
+
+*Default:* `/`
+// end::url-setting[]
+
+// =============================================================================
+
+// tag::username-setting[]
+|
+[id="input-{input-type}-username-setting"]
+`username`
+
+| (string) If `basic_auth` is `true`, specify the username used to authenticate
+against the HTTP listener. You must also set `password`.
+// end::username-setting[]
+
+// =============================================================================
+
+|===
+
+[[input-http_endpoint-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:

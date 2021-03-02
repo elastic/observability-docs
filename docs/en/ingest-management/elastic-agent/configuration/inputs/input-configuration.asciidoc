@@ -1,0 +1,85 @@
+[[elastic-agent-input-settings]]
+== Input settings
+
+Input settings specify how {agent} locates and processes input data.
+
+You can specify multiple inputs, and you can specify the same input type more
+than once. For example:
+
+["source","yaml",subs="attributes"]
+----
+inputs:
+- type: log
+  paths:
+    - /var/log/system.log
+    - /var/log/wifi.log
+- type: log
+  paths:
+    - "/var/log/apache2/*"
+  fields:
+    apache: true
+  fields_under_root: true
+----
+
+For the most basic configuration, define a single input with a single path. For
+example:
+
+[source,yaml]
+-------------------------------------------------------------------------------------
+inputs:
+- type: log
+  enabled: true
+  paths:
+    - /var/log/*.log
+-------------------------------------------------------------------------------------
+
+The input in this example harvests all files in the path `/var/log/*.log`, which
+means that {agent} will harvest all files in the directory `/var/log/`
+that end with `.log`. All patterns supported by
+https://golang.org/pkg/path/filepath/#Glob[Go Glob] are also supported here.
+
+To fetch all files from a predefined level of subdirectories, use this pattern:
+`/var/log/*/*.log`. This fetches all `.log` files from the subfolders of
+`/var/log`. It does not fetch log files from the `/var/log` folder itself.
+Currently it is not possible to recursively fetch all files in all
+subdirectories of a directory.
+
+include::input-aws-cloudwatch.asciidoc[leveloffset=+1]
+
+include::input-aws-s3.asciidoc[leveloffset=+1]
+
+include::input-azure-eventhub.asciidoc[leveloffset=+1]
+
+include::input-cloudfoundry.asciidoc[leveloffset=+1]
+
+include::input-container.asciidoc[leveloffset=+1]
+
+include::input-filestream.asciidoc[leveloffset=+1]
+
+include::input-gcp-pubsub.asciidoc[leveloffset=+1]
+
+include::input-http-endpoint.asciidoc[leveloffset=+1]
+
+include::input-httpjson.asciidoc[leveloffset=+1]
+
+include::input-kafka.asciidoc[leveloffset=+1]
+
+include::input-log.asciidoc[leveloffset=+1]
+
+include::input-mqtt.asciidoc[leveloffset=+1]
+
+include::input-netflow.asciidoc[leveloffset=+1]
+
+include::input-o365audit.asciidoc[leveloffset=+1]
+
+include::input-redis.asciidoc[leveloffset=+1]
+
+include::input-stdin.asciidoc[leveloffset=+1]
+
+include::input-syslog.asciidoc[leveloffset=+1]
+
+include::input-tcp.asciidoc[leveloffset=+1]
+
+include::input-udp.asciidoc[leveloffset=+1]
+
+include::input-unix.asciidoc[leveloffset=+1]
