@@ -1,3 +1,5 @@
+:synthetics-image: docker.elastic.co/beats/heartbeat:{version}
+
 [[synthetics-quickstart]]
 = Quickstart: Synthetic monitoring via Docker
 
@@ -21,48 +23,32 @@ and a packaged todo application with a custom suite of tests.
 
 [discrete]
 [[synthetics-quickstart-step-one]]
-== Step 1: Clone the `elastic/synthetics` repository
+== Step 1: Pull the latest synthetics docker image
 
-This template pulls the Elastic synthetics image, builds your synthetic tests,
-schedules and runs them with Heartbeat, and sends the resulting data to the Elastic Stack.
+Elastic Synthetics is regularly updated during this experimental phase, even within the same version.
+You'll want to ensure you're running the latest docker image by running the below command.{synthetics-image}
 
-Clone the https://github.com/elastic/synthetics[elastic/synthetics] repository
-and change directories into `examples/docker`:
-
-[source,sh]
+[source,sh,subs="attributes"]
 ----
-git clone https://github.com/elastic/synthetics.git &&\
-cd synthetics/examples/docker
+docker pull {synthetics-image}
 ----
 
-There are two files in `synthetics/examples/docker` that you'll need to edit:
-
-[source,sh]
-----
-synthetics
-  |- examples
-     |- docker
-        |- heartbeat.docker.yml <1>
-        |- run.sh <2>
-----
-<1> `heartbeat.docker.yml` is your Heartbeat configuration file.
-This is where you'll configure your synthetic test suites.
-<2> `run.sh` provides the main `docker run` command that pulls the
-Elastic synthetics image and runs Heartbeat.
 
 [discrete]
 [[synthetics-quickstart-step-two]]
-== Step 2: Update `heartbeat.docker.yml`
+== Step 2: Create a heartbeat.yml configuration file
 
 There are two ways to configure a synthetic test.
 Let's take a quick look at each.
 
 Run an inline test::
 
-If you're running an inline, browser based test, you can use the traditional Heartbeat flow to completely
-configure your synthetic testing directly in `heartbeat.docker.yml`.
-An example is provided:
-+
+If you're running an inline browser based test, you can use the traditional Heartbeat flow to completely
+configure your synthetic testing directly in a file named `heartbeat.yml` as shown below. 
+
+You'll need to setup your elasticsearch credentials for either an https://www.elastic.co/guide/en/beats/heartbeat/current/configure-cloud-id.html[Elastic Cloud ID] or another https://www.elastic.co/guide/en/beats/heartbeat/current/elasticsearch-output.html[Elasticsearch Cluster] in
+the `heartbeat.yml` file. The example below demonstrates using https://cloud.elastic.co[Elastic Cloud] credentials.
+
 [source,yml]
 ----
 heartbeat.monitors:
@@ -70,69 +56,63 @@ heartbeat.monitors:
   id: my-monitor <1>
   name: My Monitor
   schedule: "@every 1m"
-  script: |- <2>
-    step("load homepage", async () => {
-        await page.goto('https://www.elastic.co');
-    });
-    step("hover over products menu", async () => {
-        await page.hover('css=[data-nav-item=products]');
-    });
+  source:
+    inline:
+      script: |- <2>
+        step("load homepage", async () => {
+            await page.goto('https://www.elastic.co');
+        });
+        step("hover over products menu", async () => {
+            await page.hover('css=[data-nav-item=products]');
+        });
 ----
 <1> Each `monitor` gets its own ID in the {uptime-app} and, therefore its own schedule entry.
 This allows tests to be run in parallel and analyzed separately.
 <2> In this example, a synthetic test is defined inline. This is a two-step script that first loads
 a homepage and then hovers over a product menu. See <<synthetics-syntax>> for more information.
 
+
 Run a test suite::
 
 If you'd like to run multiple tests, you'd probably be better off creating a library of tests defined
 outside of `heartbeat.docker.yml`.
 This, for example, allows your tests to live with your application or in a separate Git repository.
-+
+
 [source,yml]
 ----
-heartbeat.synthetic_suites: <1>
 - name: Todos
-  path: "/opt/examples/todos" <2>
+  id: todos
+  type: browser
   schedule: "@every 1m"
+  source:
+    local:
+      path: "/opt/examples/todos" <1>
 ----
-<1> Specify the name, path, and schedule of your test suite.
-<2> In this example, our library of synthetic tests live in the `/examples/todos` directory of `elastic/synthetics`.
+<1> In this example, our library of synthetic tests come from https://github.com/elastic/synthetics/tree/master/examples/todos[our todos example]. The path shown here corresponds to the path heartbeat will look at inside the docker container.
+
 Heartbeat will attempt to run all files in that directory with the extension `.journey.ts` or `.journey.js`.
 See <<synthetics-syntax>> for more information.
 
 [discrete]
 [[synthetics-quickstart-step-three]]
-== Step 3: Run `run.sh`
+== Step 3: Run the container
 
-`run.sh` pulls the Elastic/synthetics image, shares your configuration details and test suites with Heartbeat,
-and provides the location of your {es} instance.
+WARNING: Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions. Add the `sandbox: true` option to a given browser
+monitor to enable sandboxing. This may require using a https://github.com/elastic/synthetics/blob/master/examples/docker/seccomp_profile.json[custom seccomp policy] with docker, which brings its own additional risks. This is generally safe when run against sites whose content you trust,
+and with a recent version of Elastic synthetics and chromium.
 
-WARNING: Running a Chrome browser requires elevated privileges.
-Synthetic monitoring scripts can escape the docker container.
-It is recommend to run your tests on a separate box.
-Do not run any scripts that you don’t trust.
-
-[source,sh]
+[source,sh,subs="+attributes"]
 ----
-#...
 docker run \
   --rm \
   --name=heartbeat \
   --user=heartbeat \
-  --net=host \
-  --security-opt seccomp=seccomp_profile.json \ <1>
-  --volume="$(pwd)/heartbeat.docker.yml:/usr/share/heartbeat/heartbeat.yml:ro" \ <2>
-  --volume="$(pwd)/../../:/opt/elastic-synthetics:rw" \ <3>
-  $IMAGE \
-  --strict.perms=false -e \
-  $HEARTBEAT_ARGS
-#...
+  --volume="$PWD/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro" \ <1>
+  --volume="$PWD/PATH/TO/todos-example:/opt/todos:ro" \ <2>
+  {synthetics-image} heartbeat
 ----
-<1> Running a Chrome browser requires elevated privileges.
-Do not run any scripts that you don't trust.
-<2> Provides your `heartbeat.docker.yml` file as a volume.
-<3> Provides the `elastic-synthetics` repo as a volume.
+<1> Provides your `heartbeat.docker.yml` file as a volume.
+<2> Provides the `todos` example as a volume. Replace the first path the location of your local copy of the todos example.
 
 Use the following command to run the provided sample tests (or your own).
 Don't forget to update the example with your {es} credentials.
