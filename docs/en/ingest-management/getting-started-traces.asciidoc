@@ -16,17 +16,19 @@ For feedback and questions, please contact us in the {forum}[discuss forum].
 [[fleet-prereqs-traces]]
 == Prerequisites
 
-// to do in a future PR
-Before you begin, please read the <<fleet-limitations,Fleet limitations>>,
-and LINK TO APM LIMITATIONS.
+* Please read the <<fleet-limitations,Fleet limitations>>.
 
-You need {es} for storing and searching your data, and {kib} for visualizing and
+// To do in a future PR
+* The APM integration is experimental and has a number of known limitations.
+// Please read the list of {}/apm-integration-limitations.html[known limitations].
+
+* You need {es} for storing and searching your data, and {kib} for visualizing and
 managing it. You can use our
 https://www.elastic.co/cloud/elasticsearch-service[hosted {ess}]
 on {ecloud} (recommended), or self-manage the {stack} on your own hardware.
-
++
 Here's what you need for each deployment type:
-
++
 include::{tab-widgets}/prereq-widget.asciidoc[]
 
 [discrete]
@@ -58,6 +60,12 @@ image::images/kibana-fleet-enable.png[{fleet} showing prompt to enable central m
 [discrete]
 [[add-agent-to-fleet-traces]]
 == Step 2: Add an {agent} to {fleet}
+
+[TIP]
+====
+If you plan on enabling Real User Monitoring (RUM), you must run {agent} centrally.
+If RUM is disabled, {agent} should be run on edge machines.
+====
 
 include::elastic-agent/elastic-agent.asciidoc[tag=agent-install-intro]
 
@@ -187,6 +195,12 @@ include::{apm-repo-dir}/tab-widgets/install-agents-widget.asciidoc[]
 
 Back in {kib}, under Observability, select APM.
 You should see application performance monitoring data flowing into the {stack}!
+
+NOTE: The built-in `apm_user` role is not compatible with the APM integration
+as it only provides read access to `apm-*` indices.
+
+// To do:
+// Link the above note to the data-streams docs in apm-server
 
 [role="screenshot"]
 image::images/kibana-apm-sample-data.png[APM app with data]
