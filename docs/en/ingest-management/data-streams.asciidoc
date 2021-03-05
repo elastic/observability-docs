@@ -1,0 +1,138 @@
+[[data-streams]]
+= Data streams
+
+{agent} uses data streams to easily store append-only time series data across multiple indices
+while giving you a single named resource for requests.
+Data streams are well-suited for logs, metrics, traces, and other continuously generated data.
+They offer a host of benefits over other indexing strategies:
+
+* *Reduced number of fields per index*: Indices only need to store a specific subset of your data–
+leading to better space efficiency and faster queries.
+
+* *More granular data control*: For example, filesystem, load, cpu, network, and process metrics are sent
+to different indices–each potentially with its own rollover, retention, and security permissions.
+
+* *Flexible*: Use the custom namespace component to divide and organize data in a way that
+makes sense to your use-case or company.
+
+* *Fewer ingest permissions required*: Data ingestion only requires permissions to append data.
+
+[discrete]
+[[data-streams-index-templates]]
+== Index templates
+
+The following built-in, ECS based templates exist in {es}: `logs-*-*`, `metrics-*-*`, and `synthetics-*-*`.
+Integrations can also provide dataset specific index templates, like `logs-nginx.access-*`,
+which is loaded when the Nginx integration is installed.
+{agent} uses these templates to create data streams.
+
+[discrete]
+[[data-streams-naming-scheme]]
+== Data stream naming scheme
+
+{agent} uses the Elastic data stream naming scheme to name data streams.
+The naming scheme splits data into different streams based on the following components:
+
+`type`::
+Generic type describing the data, such as `logs`, `metrics`, `traces`, or `synthetics`.
+Corresponds to the `data_stream.type` field.
+
+`dataset`::
+Describes the ingested data and its structure.
+Corresponds to the `data_stream.dataset` field.
+For APM data, this is the instrumented service's `service.name`.
+Defaults to `generic`.
+
+`namespace`::
+User-configurable arbitrary grouping, such as an environment (`dev`, `prod`, or `production`),
+a team, or a strategic business unit.
+Corresponds to the `data_stream.dataset` field.
+Defaults to `default`.
+
+The naming scheme separates these components with a `-` character:
+
+[source,text]
+--
+<type>-<dataset>-<namespace>
+--
+
+For example, if you've set up the Nginx integration with a namespace of `prod`,
+{agent} uses the `logs` type, `nginx.access` dataset, and `prod` namespace to store data in the
+`logs-nginx.access-production` data stream.
+If you use the APM integration with a namespace of `dev`, and `service.name` (dataset) of `frontend`,
+{agent} uses the `traces-apm.frontend.dev` data stream.
+
+[discrete]
+[[data-streams-ilm]]
+== Configure an index lifecycle management (ILM) policy
+
+Use the {ref}/getting-started-index-lifecycle-management.html[index lifecycle
+management] (ILM) feature in {es} to manage your {agent} data stream indices as they age.
+For example, create a new index after a certain period of time,
+or delete stale indices to enforce data retention standards.
+
+[discrete]
+[[data-streams-customize-built-in-ilm]]
+== Customize built-in ILM policies
+
+{agent} uses ILM policies built-in to {es} to manage backing indices for its data streams.
+See the {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] tutorial
+to learn how to customize these policies based on your performance, resilience, and retention requirements.
+
+[discrete]
+[[data-streams-new-ilm]]
+== Create a new ILM policies
+
+In Kibana, go to **Stack Management** > **Index Lifecycle Policies**. Click **Create policy**.
+
+Define data tiers for your data, and any associated actions,
+like a rollover, freeze, or shrink.
+See {ref}/set-up-lifecycle-policy.html[configure a lifecycle policy] for more information.
+
+[discrete]
+[[data-streams-apply-ilm]]
+== Apply a new ILM policy
+
+// I'm not sure how to do this.
+// I tried to overwrite the default metrics-system.process index template ILM policy,
+// after clicking "add policy", nothing happens
+
+[discrete]
+[[data-streams-learn-more]]
+== Learn more
+
+For a deeper dive into how data streams work under the hood,
+including details on auto-generated backing indices, and how read and write requests are routed,
+see {ref}/data-streams.html[{es} Data streams].
+
+// $GIT_HOME/docs/build_docs --doc $GIT_HOME/observability-docs/docs/en/ingest-management/index.asciidoc --resource=$GIT_HOME/beats/x-pack/elastic-agent/docs --chunk 1 --open
+
+// Original overview text is below
+
+// As you can see in the following screen, each data stream (or index) is broken
+// out by dataset, type, and namespace.
+
+// [role="screenshot"]
+// image::images/kibana-fleet-datastreams.png[Data streams page]
+
+// The _dataset_ is defined by the integration and describes the fields and other
+// settings for each index. For example, you might have one dataset for process
+// metrics with a field describing whether the process is running or not, and
+// another dataset for disk I/O metrics with a field describing the number of bytes
+// read.
+
+// This indexing strategy solves the issue of having indices with hundreds or
+// thousands of fields. Because each index stores only a small number of fields,
+// the indices are more compact with faster autocomplete. And as an added
+// bonus, the Discover page only shows relevant fields.
+
+// _Namespaces_ are user-defined strings that allow you to group data any way you
+// like. A namespace can be up to 100 bytes in length (multi-byte characters will
+// count toward this limit faster). For example, you might group your data by
+// environment (`prod`, `QA`) or by team name. Using a namespace makes it easier to
+// search the data from a given source by using index patterns, or to give users
+// permissions to data by assigning an index pattern to user roles.
+
+// When searching your data in {kib}, you can use an
+// {kibana-ref}/index-patterns.html[index pattern] to search across all or some of
+// the indices.
