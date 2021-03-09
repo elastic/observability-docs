@@ -181,7 +181,12 @@ painful debugging sessions due to adding a newline at the end of
 your API key.
 =====
 
-. To see if both settings have been stored, run `./metricbeat keystore list`.
+. To see if both settings have been stored, run the following command:
++
+[source,bash]
+----
+`./metricbeat keystore list`.
+----
 
 . To configure {metricbeat} to output to {ess}, edit the `metricbeat.yml`
 configuration file. Add the following lines to the end of the file.
@@ -237,7 +242,7 @@ collect.
   metricsets:
     - compute <1>
   zone: "" <2>
-  project_id: "elastic-education" <3>
+  project_id: "your-project-id" <3>
   period: 1m <4>
   credentials_file_path: "/home/ubuntu/credentials.json" <5>
 ----
@@ -245,17 +250,20 @@ collect.
 <1> The `compute` metricset is a predefined metricset that collects some
 GCP compute metrics.
 <2> Defines which zones to monitor, an empty value collects data from *all* zones
-<3> Collects metrics within the `elastic-education` project-id.
+<3> Collects metrics within the `your-project-id` project-id.
 <4> Collects metrics every minute
 <5> The GCP credential file that you generated earlier. (Don't forget to create
 the file if it does not exist and use the correct full path).
 
-. To check if {metricbeat} can collect data, test the input.
-[source,bash]
+. To check if {metricbeat} can collect data, test the input by running the
+following command:
 +
+[source,bash]
 ----
 ./metricbeat test modules gcp
 ----
++
+{metricbeat} will print {gcp} metrics to the terminal, if the setup is correct.
 
 . When the input and output are ready, start {metricbeat} to collect the data.
 +
@@ -328,7 +336,12 @@ POST /_security/api_key
   "name": "filebeat-monitor-gcp",
   "role_descriptors": {
     "filebeat_writer": {
-      "cluster": ["monitor", "read_ilm", "cluster:admin/ingest/pipeline/get", "cluster:admin/ingest/pipeline/put"],
+      "cluster": [
+        "monitor",
+        "read_ilm",
+        "cluster:admin/ingest/pipeline/get", <1>
+        "cluster:admin/ingest/pipeline/put" <1>
+      ],
       "index": [
         {
           "names": ["filebeat-*"],
@@ -340,11 +353,9 @@ POST /_security/api_key
 }
 ----
 +
-[NOTE]
-----
-{filebeat} needs two special cluster permissions
-`cluster:admin/ingest/pipeline/get` and `cluster:admin/ingest/pipeline/put`.
-----
+<1> {filebeat} needs extra cluster permissions to publish logs, which differs
+from the {metricbeat} configuration used previously. You can find more
+details {filebeat-ref}/feature-roles.html[here].
 
 . The response contains an `api_key` and an `id` field, which can be stored in
 the {filebeat} keystore in the following format: `id:api_key`.
@@ -361,7 +372,12 @@ painful debugging sessions due to adding a newline at the end of
 your API key.
 =====
 
-. To see if both settings have been stored, run `./filebeat keystore list`.
+. To see if both settings have been stored, run the following command:
++
+[source,bash]
+----
+./filebeat keystore list
+----
 
 . To configure {filebeat} to output to {ess}, edit the `filebeat.yml`
 configuration file. Add the following lines to the end of the file.
@@ -392,17 +408,17 @@ module. This module periodically fetches logs that have been exported from
 Stackdriver to a Google Pub/Sub topic sink. There are three available filesets:
 `audit`, `vpcflow`, `firewall`. This tutorial covers the `audit` fileset.
 
-. First, you need to configure {gcp} to export logs to a Pub/Sub topic. You can
-do that by navigating to the *Logs Router* page (use the search bar):
+. Go to the *Logs Router* page to configure {gcp} to export logs to a Pub/Sub
+topic. Use the search bar to find the page:
 +
 image::monitor-gcp-navigate-logs-router.png[Navigate to Logs Router page]
 +
 To set up the logs routing sink, click  *Create sink*.
 Set *sink name* as `monitor-gcp-audit-sink`. Select the *Cloud Pub/Sub topic* as the
 *sink service* and *Create new Cloud Pub/Sub topic* named `monitor-gcp-audit`.
-Finally, add `logName:"cloudaudit.googleapis.com"` in the *logs to
-include in sink* (it includes all audit logs) and click on *create sink*.
-It will look something like the following:
+Finally, under *Choose logs to include in sink*, add
+`logName:"cloudaudit.googleapis.com"` (it includes all audit logs).
+Click *create sink*. It will look something like the following:
 +
 image::monitor-gcp-create-sink.png[Create logs routing sink]
 
