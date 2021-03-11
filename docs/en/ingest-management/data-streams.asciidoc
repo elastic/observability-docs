@@ -1,0 +1,115 @@
+[[data-streams]]
+= Data streams
+
+{agent} uses data streams to store time series data across multiple indices
+while giving you a single named resource for requests.
+Data streams are well-suited for logs, metrics, traces, and other continuously generated data.
+They offer a host of benefits over other indexing strategies:
+
+* *Reduced number of fields per index*: Indices only need to store a specific subset of your
+data–meaning no more indices with hundreds of thousands of fields.
+This leads to better space efficiency and faster queries.
+As an added bonus, only relevant fields are shown in Discover.
+
+* *More granular data control*: For example, filesystem, load, cpu, network, and process metrics are sent
+to different indices–each potentially with its own rollover, retention, and security permissions.
+
+* *Flexible*: Use the custom namespace component to divide and organize data in a way that
+makes sense to your use case or company.
+
+* *Fewer ingest permissions required*: Data ingestion only requires permissions to append data.
+
+[discrete]
+[[data-streams-naming-scheme]]
+== Data stream naming scheme
+
+{agent} uses the Elastic data stream naming scheme to name data streams.
+The naming scheme splits data into different streams based on the following components:
+
+`type`::
+A generic `type` describing the data, such as `logs`, `metrics`, `traces`, or `synthetics`.
+// Corresponds to the `data_stream.type` field.
+
+`dataset`::
+The `dataset` is defined by the integration and describes the ingested data and its structure for each index.
+For example, you might have a dataset for process metrics with a field describing whether the process is running or not,
+and another dataset for disk I/O metrics with a field describing the number of bytes read.
++
+For APM data, the `dataset` is the instrumented service's `service.name`.
+
+`namespace`::
+A user-configurable arbitrary grouping, such as an environment (`dev`, `prod`, or `qa`),
+a team, or a strategic business unit.
+A `namespace` can be up to 100 bytes in length (multibyte characters will count toward this limit faster).
+Using a namespace makes it easier to search the data from a given source by using index patterns, or to give users permissions to data by assigning an index pattern to user roles.
+// Corresponds to the `data_stream.dataset` field.
+
+The naming scheme separates each components with a `-` character:
+
+[source,text]
+--
+<type>-<dataset>-<namespace>
+--
+
+For example, if you've set up the Nginx integration with a namespace of `prod`,
+{agent} uses the `logs` type, `nginx.access` dataset, and `prod` namespace to store data in the following data stream:
+
+[source,text]
+--
+logs-nginx.access-prod
+--
+
+Alternatively, if you use the APM integration with a namespace of `dev`, and a `service.name` of `frontend`,
+{agent} stores data in the following data stream:
+
+[source,text]
+--
+traces-apm.frontend-dev
+--
+
+All data streams, and the pre-built dashboards that they ship with,
+are viewable on the Fleet Data Streams page:
+
+[role="screenshot"]
+image::images/kibana-fleet-datastreams.png[Data streams page]
+
+TIP: If you're familiar with the concept of indices, you can think of each data stream as a separate index in {es}.
+Under the hood though, things are a bit more complex.
+All of the juicy details are available in {ref}/data-streams.html[{es} Data streams].
+
+[discrete]
+[[data-streams-index-pattern]]
+== Index patterns
+
+When searching your data in {kib}, you can use an {kibana-ref}/index-patterns.html[index pattern]
+to search across all or some of your data streams.
+
+[discrete]
+[[data-streams-index-templates]]
+== Index templates
+
+An index template is a way to tell {es} how to configure an index when it is created.
+For data streams, the index template configures the stream's backing indices as they are created.
+
+{es} provides the following built-in, ECS based templates: `logs-*-*`, `metrics-*-*`, and `synthetics-*-*`.
+{agent} integrations can also provide dataset-specific index templates, like `logs-nginx.access-*`.
+These templates are loaded when the integration is installed, and are used to configure the integration's data streams.
+
+[discrete]
+[[data-streams-ilm]]
+== Configure an index lifecycle management (ILM) policy
+
+Use the {ref}/getting-started-index-lifecycle-management.html[index lifecycle
+management] (ILM) feature in {es} to manage your {agent} data stream indices as they age.
+For example, create a new index after a certain period of time,
+or delete stale indices to enforce data retention standards.
+
+{agent} uses ILM policies built-in to {es} to manage backing indices for its data streams.
+See the {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] tutorial
+to learn how to customize these policies based on your performance, resilience, and retention requirements.
+
+To instead create a new ILM policy, in {kib},
+go to **Stack Management** > **Index Lifecycle Policies**. Click **Create policy**.
+Define data tiers for your data, and any associated actions,
+like a rollover, freeze, or shrink.
+See {ref}/set-up-lifecycle-policy.html[configure a lifecycle policy] for more information.
