@@ -1,0 +1,293 @@
+// These settings are shared across the docs for multiple metrics inputs. Copy
+// and use the following template to add a shared setting. Replace values in all
+// caps. Use an include statement // to pull the tagged region into your source
+// file: include::input-shared-metrics-settings.asciidoc[tag=NAME-setting]
+
+
+//TODO: Add missing options that are new with agent
+
+//TODO: Move these options to a common file for all types of data (metrics,
+//logs, etc)? Also change the format of the ID to include the stream-type.
+//Other approach would be to remove IDs entirely, which would mean no named
+//anchor in the HTML page.
+
+
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// =============================================================================
+
+// tag::basepath-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-basepath-setting"]
+`basepath`
+
+| (string) An optional base path to use in HTTP URIs. If defined, {agent}
+inserts this value as the first segment in the HTTP URI path.
+// end::basepath-setting[]
+
+// =============================================================================
+
+// tag::bearer_token_file-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-bearer_token_file-setting"]
+`bearer_token_file`
+
+| (string) If defined, {agent} reads the contents of the file once at
+initialization and then uses the value in an HTTP Authorization header.
+// end::bearer_token_file-setting[]
+
+// =============================================================================
+
+// tag::connect_timeout-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-connect_timeout-setting"]
+`connect_timeout`
+
+| (string) Total time limit for an HTTP connection to be completed.
+
+*Default:* `2s`
+// end::connect_timeout-setting[]
+
+// =============================================================================
+
+// tag::enabled-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-enabled-setting"]
+`enabled`
+
+| (boolean) Specifies whether the module is enabled.
+// end::enabled-setting[]
+
+// =============================================================================
+
+// tag::fields-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-fields-setting"]
+`fields`
+
+| A dictionary of fields that will be sent with the metricset event. This
+setting is optional.
+
+// end::fields-setting[]
+
+// =============================================================================
+
+// tag::headers-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-headers-setting"]
+`headers`
+
+| (list) A list of headers to use with the HTTP request. For example:
+
+[source,yaml]
+----
+headers:
+  Cookie: abcdef=123456
+  My-Custom-Header: my-custom-value
+----
+
+// end::headers-setting[]
+
+// =============================================================================
+
+// tag::hosts-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-hosts-setting"]
+`hosts`
+
+| (list) A list of hosts to fetch information from.
+// end::hosts-setting[]
+
+// =============================================================================
+
+
+// tag::index-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-index-setting"]
+`index`
+
+//QUESTION: Should I delete this? Is it still possible to set a custom index?
+
+| (string) If present, this formatted string overrides the index for events from
+this module (for {es} outputs), or sets the `raw_index` field of the event's
+metadata (for other outputs). This string can only refer to the agent name and
+version and the event timestamp; for access to dynamic fields, use
+`output.elasticsearch.index` or a processor.
+
+Example value: `"%{[agent.name]}-myindex-%{+yyyy.MM.dd}"` might
+expand to `"elastic-agent-myindex-2019.12.13"`.
+// end::index-setting[]
+
+// =============================================================================
+
+// tag::keep_null-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-keep_null-setting"]
+`keep_null`
+
+| (boolean) If `true`, fields with `null` values are published in
+the output document.
+
+*Default:* `false`
+// end::keep_null-setting[]
+
+// =============================================================================
+
+// tag::metricsets-setting[]
+|
+[id="input-{stream-type}-{input-type}-metricsets-setting"]
+`metricsets`
+
+//QUESTION: What is the replacement for module here? data stream?
+
+| (list) A list of metricsets to execute. Make sure you only list metricsets
+that are available in the module. It is not possible to reference metricsets
+from other modules.
+
+// end::metricsets-setting[]
+
+// =============================================================================
+
+// tag::password-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-password-setting"]
+`password`
+
+| (string) The password to use for basic authentication.
+// end::password-setting[]
+
+// =============================================================================
+
+// tag::period-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-period-setting"]
+`period`
+
+| (string) How often the metricsets are executed. If a system is not reachable,
+{agent} returns an error for each period. This setting is required.
+
+*Default:* `????`
+
+//QUESTION: What is the default for period?
+
+// end::period-setting[]
+
+// =============================================================================
+
+// tag::processors-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-NAME-setting"]
+`processors`
+
+| (list) A list of processors to apply to the data generated by the metricset.
+
+//See <<filtering-and-enhancing-data>> for information about specifying
+//processors in your config.
+// end::processors-setting[]
+
+// =============================================================================
+
+// tag::service.name-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-service.name-setting"]
+`service.name`
+
+| (string) A user-assigned name for the service the data is collected from.
+You can use this name to identify information collected from nodes of different
+clusters with the same `service.type`.
+// end::service.name-setting[]
+
+// =============================================================================
+
+// tag::ssl-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-ssl-setting"]
+`ssl`
+
+| Configuration options for SSL parameters like the certificate authority to use
+for HTTPS-based connections.
+
+//See <<configuration-ssl>> for more information.
+// end::ssl-setting[]
+
+// =============================================================================
+
+// tag::tags-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-tags-setting"]
+`tags`
+
+| (list) A list of tags that will be sent with the metricset event.
+// end::tags-setting[]
+
+// =============================================================================
+
+// tag::timeout-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-timeout-setting"]
+`timeout`
+
+| (string) Total time limit for HTTP requests made by the module.
+
+*Default:* `10s`
+
+// end::timeout-setting[]
+
+// =============================================================================
+
+// tag::username-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-username-setting"]
+`username`
+
+| (string) The username to use for basic authentication.
+// end::username-setting[]
+
+// =============================================================================
+
+// tag::query-setting[]
+
+|
+[id="input-{stream-type}-{input-type}-query-setting"]
+`query`
+
+| An optional value to pass common query params in YAML. Instead of setting the
+query params within hosts values using the syntax `?key=value&key2&value2`, you
+can set it here like this:
+
+[source,yaml]
+----
+query:
+  key: value
+  key2: value2
+  list:
+  - 1.1
+  - 2.95
+  - -15
+----
+
+// end::query-setting[]
+
+// =============================================================================
+
+|===
