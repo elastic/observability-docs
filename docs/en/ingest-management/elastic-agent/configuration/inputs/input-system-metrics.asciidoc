@@ -1,0 +1,491 @@
+:input-type: system-metrics
+
+[[system-metrics-input]]
+== System/metrics input
+
+Use the `system/metrics` input to monitor your servers. To configure this input,
+specify one or more metricsets. 
+
+//TODO: Describe what a metricset does?
+
+//QUESTION: Is there a concept of default metricsets with the standalone config?
+//Commenting out for now.
+//The default metricsets are `cpu`, `load`, `memory`, `network`, `process`,
+//`process_summary`, `socket_summary`, `filesystem`, `fsstat`, and `uptime`. 
+//To disable a default metricset, comment it out in the `elastic-agent.yml` 
+//configuration file. If _all_ metricsets are commented out and the System module 
+//is enabled, {agent} uses the default metricsets.
+
+Note that certain metricsets may access `/proc` to gather process information,
+and the resulting `ptrace_may_access()` call by the kernel to check for
+permissions can be blocked by
+https://gitlab.com/apparmor/apparmor/wikis/TechnicalDoc_Proc_and_ptrace[AppArmor
+and other LSM software], even though the System module doesn't use `ptrace`
+directly.
+
+//QUESTION: Do we want to cover required permissions or just the settings?
+
+//TODO: Convert all examples to use the correct syntax for elastic agent.
+
+This example configures two metricsets: `cpu` to collect CPU metrics and
+`diskio` to collect disk IO metrics:
+
+[source,yaml]
+----
+inputs:
+  - id: 9575f4bf-4f7f-4965-ac99-43cd4e678746
+    name: system-1
+    revision: 1
+    type: system/metrics
+    use_output: default
+    meta:
+      package:
+        name: system
+        version: 0.10.9
+    data_stream:
+      namespace: default
+    streams:
+      - id: system/metrics-system.cpu-9575f4bf-4f7f-4965-ac99-43cd4e678746
+        data_stream:
+          dataset: system.cpu
+          type: metrics
+        metricsets:
+          - cpu
+        cpu.metrics:
+          - percentages
+          - normalized_percentages
+        period: 10s
+      - id: system/metrics-system.diskio-9575f4bf-4f7f-4965-ac99-43cd4e678746
+        data_stream:
+          dataset: system.diskio
+          type: metrics
+        metricsets:
+          - diskio
+        diskio.include_devices: null
+        period: 10s
+  ...
+  enabled: true
+  period: 10s
+  processes: ['.*']
+----
+
+
+The `system/metrics` input supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+//QUESTION: Do we want to reproduce the list of metricsets? We need to describe
+//the config settings for the various metricsets that have their own configs 
+
+<<input-system-metrics-metricset-settings>>::
+Settings that affect the behavior of specific metricsets.
+
+<<input-system-metrics-standard-settings>>::
+Standard settings available to any metrics input.
+
+<<input-system-metrics-standard-http-settings>>::
+Standard settings for inputs or metricsets that define the host as an HTTP URL.
+
+//TODO: Add missing agent-related settings.
+
+//TODO: Possibly add IDs to each setting. We need to decide if this is worth
+//the effort given that it might not be supported in the new doc system.
+
+[[input-system-metrics-metricset-settings]]
+=== Metricset settings
+
+Settings that control the metrics collected by the `system/metrics` input.
+
+{agent} provides the following metricsets. Some of these metricsets have
+additional settings as desribed in this table.
+
+[cols="2*<a"]
+|===
+| Metricset | Description and settings
+
+// =============================================================================
+
+| `core`
+| Provides usage statistics for each CPU core. This metricset is available on
+FreeBSD, Linux, macOS, OpenBSD, and Windows.
+
+`core.metrics`::
+(list) Controls what metrics are reported for each CPU core. Valid metric types
+are `percentages` and `ticks`.
++
+*Default:* `core.metrics: [percentages]`.
+
+//QUESTION: How much of the syntax should I show in these snipped examples? Does
+//this seem like enough? I want to show context, if possible.
+
+[source,yaml]
+----
+  metricsets: [core]
+  core.metrics: [percentages, ticks]
+----
+
+// =============================================================================
+
+| `cpu`
+| Provides CPU statistics. This metricset is available on
+FreeBSD, Linux, macOS, OpenBSD, and Windows.
+
+`cpu.metrics`::
+(list) Controls what CPU metrics are reported. Valid settings are `percentages`,
+`normalized_percentages`, and `ticks`.
++
+*Default:* `cpu.metrics: [percentages]`.
+
+[source,yaml]
+----
+  metricsets: [cpu]
+  cpu.metrics: [percentages, normalized_percentages, ticks]
+----
+
+// =============================================================================
+
+| `diskio`
+| Provides disk IO metrics collected from the operating system. One event is
+created for each disk mounted on the system. This metricset is available on
+Linux, macOS (requires 10.10+), Windows, and FreeBSD (amd64).
+
+`diskio.include_devices`:: (list) A list of device names to pre-filter the
+devices that are reported. Filters only exact matches. If not set or set to an
+empty array `[]`, all disk devices are returned
+
+This example returns metrics for devices matching `include_devices`:
+
+[source,yaml]
+----
+  metricsets: ["diskio"]
+  diskio.include_devices: ["sda", "sda1"]
+----
+
+// =============================================================================
+
+| `entropy`
+| Collects the amount of available entropy in bits. On kernel versions greater
+than 2.6, entropy will be out of a total pool size of 4096. This metricset is
+available on linux.
+
+// =============================================================================
+
+| `filesystem`
+| Provides file system statistics. For each file system, one document is
+provided. This metricset is available on FreeBSD, Linux, macOS, OpenBSD, and
+Windows.
+
+`filesystem.ignore_types`:: (list) A list of filesystem types to ignore. Metrics
+will not be collected from filesystems matching these types. This setting also
+affects the `fsstats` metricset. If this option is not set, {agent} ignores
+all types for virtual devices in systems where this information is available
+(for example, all types marked as `nodev` in `/proc/filesystems` in Linux
+systems). This setting is useful when there are mounted filesystems that you do
+not want {agent} to report metrics on.
+
+This example configures the metricset to ignore specific filesystem types:
+
+[source,yaml]
+----
+  metricsets: ["filesystem"]
+  filesystem.ignore_types: [nfs, smbfs, autofs]
+----
+
+//QUESTION: The module docs also describe how to configure a drop processor
+//to match the mount_point using a regular expression, but that seems too
+//detailed to provide here. Should we provide it elsewhere? I think more
+//suggested configs adds confusion.
+
+// =============================================================================
+
+| `fsstat`
+| Provides overall file system statistics. This metricset is available on
+FreeBSD, Linux, macOS, OpenBSD, and Windows.
+
+The `filesystem.ignore_types` setting described under the `filesystem` metricset
+also affects `fsstat`.
+
+// =============================================================================
+
+| `load`
+| Provides load statistics. This metricset is available on FreeBSD, Linux,
+macOS, and OpenBSD.
+
+// =============================================================================
+
+| `memory`
+| Provides memory statistics. This metricset is available on FreeBSD, Linux,
+macOS, OpenBSD, and Windows.
+
+// =============================================================================
+
+| `network`
+| Provides network IO metrics collected from the operating system. One event is
+created for each network interface. This metricset is available on FreeBSD,
+Linux, macOS, and Windows.
+
+`interfaces`:: (list) Specify which network interfaces metrics are reported
+from. By default, metrics are reported from all network interfaces. For
+example:
+
+[source,yaml]
+----------------------------
+  metricsets: [network]
+  interfaces: [eth0]
+----------------------------
+
+// =============================================================================
+
+| `network_summary`
+| Provides network IO metrics collected from the operating system. These events
+are global and sorted by protocol. This metricset is available on Linux.
+
+// =============================================================================
+
+| `process`
+| Provides process statistics. One document is provided for each process.
+This metricset is available on FreeBSD, Linux, macOS, and Windows.
+
+`processes`:: (list) A list of regexp expressions to filter the
+processes that are reported. For more complex filtering, you should use the
+`processors` configuration option.
+
+This example returns metrics for all processes:
+
+[source,yaml]
+----
+  metricsets: ["process"]
+  processes: ['.*']
+----
+
+`process.cgroups.enabled`:: (boolean) If `true`, cgroup metrics are reported.
++
+*Default:* `true`
+
+This example config disables cgroup metrics on Linux.
+
+[source,yaml]
+----
+  metricsets: ["process"]
+  process.cgroups.enabled: false
+----
+
+`process.cmdline.cache.enabled`:: (boolean) If `true`, caches the command line
+args for a running process. This means if you alter the command line for a
+process while this metricset is running, these changes are not detected. To
+disable caching, set `process.cmdline.cache.enabled: false`.
+
+`process.env.whitelist`:: (list) Collects the environment variables used to
+start the process. Specify a list of regular expressions that match the variable
+names. This feature is available on Linux, Darwin, and FreeBSD.
++
+*Default:* No environment variables are collected 
+
+[source,yaml]
+----
+  metricsets: ["process"]
+  process.env.whitelist:
+  - '^PATH$'
+  - '^SSH_.*'
+----
+
+`process.include_cpu_ticks`:: (boolean) If `true`, turns on reporting of the raw
+CPU tick values (for user, system, and total CPU time).
+
++
+*Default*: `false` (only percentages are reported)
+
+[source,yaml]
+----
+  metricsets: ["process"]
+  process.include_cpu_ticks: true
+----
+
+`process.include_per_cpu`:: (boolean) If `false`, turns off reporting of
+metrics per cpu.
++
+*Default:* `true` (metrics per cpu are reported when available)
+
+*`process.include_top_n`*:: These options allow you to filter out all processes
+that are not in the top N by CPU or memory, in order to reduce the number of
+documents created. If both the `by_cpu` and `by_memory` options are used, the
+union of the two sets is included.
+
+`process.include_top_n.enabled`:: (boolean) If `false`, turns off the top N
+feature and includes all processes, regardless of the other options.  If `true`,
+you must also set `by_cpu` or `by_memory`, or nothing is filtered.
++
+*Default:* `true`
+
+`process.include_top_n.by_cpu`:: (int) The number of processes to include from
+the top by CPU. The processes are sorted by the `system.process.cpu.total.pct`
+field.
++
+*Default:* `0`
+
+`process.include_top_n.by_memory`:: (int) Thenumber of processes to include from
+the top by memory. The processes are sorted by the
+`system.process.memory.rss.bytes` field.
++
+*Default:* `0`
+
+// =============================================================================
+
+|`process_summary`
+| Collects high-level statistics about the running processes. This metricset is
+available on FreeBSD, Linux, macOS, and Windows.
+
+// =============================================================================
+
+| `raid`
+| Collects stats about the raid. This metricset is available on Linux.
+
+`raid.mount_point`:: (string) The location of the raid metadata. If running this
+metricset inside a container, you need to mount `/sys/block` inside the
+container under the path specified by `--system.hostfs`
+
+// =============================================================================
+
+|`service`
+| Reports on the status of systemd services. This metricset is available on
+Linux. 
+
+If systemd resource accounting is enabled, this metricset will report any
+resources tracked by systemd. On most distributions, `tasks` and `memory` are
+the only resources with accounting enabled by default. For more information,
+https://www.freedesktop.org/software/systemd/man/systemd.resource-control.html[see
+the systemd manual pages].
+
+`service.state_filter`:: (list) A list of service states to filter by. This can
+be any of the states or sub-states known to systemd.
+
+`service.pattern_filter`:: (list) A list of glob patterns to filter service
+names by. This is an "or" filter and will report any systemd unit that matches
+at least one filter pattern.
+
+| `socket`
+| Reports an event for each new TCP socket that it detects. It does this by
+polling the kernel periodically to get a dump of all sockets. You set the
+polling interval by configuring the `period` option. Specifying a short polling
+interval with this metricset is important to avoid missing short-lived
+connections.
+
+This metricset is available on Linux only and requires kernel 2.6.14 or newer.
+
+*Required permissions:* This metricset reports the process that has the socket
+open. To provide this information on Linux for all processes, {agent} must be
+run with `sys_ptrace` and `dac_read_search` capabilities. These permissions are
+usually granted when running as root, but they may need to be explictly added
+when running {agent} inside a container.
+
+[source,yaml]
+----
+- module: system
+  metricsets: [socket]
+  period: 1s
+  socket.reverse_lookup.enabled: false
+  socket.reverse_lookup.success_ttl: 60s
+  socket.reverse_lookup.failure_ttl: 60s
+----
+
+`socket.reverse_lookup.enabled`::
+(boolean) If `true`, configures the metricset to perform a reverse lookup on the remote
+IP. The returned hostname is added to the event and cached. If a hostname is
+found, then the eTLD+1 (effective top-level domain plus one level) value will
+also be added to the event.
++
+*Default:* `false`
+
+`socket.reverse_lookup.success_ttl`::
+(string) The period of time to cache the results of successful reverse lookups.
++
+*Default:* `60s`
+
+`socket.reverse_lookup.failure_ttl`::
+(string) Periodof time to cache the results of failed reverse lookups.
++
+*Default:* `60s`
+
+|`socket_summary`
+| Provides the summary of open network sockets in the host system.  It collects
+a summary of metrics with the count of existing TCP and UDP connections and the
+count of listening ports. This metricset is available on FreeBSD, Linux, macOS,
+and Windows.
+
+| `uptime`
+| Provides the uptime of the host operating system. This metricset is available
+on FreeBSD, Linux, macOS, OpenBSD, and Windows.
+
+| `users`
+|  Reports logged-in users and associated sessions via dbus and logind, which is
+a systemd component. By default, the metricset will look in `/var/run/dbus/` for
+a system socket, although a new path can be selected with
+`DBUS_SYSTEM_BUS_ADDRESS`. This metricset is available on Linux.
+
+|===
+
+
+[[input-system-metrics-standard-settings]]
+=== Standard config settings
+
+Standard config settings available to any metrics input.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-metrics-settings.asciidoc[tag=enabled-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=fields-setting]
+
+//QUESTION: Remove this?
+include::input-shared-metrics-settings.asciidoc[tag=index-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=metricsets-setting]
+
+//QUESTION: include or leave out hosts settings since agent reads from local
+//host by default? Is there ever a reason to set it?
+//include::input-shared-metrics-settings.asciidoc[tag=hosts-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=period-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=service.name-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=tags-setting]
+
+|===
+
+[[input-system-metrics-standard-http-settings]]
+=== Standard HTTP settings
+
+Standard settings for inputs or metricsets that define the host as an HTTP URL.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-metrics-settings.asciidoc[tag=basepath-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=bearer_token_file-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=connect_timeout-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=headers-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=password-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=query-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=ssl-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=timeout-setting]
+
+include::input-shared-metrics-settings.asciidoc[tag=username-setting]
+
+|===
+
+:input-type!:
