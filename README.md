@@ -2,6 +2,9 @@
 
 The home of Elastic Observability documentation.
 
+This documentation may only be published on http://www.elastic.co,
+and cannot be published in any other form or on any other website without explicit permission.
+
 ## Directories
 
 Within this repo, the `/docs/en/` directory is structured as follows:
