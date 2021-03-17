@@ -2,9 +2,6 @@
 
 The home of Elastic Observability documentation.
 
-This documentation may only be published on http://www.elastic.co,
-and cannot be published in any other form or on any other website without explicit permission.
-
 ## Directories
 
 Within this repo, the `/docs/en/` directory is structured as follows:
@@ -27,3 +24,8 @@ In general, we only backport documentation changes to [live stack versions](http
 
 After your PR is merged, we recommend using the [backport tool](https://github.com/sqren/backport) to easily open backport PRs:
 `npx backport`. Alternatively, ping **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** and we'd be happy to handle the backport process for you.
+
+## Conditions of use
+
+This documentation may only be published on http://www.elastic.co.
+It cannot be published in any other form or on any other website without explicit permission.
