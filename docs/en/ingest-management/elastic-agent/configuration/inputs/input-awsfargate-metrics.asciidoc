@@ -1,84 +1,67 @@
-:input-type: activemq-metrics
+:input-type: awsfargate-metrics
 
-[[activemq-metrics-input]]
-== ActiveMQ metrics input
+[[awsfargate-metrics-input]]
+== awsfargate input
 
-Use the `activemq/metrics` input to fetch JMX metrics from Apache ActiveMQ. To
-configure this input, specify one or more metricsets. To use this input, you
-must also configure the Jolokia input.
+beta[]
 
-//TODO: Add link to Jolokia docs when they are available.
+Use the `awsfargate/metrics` input to collect AWS fargate metrics
+from a
+https://docs.aws.amazon.com/AmazonECS/latest/userguide/task-metadata-endpoint-v4-fargate.html[task metadata endpoint]. 
 
-To collect data, {agent} communicates with a Jolokia HTTP/REST endpoint
-that exposes the JMX metrics over HTTP/REST/JSON (JMX key:
-`org.apache.activemq:brokerName=localhost,destinationName=sample_queue,destinationType=Queue,type=Broker`).
+//QUESTION: How much detail do we need to include here? I'm not sure how much to
+//include in the settings reference (lots of detail about AWS ECS and Fargate).
+//In fact, to use this input it sounds like you have to run Metricbeat as a
+//sidecar container within the task defn.
 
+Example:
 
-*Compatibility:* This input has been tested with ActiveMQ 5.13.0 and 5.15.9.
-Other versions are expected to work.
-
-Example configuration:
-
-//TODO: Convert this config to correct format for agent.
+//TODO: convert to correct config syntax for agent. 
 
 [source,yaml]
 ----
-  - module: activemq
-    metricsets: ['broker', 'queue', 'topic']
+  metricbeat.modules:
+  - module: awsfargate
     period: 10s
-    hosts: ['localhost:8161']
-    path: '/api/jolokia/?ignoreErrors=true&canonicalNaming=false'
-    username: admin # default username
-    password: admin # default password
+    metricsets:
+      - task_stats
 ----
 
-
-The `activemq/metrics` input supports the following settings, grouped by category.
+The `awsfargate/metrics` input supports the following settings, grouped by category.
 Many of these settings have sensible defaults that allow you to run {agent}
 with minimal configuration.
 
-<<input-activemq-metrics-metricset-settings>>::
+<<input-awsfargate-metrics-metricset-settings>>::
 Available metricsets and their settings.
 
-<<input-activemq-metrics-standard-settings>>::
+<<input-awsfargate-metrics-standard-settings>>::
 Standard settings available to any metrics input.
 
-<<input-activemq-metrics-standard-http-settings>>::
+<<input-awsfargate-metrics-standard-http-settings>>::
 Standard settings for inputs or metricsets that define the host as an HTTP URL.
 
 //TODO: Add missing agent-related settings.
 
-[[input-activemq-metrics-metricset-settings]]
+[[input-awsfargate-metrics-metricset-settings]]
 === Metricsets
 
-{agent} provides the following metricsets for fetching JMX metrics from Apache
-ActiveMQ. Some metricsets have additional settings that you can specify to alter
-their behavior.
+{agent} provides the following metricsets for collecting AWS fargate metrics.
+Some metricsets have additional settings that you can specify to alter their
+behavior.
 
-NOTE: FORMATTED USING SECTIONS (INSTEAD OF TABLES) AS A TEST CASE.
+[cols="2*<a"]
+|===
+| Metricset type | Description and settings
 
-[[broker-metricset]]
-==== `broker` metricset
+|
+[[task_stats-metricset]]
+`task_stats`
+| This metricset collects runtime CPU metrics, disk I/O metrics, memory metrics,
+network metrics and container metadata from the
+`${ECS_CONTAINER_METADATA_URI_V4}/task/stats` and
+`${ECS_CONTAINER_METADATA_URI_V4}/task` endpoints.
 
-This metricset provides metrics describing the monitored ActiveMQ broker,
-including connected consumers, producers, memory usage, active connections,
-and exchanged messages.
-
-[[queue-metricset]]
-==== `queue` metricset
-
-This metricset provides metrics describing the available ActiveMQ queues,
-including exchanged messages (enqueued, dequeued, expired, in-flight),
-connected consumers, producers, and its current length.
-
-[[topic-metricset]]
-==== `topic` metricset
-
-This metricset provides metrics describing the available ActiveMQ topics,
-including exchanged messages (enqueued, dequeued, expired, in-flight),
-connected consumers, and producers.
-
-[[input-activemq-metrics-standard-settings]]
+[[input-awsfargate-metrics-standard-settings]]
 === Standard config settings
 
 Standard config settings available to any metrics input.
@@ -110,7 +93,7 @@ include::input-shared-metrics-settings.asciidoc[tag=tags-setting]
 
 |===
 
-[[input-activemq-metrics-standard-http-settings]]
+[[input-awsfargate-metrics-standard-http-settings]]
 === Standard HTTP settings
 
 Standard settings for inputs or metricsets that define the host as an HTTP URL.
