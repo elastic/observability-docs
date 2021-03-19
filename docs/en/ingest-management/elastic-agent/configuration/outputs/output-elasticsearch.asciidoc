@@ -1,0 +1,557 @@
+:output-type: elasticsearch
+
+[[elasticsearch-output]]
+= Configure the {es} output
+
+++++
+<titleabbrev>Elasticsearch</titleabbrev>
+++++
+
+//QUESTION: Do we/are we going to support cloud ID?
+
+The {es} output sends events directly to {es} by using the {es} HTTP API.
+
+*Compatibility:* This output works with all compatible versions of {es}. See the
+https://www.elastic.co/support/matrix#matrix_compatibility[Elastic Support
+Matrix].
+
+This example configures an {es} output called `default` in the
+`elastic-agent.yml` file:
+
+//TODO: Provide a example that shows more of the settings users are likely to
+//change.
+
+[source,yaml]
+----
+outputs:
+  default:
+    type: elasticsearch
+    hosts: [127.0.0.1:9200]
+    username: elastic
+    password: changeme
+----
+
+== {es} output configuration settings
+
+The `elasticsearch` output type supports the following settings, grouped by
+category. Many of these settings have sensible defaults that allow you to run
+{agent} with minimal configuration.
+
+* <<output-elasticsearch-commonly-used-settings>>
+
+* <<output-elasticsearch-authentication-settings>>
+
+* <<output-elasticsearch-data-parsing-settings>>
+
+* <<output-elasticsearch-http-settings>>
+
+* <<output-elasticsearch-performance-tuning-settings>>
+
+[[output-elasticsearch-commonly-used-settings]]
+== Commonly used settings
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+//QUESTION: I've removed index and indices because I don't think it makes sense
+//to document these settings for agent. Let me know if that's not correct.
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=enabled-setting]
+
+*Default:* `true`
+
+// =============================================================================
+
+// tag::hosts-setting[]
+|
+[id="output-{output-type}-hosts-setting"]
+`hosts`
+
+| (list) The list of {es} nodes to connect to. The events are distributed to
+these nodes in round robin order. If one node becomes unreachable, the event is
+automatically sent to another node. Each {es} node can be defined as a `URL` or
+`IP:PORT`. For example: `http://192.15.3.2`, `https://es.found.io:9230` or
+`192.24.3.2:9300`. If no port is specified, `9200` is used.
+
+NOTE: When a node is defined as an `IP:PORT`, the _scheme_ and _path_ are taken
+from the `protocol` and `path` settings. 
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["10.45.3.2:9220", "10.45.3.1:9230"] <1>
+    protocol: https
+    path: /elasticsearch
+------------------------------------------------------------------------------
+<1> In this example, the {es} nodes are available at
+`https://10.45.3.2:9220/elasticsearch` and
+`https://10.45.3.1:9230/elasticsearch`.
+// end::hosts-setting[]
+
+// =============================================================================
+
+// tag::protocol-setting[]
+|
+[id="output-{output-type}-protocol-setting"]
+`protocol`
+
+| (string) The name of the protocol {es} is reachable on. The options are:
+`http` or `https`. The default is `http`. However, if you specify a URL for
+`hosts`, the value of `protocol` is overridden by whatever scheme you specify in
+the URL.
+// end::protocol-setting[]
+
+// =============================================================================
+
+// tag::proxy_url-setting[]
+|
+[id="output-{output-type}-proxy_url-setting"]
+`proxy_url`
+
+| (string) The URL of the proxy to use when connecting to the {es} servers. The
+value may be either a complete URL or a `host[:port]`, in which case the `http`
+scheme is assumed. If a value is not specified through the configuration file
+then proxy environment variables are used. See the
+https://golang.org/pkg/net/http/#ProxyFromEnvironment[Go documentation]
+for more information about the environment variables.
+// end::proxy_url-setting[]
+
+// =============================================================================
+
+|===
+
+[[output-elasticsearch-authentication-settings]]
+== Authentication settings
+
+Settings for authenticating with {es}.
+
+When sending data to a secured cluster through the `elasticsearch`
+output, {agent} can use any of the following authentication methods:
+
+* Basic authentication credentials (username and password).
+* Token-based (API key) authentication.
+* Public Key Infrastructure (PKI) certificates.
+
+//QUESTION: Why isn't kerberos covered here?
+
+//TODO: Maybe break this section down into mutliple tables to show options
+//for each type of authentication and consider pulling in all the descriptions?
+//We're missing detail on ssl and kerberos.
+
+The following examples show how to configure authentication by using these
+methods.
+
+*Basic authentication:*
+
+["source","yaml",subs="attributes,callouts"]
+----
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["https://myEShost:9200"]
+    username: "your-username"
+    password: "your-password"
+----
+
+*API key authentication:*
+
+["source","yaml",subs="attributes,callouts"]
+----
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["https://myEShost:9200"]
+    api_key: "KnR6yE41RrSowb0kQ0HWoA"
+----
+
+*PKI certificate authentication:*
+
+["source","yaml",subs="attributes,callouts"]
+----
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["https://myEShost:9200"]
+    ssl.certificate: "/etc/pki/client/cert.pem"
+    ssl.key: "/etc/pki/client/cert.key"
+----
+
+
+//See <<securing-communication-elasticsearch>> for details on each
+//authentication method.
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+// tag::api_key-setting[]
+|
+[id="output-{output-type}-api_key-setting"]
+`api_key`
+
+| (string) Instead of using a username and password, you can use API keys to
+secure communication with {es}. The value must be the ID of the API key and the
+API key joined by a colon: `id:api_key`.
+// end::api_key-setting[]
+
+// =============================================================================
+
+// tag::kerberos-setting[]
+|
+[id="output-{output-type}-kerberos-setting"]
+`kerberos`
+
+| Configuration options for Kerberos authentication.
+
+//See <<configuration-kerberos>> for more information.
+// end::kerberos-setting[]
+
+// =============================================================================
+
+// tag::password-setting[]
+|
+[id="output-{output-type}-password-setting"]
+`password`
+
+| (string) The basic authentication password for connecting to {es}.
+// end::password-setting[]
+
+// =============================================================================
+
+// tag::ssl-setting[]
+|
+[id="output-{output-type}-ssl-setting"]
+`ssl`
+
+| Configuration options for SSL parameters like the certificate authority to use
+for HTTPS-based connections. If the `ssl` section is missing, the host CAs are
+used for HTTPS connections to {es}.
+
+//See the <<securing-communication-elasticsearch,secure communication with {es}>> guide
+//or <<configuration-ssl,SSL configuration reference>> for more information.
+
+//TODO: Need to add the ssl settings before we activate the link here.
+
+// end::ssl-setting[]
+
+// =============================================================================
+
+// tag::username-setting[]
+|
+[id="output-{output-type}-username-setting"]
+`username`
+
+| (string) The basic authentication username for connecting to {es}.
+
+This user needs the privileges required to publish events to {es}.
+//To create a user like this, see <<privileges-to-publish-events>>.
+// end::username-setting[]
+
+// =============================================================================
+
+|===
+
+[[output-elasticsearch-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+Settings used to parse, filter, and transform data.
+
+//TODO: Add an brief intro about ingest pipelines.
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+include::output-shared-settings.asciidoc[tag=escape_html-setting]
+
+// =============================================================================
+
+// tag::pipeline-setting[]
+|
+[id="output-{output-type}-pipeline-setting"]
+`pipeline`
+
+| (string) A format string value that specifies the ingest node pipeline to
+write events to.
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: elasticsearchoutput.elasticsearch:
+    hosts: ["http://localhost:9200"]
+    pipeline: my_pipeline_id
+------------------------------------------------------------------------------
+
+//For more information, see <<configuring-ingest-node>>.
+
+You can set the ingest node pipeline dynamically by using a format string to
+access any event field. For example, this configuration uses a custom field,
+`fields.log_type`, to set the pipeline for each event:
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: elasticsearch  hosts: ["http://localhost:9200"]
+    pipeline: "%{[fields.log_type]}_pipeline"
+------------------------------------------------------------------------------
+
+With this configuration, all events with `log_type: normal` are sent to a
+pipeline named `normal_pipeline`, and all events with `log_type: critical` are
+sent to a pipeline named `critical_pipeline`.
+
+TIP: To learn how to add custom fields to events, see the `fields` option.
+
+See the `pipelines` setting for other ways to set the ingest node pipeline
+dynamically.
+// end::pipelines-setting[]
+
+// =============================================================================
+
+// tag::pipelines-setting[]
+|
+[id="output-{output-type}-pipelines-setting"]
+`pipelines`
+
+| An array of pipeline selector rules. Each rule specifies the ingest node
+pipeline to use for events that match the rule. During publishing, {agent}
+uses the first matching rule in the array. Rules can contain conditionals,
+format string-based fields, and name mappings. If the `pipelines` setting is
+missing or no rule matches, the `pipeline` setting is used.
+
+Rule settings:
+
+*`pipeline`*:: The pipeline format string to use. If this string contains field
+references, such as `%{[fields.name]}`, the fields must exist, or the rule
+fails.
+
+*`mappings`*:: A dictionary that takes the value returned by `pipeline` and maps
+it to a new name.
+
+*`default`*:: The default string value to use if `mappings` does not find a
+match.
+
+*`when`*:: A condition that must succeed in order to execute the current rule.
+
+All the conditions supported by processors are also supported here.
+
+The following example sends events to a specific pipeline based on whether the
+`message` field contains the specified string:
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: elasticsearch  hosts: ["http://localhost:9200"]
+    pipelines:
+      - pipeline: "warning_pipeline"
+        when.contains:
+          message: "WARN"
+      - pipeline: "error_pipeline"
+        when.contains:
+          message: "ERR"
+------------------------------------------------------------------------------
+
+
+The following example sets the pipeline by taking the name returned by the
+`pipeline` format string and mapping it to a new name that's used for the
+pipeline:
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["http://localhost:9200"]
+    pipelines:
+      - pipeline: "%{[fields.log_type]}"
+        mappings:
+          critical: "sev1_pipeline"
+          normal: "sev2_pipeline"
+        default: "sev3_pipeline"
+------------------------------------------------------------------------------
+
+
+With this configuration, all events with `log_type: critical` are sent to
+`sev1_pipeline`, all events with `log_type: normal` are sent to a
+`sev2_pipeline`, and all other events are sent to `sev3_pipeline`.
+
+//For more information about ingest node pipelines, see
+//<<configuring-ingest-node>>.
+// end::pipelines-setting[]
+
+// =============================================================================
+
+|===
+
+[[output-elasticsearch-http-settings]]
+== HTTP settings
+
+Settings that modify the HTTP requests sent to {es}.
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+
+// tag::headers-setting[]
+|
+[id="output-{output-type}-headers-setting"]
+`headers`
+
+| Custom HTTP headers to add to each request created by the {es} output.
+
+Example:
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: elasticsearch
+    headers:
+      X-My-Header: Header contents
+------------------------------------------------------------------------------
+
+Specify multiple header values for the same header name by separating them with
+a comma.
+// end::headers-setting[]
+
+// =============================================================================
+
+// tag::parameters-setting[]
+|
+[id="output-{output-type}-parameters-setting"]
+`parameters`
+
+| Dictionary of HTTP parameters to pass within the url with index operations.
+// end::parameters-setting[]
+
+// =============================================================================
+
+// tag::path-setting[]
+|
+[id="output-{output-type}-path-setting"]
+`path`
+
+| (string) An HTTP path prefix that is prepended to the HTTP API calls. This is
+useful for the cases where {es} listens behind an HTTP reverse proxy that
+exports the API under a custom prefix.
+// end::path-setting[]
+
+// =============================================================================
+
+|===
+
+[[output-elasticsearch-performance-tuning-settings]]
+== Performance tuning settings
+
+Settings that may affect performance.
+
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+// tag::backoff.init-setting[]
+|
+[id="output-{output-type}-backoff.init-setting"]
+`backoff.init`
+
+| (string) The number of seconds to wait before trying to reconnect to {es}
+after a network error. After waiting `backoff.init` seconds, {agent} tries to
+reconnect. If the attempt fails, the backoff timer is increased exponentially up
+to `backoff.max`. After a successful connection, the backoff timer is reset.
+
+*Default:* `1s`
+// end::backoff.init-setting[]
+
+// =============================================================================
+
+// tag::backoff.max-setting[]
+|
+[id="output-{output-type}-backoff.max-setting"]
+`backoff.max`
+
+| (string) The maximum number of seconds to wait before attempting to connect to
+{es} after a network error.
+
+*Default:* `60s`
+// end::backoff.max-setting[]
+
+// =============================================================================
+
+// tag::bulk_max_size-setting[]
+|
+[id="output-{output-type}-bulk_max_size-setting"]
+`bulk_max_size`
+
+| (int) The maximum number of events to bulk in a single {es} bulk API index
+request. 
+
+Events can be collected into batches. {agent} will split batches larger than
+`bulk_max_size` into multiple batches.
+
+Specifying a larger batch size can improve performance by lowering the overhead
+of sending events. However big batch sizes can also increase processing times,
+which might result in API errors, killed connections, timed-out publishing
+requests, and, ultimately, lower throughput.
+
+Setting `bulk_max_size` to values less than or equal to 0 turns off the
+splitting of batches. When splitting is disabled, the queue decides on the
+number of events to be contained in a batch.
+
+*Default:* `50`
+// end::bulk_max_size-setting[]
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=compression_level-setting]
+
+*Default:* `0`
+
+// =============================================================================
+
+// tag::max_retries-setting[]
+|
+[id="output-{output-type}-max_retries-setting"]
+`max_retries`
+
+| (int) The number of times to retry publishing an event after a publishing
+failure. After the specified number of retries, the events are typically
+dropped.
+
+Set `max_retries` to a value less than 0 to retry until all events are published.
+
+*Default:* `3`
+// end::max_retries-setting[]
+
+// =============================================================================
+
+// tag::timeout-setting[]
+|
+[id="output-{output-type}-timeout-setting"]
+`timeout`
+
+| (int) The HTTP request timeout in seconds for the {es} request.
+
+*Default:* `90`
+
+//QUESTION: Is this really an int? Seems weird that all other durations are
+//strings like 90s.
+
+// end::timeout-setting[]
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=worker-setting]
+
+// =============================================================================
+
+|===
+
+:output-type!: 

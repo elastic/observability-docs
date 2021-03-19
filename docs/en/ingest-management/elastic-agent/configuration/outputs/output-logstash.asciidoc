@@ -1,0 +1,377 @@
+:output-type: logstash
+
+[[logstash-output]]
+= {ls} output
+
+++++
+<titleabbrev>Logstash</titleabbrev>
+++++
+
+IMPORTANT: The {ls} output is currently only supported for {agent}s in
+standalone mode. {fleet}-managed agents are not supported.
+
+The {ls} output uses an internal protocol to send events directly to {ls} over
+TCP. {ls} provides additional parsing, transformation, and routing of data
+collected by {agent}.
+
+*Compatibility:* This output works with all compatible versions of {ls}. Refer
+to the https://www.elastic.co/support/matrix#matrix_compatibility[Elastic
+Support Matrix].
+
+This example configures a {ls} output called `default` in the
+`elastic-agent.yml` file:
+
+//TODO: Provide a example that shows more of the settings users are likely to
+//change.
+
+[source,yaml]
+----
+outputs:
+  default:
+    type: logstash
+    hosts: ["127.0.0.1:5044"] <1>
+----
+<1> The {ls} server and the port (`5044`) where {ls} is configured to listen for
+incoming {agent} connections.
+
+To send events to {ls}, you also need to create a {ls} configuration pipeline.
+The {ls} configuration pipeline listens for incoming {agent} connections,
+processes received events, and then sends the events to {es}.
+
+The following Logstash configuration file configures a {ls} pipeline that
+listens on port `5044` for incoming {agent} connections and routes received
+events to {es}:
+
+[source,yaml]
+----
+input {
+  elastic_agent {
+    port => 5044
+  }
+}
+
+output {
+  elasticsearch {
+    hosts => ["http://localhost:9200"] <1>
+    data_stream => "true"
+  }
+}
+----
+<1> The {es} server and the port (`9200`) where {es} is running.
+
+For more information about configuring {ls}, refer to
+{logstash-ref}/configuration.html[Configuring {ls}] and
+{logstash-ref}/plugins-inputs-elastic_agent.html[{agent} input plugin].
+
+== {ls} output configuration settings
+
+The `logstash` output supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent} with
+minimal configuration.
+
+* <<output-logstash-commonly-used-settings>>
+
+* <<output-logstash-authentication-settings>>
+
+* <<output-logstash-performance-tuning-settings>>
+
+[[output-logstash-commonly-used-settings]]
+== Commonly used settings
+
+//QUESTION: How are data stream names passed to Logstash? I'm
+//assuming that happens automatically and that users don't need to configure a
+//setting like index. Is that correct?
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+include::output-shared-settings.asciidoc[tag=enabled-setting]
+
+*Default:* `false`
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=escape_html-setting]
+
+// =============================================================================
+
+// tag::hosts-setting[]
+|
+[id="output-{output-type}-hosts-setting"]
+`hosts`
+
+| (list) The list of known {ls} servers to connect to. If load balancing is
+disabled, but multiple hosts are configured, one host is selected randomly
+(there is no precedence). If one host becomes unreachable, another one is
+selected randomly.
+
+All entries in this list can contain a port number. If no port is specified,
+`5044` is used.
+
+// =============================================================================
+
+// tag::proxy_url-setting[]
+|
+[id="output-{output-type}-proxy_url-setting"]
+`proxy_url`
+
+| (string) The URL of the SOCKS5 proxy to use when connecting to the {ls}
+servers. The value must be a URL with a scheme of `socks5://`. The protocol used
+to communicate to {ls} is not based on HTTP, so you cannot use a web proxy.
+
+If the SOCKS5 proxy server requires client authentication, embed a username and
+password in the URL as shown in the example.
+
+When using a proxy, hostnames are resolved on the proxy server instead of on the
+client. To change this behavior, set `proxy_use_local_resolver`.
+
+[source,yaml]
+----
+outputs:
+  default:
+    type: logstash
+    hosts: ["remote-host:5044"]
+    proxy_url: socks5://user:password@socks5-proxy:2233
+----
+
+// end::proxy_url-setting[]
+
+// =============================================================================
+// tag::proxy_use_local_resolver-setting[]
+|
+[id="output-{output-type}-proxy_use_local_resolver-setting"]
+`proxy_use_`
+`local_resolver`
+
+| (boolean) Determines whether {ls} hostnames are resolved locally when using a
+proxy. If `false` and a proxy is used, name resolution occurs on the proxy
+server.
+
+*Default:* `false`
+
+// end::proxy_use_local_resolver-setting[]
+
+// =============================================================================
+
+
+|===
+
+
+[[output-logstash-authentication-settings]]
+== Authentication settings
+
+Settings for authenticating with {es}.
+
+//QUESTION: Is this list complete? Does LS only support ssl options? If so, I
+//wonder if it's even worthing having this section here.
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+// tag::ssl-setting[]
+|
+[id="output-{output-type}-ssl-setting"]
+`ssl`
+
+| Configuration options for SSL parameters like the root certificate
+authority (CA) for {ls} connections.
+
+//See <<configuration-ssl>> for more information.
+//TODO: Need to add the ssl settings before we activate the link here.
+
+To use SSL, you must also configure the
+{logstash-ref}/plugins-inputs-beats.html[{agent} input plugin for Logstash] to
+use SSL/TLS.
+
+// end::ssl-setting[]
+
+// =============================================================================
+
+|===
+
+[[output-logstash-performance-tuning-settings]]
+== Performance tuning settings
+
+Settings that may affect performance.
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+// tag::backoff.init-setting[]
+|
+[id="output-{output-type}-backoff.init-setting"]
+`backoff.init`
+
+| (string) The number of seconds to wait before trying to reconnect to {ls}
+after a network error. After waiting `backoff.init` seconds, {agent} tries to
+reconnect. If the attempt fails, the backoff timer is increased exponentially up
+to `backoff.max`. After a successful connection, the backoff timer is reset.
+
+*Default:* `1s`
+// end::backoff.init-setting[]
+
+// =============================================================================
+
+// tag::backoff.max-setting[]
+|
+[id="output-{output-type}-backoff.max-setting"]
+`backoff.max`
+
+| (string) The maximum number of seconds to wait before attempting to connect to
+{es} after a network error.
+
+*Default:* `60s`
+
+// end::backoff.max-setting[]
+
+// =============================================================================
+
+// tag::bulk_max_size-setting[]
+|
+[id="output-{output-type}-bulk_max_size-setting"]
+`bulk_max_size`
+
+| (int) The maximum number of events to bulk in a single {ls} request.
+
+Events can be collected into batches. {agent} will split batches larger than
+`bulk_max_size` into multiple batches.
+
+Specifying a larger batch size can improve performance by lowering the overhead
+of sending events. However big batch sizes can also increase processing times,
+which might result in API errors, killed connections, timed-out publishing
+requests, and, ultimately, lower throughput.
+
+Set this value to `0` to turn off the splitting of batches. When splitting is
+turned off, the queue determines the number of events to be contained in a
+batch.
+
+*Default:* `2048`
+// end::bulk_max_size-setting[]
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=compression_level-setting]
+
+*Default:* `3`
+
+// =============================================================================
+
+// tag::loadbalance-setting[]
+|
+[id="output-{output-type}-loadbalance-setting"]
+`loadbalance`
+
+| If `true` and multiple {ls} hosts are configured, the output plugin
+load balances published events onto all {ls} hosts. If `false`,
+the output plugin sends all events to one host (determined at random) and
+switches to another host if the selected one becomes unresponsive.
+
+*Default:* `false`
+
+Example:
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: logstash
+    hosts: ["localhost:5044", "localhost:5045"]
+    loadbalance: true
+------------------------------------------------------------------------------
+
+// end::loadbalance-setting[]
+
+// =============================================================================
+
+// tag::max_retries-setting[]
+|
+[id="output-{output-type}-max_retries-setting"]
+`max_retries`
+
+| (int) The number of times to retry publishing an event after a publishing
+failure. After the specified number of retries, the events are typically
+dropped.
+
+Set `max_retries` to a value less than 0 to retry until all events are published.
+
+*Default:* `3`
+// end::max_retries-setting[]
+
+// =============================================================================
+
+// tag::pipelining-setting[]
+|
+[id="output-{output-type}-pipelining-setting"]
+`pipelining`
+
+| (int) The number of batches to send asynchronously to {ls} while waiting
+for an ACK from {ls}. The output becomes blocking after the specified number of
+batches are written. Specify `0` to turn off pipelining.
+
+*Default:* `2`
+
+// end::pipelining-setting[]
+
+// =============================================================================
+
+// tag::slow_start-setting[]
+|
+[id="output-{output-type}-slow_start-setting"]
+`slow_start`
+
+| (boolean) If `true`, only a subset of events in a batch of events is transferred
+per transaction. The number of events to be sent increases up to
+`bulk_max_size` if no error is encountered. On error, the number of events per
+transaction is reduced again.
+
+*Default:* `false`
+
+// end::slow_start-setting[]
+
+// =============================================================================
+
+// tag::timeout-setting[]
+|
+[id="output-{output-type}-timeout-setting"]
+`timeout`
+
+| (string) The number of seconds to wait for responses from the {ls} server
+before timing out.
+
+*Default:* `30s`
+
+// end::timeout-setting[]
+
+// =============================================================================
+
+// tag::ttl-setting[]
+|
+[id="output-{output-type}-ttl-setting"]
+`ttl`
+
+| (string) Time to live for a connection to {ls} after which the connection will be
+reestablished. This setting is useful when {ls} hosts represent load balancers.
+Because connections to {ls} hosts are sticky, operating behind load balancers
+can lead to uneven load distribution across instances. Specify a TTL on the
+connection to achieve equal connection distribution across instances.
+
+*Default:* `0` (turns off the feature)
+
+NOTE: The `ttl` option is not yet supported on an async {ls} client (one with
+the `pipelining` option set).
+
+// end::ttl-setting[]
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=worker-setting]
+
+//QUESTION: Is the default for the logstash output 1? In Beats, the default is documented
+//for Elasticsearch, but not for Logstash.
+
+// =============================================================================
+
+|===
