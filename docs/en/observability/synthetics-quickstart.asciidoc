@@ -1,4 +1,4 @@
-:synthetics-image: docker.elastic.co/beats/heartbeat:{version}
+:synthetics-image: docker.elastic.co/beats/{heartbeat}:{version}
 
 [[synthetics-quickstart]]
 = Quickstart: Synthetic monitoring via Docker
@@ -35,12 +35,12 @@ docker pull {synthetics-image}
 
 [discrete]
 [[synthetics-quickstart-step-two]]
-== Step 2: Create a heartbeat.yml configuration file
+== Step 2: Create a {heartbeat}.yml configuration file
 
 There are two ways to configure a synthetic test. The config file below demonstrates both.
 The first entry in `heartbeat.monitors` uses the `inline` source type, where the entire synthetic journey is directly embedded in the yaml file.
 The second method, uses the `local` source type, which points to a local directory containing multiple tests.
-For test suites Heartbeat will attempt to run all files in that directory with the extension `.journey.ts` or `.journey.js`.
+For test suites {heartbeat} will attempt to run all files in that directory with the extension `.journey.ts` or `.journey.js`.
 See <<synthetics-syntax>> for more information.
 
 To start, download or clone a local copy of https://github.com/elastic/synthetics/tree/master/examples/todos[our todos example suite] from our synthetics repo to your
@@ -74,17 +74,17 @@ heartbeat.monitors:
 This allows tests to be run in parallel and analyzed separately.
 <2> In this example, a synthetic test is defined inline. This is a two-step script that first loads
 a homepage and then hovers over a product menu. See <<synthetics-syntax>> for more information.
-<3> In this example, our library of synthetic tests come from https://github.com/elastic/synthetics/tree/master/examples/todos[our todos example]. The path shown here corresponds to the path heartbeat will look at inside the docker container.
+<3> In this example, our library of synthetic tests come from https://github.com/elastic/synthetics/tree/master/examples/todos[our todos example]. The path shown here corresponds to the path {heartbeat} will look at inside the docker container.
 <4> Note that this path is local to the docker container, not the host system. You can have the todos files anywhere you like on the host, and map them to `/opt/todos` in the container.
 
 [discrete]
 [[synthetics-quickstart-step-three]]
 == Step 3: Run the container, connecting it to Elasticsearch
 
-Before we proceed, you'll need to retrieve your Elasticsearch credentials for either an https://www.elastic.co/guide/en/beats/heartbeat/current/configure-cloud-id.html[Elastic Cloud ID] or another https://www.elastic.co/guide/en/beats/heartbeat/current/elasticsearch-output.html[Elasticsearch Cluster].
+Before we proceed, you'll need to retrieve your Elasticsearch credentials for either an https://www.elastic.co/guide/en/beats/{heartbeat}/current/configure-cloud-id.html[Elastic Cloud ID] or another https://www.elastic.co/guide/en/beats/heartbeat/current/elasticsearch-output.html[Elasticsearch Cluster].
 
 WARNING: Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions. Add the `sandbox: true` option to a given browser
-monitor in heartbeat to enable sandboxing. This may require using a https://github.com/elastic/synthetics/blob/master/examples/docker/seccomp_profile.json[custom seccomp policy] with docker, which brings its own additional risks. This is generally safe when run against sites whose content you trust,
+monitor in {heartbeat} to enable sandboxing. This may require using a https://github.com/elastic/synthetics/blob/master/examples/docker/seccomp_profile.json[custom seccomp policy] with docker, which brings its own additional risks. This is generally safe when run against sites whose content you trust,
 and with a recent version of Elastic synthetics and chromium.
 
 The example below, run from the `examples/todos` directory shows how to run synthetics tests indexing data into Elasticsearch.
@@ -97,11 +97,11 @@ Run the script below to start running your synthetics tests. You'll need to inse
 ----
 docker run \
   --rm \
-  --name=heartbeat \
-  --user=heartbeat \
-  --volume="$PWD/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro" \
+  --name={heartbeat} \
+  --user={heartbeat} \
+  --volume="$PWD/{heartbeat}.yml:/usr/share/heartbeat/heartbeat.yml:ro" \
   --volume="$PWD:/opt/todos:ro" \
-  {synthetics-image} heartbeat -e \
+  {synthetics-image} {heartbeat} -e \
   -E cloud.id=cloud-id \
   -E cloud.auth=elastic:cloud-pass
 ----
@@ -113,19 +113,19 @@ username, and password:
 ----
 docker run \
   --rm \
-  --name=heartbeat \
-  --user=heartbeat \
-  --volume="$PWD/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro" \
+  --name={heartbeat} \
+  --user={heartbeat} \
+  --volume="$PWD/{heartbeat}.yml:/usr/share/heartbeat/heartbeat.yml:ro" \
   --volume="$PWD:/opt/todos:ro" \
-  {synthetics-image} heartbeat -e \
+  {synthetics-image} {heartbeat} -e \
   -E output.elasticsearch.hosts=["localhost:9200"] \
   -E output.elasticsearch.username=elastic \
   -E output.elasticsearch.password=changeme
 ----
 
-Note the two `--volume` options, which mount local directories into the container. The first mounts the `heartbeat.yml` file configured above,
-into Heartbeat's expected location for `heartbeat.yml`. The second mounts the test suite into the VM in the same location listed in the `source`
-section of our `heartbeat.yml`.
+Note the two `--volume` options, which mount local directories into the container. The first mounts the `{heartbeat}.yml` file configured above,
+into {heartbeat}'s expected location for `{heartbeat}.yml`. The second mounts the test suite into the VM in the same location listed in the `source`
+section of our `{heartbeat}.yml`.
 
 
 [discrete]
