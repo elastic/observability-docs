@@ -160,6 +160,41 @@ foo=bar elastic-agent run
 You can reference the environment variable as `${env.foo}`.
 
 [discrete]
+[[kubernetes_secrets-provider]]
+==== Kubernetes Secrets Provider
+
+Provides access to the Kubernetes Secrets API.
+
+Provider needs a `kubeconfig` file so as to establish connection to Kubernetes API,
+or it can automatically reach the API if it runs in an inCluster environment (Agent runs as Pod).
+
+[source,yaml]
+----
+providers.kubernetes_secrets:
+  #kube_config: /Users/elastic-agent/.kube/config
+----
+
+You can reference the Kubernetes Secrets variable as `${kubernetes_secrets.default.somesecret.value}`,
+where `default` is the namespace of the Secret, `somesecret` is the name of the Secret and `value` the field
+of the Secret to access.
+
+If you run Agent on Kubernetes the proper rule in the `ClusterRole` is required so as Agent Pod to have access
+to Secrets API:
+
+[source,yaml]
+----
+- apiGroups: [""]
+  resources:
+    - secrets
+  verbs: ["get"]
+----
+
+CAUTION: The above rule will give permission to Agent Pod to access Kubernetes Secrets API.
+This means that anyone who have access to Agent Pod (`kubectl exec` for example) will be able to
+access Kubernetes Secrets API and get a specific secret no matter which namespace it belongs to.
+In this, this option should be carefully considered.
+
+[discrete]
 [[dynamic-providers]]
 === Dynamic Providers
 
