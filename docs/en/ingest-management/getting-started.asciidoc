@@ -193,6 +193,78 @@ to the data stream.
 //TODO: Add dashboard.
 
 [discrete]
+== Data from Splunk (Experimental)
+
+Apache, AWS Cloudtrail, Nginx, and Zeek integrations offer the ability
+to pull logs from a Splunk Enterprise instance.  This sections covers
+configuration & limitations of this option.
+
+To ingest Nginx data from Splunk the following steps are performed.
+The options are the same for Apache, AWS Cloudtrail and Zeek.
+
+. Find the Nginx integration and begin adding it as described in <<<add-nginx-integration>>>.
+
+. Enable "Collect logs from third-party REST API" and disable both "Collect
+logs from Nginx instances" and "Collect metrics from Nginx instances".
++
+[role="screenshot"]
+image::images/kibana-fleet-third-party-rest-api.png[{fleet} showing enabling third-party REST API]
+
+. Enter the required information to connect to the Splunk Enterprise REST API.
++
+The URL of the Splunk Enterprise Server must include the scheme (http or https),
+the IP address or hostname of the Splunk Enterprise Server, and the the port the
+REST API is listening on.
++
+The Splunk username and password must be of a user with a role or
+capability to use REST API endpoints.  Administrative users have these
+permissions by default.
++
+SSL Configuration is available under the "Advanced options".  These may be necessary
+if Splunk Enterprise server uses self signed certificates.  See
+https://www.elastic.co/guide/en/beats/filebeat/current/configuration-ssl.html[SSL Options]
+for valid configuration options.
++
+[role="screenshot"]
+image::images/kibana-fleet-third-party-rest-settings.png[{fleet} showing enabling third-party REST API settings]
+
+. For each type of log file enter the interval and Splunk search string.
++
+The interval is expressed as a
+https://golang.org/pkg/time/#ParseDuration[Go duration].
+The interval is the time between requests sent to the Splunk
+Enterprise REST API to request new information.  Intervals less than
+one second are not recommended, Splunk only maintains second accuracy
+for index time.
++
+The search string is the Splunk search used to uniquely describe the
+events that match the type of log file you are trying to configure.
+For example, to uniquely describe Nginx access logs "search
+sourcetype=nginx:plus:access" might be used.  Note, the search string
+must begin with "search" for details refer to the Splunk REST API
+manual and the "search/jobs/export" endpoint.
++
+Tags may be added in the "Advanced options".
++
+[role="screenshot"]
+image::images/kibana-fleet-third-party-rest-dataset-settings.png[{fleet} showing enabling third-party REST API settings]
+
+. Click Save Integration
+. Data and Dashboards will be available just as if you had collected
+the data on the nginx host using log files.
+
+
+[discrete]
+=== Limitations
+
+The time on the host running the agent and the Splunk Enterprise
+Server should be synchronized to the same time source, with correct
+timezone information.  Failure to do this could result in delays in
+transferring data or gaps in the data received.
+
+
+
+[discrete]
 == What's next?
 
 * Now that data is streaming into the {stack}, take your investigation to a
