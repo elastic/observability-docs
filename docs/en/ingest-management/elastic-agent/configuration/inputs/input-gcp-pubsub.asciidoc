@@ -1,0 +1,197 @@
+[role="xpack"]
+
+:input-type: gcp-pubsub
+
+[[gcp-pubsub-input]]
+== GCP Pub/Sub input
+
+++++
+<titleabbrev>GCP Pub/Sub</titleabbrev>
+++++
+
+Use the `gcp-pubsub` input to read messages from a Google Cloud Pub/Sub topic
+subscription.
+
+This input can, for example, be used to receive Stackdriver logs that have been
+exported to a Google Cloud Pub/Sub topic.
+
+//QUESTION: How would users configure this with the agent?
+//Multiple {Filebeat} instances can be configured to read from the same
+//subscription to achieve high-availability or increased throughput.
+
+Example configuration:
+
+["source","yaml",subs="attributes"]
+----
+inputs:
+  - type: gcp-pubsub
+    project_id: my-gcp-project-id
+    topic: vpc-firewall-logs-topic
+    subscription.name: elastic-agent-vpc-firewall-logs-sub
+    credentials_file: ${path.config}/my-pubsub-subscriber-credentials.json
+----
+
+The `gcp-pubsub` input supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-gcp-pubsub-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-aws-cloudwatch-performance-tuning-settings>>::
+Settings that affect performance.
+
+<<input-gcp-pubsub-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+[[input-gcp-pubsub-commonly-used-settings]]
+=== Commonly used settings
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::credentials_file-setting[]
+|
+[id="input-{input-type}-credentials_file-setting"]
+`credentials_file`
+
+| (string) The path to a JSON file containing the credentials and key used to
+subscribe. As an alternative you can use the `credentials_json` config option or
+rely on https://cloud.google.com/docs/authentication/production[Google
+Application Default Credentials] (ADC).
+// end::credentials_file-setting[]
+
+// =============================================================================
+
+// tag::credentials_json-setting[]
+|
+[id="input-{input-type}-credentials_json-setting"]
+`credentials_json`
+
+| (string) A JSON blob containing the credentials and key used to subscribe.
+This can be as an alternative to `credentials_file` if you want to embed the
+credential data within your config file or put the information into a keystore.
+You may also use https://cloud.google.com/docs/authentication/production[Google
+Application Default Credentials] (ADC).
+// end::credentials_json[]
+// =============================================================================
+
+
+// tag::project_id-setting[]
+|
+[id="input-{input-type}-project_id-setting"]
+`project_id` (required)
+
+| (string) Google Cloud project ID.
+// end::project_id-setting[]
+
+// =============================================================================
+
+// tag::subscription.create-setting[]
+|
+[id="input-{input-type}-subscription.create-setting"]
+`subscription.create`
+
+| (boolean) Configures the input to create the subscription if it does not
+exist.
+
+*Default:* `true`
+// end::subscription.create-setting[]
+
+// =============================================================================
+// tag::subscription.name-setting[]
+|
+[id="input-{input-type}-subscription.name-setting"]
+`subscription.name` (required)
+
+| (string) Name of the subscription to read from.
+// end::subscription.name-setting[]
+
+// =============================================================================
+
+// tag::topic-setting[]
+|
+[id="input-{input-type}-NAME-setting"]
+`topic` (required)
+
+| (string) Google Cloud Pub/Sub topic name.
+// end::topic-setting[]
+
+// =============================================================================
+
+|===
+
+
+[[input-gcp-pubsub-performance-tuning-settings]]
+=== Performance tuning settings
+
+Settings that affect performance.
+
+//QUESTION: Is it typical for users to change these settings? IF so, they
+//should not be in a separate section.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::subscription.num_goroutines-setting[]
+|
+[id="input-{input-type}-subscription.num_goroutines-setting"]
+`subscription.num_goroutines`
+
+| (int) The number of goroutines to create to read from the subscription. This
+does not limit the number of messages that can be processed concurrently or the
+maximum number of goroutines the input will create. Even with one goroutine,
+many messages might be processed at once, because that goroutine may continually
+receive messages. To limit the number of messages being processed concurrently,
+set `subscription.max_outstanding_messages`.
+
+*Default:* `1`
+// end::subscription.num_goroutines-setting[]
+
+// =============================================================================
+
+// tag::subscription.max_outstanding_messages-setting[]
+|
+[id="input-{input-type}-subscription.max_outstanding_messages-setting"]
+`subscription.max_outstanding_messages`
+
+| (int) The maximum number of unprocessed messages (unacknowledged but not yet
+expired). If the value is negative, there is no limit on the number of
+unprocessed messages.
+
+*Default:* `1000`
+// end::subscription.max_outstanding_messages-setting[]
+
+// =============================================================================
+
+|===
+
+[[input-gcp-pubsub-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:

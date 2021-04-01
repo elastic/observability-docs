@@ -1,0 +1,211 @@
+[role="xpack"]
+
+:input-type: cloudfoundry
+
+[[cloudfoundry-input]]
+== Cloud Foundry input
+
+++++
+<titleabbrev>Cloud Foundry</titleabbrev>
+++++
+
+Use the `cloudfoundry` input to get http access logs, container logs, and error
+logs from Cloud Foundry. Connects to the Cloud Foundry Loggregator to receive
+events.
+
+Example configurations:
+
+[source,yaml]
+----
+inputs:
+  - type: cloudfoundry
+    api_address: https://api.dev.cfdev.sh
+    client_id: uaa-elastic-agent
+    client_secret: verysecret
+    shard_id: filebeat
+    ssl:
+      verification_mode: none
+----
+
+[source,yaml]
+----
+inputs:
+  - type: cloudfoundry
+    api_address: https://api.dev.cfdev.sh
+    client_id: uaa-filebeat
+    client_secret: verysecret
+    shard_id: elastic-agent
+    ssl.certificate_authorities: ["/etc/pki/cf/ca.pem"]
+    ssl.certificate: "/etc/pki/cf/cert.pem"
+    ssl.key: "/etc/pki/cf/cert.key"
+
+----
+
+The `cloudfoundry` input supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-cloudfoundry-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-cloudfoundry-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+[[input-cloudfoundry-commonly-used-settings]]
+=== Commonly used settings
+
+Settings frequently changed for this input type.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::api_address-setting[]
+|
+[id="input-{input-type}-api_address-setting"]
+`api_address`
+
+| (string) The URL of the Cloud Foundry API. .
+
+*Default:* `"http://api.bosh-lite.com"`
+// end::api_address-setting[]
+
+// =============================================================================
+
+// tag::client_id-setting[]
+|
+[id="input-{input-type}-client_id-setting"]
+`client_id`
+
+| (string) Client ID to authenticate with Cloud Foundry.
+
+*Default:* `""`
+// end::client_id-setting[]
+
+// =============================================================================
+
+// tag::client_secret-setting[]
+|
+[id="input-{input-type}-client_secret-setting"]
+`client_secret`
+
+| (string) Client Secret to authenticate with Cloud Foundry.
+
+*Default:* `""`
+
+OPTIONAL INFO AND EXAMPLE
+// end::client_secret-setting[]
+
+// =============================================================================
+
+// tag::doppler_address-setting[]
+|
+[id="input-{input-type}-doppler_address-setting"]
+`doppler_address`
+
+| (string) The URL of the Cloud Foundry Doppler Websocket.
+
+*Default:* "(value from ${api_address}/v2/info)"
+// end::doppler_address-setting[]
+
+// =============================================================================
+
+// tag::rlp_address-setting[]
+|
+[id="input-{input-type}-rlp_address-setting"]
+`rlp_address`
+
+| (string) The URL of the Cloud Foundry RLP Gateway.
+
+//QUESTION: What do the defaults actually look like? Is this meant to be
+//descriptive If so, why is it quoted?
+
+*Default:* "(`log-stream` subdomain under the same domain as `api_server`)"
+// end::rlp_address-setting[]
+
+// =============================================================================
+
+// tag::shard_id-setting[]
+|
+[id="input-{input-type}-shard_id-setting"]
+`shard_id`
+
+| (string) Shard ID for the connection with Cloud Foundry. Use the same ID
+across multiple {agent}s to shard the load of events.
+
+*Default:* "(generated UUID)"
+// end::shard_id-setting[]
+
+// =============================================================================
+
+// tag::ssl-setting[]
+|
+[id="input-{input-type}-ssl-setting"]
+`ssl`
+
+| This specifies SSL/TLS common config.
+
+//QUESTION: Are these the common ssl options described elsewhere? I think this
+//section needs more detail.
+
+// end::ssl-setting[]
+
+// =============================================================================
+
+// tag::uaa_address-setting[]
+|
+[id="input-{input-type}-uaa_address-setting"]
+`uaa_address`
+
+| (string) The URL of the Cloud Foundry UAA API.
+
+*Default:* "(value from ${api_address}/v2/info)"
+
+// end::uaa_address-setting[]
+
+// =============================================================================
+
+// tag::version-setting[]
+|
+[id="input-{input-type}-version-setting"]
+`version`
+
+| (string) Consumer API version to connect with Cloud Foundry to collect events.
+Use `v1` to collect events using Doppler/Traffic Control. Use `v2` to collect
+events from the RLP Gateway.
+
+*Default:* `"v1"`
+// end::version-setting[]
+
+// =============================================================================
+
+|===
+
+
+[[input-cloudfoundry-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:

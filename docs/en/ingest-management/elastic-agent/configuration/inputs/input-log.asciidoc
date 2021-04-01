@@ -1,0 +1,286 @@
+:input-type: log
+
+[[log-input]]
+== Log input
+
+//TODO: has the name changed to logfile?
+
+Configure the `log` input to read lines from custom log files.
+
+To configure this input, specify a list of glob-based `paths` that must be
+crawled to locate and fetch the log lines.
+
+Example configuration:
+
+[source,yaml]
+----
+inputs:
+  - type: log
+    streams:
+      - paths:
+        - /var/log/messages
+        - /var/log/*.log
+----
+
+
+You can apply additional settings (such as `fields`, `include_lines`,
+`exclude_lines`, `multiline`, and so on) to the lines harvested from these
+files. The settings are applied to all files harvested by this input.
+
+Want to apply different settings to some files? Define multiple input sections.
+For example:
+
+[source,yaml]
+----
+inputs:
+  - type: log <1>
+    streams:
+      - paths:
+        - /var/log/system.log
+        - /var/log/wifi.log
+  - type: log <2>
+    streams:
+      - paths:
+        - "/var/log/apache2/*"
+        fields:
+          apache: true
+        fields_under_root: true
+----
+<1> Harvests lines from two files:  `system.log` and `wifi.log`.
+<2> Harvests lines from every file in the `apache2` directory, and uses the
+`fields` configuration option to add a field called `apache` to the output.
+
+
+IMPORTANT: Make sure a file is not defined more than once across all inputs
+because this can lead to unexpected behavior.
+
+The `log` input supports the following settings, grouped by category.
+Most of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-log-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-log-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+<<input-log-handling-settings>>::
+Settings that control how and when {agent} opens, closes, and removes files.
+
+<<input-log-harvester-settings>>::
+Settings that control how {agent} harvests events from files.
+
+<<input-log-registry-state-settings>>::
+Settings that manage the registry used to store the state of harvested files.
+
+[[input-log-file-identity]]
+=== Reading files on network shares and cloud providers
+
+WARNING: {agent} does not support reading from network shares and cloud
+providers.
+
+You can mitigate this limitation somewhat by changing some default settings.
+
+By default, {agent} identifies files based on their inodes and
+device IDs. However, on network shares and cloud providers, these
+values might change during the lifetime of the file. If this happens
+{agent} reads the file as new and resends the whole file. To solve this problem,
+configure the `file_identity` option. The valid values are `inode_deviceid`
+(default), `path`, and `inode_marker`.
+
+* Set `path` to identify files based on their paths. This is a quick way to
+avoid rereading files if inode and device IDs might change. However, keep in
+mind if the files are rotated (renamed), they will be reread and resubmitted.
+
+* Set `inode_marker` if the inodes stay the same even if the device ID is changed.
+If your files are rotated, use `inode_marker` instead of `path`, if possible.
+You must also configure a marker file readable by {agent} and set the path under
+`inode_marker`.
+
+The content of the marker file must be unique to the device. You can put the
+UUID of the device or mountpoint where the input is stored. The following
+example generates a hidden marker file for the selected mountpoint `/logs`:
+
+NOTE: Do not use this setting on Windows where file identifiers are more
+volatile.
+
+[source,shell]
+----
+$ lsblk -o MOUNTPOINT,UUID | grep /logs | awk '{print $2}' >> /logs/.agent-marker
+----
+
+To set the generated file as a marker for `file_identity`, configure
+the input as follows:
+
+[source,yaml]
+----
+inputs:
+  - type: log
+    paths:
+      - /logs/*.log
+    file_identity.inode_marker:
+      path: /logs/.agent-marker
+----
+
+
+[[input-log-rotating-logs]]
+=== Reading from rotating logs
+
+When dealing with file rotation, avoid harvesting symlinks. Instead
+use the `paths` setting to point to the original file, and specify
+a pattern that matches the file and all of its rotated files. Also make sure
+your log rotation strategy prevents lost or duplicate messages.
+
+//For more information, see <<file-log-rotation>>.
+
+Furthermore, to avoid duplicates of rotated log messages, do not use the
+`path` method for `file_identity`. Or exclude the rotated files by using
+the `exclude_files` option.
+
+[[input-log-commonly-used-settings]]
+=== Commonly used settings
+
+Settings frequently changed for this input type.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=enabled-setting]
+
+include::input-shared-settings.asciidoc[tag=paths-setting]
+
+// =============================================================================
+
+|
+[id="input-{input-type}-recursive_glob.enabled-setting"]
+`recursive_glob.enabled`
+
+| (boolean) When `true`, `**` is expanded into recursive glob patterns. The
+rightmost `**` in each path is expanded into a fixed number of glob patterns.
+For example: `/foo/**` expands to `/foo`, `/foo/*`, `/foo/*/*`, and so on. A
+single `**` is expanded into an 8-level deep `*` pattern. Use this setting to
+recursively fetch all files in all subdirectories of a directory.
+
+*Default:* `true`
+
+|===
+
+[[input-log-harvester-settings]]
+=== File harvester settings
+
+Settings that control how {agent} reads events from files.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=encoding-setting]
+
+include::input-shared-settings.asciidoc[tag=exclude_lines-setting]
+
+include::input-shared-settings.asciidoc[tag=harvester_buffer_size-setting]
+
+include::input-shared-settings.asciidoc[tag=include_lines-setting]
+
+include::input-shared-settings.asciidoc[tag=json-setting]
+
+include::input-shared-settings.asciidoc[tag=max_bytes-setting]
+
+include::input-shared-settings.asciidoc[tag=multiline-setting]
+
+|===
+
+[[input-log-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+[[input-log-handling-settings]]
+=== File handling settings
+
+Settings that control how and when {agent} opens, closes, and removes files.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=backoff-setting]
+
+include::input-shared-settings.asciidoc[tag=backoff_factor-setting]
+
+include::input-shared-settings.asciidoc[tag=max_backoff-setting]
+
+include::input-shared-settings.asciidoc[tag=close-setting]
+
+include::input-shared-settings.asciidoc[tag=close_eof-setting]
+
+include::input-shared-settings.asciidoc[tag=close_inactive-setting]
+
+include::input-shared-settings.asciidoc[tag=close_renamed-setting]
+
+include::input-shared-settings.asciidoc[tag=close_removed-setting]
+
+include::input-shared-settings.asciidoc[tag=close_timeout-setting]
+
+include::input-shared-settings.asciidoc[tag=file_identity-setting]
+
+include::input-shared-settings.asciidoc[tag=exclude_files-setting]
+
+include::input-shared-settings.asciidoc[tag=harvester_limit-setting]
+
+include::input-shared-settings.asciidoc[tag=ignore_older-setting]
+
+include::input-shared-settings.asciidoc[tag=scan_frequency-setting]
+
+include::input-shared-settings.asciidoc[tag=scan.order-setting]
+
+include::input-shared-settings.asciidoc[tag=scan.sort-setting]
+
+include::input-shared-settings.asciidoc[tag=tail_files-setting]
+
+include::input-shared-settings.asciidoc[tag=symlinks-setting]
+
+|===
+
+[[input-log-registry-state-settings]]
+=== Registry management settings
+
+Settings that manage the registry used to store the state of harvested files.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=clean-setting]
+
+include::input-shared-settings.asciidoc[tag=clean_inactive-setting]
+
+include::input-shared-settings.asciidoc[tag=clean_removed-setting]
+
+|===
+
+:input-type!:

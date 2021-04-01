@@ -1,0 +1,321 @@
+:input-type: kafka
+
+[[kafka-input]]
+== Kafka input
+
+++++
+<titleabbrev>Kafka</titleabbrev>
+++++
+
+Use the `kafka` input to read from topics in a Kafka cluster.
+
+To configure this input, specify a list of one or more `hosts` in the cluster to
+bootstrap the connection with, a list of `topics` to track, and a `group_id`
+for the connection.
+
+Example configuration:
+
+["source","yaml",subs="attributes"]
+----
+inputs:
+  - type: kafka
+    hosts:
+      - kafka-broker-1:9092
+      - kafka-broker-2:9092
+    topics: ["my-topic"]
+    group_id: "agent"
+
+----
+
+The following example shows how to use the `kafka` input to ingest data from
+Microsoft Azure Event Hubs that have Kafka compatibility enabled:
+
+["source","yaml",subs="attributes"]
+----
+inputs:
+  - type: kafka
+    hosts: ["<your event hub namespace>.servicebus.windows.net:9093"]
+    topics: ["<your event hub instance>"]
+    group_id: "<your consumer group>"
+
+    username: "$ConnectionString"
+    password: "<your connection string>"
+    ssl.enabled: true
+----
+
+For more details on the mapping between Kafka and Event Hubs configuration
+parameters, see the
+link:https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-for-kafka-ecosystem-overview[Azure documentation].
+
+The `kafka` input supports the following settings, grouped by category.
+Most of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-kafka-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-kafka-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+[[kafka-input-compatibility]]
+=== Compatibility
+
+This input works with all Kafka versions in between 0.11 and 2.1.0. Older versions
+might work as well, but are not supported.
+
+[[input-kafka-commonly-used-settings]]
+=== Commonly used settings
+
+Settings frequently changed for this input type.
+
+//QUESTION: I think there are too many settings in this section. Which ones are
+// users less likely to set? Maybe the settings about wait times and backoff can
+// be moved into a category like "performance tuning".
+
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// =============================================================================
+
+// tag::client_id-setting[]
+|
+[[input-kafka-client_id-setting]]
+`client_id`
+
+| (TYPE) The Kafka client id (optional).
+// end::client_id-setting[]
+
+// =============================================================================
+
+// tag::connect_backoff-setting[]
+|
+[[input-kafka-connect_backoff-setting]]
+`connect_backoff`
+
+| (string) How long to wait before trying to reconnect to the Kafka cluster
+after a fatal error.
+
+*Default:* `30s`
+// end::connect_backoff-setting[]
+
+// =============================================================================
+
+// tag::consume_backoff-setting[]
+|
+[[input-kafka-consume_backoff-setting]]
+`consume_backoff`
+
+| (string) How long to wait before retrying a failed read.
+
+*Default:* `2s`
+// end::consume_backoff-setting[]
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=enabled-setting]
+
+// =============================================================================
+
+// tag::expand_event_list_from_field-setting-setting[]
+|
+[[input-kafka-expand_event_list_from_field-setting]]
+`expand_event_list_from_field`
+
+| (string) The name of a field that bundles multiple messages. Use this setting
+for filesets that receive multiple messages bundled under a specific field.
+For example, in Azure filesets, the events are found under the JSON object
+`"records"`.
+
+["source","json"]
+----
+{
+"records": [ {event1}, {event2}]
+}
+----
+
+This setting splits the messages under the group value (`"records"`) into
+separate events.
+// end::expand_event_list_from_field-setting[]
+
+// =============================================================================
+
+// tag::fetch-setting[]
+|
+[[input-kafka-fetch-setting]]
+`fetch`
+
+| (string) Kafka fetch settings:
+
+`min`:: The minimum number of bytes to wait for. Defaults to 1.
+
+`default`:: The default number of bytes to read per request. Defaults to 1MB.
+
+`max`:: The maximum number of bytes to read per request. Defaults to 0
+(no limit).
+// end::fetch-setting[]
+
+// =============================================================================
+
+// tag::group_id-setting[]
+|
+[[input-kafka-group_id-setting]]
+`group_id`
+
+| (TYPE) The Kafka consumer group id.
+// end::group_id-setting[]
+
+// =============================================================================
+
+// tag::hosts-setting[]
+|
+[[input-kafka-hosts-setting]]
+`hosts`
+
+| (list) A list of Kafka bootstrapping hosts (brokers) for this cluster.
+// end::hosts-setting[]
+
+// =============================================================================
+
+// tag::initial_offset-setting[]
+|
+[[input-kafka-initial_offset-setting]]
+`initial_offset`
+
+| (string) The initial offset to start reading, either `"oldest"` or `"newest"`.
+
+*Default:* `"oldest"`
+// end::initial_offset-setting[]
+
+// =============================================================================
+
+// tag::isolation_level-setting[]
+|
+[[input-kafka-isolation_level-setting]]
+`isolation_level`
+
+| (string) Configures the Kafka group isolation level:
+
+- `"read_uncommitted"` returns _all_ messages in the message channel.
+- `"read_committed"` hides messages that are part of an aborted transaction.
+
+*Default:* `"read_uncommitted"`
+// end::isolation_level-setting[]
+
+// =============================================================================
+
+// tag::kerberos-setting[]
+|
+[[input-kafka-kerberos-setting]]
+`kerberos`
+
+| Configuration options for Kerberos authentication.
+
+// QUESTION: Do we want to pull in all the Kerberos config settings? Putting
+// this under commonly set for now until we decide.
+// See <<configuration-kerberos>> for more information..
+// end::kerberos-setting[]
+
+// =============================================================================
+
+// tag::max_wait_time-setting[]
+|
+[[input-kafka-max_wait_time-setting]]
+`max_wait_time`
+
+| (string) How long to wait for the minimum number of input bytes while reading.
+
+*Default:* `250ms`
+// end::max_wait_time-setting[]
+
+// =============================================================================
+
+// tag::rebalance-setting[]
+|
+[[input-kafka-rebalance-setting]]
+`rebalance`
+
+| Kafka rebalance settings:
+
+`strategy`:: Either `"range"` or `"roundrobin"`. Defaults to `"range"`.
+
+`timeout`:: How long to wait for an attempted rebalance. Defaults to 60s.
+
+`max_retries`:: How many times to retry if rebalancing fails. Defaults to 4.
+
+`retry_backoff`:: How long to wait after an unsuccessful rebalance attempt.
+Defaults to 2s.
+
+// I can't find the syntax for these in the refernece yaml. would they be
+// written as rebalance.strategy: "range"?
+
+// end::rebalance-setting[]
+
+// =============================================================================
+
+// tag::topics-setting[]
+|
+[[input-kafka-topics-setting]]
+`topics`
+
+| (list) A list of topics to read from.
+// end::topics-setting[]
+
+// =============================================================================
+
+// tag::version-setting[]
+|
+[[input-kafka-version-setting]]
+`version`
+
+| (string) The version of the Kafka protocol to use.
+
+*Default:* `"1.0.0"`
+// end::version-setting[]
+
+// =============================================================================
+
+// tag::wait_close-setting[]
+|
+[[input-kafka-wait_close-setting]]
+`wait_close`
+
+| (TYPE) When shutting down, how long to wait for in-flight messages to be
+delivered and acknowledged.
+
+*Default:* `????`
+// end::wait_close-setting[]
+
+// =============================================================================
+
+|===
+
+
+[[input-kafka-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:

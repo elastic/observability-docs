@@ -1,0 +1,1432 @@
+[role="xpack"]
+
+:input-type: httpjson
+
+[[httpjson-input]]
+== HTTP JSON input
+
+++++
+<titleabbrev>HTTP JSON</titleabbrev>
+++++
+
+Use the `httpjson` input to read messages from an HTTP API with JSON payloads.
+
+This input supports:
+
+* Auth
+** Basic
+** OAuth2
+* Retrieval at a configurable interval
+* Pagination
+* Retries
+* Rate limiting
+* Request transformations
+* Response transformations
+
+Example configurations:
+
+[source,yaml]
+----
+inputs:
+  # Fetch your public IP every minute.
+  - type: httpjson
+    config_version: 2
+    interval: 1m
+    request.url: https://api.ipify.org/?format=json
+    processors:
+      - decode_json_fields:
+          fields: ["message"]
+          target: "json"
+----
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    request.url: http://localhost:9200/_search?scroll=5m
+    request.method: POST
+    response.split:
+      target: body.hits.hits
+    response.pagination:
+      - set:
+          target: url.value
+          value: http://localhost:9200/_search/scroll
+      - set:
+          target: .url.params.scroll_id
+          value: '[[.last_request.body._scroll_id]]'
+      - set:
+          target: .body.scroll
+          value: 5m
+----
+
+Additionally, it supports authentication via Basic auth, HTTP Headers, or
+Oauth2.
+
+Example configurations with authentication:
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    request.url: http://localhost
+    request.transforms:
+      - set:
+          target: header.Authorization
+          value: 'Basic aGVsbG86d29ybGQ='
+----
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    auth.oauth2:
+      client.id: 12345678901234567890abcdef
+      client.secret: abcdef12345678901234567890
+      token_url: http://localhost/oauth2/token
+    request.url: http://localhost
+----
+
+//TODO: Add better descriptions here.
+
+<<input-httpjson-general-settings>>::
+General settings for this input type.
+
+<<input-httpjson-auth-settings>>::
+Settings used for basic auth and OAuth2.
+
+<<input-httpjson-request-settings>>::
+Request settings.
+
+<<input-httpjson-response-settings>>::
+Reponse settings.
+
+<<input-httpjson-cursor-state-settings>>::
+Cursor settings.
+
+<<input-httpjson-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+
+[[input-state]]
+=== Input state
+
+The `httpjson` input keeps a runtime state between requests. This state can be
+accessed by some configuration options and transforms.
+
+The state has the following elements:
+
+- `last_response.url.value`: The full URL with params and fragments from the
+last request with a successful response.
+- `last_request.url.params`: A map containing the params from the URL in
+`last_response.url.value`.
+- `last_response.header`: A map containing the headers from the last successful
+response.
+- `last_response.body`: A map containing the parsed JSON body from the last
+successful response. This is the response as it comes from the remote server.
+- `last_response.page`: A number indicating the page number of the last
+response.
+- `first_event`: A map representing the first event sent to the output (result
+from applying transforms to `last_response.body`).
+- `last_event`: A map representing the last event sent to the output (result
+from applying transforms to `last_response.body`).
+- `url.value`: The full URL with params and fragments.
+- `url.params`: A map containing the URL params.
+- `header`: A map containing the headers. References request headers when used in
+`request.transforms` or `request.rate_limit.limit` configuration sections, and
+to the last response headers when used in `response.transforms`,`response.split`,
+or `response.pagination` configuration sections.
+- `body`: A map containing the body. References request body when used in
+`request.transforms` configuration section, and to the last response body when
+used in `response.transforms`, `response.split`, or `response.pagination`
+configuration sections.
+- `cursor`: A map containing any data the user configured to be stored between
+restarts (See <<input-httpjson-cursor-state-settings>>).
+
+All of the mentioned objects are only stored at runtime, except `cursor`, which
+has values that are persisted between restarts.
+
+//TODO: Follow up with Greg to see why links to anchors on table 
+//rows fail the build
+
+[[transforms]]
+=== Transforms
+
+A transform is an action that lets the user modify the
+<<input-state,input state>>. Depending on where the transform is defined, it
+will have access for reading or writing different elements of the
+<<input-state,state>>.
+
+The access limitations are described in the corresponding configuration
+sections.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::append-setting[]
+|
+[id="input-{input-type}-append-setting"]
+`append`
+
+| Appends a value to a list. If the field does not exist, the first entry will be
+a scalar value, and subsequent additions will convert the value to a list.
+
+[source,yaml]
+----
+- append:
+    target: body.foo.bar
+    value: '[[.cursor.baz]]'
+    default: "a default value"
+----
+
+`target`:: The destination field where the value is stored
+`value`:: The value that will be stored. This is a
+<<value-templates,value template>>.
+`default`:: The fallback value whenever `value` is empty or template parsing
+fails. Default templates do not have access to any state, only to functions.
+// end::append-setting[]
+
+// =============================================================================
+
+// tag::delete-setting[]
+|
+[id="input-{input-type}-delete-setting"]
+`delete`
+
+| Deletes the target field.
+
+[source,yaml]
+----
+- delete:
+    target: body.foo.bar
+----
+
+`target`:: The destination field to delete. If `target` is a list and not a
+single element, the complete list is deleted.
+// end::NAME-setting[]
+
+// =============================================================================
+
+// tag::set-setting[]
+|
+[id="input-{input-type}-set-setting"]
+`set`
+
+| Sets a value.
+
+[source,yaml]
+----
+- set:
+    target: body.foo.bar
+    value: '[[.cursor.baz]]'
+    default: "a default value"
+----
+
+`target`:: The destination field where the value is stored
+`value`:: The value that will be stored. This is a
+<<value-templates,value template>>.
+`default`:: The fallback value whenever `value` is empty or template parsing
+fails. Default templates do not have access to any state, only to functions.
+// end::set-setting[]
+
+|===
+
+[[value-templates]]
+=== Value templates
+
+Some configuration options and transforms can use value templates. Value
+templates are Go templates with access to the input state and to some built-in
+functions.
+
+Please note that delimiters are changed from the default `{{ }}` to `[[ ]]` to
+improve interoperability with other templating mechanisms.
+
+To see which <<input-state,state elements>> and operations are available, see
+the documentation for the option or <<transforms,transform>> where you want to
+use a value template.
+
+A value template looks like:
+
+[source,yaml]
+----
+- set:
+    target: body.foo.bar
+    value: '[[.cursor.baz]] more data'
+    default: "a default value"
+----
+
+The content inside the brackets `[[` `]]` is evaluated. For more information
+about Go templates please, see https://golang.org/pkg/text/template[the Go
+docs].
+
+Some built-in helper functions are provided to work with the input state inside
+value templates:
+
+- `parseDuration`: parses duration strings and returns `time.Duration`.
+Example: `[[parseDuration "1h"]]`.
+- `now`: returns the current `time.Time` object in UTC. Optionally, it can
+receive a `time.Duration` as a parameter. Example:
+`[[now (parseDuration "-1h")]]` returns the time at 1 hour before now.
+- `parseTimestamp`: parses a timestamp in seconds and returns a `time.Time` in
+UTC. Example: `[[parseTimestamp 1604582732]]` returns
+`2020-11-05 13:25:32 +0000 UTC`.
+- `parseTimestampMilli`: parses a timestamp in milliseconds and returns a
+`time.Time` in UTC. Example: `[[parseTimestamp 1604582732000]]` returns
+`2020-11-05 13:25:32 +0000 UTC`.
+- `parseTimestampNano`: parses a timestamp in nanoseconds and returns a
+`time.Time` in UTC. Example: `[[parseTimestamp 1604582732000000000]]` returns
+`2020-11-05 13:25:32 +0000 UTC`.
+- `parseDate`: parses a date string and returns a `time.Time` in UTC. By default
+the expected layout is `RFC3339` but optionally can accept any of the Golang
+predefined layouts or a custom one. Example:
+`[[ parseDate "2020-11-05T12:25:32Z" ]]`,
+`[[ parseDate "2020-11-05T12:25:32.1234567Z" "RFC3339Nano" ]]`,
+`[[ (parseDate "Thu Nov  5 12:25:32 +0000 2020" "Mon Jan _2 15:04:05 -0700 2006").UTC ]]`.
+- `formatDate`: formats a `time.Time`. By default the format layout is `RFC3339`
+but optionally can accept any of the Golang predefined layouts or a custom one.
+It will default to UTC timezone when formatting, but you can specify a different
+timezone. If the timezone is incorrect, it will default to UTC. Example:
+`[[ formatDate (now) "UnixDate" ]]`, `[[ formatDate (now) "UnixDate" "America/New_York" ]]`.
+- `getRFC5988Link`: extracts a specific relation from a list of
+https://tools.ietf.org/html/rfc5988[RFC5988] links. It is useful when parsing
+header values for pagination. Example: `[[ getRFC5988Link "next" .last_response.header.Link ]]`.
+- `toInt`: converts a string to an integer. Returns 0 if the conversion fails.
+- `add`: adds a list of integers and returns their sum.
+
+In addition to the provided functions, any of the native functions for
+`time.Time` and `http.Header` types can be used on the corresponding objects.
+Examples: `[[(now).Day]]`, `[[.last_response.header.Get "key"]]`
+
+[[request-lifecycle]]
+=== Request life cycle
+
+image:images/input-httpjson-lifecycle.png[Request lifecycle]
+
+. At every defined interval a new request is created.
+. The request is transformed using the configured `request.transforms`.
+. The resulting transformed request is executed.
+. The server responds (here is where any retry or rate limit policy takes place
+when configured).
+. The response is transformed using the configured `response.transforms` and
+`response.split`.
+. Each resulting event is published to the output.
+. If a `response.pagination` is configured and there are more pages, a new
+request is created using it, otherwise the process ends until the next interval.
+
+
+[[input-httpjson-general-settings]]
+=== General settings
+
+General settings for this input type.
+
+//QUESTION: I didn't think calling this "Commonly used settings" made much sense
+//for this input. Should we have that section though?
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::config_version-setting[]
+|
+[id="input-{input-type}-config_version-setting"]
+`config_version`
+
+| (int) Defines the configuration version. Current supported versions are: `1`
+and `2`.
+
+*Default:* `1`
+
+NOTE: This setting defaults to `1` to avoid breaking current configurations. V1
+configuration is deprecated and will be unsupported in future releases. Any new
+configuration should use `config_version: 2`.
+
+// end::config_version-setting[]
+
+// =============================================================================
+
+// tag::interval-setting[]
+|
+[id="input-{input-type}-interval-setting"]
+`interval`
+
+| (string) Duration between repeated requests. It may make additional pagination
+requests in response to the initial request if pagination is enabled.
+
+*Default:* `60s`
+// end::interval-setting[]
+
+// =============================================================================
+
+|===
+
+[[input-httpjson-auth-settings]]
+=== Authentication settings
+Settings used for basic auth and OAuth2.
+
+.Basic authentication settings
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::auth.basic.enabled-setting[]
+|
+[id="input-{input-type}-auth.basic.enabled-setting"]
+`auth.basic.enabled`
+
+| (boolean) When set to `false`, disables the basic auth configuration.
+
+NOTE: Basic auth settings are disabled if either `enabled` is set to `false` or
+the `auth.basic` section is missing.
+
+*Default:* `true`
+// end::auth.basic.enabled-setting[]
+
+// =============================================================================
+
+// tag::auth.basic.password-setting[]
+|
+[id="input-{input-type}-auth.basic.password-setting"]
+`auth.basic.password`
+
+| (string) The password to use.
+// end::auth.basic.password-setting[]
+
+// =============================================================================
+
+// tag::auth.basic.user-setting[]
+|
+[id="input-{input-type}-auth.basic.user-setting"]
+`auth.basic.user`
+
+| (string) The user to authenticate with.
+// end::auth.basic.user-setting[]
+
+// =============================================================================
+
+|===
+
+.OAuth2 settings
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::auth.oauth2.client.id-setting[]
+|
+[id="input-{input-type}-auth.oauth2.client.id-setting"]
+`auth.oauth2.client.id`
+
+| (string) The client ID used as part of the authentication flow. It is always
+required except when using `google` as the provider. Required for providers:
+`default` and `azure`.
+
+//QUESTION: What is the `default` provider? The auth.oauth2.provider description
+//suggests there is no default.
+
+// end::auth.oauth2.client.id-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.client.secret-setting[]
+|
+[id="input-{input-type}-auth.oauth2.client.secret-setting"]
+`auth.oauth2.client.secret`
+
+| (string) The client secret used as part of the authentication flow. It is
+always required except when using `google` as the provider. Required for
+providers: `default` and `azure`.
+// end::auth.oauth2.client.secret-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.enabled-setting[]
+|
+[id="input-{input-type}-NAME-setting"]
+`auth.oauth2.enabled`
+
+| (boolean) When set to `false`, disables the oauth2 configuration.
+
+*Default:* `true`
+
+NOTE: OAuth2 settings are disabled if either `enabled` is set to `false` or
+the `auth.oauth2` section is missing.
+
+// end::auth.oauth2.enabled-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.endpoint_params-setting[]
+|
+[id="input-{input-type}-auth.oauth2.endpoint_params-setting"]
+`auth.oauth2.endpoint_params`
+
+| Set of values that will be sent on each request to the `token_url`. Each param
+key can have multiple values. Can be set for all providers except `google`.
+
+[source,yaml]
+----
+- type: httpjson
+  config_version: 2
+  auth.oauth2:
+    endpoint_params:
+      Param1:
+        - ValueA
+        - ValueB
+      Param2:
+        - Value
+----
+
+// end::auth.oauth2.endpoint_params-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.provider-setting[]
+|
+[id="input-{input-type}-auth.oauth2.provider-setting"]
+`auth.oauth2.provider`
+
+| (string) Used to configure the supported oauth2 provider. Each supported
+provider requires specific settings. The provider is not set by default.
+Supported providers are: `azure` and `google`.
+// end::auth.oauth2.provider-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.scopes-setting[]
+|
+[id="input-{input-type}-auth.oauth2.scopes-setting"]
+`auth.oauth2.scopes`
+
+| (list) A list of scopes that will be requested during the oauth2 flow.
+It is optional for all providers.
+// end::auth.oauth2.scopes-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.token_url-setting[]
+|
+[id="input-{input-type}-auth.oauth2.token_url-setting"]
+`auth.oauth2.token_url`
+
+| (string) The endpoint that will be used to generate the tokens during the
+oauth2 flow. It is required if no provider is specified.
+
+NOTE: For `azure` provider either `token_url` or `azure.tenant_id` is required.
+
+// end::auth.oauth2.token_url-setting[]
+
+// =============================================================================
+
+|===
+
+
+.OAuth2 settings for azure provider
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::auth.oauth2.azure.resource-setting[]
+|
+[id="input-{input-type}-auth.oauth2.azure.resource-setting"]
+`auth.oauth2.azure.resource`
+
+| (string) The accessed WebAPI resource when using `azure` provider.
+It is not required.
+
+// end::NAME-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.azure.tenant_id-setting[]
+|
+[id="input-{input-type}-auth.oauth2.azure.tenant_id-setting"]
+`auth.oauth2.azure.tenant_id`
+
+| (string) Used for authentication when using `azure` provider. Since it is used
+in the process to generate the `token_url`, it can't be used in combination with
+it. It is not required.
+
+To learn how to get the tenant ID, see the
+https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal[Microsoft Azure documentation].
+
+// end::auth.oauth2.azure.tenant_id-setting[]
+
+// =============================================================================
+
+|===
+
+.OAuth2 settings for google provider
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::auth.oauth2.google.credentials_file-setting[]
+|
+[id="input-{input-type}-auth.oauth2.google.credentials_file-setting"]
+`auth.oauth2.google.credentials_file`
+
+| (string) The credentials file for Google.
+
+// end::auth.oauth2.google.credentials_file-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.google.credentials_json-setting[]
+|
+[id="input-{input-type}-auth.oauth2.google.credentials_json-setting"]
+`auth.oauth2.google.credentials_json`
+
+| Your credentials information as raw JSON.
+
+// end::auth.oauth2.google.credentials_json-setting[]
+
+// =============================================================================
+
+// tag::auth.oauth2.google.jwt_file-setting[]
+|
+[id="input-{input-type}-auth.oauth2.google.jwt_file-setting"]
+`auth.oauth2.google.jwt_file`
+
+| (string) The JWT Account Key file for Google.
+
+// end::auth.oauth2.google.jwt_file-setting[]
+
+// =============================================================================
+
+|===
+
+NOTE: Set only one credentials setting. If none is provided, loading default
+credentials from the environment will be attempted via ADC. For more information
+about how to provide Google credentials, see the
+https://cloud.google.com/docs/authentication[Google documentation about
+authentication].
+
+[[input-httpjson-request-settings]]
+=== Request settings
+
+//QUESTION: Is request handling a good section title? Should I break this
+//section into more sections? 
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::request.body-setting[]
+|
+[id="input-{input-type}-request.body-setting"]
+`request.body`
+
+| (object) An optional HTTP POST body. The configuration value must be an
+object, and it will be encoded to JSON. This is only valid when `request.method`
+is `POST`.
+
+*Default:* `null` (no HTTP body)
+
+[source,yaml]
+----
+- type: httpjson
+  config_version: 2
+  request.method: POST
+  request.body:
+    query:
+      bool:
+        filter:
+          term:
+            type: authentication
+----
+
+
+// end::request.body-setting[]
+
+// =============================================================================
+
+// tag::request.encode_as-setting[]
+|
+[id="input-{input-type}-request.encode_as-setting"]
+`request.encode_as`
+
+| (string) ContentType used for encoding the request body. If set it will force
+the encoding in the specified format regardless of the `Content-Type` header
+value. Otherwise it will honor it if possible or fallback to `application/json`.
+By default the requests are sent with `Content-Type: application/json`.
+Supported values: `application/json` and `application/x-www-form-urlencoded`.
+`application/x-www-form-urlencoded` will url encode the `url.params` and set
+them as the body. It is not set by default.
+
+// end::request.encode_as-setting[]
+
+// =============================================================================
+
+// tag::request.method-setting[]
+|
+[id="input-{input-type}-request.method-setting"]
+`request.method`
+
+| The HTTP method to use when making requests. `GET` or `POST` are the options.
+
+*Default:* `GET`
+// end::request.method-setting[]
+
+// =============================================================================
+
+// tag::request.rate_limit.limit-setting[]
+|
+[id="input-{input-type}-request.rate_limit.limit-setting"]
+`request.rate_limit.limit`
+
+| (string) The value of the response that specifies the total limit. It is
+defined with a Go template value. Can read state from: [`.last_response.header`]
+// end::request.rate_limit.limit-setting[]
+
+// =============================================================================
+
+// tag::request.rate_limit.remaining-setting[]
+|
+[id="input-{input-type}-request.rate_limit.remaining-setting"]
+`request.rate_limit.remaining`
+
+| (string) The value of the response that specifies the remaining quota of the
+rate limit. It is defined with a Go template value. Can read state from:
+[`.last_response.header`]
+// end::request.rate_limit.remaining-setting[]
+
+// =============================================================================
+
+// tag::request.rate_limit.reset-setting[]
+|
+[id="input-{input-type}-request.rate_limit.reset-setting"]
+`request.rate_limit.reset`
+
+| (string) The value of the response that specifies the epoch time when the rate
+limit will reset. It is defined with a Go template value. Can read state from:
+[`.last_response.header`]
+// end::request.rate_limit.reset-setting[]
+
+// =============================================================================
+
+// tag::request.redirect.forward_headers-setting[]
+|
+[id="input-{input-type}-request.redirect.forward_headers-setting"]
+`request.redirect.forward_headers`
+
+| (boolean) When set to `true`, request headers are forwarded in case of a
+redirect.
+
+*Default:* `false`
+// end::request.redirect.forward_headers-setting[]
+
+// =============================================================================
+
+// tag::request.redirect.headers_ban_list-setting[]
+|
+[id="input-{input-type}-request.redirect.headers_ban_list-setting"]
+`request.redirect.headers_ban_list`
+
+| (list) When `redirect.forward_headers` is set to `true`, all headers
+__except__ the ones defined in this list will be forwarded.
+
+*Default:* `[]`
+// end::request.redirect.headers_ban_list-setting[]
+
+// =============================================================================
+
+// tag::request.redirect.max_redirects-setting[]
+|
+[id="input-{input-type}-request.redirect.max_redirects-setting"]
+`request.redirect.max_redirects`
+
+| (int) The maximum number of redirects to follow for a request.
+
+*Default:* `10`
+// end::request.redirect.max_redirects-setting[]
+
+// =============================================================================
+
+// tag::request.retry.max_attempts-setting[]
+|
+[id="input-{input-type}-request.retry.max_attempts-setting"]
+`request.retry.max_attempts`
+
+| (int) The maximum number of retries for the HTTP client.
+
+*Default:* `5`
+// end::request.retry.max_attempts-setting[]
+
+// =============================================================================
+
+// tag::request.retry.wait_max-setting[]
+|
+[id="input-{input-type}-request.retry.wait_max-setting"]
+`request.retry.wait_max`
+
+| (string) The maximum time to wait before a retry is attempted.
+
+*Default:* `60s`
+// end::request.retry.wait_max-setting[]
+
+// =============================================================================
+
+// tag::request.retry.wait_min-setting[]
+|
+[id="input-{input-type}-request.retry.wait_min-setting"]
+`request.retry.wait_min`
+
+| (string) The minimum time to wait before a retry is attempted.
+
+*Default:* `1s`
+// end::request.retry.wait_min-setting[]
+
+// =============================================================================
+
+// tag::request.ssl-setting[]
+|
+[id="input-{input-type}-request.ssl-setting"]
+`request.ssl`
+
+| The SSL/TLS configuration. If the ssl section is missing, the host's
+CAs are used for HTTPS connections.
+
+// end::request.ssl-setting[]
+
+// =============================================================================
+
+// tag::request.timeout-setting[]
+|
+[id="input-{input-type}-request.timeout-setting"]
+`request.timeout`
+
+| (string) Duration before declaring that the HTTP client connection has timed
+out. Valid time units are `ns`, `us`, `ms`, `s`, `m`, `h`.
+
+*Default:* `30s`
+
+// end::request.timeout-setting[]
+
+// =============================================================================
+
+// tag::request.transforms-setting[]
+|
+[id="input-{input-type}-request.transforms-setting"]
+`request.transforms`
+
+| (list) List of transforms to apply to the request before each execution.
+
+Available transforms for request: [`append`, `delete`, `set`].
+
+Can read state from: [`.last_response.*`, `.last_event.*`, `.cursor.*`].
+
+Can write state to: [`header.*`, `url.params.*`, `body.*`].
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    request.url: http://localhost:9200/_search?scroll=5m
+    request.method: POST
+    request.transforms:
+      - set:
+          target: body.from
+          value: '[[now (parseDuration "-1h")]]'
+----
+
+// end::request.transforms-setting[]
+
+// =============================================================================
+
+// tag::request.url-setting[]
+|
+[id="input-{input-type}-request.url-setting"]
+`request.url` (required)
+
+| (string) The URL of the HTTP API.
+
+// end::request.url-setting[]
+
+// =============================================================================
+
+|===
+
+
+[[input-httpjson-response-settings]]
+=== Response settings
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::response.decode_as-setting[]
+|
+[id="input-{input-type}-response.decode_as-setting"]
+`response.decode_as`
+
+| (string) ContentType used for decoding the response body. If set it will force
+the decoding in the specified format regardless of the `Content-Type` header
+value; otherwise it will honor it if possible or fallback to `application/json`.
+Supported values: `application/json, application/x-ndjson`. It is not set by
+default.
+// end::response.decode_as-setting[]
+
+// =============================================================================
+
+// tag::response.pagination-setting[]
+|
+[id="input-{input-type}-response.pagination-setting"]
+`response.pagination`
+
+| (list) List of transforms that will be applied to the response to every new
+page request. All the transforms from `request.transform` will be executed and
+then `response.pagination` will be added to modify the next request as needed.
+For subsequent responses, the usual `response.transforms` and `response.split`
+will be executed normally.
+
+Available transforms for pagination: [`append`, `delete`, `set`].
+
+Can read state from: [`.last_response.*`, `.first_event.*`, `.last_event.*`,
+`.cursor.*`].
+
+Can write state to: [`body.*`, `header.*`, `url.*`].
+
+// end::response.pagination-setting[]
+
+// =============================================================================
+
+// tag::response.request_body_on_pagination-setting[]
+|
+[id="input-{input-type}-response.request_body_on_pagination-setting"]
+`response.request_body_on_pagination`
+
+| (boolean) If set to `true`, the values in `request.body` are sent for
+pagination requests.
+
+
+*Default:* `false`
+// end::response.request_body_on_pagination-setting[]
+
+// =============================================================================
+
+// tag::response.split-setting[]
+|
+[id="input-{input-type}-response.split-setting"]
+`response.split`
+
+| Applies a split operation to the response when it is received. A split can
+convert a map, array, or string into multiple events.
+// end::response.split-setting[]
+
+// =============================================================================
+
+// tag::response.split.delimiter-setting[]
+|
+[id="input-{input-type}-response.split.delimiter-setting"]
+`response.split[].delimiter`
+
+| (string) The sub string used to split the string. Required if using a split
+type of `string`. For example if the `delimiter` is `"\n"` and the
+string is `"line 1\nline 2"`, the split results in `"line 1"` and `"line 2"`.
+// end::response.split.delimiter-setting[]
+
+// =============================================================================
+
+// tag::response.split.keep_parent-setting[]
+|
+[id="input-{input-type}-response.split.keep_parent-setting"]
+`response.split[].keep_parent`
+
+| (boolean) If set to `true`, the fields from the parent document (at the same
+level as `target`) are kept. Otherwise a new document is created using `target`
+as the root.
+
+*Default:* `false`
+// end::response.split.keep_parent-setting[]
+
+// =============================================================================
+
+// tag::response.split.key_field-setting[]
+|
+[id="input-{input-type}-response.split.key_field-setting"]
+`response.split[].key_field`
+
+| Valid when used with `type: map`. When not empty, defines a new field where
+the original key value will be stored.
+
+// end::response.split.key_field-setting[]
+
+// =============================================================================
+
+// tag::response.split.split-setting[]
+|
+[id="input-{input-type}-response.split.split-setting"]
+`response.split[].split`
+
+| Nested split operation. Split operations can be nested at will. An event won't
+be created until the deepest split operation is applied.
+
+// end::response.split.split-setting[]
+
+// =============================================================================
+
+// tag::response.split.target-setting[]
+|
+[id="input-{input-type}-response.split.target-setting"]
+`response.split[].target`
+
+| The target field the split operation will be performed on.
+// end::response.split.target-setting[]
+
+// =============================================================================
+
+// tag::response.split.transforms-setting[]
+|
+[id="input-{input-type}-response.split.transforms-setting"]
+`response.split[].transforms`
+
+| Defines a set of transforms to be applied after `response.transforms` and after
+the object has been modified based on `response.split[].keep_parent` and
+`response.split[].key_field`.
+
+Available transforms for the response: [`append`, `delete`, `set`].
+
+Can read state from: [`.last_response.*`, `.first_event.*`, `.last_event.*`, `.cursor.*`, `.header.*`, `.url.*`].
+
+Can write state to: [`body.*`].
+
+NOTE: In this context, `body.*` is the result of all the previous
+transformations.
+
+// end::response.split.transforms-setting[]
+
+// =============================================================================
+
+// tag::response.split.type-setting[]
+|
+[id="input-{input-type}-response.split.type-setting"]
+`response.split[].type`
+
+| (string) The field type of the target. Allowed values: `array`, `map`, and
+`string`. `string` requires the use of the `delimiter` options to specify what
+characters to split the string on. `delimiter` always behaves as if
+`keep_parent` is set to `true`.
+
+*Default:* `array`
+// end::response.split.type-setting-setting[]
+
+// =============================================================================
+
+// tag::response.transforms-setting[]
+|
+[id="input-{input-type}-response.transforms-setting"]
+`response.transforms`
+
+| (list) A list of transforms to apply to the response when it is received.
+
+Available transforms for response: [`append`, `delete`, `set`].
+
+Can read state from: [`.last_response.*`, `.last_event.*`, `.cursor.*`,
+`.header.*`, `.url.*`].
+
+Can write state to: [`body.*`].
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    request.url: http://localhost:9200/_search?scroll=5m
+    request.method: POST
+    response.transforms:
+      - delete:
+          target: body.very_confidential
+    response.split:
+      target: .body.hits.hits
+    response.pagination:
+      - set:
+          target: url.value
+          value: http://localhost:9200/_search/scroll
+      - set:
+          target: .url.params.scroll_id
+          value: '[[.last_request.body._scroll_id]]'
+      - set:
+          target: .body.scroll
+          value: 5m
+----
+
+// end::response.transforms-setting[]
+
+// =============================================================================
+
+
+|===
+
+
+[[examples-using-split]]
+=== Examples using split
+
+The following examples show how to use the split setting for various use cases.
+
+==== Nested arrays 
+
+We have a response with two nested arrays, and we want a document for each of
+the elements of the inner array:
+
+[source,json]
+----
+{
+  "this": "is kept",
+  "alerts": [
+    {
+      "this_is": "also kept",
+      "entities": [
+        {
+          "something": "something"
+        },
+        {
+          "else": "else"
+        }
+      ]
+    },
+    {
+      "this_is": "also kept 2",
+      "entities": [
+        {
+          "something": "something 2"
+        },
+        {
+          "else": "else 2"
+        }
+      ]
+    }
+  ]
+}
+----
+
+The config will look like:
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    interval: 1m
+    request.url: https://example.com
+    response.split:
+      target: body.alerts
+      type: array
+      keep_parent: true
+      split:
+        # paths in nested splits need to represent the state of body, not only their current level of nesting
+        target: body.alerts.entities
+        type: array
+        keep_parent: true
+----
+
+This will output:
+
+[source,json]
+----
+[
+  {
+    "this": "is kept",
+    "alerts": {
+      "this_is": "also kept",
+      "entities": {
+        "something": "something"
+      }
+    }
+  },
+  {
+    "this": "is kept",
+    "alerts": {
+      "this_is": "also kept",
+      "entities": {
+        "else": "else"
+      }
+    }
+  },
+  {
+    "this": "is kept",
+    "alerts": {
+      "this_is": "also kept 2",
+      "entities": {
+        "something": "something 2"
+      }
+    }
+  },
+  {
+    "this": "is kept",
+    "alerts": {
+      "this_is": "also kept 2",
+      "entities": {
+        "else": "else 2"
+      }
+    }
+  }
+]
+----
+
+==== Array with two objects
+
+We have a response with an array with two objects, and we want a document for
+each of the object keys while keeping the keys values:
+
+[source,json]
+----
+{
+  "this": "is not kept",
+  "alerts": [
+    {
+      "this_is": "kept",
+      "entities": {
+        "id1": {
+          "something": "something"
+        }
+      }
+    },
+    {
+      "this_is": "kept 2",
+      "entities": {
+        "id2": {
+          "something": "something 2"
+        }
+      }
+    }
+  ]
+}
+----
+
+The config will look like:
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    interval: 1m
+    request.url: https://example.com
+    response.split:
+      target: body.alerts
+      type: array
+      keep_parent: false
+      split:
+        # this time alerts will not exist because previous keep_parent is false
+        target: body.entities
+        type: map
+        keep_parent: true
+        key_field: id
+----
+
+This will output:
+
+[source,json]
+----
+[
+  {
+    "this_is": "kept",
+    "entities": {
+      "id": "id1",
+      "something": "something"
+    }
+  },
+  {
+    "this_is": "kept 2",
+    "entities": {
+      "id": "id2",
+      "something": "something 2"
+    }
+  }
+]
+----
+
+
+==== Array with two objects with transform applied
+
+We have a response with an array with two objects, and we want a document for
+each of the object keys while applying a transform to each:
+
+[source,json]
+----
+{
+  "this": "is not kept",
+  "alerts": [
+    {
+      "this_is": "also not kept",
+      "entities": {
+        "id1": {
+          "something": "something"
+        }
+      }
+    },
+    {
+      "this_is": "also not kept",
+      "entities": {
+        "id2": {
+          "something": "something 2"
+        }
+      }
+    }
+  ]
+}
+----
+
+The config will look like:
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    interval: 1m
+    request.url: https://example.com
+    response.split:
+      target: body.alerts
+      type: array
+      split:
+        transforms:
+          - set:
+              target: body.new
+              value: will be added to each
+        target: body.entities
+        type: map
+----
+
+This will output:
+
+[source,json]
+----
+[
+  {
+    "something": "something",
+    "new": "will be added for each"
+  },
+  {
+    "something": "something 2",
+    "new": "will be added for each"
+  }
+]
+----
+
+
+==== Split lines on a delimiter
+
+We have a response with a keys whose value is a string.  We want the string to
+be split on a delimiter and a document for each sub strings.
+
+[source,json]
+----
+{
+  "this": "is kept",
+  "lines": "Line 1\nLine 2\nLine 3"
+}
+----
+
+The config will look like:
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    interval: 1m
+    request.url: https://example.com
+    response.split:
+      target: body.lines
+      type: string
+      delimiter: "\n"
+----
+
+This will output:
+
+[source,json]
+----
+[
+  {
+    "this": "is kept",
+    "lines": "Line 1"
+  },
+  {
+    "this": "is kept",
+    "lines": "Line 2"
+  },
+  {
+    "this": "is kept",
+    "lines": "Line 3"
+  }
+]
+----
+
+
+[[input-httpjson-cursor-state-settings]]
+=== Cursor state
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::cursor-setting[]
+|
+[id="input-{input-type}-cursor-setting"]
+`cursor`
+
+| (list) A list of key value objects where arbitrary values are defined. The
+values are interpreted as <<value-templates,value templates>>, and a default
+template can be set. Cursor state is kept between input restarts and updated
+after all the events for a request are published.
+
+Can read state from: [`.last_response.*`, `.first_event.*`, `.last_event.*`].
+
+NOTE: Default templates do not have access to any state, only to functions.
+
+[source,yaml]
+----
+inputs:
+  - type: httpjson
+    config_version: 2
+    interval: 1m
+    request.url: https://api.ipify.org/?format=json
+    response.transforms:
+      - set:
+          target: body.last_requested_at
+          value: '[[.cursor.last_requested_at]]'
+          default: "[[now]]"
+    cursor:
+      last_requested_at:
+        value: '[[now]]'
+    processors:
+      - decode_json_fields:
+          fields: ["message"]
+          target: "json"
+----
+
+// end::cursor-setting[]
+
+|===
+
+[[input-httpjson-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:

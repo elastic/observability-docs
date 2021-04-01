@@ -1,0 +1,649 @@
+:input-type: filestream
+
+[[filestream-input]]
+== filestream input
+
+experimental[]
+
+++++
+<titleabbrev>filestream</titleabbrev>
+++++
+
+Use the `filestream` input to read lines from active log files. Ths input is the
+new, improved alternative to the `log` input. However, a few features are
+currently missing, such as `multiline` and other special parsing capabilities.
+These missing settings will probably be added in a later release. We strive to
+achieve feature parity, if possible.
+
+To configure this input, specify a list of glob-based `paths` that must be
+crawled to locate and fetch the log lines.
+
+Example configuration:
+
+["source","yaml",subs="attributes"]
+----
+inputs:
+  - type: filestream
+    paths:
+      - /var/log/messages
+      - /var/log/*.log
+----
+
+
+You can apply additional settings (such as `fields`, `include_lines`,
+`exclude_lines`, `multiline`, and so on) to the lines harvested from these
+files. The settings are applied to all files harvested by this input.
+
+Want to apply different settings to some files? Define multiple input sections.
+For example:
+
+["source","yaml",subs="attributes"]
+----
+inputs:
+  - type: filestream <1>
+    streams:
+      - paths:
+        - /var/log/system.log
+        - /var/log/wifi.log
+  - type: filestream <2>
+    streams:
+      - paths:
+        - "/var/log/apache2/*"
+        fields:
+          apache: true
+----
+<1> Harvests lines from two files:  `system.log` and `wifi.log`.
+<2> Harvests lines from every file in the `apache2` directory, and uses the
+`fields` configuration option to add a field called `apache` to the output.
+
+The `filestream` input supports the following settings, grouped by category.
+Most of these settings have sensible defaults that allow you to run {agent} with
+minimal configuration.
+
+//TODO: Decide which categories make sense. These align more with how the
+//reference yml files in FB talk about these settings, but I'm not sure they
+//are as user friendly as the categories I show in other inputs.
+
+<<input-filestream-commonly-used-settings>>::
+Settings frequently changed for this input type, including some prospector
+settings.
+
+<<input-filestream-prospector-settings>>::
+Additional settings the prospector uses to locate and process files.
+
+<<input-filestream-scanner-settings>>::
+Settings that control how {agent} scans the file system and returns events.
+
+<<input-filestream-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+
+[[input-filestream-file-identity]]
+=== Reading files on network shares and cloud providers
+
+//TODO: We should pull this content out of the config reference or single
+//source it across all the inputs where it appears. Maybe duplication is OK
+//for now, though, because the log file input is going away?
+
+WARNING: {agent} does not support reading from network shares and cloud
+providers.
+
+You can mitigate this limitation somewhat by changing some default settings.
+
+By default, {agent} identifies files based on their inodes and
+device IDs. However, on network shares and cloud providers, these
+values might change during the lifetime of the file. If this happens
+{agent} reads the file as new and resends the whole file. To solve this problem,
+configure the `file_identity` option. The valid values are `inode_deviceid`
+(default), `path`, and `inode_marker`.
+
+* Set `path` to identify files based on their paths. This is a quick way to
+avoid rereading files if inode and device IDs might change. However, keep in
+mind if the files are rotated (renamed), they will be reread and resubmitted.
+
+* Set `inode_marker` if the inodes stay the same even if the device ID is changed.
+If your files are rotated, use `inode_marker` instead of `path`, if possible.
+You must also configure a marker file readable by {agent} and set the path under
+`inode_marker`.
+
+The content of the marker file must be unique to the device. You can put the
+UUID of the device or mountpoint where the input is stored. The following
+example generates a hidden marker file for the selected mountpoint `/logs`:
+
+NOTE: Do not use this setting on Windows where file identifiers are more
+volatile.
+
+[source,shell]
+----
+$ lsblk -o MOUNTPOINT,UUID | grep /logs | awk '{print $2}' >> /logs/.agent-marker
+----
+
+To set the generated file as a marker for `file_identity`, configure
+the input as follows:
+
+[source,yaml]
+----
+inputs:
+  - type: filestream
+    paths:
+      - /logs/*.log
+    file_identity.inode_marker:
+      path: /logs/.agent-marker
+----
+
+
+[[input-filestream-rotating-logs]]
+=== Reading from rotating logs
+
+//TODO: Same comment as before about single sourcing.
+
+When dealing with file rotation, avoid harvesting symlinks. Instead
+use the `paths` setting to point to the original file, and specify
+a pattern that matches the file and all of its rotated files. Also make sure
+your log rotation strategy prevents lost or duplicate messages.
+
+//For more information, see <<file-log-rotation>>.
+
+Furthermore, to avoid duplicates of rotated log messages, do not use the
+`path` method for `file_identity`. Or exclude the rotated files by using
+the `exclude_files` option.
+
+
+[[input-filestream-commonly-used-settings]]
+=== Commonly used settings
+
+Settings frequently changed for this input type.
+
+The prospector runs a file system watcher that looks for files specified in the
+`paths` option. Currently only simple file system scanning is supported.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=enabled-setting]
+
+include::input-shared-settings.asciidoc[tag=paths-setting]
+
+// =============================================================================
+
+// tag::prospector.scanner.recursive_glob[]
+|
+[id="input-{input-type}-recursive_glob-setting"]
+`prospector.scanner.recursive_glob`
+
+| (boolean) When `true`, `**` is expanded into recursive glob patterns. The
+rightmost `**` in each path is expanded into a fixed number of glob patterns.
+For example: `/foo/**` expands to `/foo`, `/foo/*`, `/foo/*/*`, and so on. A
+single `**` is expanded into an 8-level deep `*` pattern. Use this setting to
+recursively fetch all files in all subdirectories of a directory.
+
+*Default:* `true`
+// end::prospector.scanner.recursive_glob[]
+
+|===
+
+[[input-filestream-prospector-settings]]
+=== Prospector settings
+
+//TODO: Find out whether these options need to go in a shared file. They duplicate
+//content of quite a few options that are currently shared. Looks like the
+//settings were renamed for the filestream input.
+
+Additional settings the prospector uses to process files.
+ 
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// =============================================================================
+
+// tag::buffer_size-setting[]
+|
+[id="input-{input-type}-buffer_size-setting"]
+`buffer_size`
+
+| (int) The size in bytes of the buffer that each harvester uses when fetching
+a file.
+
+*Default:* `16384`
+// end::buffer_size-setting[]
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=encoding-setting]
+
+include::input-shared-settings.asciidoc[tag=exclude_lines-setting]
+
+include::input-shared-settings.asciidoc[tag=include_lines-setting]
+
+// =============================================================================
+
+
+// tag::message_max_bytes-setting[]
+|
+[id="input-{input-type}-message_max_bytes-setting"]
+`message_max_bytes`
+
+| (int) The maximum number of bytes that a single log message can have. All
+bytes after `message_max_bytes` are discarded and not sent. 
+
+*Default:* `10485760` (10MB)
+// end::message_max_bytes-setting[]
+
+// =============================================================================
+
+|===
+
+[[input-filestream-scanner-settings]]
+=== Scanner settings
+
+Settings that control how the scanner scans the file system and returns events.
+
+The scanner watches the configured paths. It scans the file system periodically
+and returns the file system events to the prospector.
+
+//TODO: IF we keep these categories, figure out where to put "keep_null"
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// =============================================================================
+
+// tag::backoff-setting[]
+|
+[id="input-{input-type}-backoff-setting"]
+`backoff.*`
+
+| The `backoff` settings specify how aggressively {agent} crawls open files for
+updates. You can use the default values in most cases.
+
+// end::backoff-setting[]
+
+// =============================================================================
+
+// tag::backoff.init-setting[]
+
+|
+[id="input-{input-type}-backoff.init-setting"]
+`backoff.init`
+
+| TODO: Need a definition because the Filebeat docs do not have one. They simply
+duplicate the backoff.max description. 
+// end::backoff.init-setting[]
+
+// =============================================================================
+
+// tag::max_backoff-setting[]
+|
+[id="input-{input-type}-max_backoff-setting"]
+`backoff.max`
+
+//QUESTION: IsS backoff_factor a valid setting for filestream? Is scan_frequency?
+//Looks like this content was not completely updated in the Filebeat docs.
+
+| (string) The maximum time for {agent} to wait before checking a file again
+after EOF is reached. After having backed off multiple times from checking the
+file, the wait time will never exceed `backoff.max` regardless of what is
+specified for `backoff_factor`.
+
+*Default:* `10s`
+
+Because it takes a maximum of 10s to read a new line, specifying `10s` for
+`backoff.max` means that, at the worst, a new line could be added to the log
+file if {agent} has backed off multiple times.
+
+
+//QUESTION: Should this refer to backoff or backoff.init below?
+
+Requirement: Set `backoff.max` to be greater than or equal to `backoff` and less
+than or equal to `scan_frequency` (`backoff <= max_backoff <= scan_frequency`).
+If `backoff.max` needs to be higher, you should close the file handler instead
+and let {agent} pick up the file again.
+// end::max_backoff-setting[]
+
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=clean-setting]
+
+include::input-shared-settings.asciidoc[tag=clean_inactive-setting]
+
+include::input-shared-settings.asciidoc[tag=clean_removed-setting]
+
+// =============================================================================
+
+// tag::close-setting[]
+|
+[id="input-{input-type}-close-setting"]
+`close.*`
+
+| The `close.*` settings are used to close the harvester after a certain
+criteria or time. Closing the harvester means closing the file handler. If a
+file is updated after the harvester is closed, the file will be picked up again
+after `prospector.scanner.check_interval` has elapsed. However, if the file is
+moved or deleted while the harvester is closed, {agent} will not be able to pick
+up the file again, and any data that the harvester hasn't read will be lost. 
+
+The `close.on_state_change.*` settings are applied synchronously when {agent}
+attempts  to read from a file, meaning that if {agent} is in a blocked state due
+to blocked output, full queue, or other issue, a file that would  otherwise be
+closed remains open until {agent} once again attempts to read from the file.
+
+// end::close-setting[]
+
+// =============================================================================
+
+// tag::close.on_state_change.inactive[]
+|
+[id="input-{input-type}-close.on_state_change.inactive-setting"]
+`close.on_state_change.inactive`
+
+| (string) If specified, {agent} closes the file handle if the file has not been
+harvested for the specified duration. The counter for the defined period starts
+when the last log line was read by the harvester. It is not based on the
+modification time of the file. If the closed file changes again, a new harvester
+is started, and the latest changes will be picked up after
+`prospector.scanner.check_interval` has elapsed.
+
+*Default:* `5m`
+
+We recommended that you set `close.on_state_change.inactive` to a value that is
+larger than the least frequent updates to your log files. For example, if your
+log files get updated every few seconds, you can safely set
+`close.on_state_change.inactive` to `1m`. If there are log files with very
+different update rates, you can use multiple configurations with different
+values.
+
+Setting `close.on_state_change.inactive` to a lower value means that file
+handles are closed sooner. However this has the side effect that new log lines
+are not sent in near real time if the harvester is closed.
+
+The timestamp for closing a file does not depend on the modification time of the
+file. Instead, {agent} uses an internal timestamp that reflects when the file
+was last harvested. For example, if `close.on_state_change.inactive` is set to 5
+minutes, the countdown for the 5 minutes starts after the harvester reads the
+last line of the file.
+
+You can use time strings like 2h (2 hours) and 5m (5 minutes).
+
+// end::close.on_state_change.inactive[]
+
+// =============================================================================
+
+// tag::close.on_state_change.renamed-setting[]
+|
+[id="input-{input-type}-close.on_state_change.renamed-setting"]
+`close.on_state_change.renamed`
+
+|
+WARNING: Only use this option if you understand that data loss is a potential
+side effect.
+
+(boolean) When `true`, {agent} closes the file handler when a file
+is renamed. This happens, for example, when rotating files.
+
+*Default:* `false` (the harvester stays open and keeps reading the file because
+it does not depend on the file name)
+
+If `close.on_state_change.renamed` is `true` and the file is renamed or moved in such a way that
+it's no longer matched by the file patterns specified for the path, the file
+will not be picked up again. {agent} will not finish reading the file.
+
+Do not use this option when `path` based `file_identity` is configured. It does
+not make sense to enable the option, because {agent} cannot detect renames using
+path names as unique identifiers.
+
+TIP: If your Windows log rotation system shows errors because it can't rotate
+files, set this option to `true`.
+
+// end::close.on_state_change.renamed-setting[]
+
+// =============================================================================
+
+// tag::close.on_state_change.removed-setting[]
+|
+[id="input-{input-type}-close.on_state_change.removed-setting"]
+`close.on_state_change.removed`
+
+| (boolean) When `true`, {agent} closes the harvester when a file is
+removed.
+
+*Default:* `true`
+
+Normally a file should only be removed after it's inactive for the duration
+specified by `close.on_state_change.inactive`. However, if a file is removed
+early and `close.on_state_change.removed` is `false`, {agent} keeps the file
+open to make sure the harvester has completed. If this setting results in files
+that are not completely read because they are removed from disk too early, set
+`clean.on_state_change.removed` to `false`.
+
+If `clean.on_state_change.removed` is `false`, you must also set
+`clean.on_state_change.removed` to `false`.
+
+TIP: If your Windows log rotation system shows errors because it can't rotate
+files, set this option to `true`.
+
+// end::close.on_state_change.removed-setting[]
+
+// =============================================================================
+
+// tag::close.reader.eof-setting[]
+|
+[id="input-{input-type}-close.reader.eof-setting"]
+`close.reader.eof`
+
+| 
+WARNING: Only use this option if you understand that data loss is a potential
+side effect.
+
+(boolean) When `true`, {agent} closes a file as soon as the end of a
+file is reached. This is useful when your files are only written once and not
+updated from time to time. For example, this happens when you are writing every
+single log event to a new file.
+
+*Default:* `false`
+// end::close.reader.eof-setting[]
+
+// =============================================================================
+
+// tag::close.reader.timeout-setting[]
+|
+[id="input-{input-type}-close.reader.timeout-setting"]
+`close.reader.timeout`
+
+|
+WARNING: Only change this setting if you understand that data loss is a
+potential side effect. Another side effect is that multiline events might not be
+completely sent before the timeout expires.
+
+(string) When this setting is enabled, {agent} gives every harvester a
+predefined lifetime. Regardless of where the reader is in the file, reading will
+stop after the `close.reader.after_interval` period has elapsed.
+
+*Default:* `0` (disabled)
+
+This setting can be useful for older log files when you want to spend only a
+predefined amount of time on the files. While `close.reader.after_interval` will
+close the file after the predefined timeout, if the file is still being updated,
+{agent} will start a new harvester again per the defined `scan_frequency`. And
+the `close.reader.after_interval` for this harvester will start again with the
+countdown for the timeout.
+
+//QUESTION: I thought scan_frequency was renamed?
+
+This option is particularly useful in case the output is blocked, which makes
+{agent} keep open file handlers even for files that were deleted from the disk.
+Setting `close.reader.after_interval` to `5m` ensures that the files are
+periodically closed so they can be freed up by the operating system.
+
+If you set `close.reader.after_interval` to equal `ignore_older`, the file will
+not be picked up if it's modified while the harvester is closed. This
+combination of settings normally leads to data loss, and the complete file is
+not sent.
+
+When you use `close.reader.after_interval` for logs that contain multiline
+events, the harvester might stop in the middle of a multiline event, which means
+that only parts of the event will be sent. If the harvester is started again and
+the file still exists, only the second part of the event will be sent.
+// end::close.reader.timeout[]
+
+// =============================================================================
+
+// tag::ignore_older-setting[]
+|
+[id="input-{input-type}-ignore_older-setting"]
+`ignore_older`
+
+| (string) If `true`, {agent} ignores any files modified before the specified
+timespan. This setting is useful if you keep log files for a long time and only
+want to send newer files.
+
+*Default:* `0` (no files ignored)
+
+You can use time strings like 2h (2 hours) and 5m (5 minutes). 0 disables the
+setting. Commenting out the config has the same effect as setting it to 0.
+
+IMPORTANT: You must set `ignore_older` to be greater than
+`close.on_state_change.inactive`.
+
+The files affected by this setting fall into two categories:
+
+* Files that were never harvested Files that were harvested but weren't updated
+* for longer than `ignore_older`
+
+For files that were never seen before, the offset state is set to the end of the
+file. If a state already exist, the offset is not changed. In case a file is
+updated again later, reading continues at the set offset position.
+
+The `ignore_older` setting relies on the modification time of the file to
+determine if a file is ignored. If the modification time of the file is not
+updated when lines are written to a file (which can happen on Windows), the
+`ignore_older` setting may cause {agent} to ignore files even though content was
+added at a later time.
+
+To remove the state of previously harvested files from the registry file, use
+the `clean_inactive` configuration option.
+
+Before a file can be ignored by {agent}, the file must be closed. To ensure a
+file is no longer being harvested when it is ignored, you must set
+`ignore_older` to a longer duration than `close.on_state_change.inactive`.
+
+If a file that's currently being harvested falls under `ignore_older`, the
+harvester will first finish reading the file and close it after
+`close.on_state_change.inactive` is reached. Then, after that, the file will be
+ignored.
+// end::ignore_older-setting[]
+
+// =============================================================================
+
+// tag::prospector.scanner.check_interval-setting[]
+|
+[id="input-{input-type}-prospector.scanner.check_interval-setting"]
+`prospector.scanner.check_interval`
+
+| (string) How often {agent} checks for new files in the paths that are specified
+for harvesting.
+
+*Default:* `10s`
+
+For example, if you specify a glob like `/var/log/*`, the directory is scanned
+for files using the frequency specified by `check_interval`. Specify `1s` to scan
+the directory as frequently as possible without causing {agent} to scan too
+frequently. We do not recommend setting this value to less than `1s`.
+
+If you require log lines to be sent in near real time do not use a very low
+`check_interval` but adjust `close.on_state_change.inactive` so the file handler
+stays open and constantly polls your files.
+// end::prospector.scanner.check_interval-setting[]
+
+// =============================================================================
+
+// tag::prospector.scanner.exclude_files-setting[]
+|
+[id="input-{input-type}-prospector.scanner.exclude_files-setting"]
+`prospector.scanner.exclude_files`
+
+| (list) A list of regular expressions to match the files that you want
+{agent} to ignore.
+
+*Default:* no files excluded
+
+The following example configures {agent} to ignore all files that have a `gz`
+extension:
+
+[source,yaml,subs="attributes"]
+----
+inputs:
+  - type: {type}
+    ...
+    prospector.scanner.exclude_files: ['\.gz$']
+----
+
+//See <<regexp-support>> for a list of supported regexp patterns.
+
+// end::prospector.scanner.exclude_files-setting[]
+
+// =============================================================================
+
+// tag::prospector.scanner.symlinks-setting[]
+|
+[id="input-{input-type}-prospector.scanner.symlinks-setting"]
+`symlinks`
+
+| (boolean) If `true`, {agent} harvests symlinks in addition to regular files.
+When harvesting symlinks, the agent opens and reads the original file even
+though it reports the path of the symlink.
+
+*Default:* `false`
+
+When you configure a symlink for harvesting, make sure the original path is
+excluded. If a single input is configured to harvest both the symlink and
+the original file, {agent} detects the problem and only process the
+first file it finds. However, if two different inputs are configured (one
+to read the symlink and the other the original path), both paths are
+harvested, causing {agent} to send duplicate data and the inputs to
+overwrite each other's state.
+
+The `symlinks` option can be useful if symlinks to the log files have additional
+metadata in the file name, and you want to process the metadata in {ls}.
+This is, for example, the case for Kubernetes log files.
+
+Because this option may lead to data loss, it is `false` by default.
+// end::prospector.scanner.symlinks-setting[]
+
+// =============================================================================
+
+include::input-shared-settings.asciidoc[tag=file_identity-setting]
+
+|===
+
+[[input-filestream-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:

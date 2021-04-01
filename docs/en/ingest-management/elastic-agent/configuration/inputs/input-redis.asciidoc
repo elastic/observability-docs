@@ -1,0 +1,151 @@
+:input-type: redis
+
+[[redis-input]]
+== Redis input
+
+++++
+<titleabbrev>Redis</titleabbrev>
+++++
+
+experimental[]
+
+Use the `redis` input to read entries from Redis slowlogs.
+
+Example configuration:
+
+["source","yaml",subs="attributes"]
+----
+inputs:
+  - type: redis
+    hosts: ["localhost:6379"]
+    password: "${redis_pwd}"
+----
+
+
+The `redis` input supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-redis-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-redis-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+[[input-redis-commonly-used-settings]]
+=== Commonly used settings
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+|
+[id="input-{input-type}-hosts-setting"]
+`hosts`
+
+| (list) The list of Redis hosts to connect to.
+// end::hosts-setting[]
+
+// =============================================================================
+
+// tag::maxconn-setting[]
+|
+[id="input-{input-type}-maxconn-setting"]
+`maxconn`
+
+| (int) The maximum number of concurrent connections.
+
+*Default:* `10`
+
+// end::maxconn-setting[]
+
+// =============================================================================
+
+// tag::network-setting[]
+|
+[id="input-{input-type}-network-setting"]
+`network`
+
+| (string) The network type to use for the Redis connection. Valid settings
+include: `tcp`, `tcp4`, `tcp6`, and `unix`.
+
+*Default:* `tcp`
+
+// end::network-setting[]
+
+// =============================================================================
+
+// tag::password-setting[]
+|
+[id="input-{input-type}-password-setting"]
+`password`
+
+| (string) The password to use when connecting to Redis.
+// end::password-setting[]
+
+// =============================================================================
+
+// tag::scan_frequency-setting[]
+|
+[id="input-{input-type}-NAME-setting"]
+`scan_frequency`
+
+| (string) How often {agent} reads entries from Redis slowlogs.
+
+*Default:* `10s`
+
+Specify `1s` to scan Redis as frequently as possible without causing {agent} to
+scan too frequently. Do not set this value to less than `1s`.
+
+IMPORTANT: Redis slowlogs are not permanent. To ensure that all slowlog entries
+are collected, set `scan_frequency` to a value that allows {agent} sufficient
+time to connect to Redis, query the logs, and buffer them to the output within
+the specified interval.
+
+// end::scan_frequency-setting[]
+
+// =============================================================================
+
+// tag::timeout-setting[]
+|
+[id="input-{input-type}-timeout-setting"]
+`timeout`
+
+| (string) How long to wait for a response from Redis before the input returns
+an error.
+
+*Default:* `1s`
+// end::timeout-setting[]
+
+// =============================================================================
+
+|=== 
+
+[[input-redis-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:
+

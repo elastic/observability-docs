@@ -1,0 +1,289 @@
+[role="xpack"]
+
+:input-type: o365audit
+
+[[o365audit-input]]
+=== Office 365 Management Activity API input
+
+++++
+<titleabbrev>Office 365 Management Activity API</titleabbrev>
+++++
+
+beta[]
+
+Use the `o365audit` input to retrieve audit messages from Office 365
+and Azure AD activity logs. These are the same logs that are available under
+_Audit_ _log_ _search_ in the _Security_ _and_ _Compliance_ center.
+
+A single input instance can be used to fetch events for multiple tenants as long
+as a single application is configured to access all tenants. Certificate-based
+authentication is recommended in this scenario.
+
+This input doesn't perform any transformation on the incoming messages, notably
+no {ecs-ref}/ecs-reference.html[Elastic Common Schema fields] are populated, and
+some data is encoded as arrays of objects, which are difficult to query in
+{es}.
+
+Example configuration:
+
+[source,yaml]
+----
+inputs:
+  - type: o365audit
+    application_id: my-application-id
+    tenant_id: my-tenant-id
+    client_secret: my-client-secret
+----
+
+Multi-tenancy and certificate-based authentication is also supported:
+
+[source,yaml]
+----
+inputs:
+  - type: o365audit
+    application_id: my-application-id
+    tenant_id:
+      - tenant-id-A
+      - tenant-id-B
+      - tenant-id-C
+    certificate: /path/to/cert.pem
+    key: /path/to/private.pem
+    # key_passphrase: "my key's password"
+----
+
+The `o365audit` input supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent}
+with minimal configuration.
+
+<<input-o365audit-commonly-used-settings>>::
+Settings frequently changed for this input type.
+
+<<input-o365audit-authentication-settings>>::
+Settings for authenticating with the Azure application.
+
+<<input-o365audit-performance-tuning-settings>>::
+Settings that may affect performance.
+
+<<input-o365audit-data-parsing-settings>>::
+Settings used to parse, filter, and transform data.
+
+[[input-o365audit-commonly-used-settings]]
+=== Commonly used settings
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::api.resource-setting[]
+|
+[id="input-{input-type}-api.resource-setting"]
+`api.resource`
+
+| (string) The API resource to retrieve information from.
+
+*Default:* `https://manage.office.com`
+
+// end::api.resource-setting[]
+
+// =============================================================================
+
+// tag::application_id-setting[]
+|
+[id="input-{input-type}-application_id-setting"]
+`application_id`
+
+| (string) The Application ID (also known as Client ID) of the Azure application
+to authenticate as. Also see <<input-o365audit-authentication-settings>>.
+// end::application_id-setting[]
+
+// =============================================================================
+
+// tag::tenant_id-setting[]
+|
+[id="input-{input-type}-tenant_id-setting"]
+`tenant_id`
+
+| (string) The tenant ID (also known as Directory ID) whose data is to be
+fetched. It's also possible to specify a list of tenants IDs to fetch data from
+more than one tenant.
+// end::tenant_id-setting[]
+
+// =============================================================================
+
+// tag::content_type-setting[]
+|
+[id="input-{input-type}-content_type-setting"]
+`content_type`
+
+| (list) List of content types to fetch.
+
+*Default:* fetch all known content types:
+
+- Audit.AzureActiveDirectory
+- Audit.Exchange
+- Audit.SharePoint
+- Audit.General
+- DLP.All
+// end::content_type-setting[]
+
+// =============================================================================
+
+|===
+
+
+[[input-o365audit-authentication-settings]]
+=== Authentication settings
+
+Settings for authenticating with the Azure application.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::api.authentication_endpoint-setting[]
+|
+[id="input-{input-type}-api.authentication_endpoint-setting"]
+`api.authentication_endpoint`
+
+| (string) The authentication endpoint used to authorize the Azure app.
+
+*Default:* `https://login.microsoftonline.com/`
+
+// end::api.authentication_endpoint-setting[]
+
+// =============================================================================
+
+// tag::certificate-setting[]
+|
+[id="input-{input-type}-certificate-setting"]
+`certificate`
+
+| (string) Path to the public certificate file used for certificate-based
+authentication.
+// end::certificate-setting[]
+
+// =============================================================================
+
+
+// tag::client_secret-setting[]
+|
+[id="input-{input-type}-client_secret-setting"]
+`client_secret`
+
+| (string) The client secret used for authentication.
+// end::client_secret-setting[]
+
+// =============================================================================
+
+// tag::key-setting[]
+|
+[id="input-{input-type}-key-setting"]
+`key`
+
+| (string) Path to the certificate's private key file for certificate-based
+authentication.
+// end::key-setting[]
+
+// =============================================================================
+
+// tag::key_passphrase-setting[]
+|
+[id="input-{input-type}-key_passphrase-setting"]
+`key_passphrase`
+
+| (string) Passphrase used to decrypt the private key.
+// end::key_passphrase-setting[]
+
+// =============================================================================
+
+|===
+
+[[input-o365audit-performance-tuning-settings]]
+=== Performance tuning settings
+
+Settings that may affect performance.
+
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+// tag::api.max_query_size-setting[]
+|
+[id="input-{input-type}-api.max_query_size-setting"]
+`api.max_query_size`
+
+| (string) The maximum time window that API allows in a single query.
+
+*Default:* `24h` (Microsoft documented limit)
+// end::api.max_query_size-setting[]
+
+// =============================================================================
+
+// tag::api.max_requests_per_minute-setting[]
+|
+[id="input-{input-type}-api.max_requests_per_minute-setting"]
+`api.max_requests_per_minute`
+
+| (int) The maximum number of requests to perform per minute, for each tenant.
+
+*Default:* `2000` (the server-side limit per tenant)
+// end::api.max_requests_per_minute-setting[]
+
+// =============================================================================
+
+// tag::api.max_retention-setting[]
+|
+[id="input-{input-type}-api.max_retention-setting"]
+`api.max_retention`
+
+| (string) The maximum data retention period to support. When {agent} runs for
+the first time, it fetches all retained data for a tenant.
+
+*Default:* `168h`
+// end::api.max_retention-setting[]
+
+// =============================================================================
+
+// tag::api.poll_interval-setting[]
+|
+[id="input-{input-type}-api.poll_interval-setting"]
+`api.poll_interval`
+
+| (string) The interval to wait before polling the API server for new events.
+
+*Default:* `3m`
+// end::api.poll_interval-setting[]
+
+// =============================================================================
+
+|===
+
+
+[[input-o365audit-data-parsing-settings]]
+=== Data parsing, filtering, and manipulation settings
+
+Settings used to parse, filter, and transform data. These settings are
+valid for all input types.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::input-shared-settings.asciidoc[tag=fields-setting]
+
+include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
+
+include::input-shared-settings.asciidoc[tag=keep_null-setting]
+
+include::input-shared-settings.asciidoc[tag=pipeline-setting]
+
+include::input-shared-settings.asciidoc[tag=processors-setting]
+
+include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
+
+include::input-shared-settings.asciidoc[tag=tags-setting]
+
+|===
+
+:input-type!:
