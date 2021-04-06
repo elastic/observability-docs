@@ -15,7 +15,7 @@ Within this repo, the `/docs/en/` directory is structured as follows:
 
 ## Reviews
 
-When you open a pull request, please tag **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** as a reviewer.
+All documentation pull requests automatically add the **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** team as a reviewer.
 
 ## Backporting
 
