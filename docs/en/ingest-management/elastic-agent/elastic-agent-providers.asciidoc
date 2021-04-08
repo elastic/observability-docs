@@ -195,6 +195,33 @@ access Kubernetes Secrets API and get a specific secret no matter which namespac
 In this, this option should be carefully considered.
 
 [discrete]
+[[kubernetes_leaderelection-provider]]
+==== Kubernetes LeaderElection Provider
+
+Provides the option to enable leaderelection between a set of Agents
+running on Kubernetes. Only one Agent at a time will be the holder of the leader
+lock and based on this, configurations can be enabled with the condition
+that the Agent holds the leadership. This can be useful in cases where we want
+only Agent between a set of Agents to collect cluster wide metrics for the
+Kubernetes cluster like from `kube-state-metrics` endpoint.
+
+Provider needs a `kubeconfig` file so as to establish connection to Kubernetes API,
+or it can automatically reach the API if it runs in an inCluster environment (Agent runs as Pod).
+
+[source,yaml]
+----
+providers.kubernetes_leaderelection:
+  #kube_config: /Users/elastic-agent/.kube/config
+  #leader_lease: agent-k8s-leader-lock
+----
+
+`kube_config`:: (Optional) Use given config file as configuration for Kubernetes
+client. If kube_config is not set, KUBECONFIG environment variable will be
+checked and if not present it will fall back to InCluster.
+`leader_lease`:: (Optional) Specify the name of the leader lease.
+By default it is `elastic-agent-cluster-leader`.
+
+[discrete]
 [[dynamic-providers]]
 === Dynamic Providers
 
