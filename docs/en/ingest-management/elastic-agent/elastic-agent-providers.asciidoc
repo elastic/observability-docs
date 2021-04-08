@@ -221,6 +221,39 @@ checked and if not present it will fall back to InCluster.
 `leader_lease`:: (Optional) Specify the name of the leader lease.
 By default it is `elastic-agent-cluster-leader`.
 
+The available key is:
+
+|===
+|Key |Type |Description
+
+|`kubernetes_leaderelection.leader`
+|`bool`
+|The value of the leadership flags. True when the Agents holds the leader lock.
+
+|===
+
+==== Enabling confgiurations only when on leadership
+
+In order to leverage leaderelection provider and enable
+specific inputs only when Agent holds the leadership lock, users
+can use conditions based on `kubernetes_leaderelection.leader` key.
+Below we provide an example that will enable `state_container`
+metricset only when the leadership lock is acquired:
+
+[source,yaml]
+----
+- data_stream:
+    dataset: kubernetes.state_container
+    type: metrics
+  metricsets:
+    - state_container
+  add_metadata: true
+  hosts:
+    - 'kube-state-metrics:8080'
+  period: 10s
+  condition: ${kubernetes_leaderelection.leader} == true
+----
+
 [discrete]
 [[dynamic-providers]]
 === Dynamic Providers
