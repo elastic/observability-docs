@@ -1,0 +1,474 @@
+:tutorial: tutorial
+:gcp: GCP
+
+[[monitor-gcp]]
+== Monitor Google Cloud Platform
+
+In this tutorial, you'll learn how to monitor your Google Cloud Platform ({gcp})
+deployments using Elastic Observability: Logs and Metrics.
+
+[discrete]
+=== What you'll learn
+
+You'll learn how to:
+
+- Set up a {gcp} Service Account.
+- Ingest metrics using the {metricbeat-ref}/metricbeat-module-gcp.html[{metricbeat}
+Google Cloud Platform module] and view those metrics in {kib}.
+- Export GCP audit logs through Pub/Sub topics.
+- Ingest logs using the {filebeat-ref}/filebeat-module-gcp.html[{filebeat}
+Google Cloud module] and view those logs in {kib}.
+
+[discrete]
+=== Before you begin
+
+Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}].
+The deployment includes an {es} cluster for storing and searching your data,
+and {kib} for visualizing and managing your data.
+For more information, see <<spin-up-stack,Spin up the Elastic Stack>>.
+
+[discrete]
+=== Step 1: Setup a Service Account
+
+Google Cloud Platform implements https://cloud.google.com/compute/docs/access/service-accounts[service
+accounts] as a way to access APIs securely. To monitor {gcp} with
+Elastic, you will need a service account. The easiest way is to use a predefined
+service account that {gcp} https://cloud.google.com/compute/docs/access/service-accounts?hl=en#default_service_account[creates automatically].
+Alternatively, you can create a new service account.
+This {tutorial} creates a new one.
+
+First, to access the service account menu, click
+*Menu* -> *IAM & Admin* -> *Service Accounts*.
+
+image::monitor-gcp-service-account-menu.png[Service account menu]
+
+Next, click *Create Service Account*. Define the new service account
+name (for example, "gcp-monitor") and the description (for example, "Service
+account to monitor {gcp} services using the Elastic Stack").
+
+image::monitor-gcp-service-account-name.png[Service account name]
+
+[IMPORTANT]
+====
+Make sure to select the correct roles.
+====
+
+To monitor {gcp} services, you need to add two main roles to the
+service account:
+
+*Compute Viewer*:
+
+image::monitor-gcp-service-account-roles-compute-viewer.png[Service account roles compute viewer]
+
+*Monitoring Viewer*:
+
+image::monitor-gcp-service-account-roles-monitoring-viewer.png[Service account roles monitoring viewer]
+
+The final result should be the following:
+
+image::monitor-gcp-service-account-roles-final.png[Service account roles result]
+
+Click *Continue*, then skip granting users access to this service. Finally,
+click *Done*. The service account is now ready to be used.
+
+Next, to use the service account, click *Create keys* and create the
+JSON key type.
+
+image::monitor-gcp-service-account-create-key.png[Service account create key]
+
+After clicking *Create key*, the credential file is downloaded. Keep this file
+in an accessible place to use later.
+
+[discrete]
+=== Step 2: Install and configure {metricbeat}
+
+To monitor {gcp} using the {stack}, you need two main components:
+an Elastic deployment to store and analyze the data and an agent to collect
+and ship the data.
+
+[NOTE]
+====
+This {tutorial} assumes the Elastic cluster is already running. Make sure you have your *cloud ID* and your *credentials* on hand.
+====
+
+Two agents can be used to monitor {gcp}: {metricbeat} is used to
+monitor metrics, and {filebeat} to monitor logs. You can run the agents on any
+machine. This {tutorial} uses a small {gcp} instance, e2-small (2 vCPUs,
+2 GB memory), with an Ubuntu distribution.
+
+[discrete]
+==== Install {metricbeat}
+
+After starting and connecting to the GCP instance, download and install
+{metricbeat}.
+
+include::{beats-repo-dir}/tab-widgets/install-widget-metricbeat.asciidoc[]
+
+[discrete]
+==== Set up assets
+
+{metricbeat} comes with predefined assets for parsing, indexing, and visualizing
+your data. Run the following command to load these assets.
+It may take a few minutes.
+
+[NOTE]
+=====
+Substitute the Cloud ID from your deployment in the following command. To find
+your Cloud ID, click on your https://cloud.elastic.co/deployments[deployment].
+=====
+[source,bash]
+----
+./metricbeat setup -e -E 'cloud.id=YOUR_DEPLOYMENT_CLOUD_ID' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
+----
+[IMPORTANT]
+====
+Setting up {metricbeat} is an admin-level task that requires extra privileges.
+As a best practice, {metricbeat-ref}/privileges-to-setup-beats.html[use an administrator role to set up],
+and a more restrictive role for event publishing (which you will do next).
+====
+
+[discrete]
+==== Configure {metricbeat} output
+
+Next, you are going to configure {metricbeat} output to {ess}.
+
+. Use the {metricbeat} keystore to store
+{metricbeat-ref}/keystore.html[secure settings].
+Store the Cloud ID in the keystore.
++
+[source,bash]
+----
+./metricbeat keystore create
+echo -n "<Your Deployment Cloud ID>" | ./metricbeat keystore add CLOUD_ID --stdin
+----
+
+. To store metrics in {es} with minimal permissions, create an API key to send
+data from {metricbeat} to {ess}. Log into Kibana (you can do so from the Cloud
+Console without typing in any permissions) and select *Management* -> *Dev
+Tools*. Send the following request:
++
+[source,console]
+----
+POST /_security/api_key
+{
+  "name": "metricbeat-monitor-gcp",
+  "role_descriptors": {
+    "metricbeat_writer": {
+      "cluster": ["monitor", "read_ilm"],
+      "index": [
+        {
+          "names": ["metricbeat-*"],
+          "privileges": ["view_index_metadata", "create_doc"]
+        }
+      ]
+    }
+  }
+}
+----
+
+. The response contains an `api_key` and an `id` field, which can be stored in
+the {metricbeat} keystore in the following format: `id:api_key`.
++
+[source,bash]
+----
+echo -n "IhrJJHMB4JmIUAPLuM35:1GbfxhkMT8COBB4JWY3pvQ" | ./metricbeat keystore add ES_API_KEY --stdin
+----
++
+[NOTE]
+=====
+Make sure you specify the `-n` parameter; otherwise, you will have
+painful debugging sessions due to adding a newline at the end of
+your API key.
+=====
+
+. To see if both settings have been stored, run the following command:
++
+[source,bash]
+----
+./metricbeat keystore list
+----
+
+. To configure {metricbeat} to output to {ess}, edit the `metricbeat.yml`
+configuration file. Add the following lines to the end of the file.
++
+[source,yml]
+----
+cloud.id: ${CLOUD_ID}
+output.elasticsearch:
+  api_key: ${ES_API_KEY}
+----
+
+. Finally, test if the configuration is working. If it is not working,
+verify if you used the right credentials and add them again.
++
+[source,bash]
+----
+./metricbeat test output
+----
+
+Now that the output is working, you are going to set up the input (GCP).
+
+[discrete]
+=== Step 3: Configure {metricbeat} Google Cloud Platform module
+
+To collect metrics from Google Cloud Platform, use the
+{metricbeat-ref}/metricbeat-module-gcp.html[Google Cloud Platform]
+module. This module periodically fetches monitoring metrics from Google Cloud
+Platform using
+https://cloud.google.com/monitoring/api/metrics_gcp[Stackdriver Monitoring API]
+for Google Cloud Platform services.
+
+[WARNING]
+====
+Extra GCP charges on Stackdriver Monitoring API requests may be generated by
+this module. Please see
+{metricbeat-ref}/metricbeat-module-gcp.html#gcp-api-requests[rough estimation of the number of API calls]
+for more details.
+====
+
+. Enable the GCP module.
++
+[source,bash]
+----
+./metricbeat modules enable gcp
+----
+
+. Edit the `modules.d/gcp.yml` file to configure which metrics to
+collect.
++
+[source,yml]
+----
+- module: gcp
+  metricsets:
+    - compute <1>
+  zone: "" <2>
+  project_id: "your-project-id" <3>
+  period: 1m <4>
+  credentials_file_path: "/home/ubuntu/credentials.json" <5>
+----
++
+<1> The `compute` metricset is a predefined metricset that collects some
+GCP compute metrics.
+<2> Defines which zones to monitor, an empty value collects data from *all* zones
+<3> Collects metrics within the `your-project-id` project-id.
+<4> Collects metrics every minute
+<5> The GCP credential file that you generated earlier. (Don't forget to create
+the file if it does not exist and use the correct full path).
+
+. To check if {metricbeat} can collect data, test the input by running the
+following command:
++
+[source,bash]
+----
+./metricbeat test modules gcp
+----
++
+{metricbeat} will print {gcp} metrics to the terminal, if the setup is correct.
+
+. When the input and output are ready, start {metricbeat} to collect the data.
++
+[source,bash]
+----
+./metricbeat -e
+----
+
+. Finally, log into {kib} and open the *[{metricbeat} GCP] Compute Overview*
+dashboard.
++
+image:monitor-gcp-compute-overview-dashboard.png[{metricbeat} compute overview dashboard]
+
+[discrete]
+=== Step 4: Install and configure {filebeat}
+
+Now that {metricbeat} is up and running, configure {filebeat} to
+collect Google Cloud logs.
+
+[discrete]
+==== Install {filebeat}
+
+On a new terminal window connected to the GCP instance, download and install
+{filebeat}.
+
+include::{beats-repo-dir}/tab-widgets/install-widget-filebeat.asciidoc[]
+
+[discrete]
+==== Set up assets
+
+Similar to {metricbeat}, {filebeat} comes with predefined assets for parsing,
+indexing, and visualizing your data.
+Run the following command to load these assets. It may take a few minutes.
+
+[source,bash]
+----
+./filebeat setup -e -E 'cloud.id=YOUR_DEPLOYMENT_CLOUD_ID' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
+----
+
+[IMPORTANT]
+====
+Setting up {filebeat} is an admin-level task that requires extra privileges.
+As a best practice, {filebeat-ref}/privileges-to-setup-beats.html[use an administrator role to set up]
+and a more restrictive role for event publishing (which you will do next).
+====
+
+[discrete]
+==== Configure {filebeat} output
+
+Next, you are going to configure {filebeat} output to {ess}.
+
+. Use the {filebeat} keystore to store {filebeat-ref}/keystore.html[secure
+settings]. Store the Cloud ID in the keystore.
++
+[source,bash]
+----
+./filebeat keystore create
+echo -n "<Your Deployment Cloud ID>" | ./filebeat keystore add CLOUD_ID --stdin
+----
+
+. To store logs in {es} with minimal permissions, create an API key to send
+data from {filebeat} to {ess}. Log into {kib} (you can do so from the Cloud
+Console without typing in any permissions) and select *Management* -> *Dev
+Tools*. Send the following request:
++
+[source,console]
+----
+POST /_security/api_key
+{
+  "name": "filebeat-monitor-gcp",
+  "role_descriptors": {
+    "filebeat_writer": {
+      "cluster": [
+        "monitor",
+        "read_ilm",
+        "cluster:admin/ingest/pipeline/get", <1>
+        "cluster:admin/ingest/pipeline/put" <1>
+      ],
+      "index": [
+        {
+          "names": ["filebeat-*"],
+          "privileges": ["view_index_metadata", "create_doc"]
+        }
+      ]
+    }
+  }
+}
+----
++
+<1> {filebeat} needs extra cluster permissions to publish logs, which differs
+from the {metricbeat} configuration used previously. You can find more
+details {filebeat-ref}/feature-roles.html[here].
+
+. The response contains an `api_key` and an `id` field, which can be stored in
+the {filebeat} keystore in the following format: `id:api_key`.
++
+[source,bash]
+----
+echo -n "IhrJJHMB4JmIUAPLuM35:1GbfxhkMT8COBB4JWY3pvQ" | ./filebeat keystore add ES_API_KEY --stdin
+----
++
+[NOTE]
+=====
+Make sure you specify the `-n` parameter; otherwise, you will have
+painful debugging sessions due to adding a newline at the end of
+your API key.
+=====
+
+. To see if both settings have been stored, run the following command:
++
+[source,bash]
+----
+./filebeat keystore list
+----
+
+. To configure {filebeat} to output to {ess}, edit the `filebeat.yml`
+configuration file. Add the following lines to the end of the file.
++
+[source,yml]
+----
+cloud.id: ${CLOUD_ID}
+output.elasticsearch:
+  api_key: ${ES_API_KEY}
+----
+
+. Finally, test if the configuration is working. If it is not working,
+verify that you used the right credentials and, if necessary, add them again.
++
+[source,bash]
+----
+./filebeat test output
+----
+
+Now that the output is working, you are going to set up the input ({gcp}).
+
+[discrete]
+=== Step 5: Configure {filebeat} Google Cloud module
+
+To collect logs from Google Cloud Platform, use the
+{filebeat-ref}/filebeat-module-gcp.html[Google Cloud Platform]
+module. This module periodically fetches logs that have been exported from
+Stackdriver to a Google Pub/Sub topic sink. There are three available filesets:
+`audit`, `vpcflow`, `firewall`. This tutorial covers the `audit` fileset.
+
+. Go to the *Logs Router* page to configure {gcp} to export logs to a Pub/Sub
+topic. Use the search bar to find the page:
++
+image::monitor-gcp-navigate-logs-router.png[Navigate to Logs Router page]
++
+To set up the logs routing sink, click  *Create sink*.
+Set *sink name* as `monitor-gcp-audit-sink`. Select the *Cloud Pub/Sub topic* as the
+*sink service* and *Create new Cloud Pub/Sub topic* named `monitor-gcp-audit`:
++
+image::monitor-gcp-create-pubsub-topic.png[Create Pub/Sub topic]
++
+Finally, under *Choose logs to include in sink*, add
+`logName:"cloudaudit.googleapis.com"` (it includes all audit logs).
+Click *create sink*.  It will look something like the following:
++
+image::monitor-gcp-create-sink.png[Create logs routing sink]
+
+. Now that GCP is configured to export audit logs, enable {filebeat} Google Cloud module.
++
+[source,bash]
+----
+./filebeat modules enable gcp
+----
+
+. Edit the `modules.d/gcp.yml` file with the following configurations.
++
+[source,yml]
+----
+- module: gcp
+  vpcflow:
+    enabled: false <1>
+  firewall:
+    enabled: false <1>
+  audit:
+    enabled: true <2>
+    var.project_id: "elastic-education" <3>
+    var.topic: "monitor-gcp-audit" <4>
+    var.subscription_name: "monitor-gcp-audit-sub" <5>
+    var.credentials_file: "/home/ubuntu/credentials.json" <6>
+----
++
+<1> Disables both `vpcflow` and `firewall` filesets.
+<2> Enables the `audit` fileset.
+<3> Collects data within the `elastic-education` project-id.
+<4> Collects logs from the `monitor-gcp-audit` topic.
+<5> Google Cloud Pub/Sub topic subscription name. If the subscription does not
+exist it will be created.
+<6> The GCP credential file that you generated earlier. (Don't forget to create
+the file if it does not exist and to use the correct full path).
+
+. Start {filebeat} to collect the logs.
++
+[source,bash]
+----
+./filebeat -e
+----
+
+. Finally, log into {kib} and open the *[{filebeat} GCP] Audit*
+dashboard.
++
+image::monitor-gcp-audit-overview-dashboard.png[{filebeat} audit overview dashboard]
+
+// Add Javascript and CSS for tabbed panels
+include::{beats-repo-dir}/tab-widgets/code.asciidoc[]

@@ -1,0 +1,234 @@
+[[fleet-quick-start-traces]]
+[role="xpack"]
+= Quick start: Get application traces into the {stack}
+
+experimental::[]
+
+This guide describes how to:
+
+* Collect Application Performance Monitoring (APM) data
+* Send APM data to the {stack}
+* Explore and visualize the data in real-time
+
+For feedback and questions, please contact us in the {forum}[discuss forum].
+
+[discrete]
+[[fleet-prereqs-traces]]
+== Prerequisites
+
+* Please read the <<fleet-limitations,Fleet limitations>>.
+
+* The APM integration is experimental and has a number of known limitations.
+Please read the list of {apm-server-ref-v}/apm-integration.html[known limitations].
+
+* You need {es} for storing and searching your data, and {kib} for visualizing and
+managing it. You can use our
+{ess-product}[hosted {ess}]
+on {ecloud} (recommended), or self-manage the {stack} on your own hardware.
++
+Here's what you need for each deployment type:
++
+--
+include::{tab-widgets}/prereq-widget.asciidoc[]
+--
+
+[discrete]
+[[set-up-fleet-traces]]
+== Step 1: Set up {fleet}
+
+Use {fleet} in {kib} to get APM data into the {stack}.
+
+The first time you use {fleet}, you need to set it up:
+
+. Log in to {kib} and go to **Management > {fleet}**.
++
+[role="screenshot"]
+image::images/kibana-fleet-start.png[{fleet} in {kib}]
+
+. In {fleet}, click **Settings** and change the defaults, if necessary.
+For self-managed installations, set the URLs for {es} and {kib}, including
+the http ports, then save your changes.
++
+[role="screenshot"]
+image::images/kibana-fleet-settings.png[{fleet} settings]
+
+. Enable central management. Click the **Agents** tab and click
+**Create user and enable central management**.
++
+[role="screenshot"]
+image::images/kibana-fleet-enable.png[{fleet} showing prompt to enable central management]
+
+[discrete]
+[[add-agent-to-fleet-traces]]
+== Step 2: Add an {agent} to {fleet}
+
+[TIP]
+====
+Don't confuse {agent} with APM agents–they are different components.
+In a later step, you'll instrument your code with APM agents and send the data
+to an APM Server instance that {agent} spins up.
+====
+
+include::elastic-agent/elastic-agent.asciidoc[tag=agent-install-intro]
+
+If you plan on enabling Real User Monitoring (RUM), you must run {agent} centrally.
+If RUM is disabled, you should run {agent} on edge machines.
+
+To send APM data to the {stack}:
+
+. On the **Agents** tab in {fleet}, click **Add agent**, and look at the
+deployment instructions under **Enroll in {fleet}**.
+
+. As instructed, download and extract the {agent} to your host. To do this
+quickly from the command line, run:
++
+--
+include::elastic-agent/install-elastic-agent.asciidoc[tag=install-elastic-agent]
+
+See the https://www.elastic.co/downloads/elastic-agent[download page] for other
+installation options.
+--
+
+. Back in {fleet}, under **Choose an agent policy**, notice that the default
+policy is selected. The default policy includes a system integration for
+collecting logs and metrics from the host system. Use the default policy to get
+started quickly.
+
+. Under **Enroll and start the {agent}**, copy the install command if it's
+available for your platform, or make a note of the {kib} URL and enrollment
+token that {fleet} generated.
++
+[role="screenshot"]
+image::images/kibana-fleet-enroll.png[{fleet} showing agent enrollment page]
+
+. From the agent directory, run the appropriate command to install, enroll, and
+start an {agent}. Note that this command installs {agent} files in the locations
+described in <<installation-layout>>.
++
+--
+include::{tab-widgets}/install-widget.asciidoc[]
+--
++
+Because {agent} is installed as an auto-starting service, it will restart
+automatically if the system is rebooted.
+
+. In {fleet}, click **Continue** to go to the **Agents** tab. You should
+see the newly enrolled agent.
++
+[role="screenshot"]
+image::images/kibana-fleet-agents.png[{fleet} showing enrolled agents]
+
+TIP: If the status hangs at Enrolling, make sure the `elastic-agent` process
+is running.
+
+If you run into problems, see <<fleet-troubleshooting>>.
+
+[discrete]
+[[add-apm-integration]]
+== Step 3: Add the APM integration
+
+Next, you'll browse a catalog of integrations, then add an APM integration to
+the default policy used by your agent. You use policies to manage settings
+across a group of agents. An agent policy may contain any number of integrations
+for collecting observability data from the various services running on your
+host.
+
+. In {kib}, go back to **Management > {fleet}**, and click the **Integrations**
+tab. Use the search bar to find the **Elastic APM** integration.
++
+[role="screenshot"]
+image::images/kibana-fleet-integrations-apm.png[{fleet} showing APM integration]
+. Click the APM integration to see more details about it, then click
+**Add Elastic APM**.
++
+[role="screenshot"]
+image::images/kibana-fleet-integrations-apm-overview.png[{fleet} showing APM integration overview]
+
+. On the **Add APM integration** page, select the default policy.
++
+In this guide, you add integrations to the default policy created by
+{kib}. After you learn the basics, you can create your own policies and assign
+them to agents.
++
+[role="screenshot"]
+image::images/add-integration-apm.png[{fleet} Add APM integration page]
+
+. Under **Configure integration**, click the down arrow next to Collect application traces.
+Under **Host**, define the host and port where APM Server will listen.
+Inspect or change other settings.
+
+. When you're done, save and deploy the changes.
++
+The newly added APM integration should appear under **Integrations** in the
+default policy, along with the default `system-1` integration.
++
+[role="screenshot"]
+image::images/kibana-fleet-policies-default-with-apm.png[{fleet} showing default agent policy with apm-1 datasource]
++
+All {agent}s that use this policy will collect APM data from your instrumented services.
+
+[discrete]
+[[add-apm-integration-agents]]
+== Step 4: Install APM agents
+
+APM agents are written in the same language as your service.
+To monitor a new service, you must install the agent and configure it with a service name,
+APM Server host, and Secret token.
+
+* **Service name**: The APM integration maps an instrumented service's name–defined in each APM agent's configuration–
+to the index that its data is stored in {es}.
+Service names are case-insensitive and must be unique.
+For example, you cannot have a service named `Foo` and another named `foo`.
+Special characters will be removed from service names and replaced with underscores (`_`).
+
+* **APM Server URL**: The host and port that APM Server listens for events on.
+This should match the host and port defined when setting up the APM integration.
+
+* **Secret token**: Authentication method for APM agent and APM Server communication.
+This should match the secret token defined when setting up the APM integration.
+
+TIP: You can edit your APM integration settings if you need to change the APM Server URL
+or secret token to match your APM agents.
+
+--
+include::{apm-repo-dir}/tab-widgets/install-agents-widget.asciidoc[]
+--
+
+[discrete]
+[[view-apm-integration-data]]
+== Step 5: View your data
+
+Back in {kib}, under Observability, select APM.
+You should see application performance monitoring data flowing into the {stack}!
+
+NOTE: The built-in `apm_user` role is not compatible with the APM integration
+as it only provides read access to `apm-*` indices.
+For a list of indices users need access to, see
+{apm-server-ref-v}/apm-integration-data-streams.html[APM data streams]
+
+[role="screenshot"]
+image::images/kibana-apm-sample-data.png[APM app with data]
+
+[discrete]
+== What's next?
+
+* Now that data is streaming into the {stack}, take your investigation to a
+deeper level! Use https://www.elastic.co/observability[Elastic {observability}]
+to unify your logs, metrics, uptime, and application performance data.
+
+* Want to protect your endpoints from security threats? Try
+https://www.elastic.co/security[{elastic-sec}]. Adding endpoint protection is
+just another integration that you add to the agent policy!
+
+* Are your eyes bleary from staring at a wall of screens?
+{observability-guide}/create-alerts.html[Create alerts] and find out about
+problems while sipping your favorite beverage poolside.
+
+* Want Elastic to do the heavy lifting? Use machine learning to
+{observability-guide}/inspect-log-anomalies.html[detect anomalies].
+
+* Got everything working like you want it? Roll out your agent policies to
+other hosts by deploying {agent}s across your infrastructure!
+
+// Add Javascript and CSS for tabbed panels
+include::{tab-widgets}/code.asciidoc[]

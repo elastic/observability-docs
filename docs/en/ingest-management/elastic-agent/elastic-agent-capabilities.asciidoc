@@ -1,0 +1,164 @@
+[discrete]
+[[capabilities]]
+== Capabilities
+
+Capabilities are a set of rules that can define the behavior of {agent} on specific machines.
+When capabilities are specified, the input configuration is overridden, and any details that are not used are subject to the capabilities' definition. 
+When {agent} starts, it locates the `capabilities.yml` file next to its configuration file. Please note, {agent} will not reload the definition after it starts.
+
+This example definition configuration enables the system/metrics input and denies every other input. Rules are applied in the order they are defined, with the first matching rule being applied. The * wildcard is also supported.
+
+[source,yaml]
+----
+version: 0.0.1
+capabilities: 
+- rule: allow
+  input: system/metrics
+- rule: deny
+  input: "*"
+----
+
+
+Let's use the following configuration and the capabilities defined above.
+
+[source,yaml]
+----
+inputs:
+	- type: logfile
+	  streams:
+	  	- paths: []{a.error,b.access}
+	- type: system/logs
+	  streams:
+	  	- paths: []{a,b}
+	- type: system/metrics
+	  streams:
+	  	- metricset: cpu
+	  	- metricset: memory
+----
+
+The resulting configuration is this.
+
+[source,yaml]
+----
+inputs:
+	- type: system/metrics
+	  streams:
+	  	- metricset: cpu
+	  	- metricset: memory
+----
+
+
+
+In this example, the stream is applied if the host platform is not Windows:
+
+[source,yaml]
+----
+inputs:
+  - type: system/metrics
+    streams:
+      - metricset: load
+        data_stream.dataset: system.cpu
+        condition: ${host.platform} != 'windows'
+----
+
+In this example, the processor is applied if the host platform is not Windows:
+
+[source,yaml]
+----
+inputs:
+  - type: system/metrics
+    streams:
+      - metricset: load
+        data_stream.dataset: system.cpu
+    processors:
+      - add_fields:
+          fields:
+            platform: ${host.platform}
+          to: host
+        condition: ${host.platform} != 'windows'
+----
+
+[discrete]
+[[supported-capabilities]]
+=== Supported capabilities
+
+You can use capabilities to modify the congestion of outputs, inputs or upgrade the capability of {agent}.
+
+[discrete]
+[[capabilities-inputs]]
+==== Inputs
+
+For inputs, you can the `input` key containing an expression.
+
+[source,yaml]
+----
+version: 0.0.1
+capabilities: 
+- rule: allow
+  input: system/*
+----
+
+[discrete]
+[[capabilities-outputs]]
+==== Outputs
+
+For outputs, you can use the `output` key containing an expression.
+
+[source,yaml]
+----
+version: 0.0.1
+capabilities: 
+- rule: deny
+  output: kafka
+----
+
+[discrete]
+[[capabilities-upgrade]]
+==== Upgrade
+
+For an upgrade, you can use the `output` key containing an expression that allows a specific upgrade to version `8.0.0`. `${version}` is the target version.
+
+[source,yaml]
+----
+version: 0.0.1
+capabilities: 
+- rule: allow
+  upgrade: "${version} == '8.0.0'"
+----
+
+With a versioned EQL, conditions can be used, as well as a * wildcard. This allows upgrades just for bug fixes.
+
+[source,yaml]
+----
+version: 0.0.1
+capabilities: 
+- rule: allow
+  upgrade: "${version} == '8.0.*'"
+----
+
+**Upgrade capability definition**
+
+This upgrade definition allows upgrades just for minor version changes.
+
+[source,yaml]
+----
+version: 0.0.1
+capabilities: 
+- rule: allow
+  upgrade: "${version} == '8.*.*'"
+----
+
+Part of the upgrade action is also a `source_uri` address that specifies the repository from where artifacts should be
+downloaded.
+
+To restrict to HTTPS, you can use the following.
+
+[source,yaml]
+----
+version: 0.0.1
+capabilities: 
+- rule: allow
+  upgrade: "startsWith(${source_uri}, 'https')"
+----
+
+Upgrade capability is blocking. This means that if an action does not meet the first upgrade definition, we’re not proceeding with the evaluation.
