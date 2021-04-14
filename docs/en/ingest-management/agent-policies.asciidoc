@@ -18,7 +18,7 @@ the integration in use–newer functionality can be exposed in this manner over 
 
 {fleet} uses {agent} policies in two ways:
 
-* Policies are stored in plain-text yaml and sent to each {agent} to configure its inputs.
+* Policies are stored in a plain-text YAML file and sent to each {agent} to configure its inputs.
 * Policies provide a visual representation of an {agent}s configuration
 in the {fleet} UI.
 
@@ -26,22 +26,23 @@ in the {fleet} UI.
 [[policy-benefits]]
 == Policy benefits
 
-{agent} policies allow you to indicate an intended logical grouping of inputs aimed for a particular set of hosts.
-This allows you maintain flexibility in large-scale deployments by
-easily testing changes before rolling them out,
-and providing a way to group and manage larger swaths of your infrastructure landscape.
+{agent} policies have many benefits that allow you to:
 
-For example, it might make sense for you to create a {policy} per operating system type:
+* Apply a logical grouping of inputs aimed for a particular set of hosts.
+* Maintain flexibility in large-scale deployments by quickly testing changes before rolling them out.
+* Provide a way to group and manage larger swaths of your infrastructure landscape.
+
+For example, it might make sense to create a {policy} per operating system type:
 Windows, macOS, and Linux hosts.
-Or, it might make sense to organize policies by functional groupings of how the hosts are
+Or, organize policies by functional groupings of how the hosts are
 used: IT email servers, Linux servers, user work-stations, etc.
-Or perhaps by user categories: Engineering department, marketing department, etc.
+Or perhaps by user categories: engineering department, marketing department, etc.
 
 [discrete]
 [[create-a-policy]]
 == Create a policy
 
-Create a new policy to manage your {agent}s and the data they collect:
+To manage your {agent}s and the data they collect, create a new policy:
 
 . Log in to {kib} and go to *Management* > *{fleet}*.
 +
@@ -74,10 +75,9 @@ To add a new integration to a policy:
 . Click *Add integration*.
 
 . Search for and select an integration.
-Configure the integration by naming it, and adding any required configuration variables.
+Name the integration, and add any required configuration variables.
 
-. Click *Save integration*.
-This will save the integration policy as a part of the larger {agent} {policy}.
+. Click *Save integration* to save the integration policy as a part of the larger {agent} {policy}.
 {fleet} will distribute this new {policy} to all {agent}s that are enrolled with it.
 
 After the {policy} has finished applying, the selected integration will be running on the host
@@ -87,21 +87,20 @@ and communicating with the {agent}!
 [[apply-a-policy]]
 == Apply a policy
 
-Policies can be applied to one or more {agent}s.
+You can apply policies to one or more {agent}s.
 To apply a policy:
 
 . In {fleet}, click *Agents*.
 Use the check-boxes on the left to select the {agent}s you want to assign to the new policy.
-After one or more {agent}s have been selected, under the bulk action dropdown, click *Assign to new policy*.
+After one or more {agent}s have been selected, click *Assign to new policy* under the bulk action dropdown.
 +
 [role="screenshot"]
 image::images/apply-agent-policy.png[Assign to new policy dropdown]
 
 . Select the {agent} policy from the dropdown list, and click *Assign policy*.
 
-It may take a few minutes for the policy change to take effect.
-The {agent} status indicator and {agent} logs will indicate that the policy is being applied.
-Upon completion, the {agent} status will update to "Healthy".
+The {agent} status indicator and {agent} logs indicate that the policy is being applied.
+It may take a few minutes for the policy change to complete before the {agent} status updates to "Healthy".
 
 [discrete]
 [[policy-edit-or-delete]]
@@ -117,7 +116,7 @@ Click on the name of the policy you want to edit or delete.
 Open the *Actions* menu and select *Edit integration* or *Delete integration*.
 +
 Editing or deleting an integration is permanent and cannot be undone.
-Of course, if you make a mistake, you can always re-configure or re-add an integration.
+If you make a mistake, you can always re-configure or re-add an integration.
 
 Any saved changes are immediately distributed and applied to all {agent}s enrolled in the given {policy}.
 
@@ -125,14 +124,14 @@ Any saved changes are immediately distributed and applied to all {agent}s enroll
 [[copy-policy]]
 == Copy a policy
 
-Policy definitions are stored in plain-text yaml that can be downloaded or copied to another policy:
+Policy definitions are stored in a plain-text YAML file that can be downloaded or copied to another policy:
 
 . In {fleet}, click *Policies*.
 Click on the name of the policy you want to copy or download.
 
 . To copy a policy, click *Actions* > *Copy policy*.
 Name the new policy, and provide a description.
-The exact policy definition will be copied to the new policy.
+The exact policy definition is copied to the new policy.
 +
 Alternatively, view and download the policy definition by clicking *Actions* > *View policy*.
 
@@ -140,8 +139,8 @@ Alternatively, view and download the policy definition by clicking *Actions* > *
 [[policy-main-settings]]
 == Edit or delete a policy
 
-High-level configurations like a policy's name, description, default namespace,
-and agent monitoring status can be changed as necessary:
+You can change high-level configurations like a policy's name, description, default namespace,
+and agent monitoring status as necessary:
 
 . In {fleet}, click *Policies*.
 Click on the name of the policy you want to edit or delete.
@@ -149,7 +148,7 @@ Click on the name of the policy you want to edit or delete.
 . Click the *Settings* tab, make changes, and click *Save changes*
 +
 Alternatively, click *Delete policy* to delete the policy.
-Existing data will not be deleted.
+Existing data is not deleted.
 Any agents assigned to a policy must be unenrolled before a policy can be deleted.
 
 [discrete]
@@ -157,14 +156,12 @@ Any agents assigned to a policy must be unenrolled before a policy can be delete
 == Integration updates
 
 Elastic releases integration updates periodically.
-Integrations are delivered to the Elastic Stack, via the online Elastic Package Registry
-and the {kib} Elastic Package Manager. When a new Integration is released by Elastic,
-it will show up in the Integrations listing in {kib} after a restart (like during a stack upgrade).
+Through the online Elastic Package Registry and the {kib} Elastic Package Manager, Integrations are delivered to the {stack}. When Elastic releases a new Integration, it shows up in the Integrations listing in {kib} after a restart (like during a stack upgrade).
 // to do: link to the Fleet API docs
 A refresh can also be triggered manually, with the Fleet API.
 
-NOTE: The latest, shipped Elastic Package registry version of an integration is the only version
-that can be integrated into {agent} policies. Previously installed versions will continue to work.
+NOTE: The latest Elastic Package registry version of an integration is the only version
+integrated into {agent} policies. Previously installed versions will continue to work.
 
 [discrete]
 [[update-an-integration]]
@@ -176,16 +173,16 @@ Search for and select the integration you'd like to update.
 . If an update is available, click *Update*.
 +
 Because updates can change the behavior of hosts,
-they must be explicitly request in the {fleet} app.
+they must be explicitly requested in the {fleet} app.
 
 . <<create-a-policy,Create a new policy>>.
 
 . <<add-integration,Add the integration to the policy>>.
-The newer version will automatically be used
+The newer version is automatically used
 
 . <<apply-a-policy,Apply the policy>> to an {agent}.
 +
-TIP: In larger deployments, integration updates should be tested on a sample {agent}
+TIP: In larger deployments, you should test integration updates on a sample {agent}
 before rolling out a larger upgrade initiative.
 Only after a small trial is deemed successful should the updated policy be
 <<roll-out-an-integration,rolled out all hosts>>.
@@ -211,5 +208,5 @@ The updated version will be used and applied to all {agent}s.
 NOTE: In some instances, for example, when there are hundreds or thousands of different {agent}s and
 policies that need to be updated, this upgrade path is not feasible.
 In this case, update one policy and use the <<copy-policy>> action to apply the updated policy versions to additional policies.
-The downside of this method is losing
+This method's downside is losing
 the granularity of assessing the individual Integration version changes individually across {policies}.
