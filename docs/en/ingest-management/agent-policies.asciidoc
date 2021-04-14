@@ -1,0 +1,217 @@
+[[agent-policy]
+[role="xpack"]
+= {agent} policies
+
+++++
+<titleabbrev>Policies</titleabbrev>
+++++
+
+beta[]
+
+A {policy} is a collection of inputs and settings that defines the data to be collected
+by {agent}. Each {agent} can only be enrolled in a single {policy}.
+
+Within an {agent} {policy} is a set of individual integration policies.
+These integration policies define the settings for each input type.
+The available settings in an integration relate to the version of
+the integration in use; newer functionality can be exposed in this manner over time.
+
+{fleet} uses {agent} policies in two ways:
+
+* Policies are stored in a plain-text YAML file and sent to each {agent} to configure its inputs.
+* Policies provide a visual representation of an {agent}s configuration
+in the {fleet} UI.
+
+[discrete]
+[[policy-benefits]]
+== Policy benefits
+
+{agent} policies have many benefits that allow you to:
+
+* Apply a logical grouping of inputs aimed for a particular set of hosts.
+* Maintain flexibility in large-scale deployments by quickly testing changes before rolling them out.
+* Provide a way to group and manage larger swaths of your infrastructure landscape.
+
+For example, it might make sense to create a {policy} per operating system type:
+Windows, macOS, and Linux hosts.
+Or, organize policies by functional groupings of how the hosts are
+used: IT email servers, Linux servers, user work-stations, etc.
+Or perhaps by user categories: engineering department, marketing department, etc.
+
+[discrete]
+[[create-a-policy]]
+== Create a policy
+
+To manage your {agent}s and the data they collect, create a new policy:
+
+. Log in to {kib} and go to *Management* > *{fleet}*.
++
+[role="screenshot"]
+image::images/kibana-fleet-start.png[{fleet} in {kib}]
+
+. In {fleet}, click *Policies* > *Create agent policy*.
+Name your policy. All other fields are optional and can be modified later.
+By default, each policy enables the _system_ integration, which collects system information and metrics.
++
+[role="screenshot"]
+image::images/create-agent-policy.png[{fleet} in {kib}]
+
+. Click *Create agent policy*.
+
+TIP: Consider leaving the `Default` policy unchanged and unused.
+It can serve as a useful comparison tool if you run into problems.
+
+[discrete]
+[[add-integration]]
+== Add an integration to a policy
+
+Policies consist of one or more integrations.
+To add a new integration to a policy:
+
+. In {fleet}, click *Policies*.
+Click the name of the policy you want to add an integration to.
+
+. Click *Add integration*.
+
+. Search for and select an integration.
+Name the integration, and add any required configuration variables.
+
+. Click *Save integration* to save the integration policy as a part of the larger {agent} {policy}.
+{fleet} will distribute this new {policy} to all {agent}s that are enrolled with it.
+
+After the {policy} has finished applying, the selected integration will be running on the host
+and communicating with the {agent}!
+
+[discrete]
+[[apply-a-policy]]
+== Apply a policy
+
+NOTE: The first time you use Fleet, you need to set it up.
+See the <<fleet-quick-start,Fleet quick start guide>> for more information.
+
+You can apply policies to one or more {agent}s.
+To apply a policy:
+
+. In {fleet}, click *Agents*.
+Use the check-boxes on the left to select the {agent}s you want to assign to the new policy.
+After one or more {agent}s have been selected, click *Assign to new policy* under the bulk action dropdown.
++
+[role="screenshot"]
+image::images/apply-agent-policy.png[Assign to new policy dropdown]
+
+. Select the {agent} policy from the dropdown list, and click *Assign policy*.
++
+[role="screenshot"]
+image::images/assign-policy.png[Assign policy]
+
+The {agent} status indicator and {agent} logs indicate that the policy is being applied.
+It may take a few minutes for the policy change to complete before the {agent} status updates to "Healthy".
+
+[discrete]
+[[policy-edit-or-delete]]
+== Edit or delete a policy integration
+
+Integrations can easily be reconfigured or deleted.
+To edit or delete a policy integration:
+
+. In {fleet}, click *Policies*.
+Click on the name of the policy you want to edit or delete.
+
+. Search or scroll to a specific integration.
+Open the *Actions* menu and select *Edit integration* or *Delete integration*.
++
+Editing or deleting an integration is permanent and cannot be undone.
+If you make a mistake, you can always re-configure or re-add an integration.
+
+Any saved changes are immediately distributed and applied to all {agent}s enrolled in the given {policy}.
+
+[discrete]
+[[copy-policy]]
+== Copy a policy
+
+Policy definitions are stored in a plain-text YAML file that can be downloaded or copied to another policy:
+
+. In {fleet}, click *Policies*.
+Click on the name of the policy you want to copy or download.
+
+. To copy a policy, click *Actions* > *Copy policy*.
+Name the new policy, and provide a description.
+The exact policy definition is copied to the new policy.
++
+Alternatively, view and download the policy definition by clicking *Actions* > *View policy*.
+
+[discrete]
+[[policy-main-settings]]
+== Edit or delete a policy
+
+You can change high-level configurations like a policy's name, description, default namespace,
+and agent monitoring status as necessary:
+
+. In {fleet}, click *Policies*.
+Click on the name of the policy you want to edit or delete.
+
+. Click the *Settings* tab, make changes, and click *Save changes*
++
+Alternatively, click *Delete policy* to delete the policy.
+Existing data is not deleted.
+Any agents assigned to a policy must be unenrolled or assigned to a different policy before a policy can be deleted.
+
+[discrete]
+[[integration-updates]]
+== Integration updates
+
+Elastic releases integration updates periodically.
+Through the online Elastic Package Registry and the {kib} Elastic Package Manager, Integrations are delivered to the {stack}. When Elastic releases a new Integration, it shows up in the Integrations listing in {kib} after a restart (like during a stack upgrade).
+// to do: link to the Fleet API docs
+A refresh can also be triggered manually, with the Fleet API.
+
+NOTE: The latest Elastic Package registry version of an integration is the only version
+integrated into {agent} policies. Previously installed versions will continue to work.
+
+[discrete]
+[[update-an-integration]]
+=== Update an integration
+
+. In {fleet}, click *Integrations*.
+Search for and select the integration you'd like to update.
+
+. If an update is available, click *Update*.
++
+Because updates can change the behavior of hosts,
+they must be explicitly requested in the {fleet} app.
+
+. <<create-a-policy,Create a new policy>>.
+
+. <<add-integration,Add the integration to the policy>>.
+The newer version is automatically used
+
+. <<apply-a-policy,Apply the policy>> to an {agent}.
++
+TIP: In larger deployments, you should test integration updates on a sample {agent}
+before rolling out a larger upgrade initiative.
+Only after a small trial is deemed successful should the updated policy be
+<<roll-out-an-integration,rolled out all hosts>>.
+
+[discrete]
+[[roll-out-an-integration]]
+=== Roll-out an integration update
+
+After successfully testing an integration update,
+it can be safely rolled-out to additional hosts:
+
+. In {fleet}, click *Policies*.
+Click on the name of the policy you want to edit or delete.
+
+. Search or scroll to a specific integration.
+Open the *Actions* menu and select *Delete integration*.
+
+. Click *Add integration* and re-add the freshly deleted integration.
+The updated version will be used and applied to all {agent}s.
+
+. Repeat this process for each policy with the out-of-date integration.
+
+NOTE: In some instances, for example, when there are hundreds or thousands of different {agent}s and
+policies that need to be updated, this upgrade path is not feasible.
+In this case, update one policy and use the <<copy-policy>> action to apply the updated policy versions to additional policies.
+This method's downside is losing
+the granularity of assessing the individual Integration version changes individually across policies.
