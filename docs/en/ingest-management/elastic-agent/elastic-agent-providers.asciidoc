@@ -175,7 +175,7 @@ Reference the Kubernetes Secrets variable as `${kubernetes_secrets.default.somes
 where `default` is the namespace of the Secret, `somesecret` is the name of the Secret and `value` the field
 of the Secret to access.
 
-If you run agent on Kubernetes, the proper rule in the `ClusterRole` is required to privide access to the Agent Pod in the Secrets API:
+If you run agent on Kubernetes, the proper rule in the `ClusterRole` is required to privide access to the {agent} pod in the Secrets API:
 
 [source,yaml]
 ----
@@ -185,8 +185,8 @@ If you run agent on Kubernetes, the proper rule in the `ClusterRole` is required
   verbs: ["get"]
 ----
 
-CAUTION: The above rule will give permission to Agent Pod to access Kubernetes Secrets API.
-Anyone who has access to the Agent Pod (`kubectl exec` for example) will also have
+CAUTION: The above rule will give permission to {agent} pod to access Kubernetes Secrets API.
+Anyone who has access to the {agent} pod (`kubectl exec` for example) will also have
 access to the Kubernetes Secrets API. This allows access to a specific secret, regardless of the namespace that it belongs to.
 This option should be carefully considered.
 
@@ -194,13 +194,13 @@ This option should be carefully considered.
 [[kubernetes_leaderelection-provider]]
 ==== Kubernetes LeaderElection Provider
 
-Provides the option to enable leaderelection between a set of Agents
-running on Kubernetes. Only one Agent at a time will be the holder of the leader
+Provides the option to enable leaderelection between a set of {agent}s
+running on Kubernetes. Only one {agent} at a time will be the holder of the leader
 lock and based on this, configurations can be enabled with the condition
-that the Agent holds the leadership. This is useful in cases where the agent between a set of agents collects cluster wide metrics for the Kubernetes cluster, such as the `kube-state-metrics` endpoint.
+that the {agent} holds the leadership. This is useful in cases where the {agent} between a set of {agent}s collects cluster wide metrics for the Kubernetes cluster, such as the `kube-state-metrics` endpoint.
 
 Provider needs a `kubeconfig` file to establish a connection to Kubernetes API.
-It can automatically reach the API if it's running in an inCluster environment (Agent runs as Pod).
+It can automatically reach the API if it's running in an inCluster environment ({agent} runs as Pod).
 
 [source,yaml]
 ----
@@ -222,14 +222,14 @@ The available key is:
 
 |`kubernetes_leaderelection.leader`
 |`bool`
-|The value of the leadership flag. This is set to `true` when the agent is the current leader, and is set to `false` otherwise.
+|The value of the leadership flag. This is set to `true` when the {agent} is the current leader, and is set to `false` otherwise.
 
 |===
 
 [discrete]
 ===== Enabling confgiurations only when on leadership
 
-Use conditions based on the `kubernetes_leaderelection.leader` key to leverage the leaderelection provider and enable specific inputs only when the agent holds the leadership lock.
+Use conditions based on the `kubernetes_leaderelection.leader` key to leverage the leaderelection provider and enable specific inputs only when the {agent} holds the leadership lock.
 The below example enables the `state_container`
 metricset only when the leadership lock is acquired:
 
@@ -262,7 +262,7 @@ configuration.
 
 Define multiple key-value pairs to generate multiple configurations.
 
-For example, the following agent policy defines a local dynamic provider that
+For example, the following {agent} policy defines a local dynamic provider that
 defines three values for `item`:
 
 [source,yaml]
