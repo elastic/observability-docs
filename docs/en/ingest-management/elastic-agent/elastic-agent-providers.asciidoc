@@ -2,23 +2,22 @@
 [[providers]]
 == Providers
 
-Providers supply the key/values pairs that are used for variable substitution
+Providers supply the key-value pairs that are used for variable substitution
 and conditionals. Each provider's keys are automatically prefixed with the name
 of the provider in the context of the {agent}.
 
-For example, if a provider named `foo` provides
-`{"key1": "value1", "key2": "value2"}`, the key/value pairs are placed in
-`{"foo" : {"key1": "value1", "key2": "value2"}}`. To reference the keys, you
-would use `{{foo.key1}}` and `{{foo.key2}}`.
+For example, a provider named `foo` provides
+`{"key1": "value1", "key2": "value2"}`, the key-value pairs are placed in
+`{"foo" : {"key1": "value1", "key2": "value2"}}`. To reference the keys, use `{{foo.key1}}` and `{{foo.key2}}`.
 
 [discrete]
 === Provider configuration
 
 The provider configuration is specified under the top-level `providers`
-key in the `elastic-agent.yml` configuration. By default, all registered
-providers are enabled. If a provider cannot connect, it produces no mappings.
+key in the `elastic-agent.yml` configuration. All registered
+providers are enabled by default. If a provider cannot connect, no mappings are produced.
 
-The following example shows two providers, `local` and `local_dynamic`, that
+The following example shows two providers (`local` and `local_dynamic`) that
 supply custom keys:
 
 [source,yaml]
@@ -33,9 +32,8 @@ providers:
       - item: key2
 ----
 
-To explicitly disable a provider, set `enabled: false`. Because all providers
-are prefixed and have no name collisions, the name of the provider is the key in
-the configuration.
+Explicitly disable a provider by setting `enabled: false`. All providers
+are prefixed without name collisions. The name of the provider is in the key in the configuration.
 
 [source,yaml]
 ----
@@ -51,17 +49,16 @@ providers:
 [[context-providers]]
 === Context providers
 
-Context providers provide the current context of the running {agent}, for
-example, agent information (id, version), host information (hostname, IP
+Context providers give the current context of the running {agent}, for
+example, agent information (ID, version), host information (hostname, IP
 addresses), and environment information (environment variables).
 
-They can only provide a single key/value mapping. Think of them as singletons;
-an update of a key/value mapping will result in a re-evaluation of the entire
-configuration. These providers are normally very static, but that's not
-required. It is possible for a value to change resulting in re-evaluation.
+They can only provide a single key-value mapping. Think of them as singletons;
+an update of a key-value mapping results in a re-evaluation of the entire
+configuration. These providers are normally very static, but not
+required. A value can change which results in re-evaluation. 
 
-Context providers use ECS naming when possible to ensure that documentation and
-understanding across projects is the same.
+Context providers use the Elastic Common Schema (ECS) naming to ensure consistency and understanding throughout documentation and projects. 
 
 {agent} supports the following context providers:
 
@@ -148,16 +145,16 @@ Provides information about the current host. The available keys are:
 [[env-provider]]
 ==== Env Provider
 
-Provides access to the environment variables as key/values.
+Provides access to the environment variables as key-value pairs.
 
-For example, if you set the variable foo:
+For example, set the variable `foo`:
 
 [source,shell]
 ----
 foo=bar elastic-agent run
 ----
 
-You can reference the environment variable as `${env.foo}`.
+The environment variable can be referenced as `${env.foo}`.
 
 [discrete]
 [[kubernetes_secrets-provider]]
@@ -165,8 +162,8 @@ You can reference the environment variable as `${env.foo}`.
 
 Provides access to the Kubernetes Secrets API.
 
-Provider needs a `kubeconfig` file so as to establish connection to Kubernetes API,
-or it can automatically reach the API if it runs in an inCluster environment (Agent runs as Pod).
+The provider needs a `kubeconfig` file to establish connection to the Kubernetes API.
+It can automatically reach the API if it's run in an inCluster environment ({agent} runs as pod).
 
 [source,yaml]
 ----
@@ -174,12 +171,11 @@ providers.kubernetes_secrets:
   #kube_config: /Users/elastic-agent/.kube/config
 ----
 
-You can reference the Kubernetes Secrets variable as `${kubernetes_secrets.default.somesecret.value}`,
+Reference the Kubernetes Secrets variable as `${kubernetes_secrets.default.somesecret.value}`,
 where `default` is the namespace of the Secret, `somesecret` is the name of the Secret and `value` the field
 of the Secret to access.
 
-If you run Agent on Kubernetes the proper rule in the `ClusterRole` is required so as Agent Pod to have access
-to Secrets API:
+If you run agent on Kubernetes, the proper rule in the `ClusterRole` is required to privide access to the {agent} pod in the Secrets API:
 
 [source,yaml]
 ----
@@ -189,24 +185,22 @@ to Secrets API:
   verbs: ["get"]
 ----
 
-CAUTION: The above rule will give permission to Agent Pod to access Kubernetes Secrets API.
-This means that anyone who have access to Agent Pod (`kubectl exec` for example) will be able to
-access Kubernetes Secrets API and get a specific secret no matter which namespace it belongs to.
-In this, this option should be carefully considered.
+CAUTION: The above rule will give permission to {agent} pod to access Kubernetes Secrets API.
+Anyone who has access to the {agent} pod (`kubectl exec` for example) will also have
+access to the Kubernetes Secrets API. This allows access to a specific secret, regardless of the namespace that it belongs to.
+This option should be carefully considered.
 
 [discrete]
 [[kubernetes_leaderelection-provider]]
 ==== Kubernetes LeaderElection Provider
 
-Provides the option to enable leaderelection between a set of Agents
-running on Kubernetes. Only one Agent at a time will be the holder of the leader
+Provides the option to enable leaderelection between a set of {agent}s
+running on Kubernetes. Only one {agent} at a time will be the holder of the leader
 lock and based on this, configurations can be enabled with the condition
-that the Agent holds the leadership. This can be useful in cases where we want
-only Agent between a set of Agents to collect cluster wide metrics for the
-Kubernetes cluster like from `kube-state-metrics` endpoint.
+that the {agent} holds the leadership. This is useful in cases where the {agent} between a set of {agent}s collects cluster wide metrics for the Kubernetes cluster, such as the `kube-state-metrics` endpoint.
 
-Provider needs a `kubeconfig` file so as to establish connection to Kubernetes API,
-or it can automatically reach the API if it runs in an inCluster environment (Agent runs as Pod).
+Provider needs a `kubeconfig` file to establish a connection to Kubernetes API.
+It can automatically reach the API if it's running in an inCluster environment ({agent} runs as Pod).
 
 [source,yaml]
 ----
@@ -215,11 +209,11 @@ providers.kubernetes_leaderelection:
   #leader_lease: agent-k8s-leader-lock
 ----
 
-`kube_config`:: (Optional) Use given config file as configuration for Kubernetes
+`kube_config`:: (Optional) Use the given config file as configuration for the Kubernetes
 client. If kube_config is not set, KUBECONFIG environment variable will be
-checked and if not present it will fall back to InCluster.
+checked and will fall back to InCluster if it's not present.
 `leader_lease`:: (Optional) Specify the name of the leader lease.
-By default it is `elastic-agent-cluster-leader`.
+This is set to `elastic-agent-cluster-leader` by default.
 
 The available key is:
 
@@ -228,17 +222,15 @@ The available key is:
 
 |`kubernetes_leaderelection.leader`
 |`bool`
-|The value of the leadership flag. It is `true` when the Agent is the current leader, `false` otherwise.
+|The value of the leadership flag. This is set to `true` when the {agent} is the current leader, and is set to `false` otherwise.
 
 |===
 
 [discrete]
 ===== Enabling confgiurations only when on leadership
 
-In order to leverage leaderelection provider and enable
-specific inputs only when Agent holds the leadership lock, users
-can use conditions based on `kubernetes_leaderelection.leader` key.
-Below we provide an example that will enable `state_container`
+Use conditions based on the `kubernetes_leaderelection.leader` key to leverage the leaderelection provider and enable specific inputs only when the {agent} holds the leadership lock.
+The below example enables the `state_container`
 metricset only when the leadership lock is acquired:
 
 [source,yaml]
@@ -259,19 +251,19 @@ metricset only when the leadership lock is acquired:
 [[dynamic-providers]]
 === Dynamic Providers
 
-Dynamic providers provide an array of multiple key/value mappings. Each
-key/value mapping is combined with the previous context provider's key/value
-mapping to provide a new unique key/value mapping that is used to generate a
+Dynamic providers give an array of multiple key-value mappings. Each
+key-value mapping is combined with the previous context provider's key and value
+mapping which provides a new unique mapping that is used to generate a
 configuration.
 
 [discrete]
 [[local-dynamic-provider]]
 ==== Local dynamic provider
 
-Allows you to define multiple key/values to generate multiple configurations.
+Define multiple key-value pairs to generate multiple configurations.
 
-For example, the following agent policy defines a local dynamic provider that
-defines 3 values for `item`:
+For example, the following {agent} policy defines a local dynamic provider that
+defines three values for `item`:
 
 [source,yaml]
 ----
@@ -350,7 +342,7 @@ Provides inventory information from Docker. The available keys are:
 |Log path of the container
 |===
 
-Imagine that the Docker provider provides the following inventory:
+For example, the Docker provider provides the following inventory:
 
 [source,json]
 ----
@@ -453,7 +445,7 @@ Provides inventory information from Kubernetes. The available keys are:
 |Image of the container
 |===
 
-Imagine that the Kubernetes provider provides the following inventory:
+Fox example, if the Kubernetes provider provides the following inventory:
 
 [source,json]
 ----
@@ -496,15 +488,15 @@ providers.kubernetes:
 ----
 
 `node`:: (Optional) Specify the node to scope {agent} to in case it
-cannot be accurately detected, as when running {agent} in host network
+cannot be accurately detected when running {agent} in host network
 mode.
 `cleanup_timeout`:: (Optional) Specify the time of inactivity before stopping the
-running configuration for a container, 60s by default.
-`sync_period`:: (Optional) Specify timeout for listing historical resources.
-`kube_config`:: (Optional) Use given config file as configuration for Kubernetes
-client. If kube_config is not set, KUBECONFIG environment variable will be
-checked and if not present it will fall back to InCluster.
-`scope`:: (Optional) Specify at what level autodiscover needs to be done at. `scope` can
+running configuration for a container. This is `60s` by default.
+`sync_period`:: (Optional) Specify the timeout for listing historical resources.
+`kube_config`:: (Optional) Use the given config file as configuration for Kubernetes
+client. If kube_config is not set, the KUBECONFIG environment variable will be
+checked and will fall back to InCluster if not present.
+`scope`:: (Optional) Specify the level for autodiscover. `scope` can
 either take `node` or `cluster` as values. `node` scope allows discovery of resources in
 the specified node. `cluster` scope allows cluster wide discovery. Only `pod` and `node` resources
 can be discovered at node scope.
