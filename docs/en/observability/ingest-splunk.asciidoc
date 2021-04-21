@@ -8,7 +8,7 @@
 
 [NOTE]
 =====
-If you haven't already, you need to install {es} for storing and
+If you haven't already, please install {es} for storing and
 searching your data, and {kib} for visualizing and managing it. For
 more information, see <<add-observability-data,Send data to {es}>>.
 After {es} and {kib} are installed Fleet must be enabled; see the
@@ -19,7 +19,7 @@ https://www.elastic.co/guide/en/fleet/current/fleet-quick-start.html[Fleet quick
 
 Apache, AWS Cloudtrail, Nginx, and Zeek integrations offer the ability
 to seamlessly ingest data from a Splunk Enterprise instance.  Data
-will be automatically mapped to the Elastic Common Schema, making it
+is automatically mapped to the Elastic Common Schema, making it
 available for rapid analysis in Elastic solutions, including Security
 and Observability.
 
@@ -33,7 +33,7 @@ the last query, not historical data.
 [role="screenshot"]
 image::images/elastic-agent-splunk.png[Splunk integration components]
 
-To ingest Nginx data from Splunk, perform the following steps.
+Perform the following steps to ingest Nginx data from Splunk.
 The options are the same for Apache, AWS Cloudtrail, and Zeek.
 
 [discrete]
@@ -48,7 +48,7 @@ Find the Nginx integration and begin adding it as described in the
 == Step 2: Enable Collect logs from third-party REST API
 
 Enable "Collect logs from third-party REST API" and disable both "Collect
-logs from Nginx instances" and "Collect metrics from Nginx instances".
+logs from Nginx instances" and "Collect metrics from Nginx instances". 
 
 [role="screenshot"]
 image::images/kibana-fleet-third-party-rest-api.png[{fleet} showing enabling third-party REST API]
@@ -59,7 +59,7 @@ image::images/kibana-fleet-third-party-rest-api.png[{fleet} showing enabling thi
 
 Enter the required information to connect to the Splunk Enterprise REST API.
 
-The URL of the Splunk Enterprise Server must include the scheme (http or https),
+The Splunk Enterprise Server URL must include the scheme (http or https),
 the IP address or hostname of the Splunk Enterprise Server, and the port the
 REST API is listening on.
 
@@ -67,8 +67,8 @@ The Splunk username and password must be of a user with a role or
 capability to use REST API endpoints.  Administrative users have these
 permissions by default.
 
-SSL Configuration is available under the "Advanced options".  These may be necessary
-if Splunk Enterprise server uses self-signed certificates.  See
+SSL Configuration is available under the "Advanced options". These may be necessary
+if the Splunk Enterprise server uses self-signed certificates.  See
 https://www.elastic.co/guide/en/beats/filebeat/current/configuration-ssl.html[SSL Options]
 for valid configuration options.
 
@@ -79,33 +79,28 @@ image::images/kibana-fleet-third-party-rest-settings.png[{fleet} showing enablin
 [[splunk-step-four]]
 == Step 4: Enter information to select data from Splunk
 
-For each type of log file, enter the interval and Splunk search string.
+Enter the interval and Splunk search string for each type of log file.
 
 The interval is expressed as a
 https://golang.org/pkg/time/#ParseDuration[Go duration].  The interval
 is the time between requests sent to the Splunk Enterprise REST API to
-request new information.  Intervals less than one second are not
+request new information.  Intervals that are less than one second are not
 recommended; Splunk only maintains second accuracy for index time.
 The interval should closely match the rate at which data arrives at
-the Splunk Enterprise Server.  For example, an interval of "5s" for
+the Splunk Enterprise Server.  For example, an interval of `5s` for
 data that only arrives at the Splunk Enterprise Server every hour will
 generate unnecessary load on the Splunk Enterprise Server.
 
 The search string is the Splunk search used to uniquely describe the
-events that match the type of log file you are trying to configure.
+events that match the type of log file that's being configured.
 For example, to uniquely describe Nginx access logs "search
 sourcetype=nginx:plus:access" might be used.  Note, the search string
 must begin with "search" for details refer to the Splunk REST API
 manual and the "search/jobs/export" endpoint.
 
-Be aware that each time the {agent} connects to the Splunk Enterprise
-REST API a Splunk search is performed.  Because of this you want to be
-sure your search string is as specific as possible, since this reduces
-the load on the Splunk Enterprise Server.
+A Splunk search is performed each time the {agent} connects to the Splunk Enterprise API. Please be sure the search string is as specific as possible, as this reduces the load on the Splunk Enterprise Server.
 
-Tags may be added in the "Advanced options".  For example, if you'd
-like to tag events coming from Splunk with a 'Splunk' tag, you can add
-it here.  By default, the forward tag is present to indicate that
+Tags may be added in the "Advanced options".  For example, tag events that are coming from Splunk with a 'Splunk' tag. By default, the forward tag is present to indicate that
 events are being forwarded via an intermediary, i.e. Splunk.
 
 [role="screenshot"]
@@ -115,24 +110,24 @@ image::images/kibana-fleet-third-party-rest-dataset-settings.png[{fleet} showing
 [[splunk-step-five]]
 == Step 5: Save Integration
 
-Click Save Integration
+Click Save Integration.
 
-Data and Dashboards will be available just as if you had collected
-the data on the nginx host using log files.
+Data and dashboards will be available just as if you had collected
+the data on the Ngix host using log files.
 
 
 [discrete]
 [[splunk-considerations]]
 === Considerations and questions
 
-The time on the host running the agent and the Splunk Enterprise
+The time on the host running the agent and the Splunk Enterprise 
 Server should be synchronized to the same time source, with correct
-timezone information.  Failure to do this could result in delays in
+timezone information. Without this, there could be delays in
 transferring data or gaps in the data received.
 
 **Does the Splunk data need to be in a specific format or mapped to
-Splunk's Common Information Model?**  No, because these integrations
-take the raw event from Splunk and process that.  There is no
+Splunk's Common Information Model?**  No, these integrations
+take the raw event from Splunk and process it.  There is no
 dependency on any Splunk processing.
 
 **Are events mapped to Elastic Common Schema (ECS)?**  Yes, events from
