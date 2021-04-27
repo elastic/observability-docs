@@ -5,37 +5,61 @@
 <titleabbrev>Visualize</titleabbrev>
 ++++
 
-[WARNING]
-====
-This functionality is experimental and may be changed or removed completely in a future release.
-Elastic will take a best effort approach to fix any issues, but experimental features are not subject
-to the support SLA of official GA features.
-
-Have a question? Want to leave feedback? Visit the
-https://discuss.elastic.co/tags/c/observability/uptime/75/synthetics[Synthetics discussion forum].
-====
-
-Synthetic monitoring journeys can be visualized in the {uptime-app} side-by-side with
+beta[] Synthetic monitoring journeys can be visualized in the {uptime-app} side-by-side with
 your other Uptime monitors.
 
 [role="screenshot"]
 image::images/synthetic-app-overview.png[Synthetics app overview]
 
-Select a specific journey to expand it.
-The following details are provided for each step:
+[[analyze-synthetic-journeys]]
+== Analyze synthetic journeys
 
-* Step name
-* Step script
-* A screenshot taken during the step
+On the *Monitors* table, you can click a listed journey to analyze it further
+on the monitor *Overview* page. You can examine journey details, including its
+availability, monitor ID, service availability per monitoring location, the timing
+for each synthetic check performed, and check statuses over time.
+
+The *History* table lists the total count of all of the synthetic checks that completed or failed
+during the journey. The timestamp for each check is also displayed, along with its duration.
+For any failed checks, the error and the failed step are displayed.
 
 [role="screenshot"]
-image::images/synthetic-app-journey.png[Synthetics app journey]
+image::images/synthetics_overview.png[Synthetics overview page]
 
-Additional information, including the specific error and a stack trace, is provided when a step fails.
-Select *View performance breakdown* to view the waterfall chart for the synthetic monitor.
+[[review-synthetic-checks]]
+== Review synthetic checks
+
+To drill down and review the steps performed by a synthetic check, select it in the *History*
+table to view the synthetic check details page.
+
+For each synthetic step, the following details are displayed:
+
+* The status of each step: `succeeded`, `failed`, or `skipped`.
+* Step name.
+* A screenshot taken of the step. In the case of a failed step, the last good screenshot is displayed,
+making it easier to compare the step with the previous time it succeeded.
+
+[role="screenshot"]
+image::images/synthetics_check_details.png[Synthetics check details]
+
+You can expand the table row for each step to view the following additional information:
+
+* An error message in the case of a failed step.
+* The script performed for the step.
+* The console output listing any errors or warnings from your browser.
+* A screenshot taken of the step.
+* The stack trace in the case of a failed step to help you quickly debug what caused the error.
+
+Select *View performance breakdown* to view the waterfall chart for the synthetic check.
 
 [[synthetic-waterfall]]
 == Waterfall chart
+
+[IMPORTANT]
+====
+Elastic Synthetics is regularly updated. To view the waterfall chart, make sure you
+are running the latest <<synthetics-quickstart-step-one,synthetics docker image>>.
+====
 
 The waterfall chart provides a visualization of every request the page made when
 a user executed it. Each line in the chart represents an HTTP network request and
