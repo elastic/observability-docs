@@ -50,10 +50,10 @@ The host details overlay contains the following tabs:
 [role="screenshot"]
 image::images/metrics-overlay.png[Host metrics]
 
-The *Metrics* tab displays CPU, load, memory, and network metrics relating to the host.
-You can change the time range to view metrics over the last 15 minutes, hour, 3 hours, 24 hours, or
-over the previous seven days. You can also hover over a specific time period on a chart to compare the various metrics
-at that given time.
+The *Metrics* tab displays CPU, load, memory, and network metrics relating to the host, along with the log rate
+and any custom metric that you have defined. You can change the time range to view metrics over the last 15 minutes,
+hour, 3 hours, 24 hours, or over the previous seven days. You can also hover over a specific time period on a chart
+to compare the various metrics at that given time.
 
 |=== 
 
@@ -62,10 +62,17 @@ at that given time.
 | *Load* | Averages of `system.load.1`, `system.load.5`, and `system.load.15`.
 
 | *Memory* | For Linux systems, memory used is the average of `system.memory.actual.used.bytes` and memory free is the average
-of `system.memory.actual.free`. For non-Linux systems, memory used is the average of `system.memory.used.bytes` and memory free is the average
+of `system.memory.actual.free`.
+
+For non-Linux systems, memory used is the average of `system.memory.used.bytes` and memory free is the average
 of `system.memory.free`.
 
 | *Network* | Rates of `system.network.in.bytes` and `system.network.out.bytes`.
+
+| *Log Rate* | Derivative of the cumulative sum of the document count scaled to a 1 second rate.
+This metric relies on the same indices as the logs.
+
+| *Custom metric* | A chart is displayed for each <<custom-metrics,custom metric>> that you have added and defined on the Inventory page.
 
 |=== 
 ====
@@ -145,3 +152,23 @@ The *Metadata* tab lists all the meta information relating to the host:
 
 All of this information can help when investigating events—for example, filtering by operating system or architecture.
 ====
+
+[%collapsible]
+.*Anomalies*
+====
+
+[role="screenshot"]
+image::images/anomalies-overlay.png[Anomalies]
+
+The *Anomalies* table displays a list of each single metric anomaly detection job for the specific host. By default, anomaly
+jobs are sorted by time to show the most recent job. 
+
+Along with the name of each anomaly job, detected anomalies with a severity score equal to 50, or higher, are listed. These
+scores represent a severity of "warning" or higher in the selected time period. The *summary* value represents the increase between
+the actual value and the expected ("typical") value of the host metric in the anomaly record result.
+
+To drill down and analyze the metric anomaly, select *Actions > Open in Anomaly Explorer* to view the
+{ml-docs}/ml-gs-results.html[Anomaly Explorer in Machine Learning]. You can also select *Actions > Show in Inventory* to view the host
+Inventory page, filtered by the specific metric. 
+====
+
