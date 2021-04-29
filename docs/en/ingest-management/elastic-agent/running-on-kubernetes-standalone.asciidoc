@@ -15,15 +15,16 @@ endif::[]
 [float]
 ==== Kubernetes deploy manifests
 
-Deploy {agent} in two different ways at the same time:
 
-* As a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+You deploy {agent} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
 to ensure that there's a running instance on each node of the cluster. These
 instances are used to retrieve most metrics from the host, such as system
 metrics, Docker stats, and metrics from all the services running on top of
 Kubernetes.
 
-* As a single {agent} instance created using a https://kubernetes.io/docs/concepts/workloads/controllers/Deployment/[Deployment].
+In addition, one of the Pods in the DaemonSet will constantly hold a _leader lock_ which makes it responsible for
+handling cluster-wide monitoring.
+You can find more information about leader election configuration options at <<kubernetes_leaderelection-provider, leaderelection provider>>.
 This instance is used to retrieve metrics that are unique for the whole
 cluster, such as Kubernetes events or
 https://github.com/kubernetes/kube-state-metrics[kube-state-metrics]. If `kube-state-metrics` is not already
@@ -31,7 +32,8 @@ running, deploy it now (see the
 https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[Kubernetes
 deployment] docs)
 
-Everything is deployed under the `kube-system` namespace by default. Change the namespace by modifying the manifest file. 
+Everything is deployed under the `kube-system` namespace by default. To change
+the namespace, modify the manifest file.
 
 Download the manifest file by running:
 
