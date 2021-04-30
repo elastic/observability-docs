@@ -1,0 +1,80 @@
+[[fleet-server]]
+= {fleet-server}
+
+beta[]
+
+{fleet-server} is a component in {agent} used to centrally manage {agent}s. It
+serves as a control plane for updating agent policies, collecting status
+information, and coordinating actions across agents.
+
+{fleet-server} is the mechanism {agent}s use to communicate with {es}:
+
+. When a new agent policy is created, it's saved to {es}.
+
+. To enroll in the policy, {agent}s send a request to {fleet-server},
+using the enrollment key generated for authentication.
+
+. {fleet-server} receives the request and gets the agent policy from {es},
+then ships the policy to all {agent}s enrolled in that policy.
+
+. {agent} uses configuration information in the policy to collect and send data
+to {es}.
+
+. {fleet-server} periodically checks {agent}s for status information.
+
+. When a policy is updated, {fleet-server} retrieves the updated policy from
+{es} and sends it to the connected {agent}s.
+
+image:images/fleet-server-communication.png[Fleet Server handles communication between {agent}, {fleet}, {es}, and {kib}]
+
+{fleet-server} runs as a subprocess inside an {agent}. The agent uses a special
+policy that describes the {fleet-server} configuration. In large scale
+self-managed deployments or on {ess-product}[hosted {ess}] on {ecloud},
+{fleet-server} is typically run as a dedicated {agent} communication host, but
+you can optionally use it for data collection on self-managed clusters. For more
+details, refer to <<fleet-server-deployment>>.
+
+[discrete]
+[[fleet-server-compatibility]]
+== Compatibility
+
+{fleet-server} is compatible with the following Elastic products:
+
+* {stack} 7.13 or later (our {ess-product}[hosted {ess}] on {ecloud} or
+a self-managed cluster).
+
+* {ece} 2.10 or later
+
+//TODO: Confirm that ECE version shown here is correct ^^.
+
+{fleet-server} is supported on x64 architectures only.
+
+[discrete]
+[[add-fleet-server]]
+== Add a {fleet-server}
+
+Before using {fleet} for central management, {fleet-server} must be running. The
+steps for running {fleet-server} on our {ess-product}[hosted {ess}] on {ecloud}
+are different from the steps for running it on a self-managed cluster.
+
+include::{tab-widgets}/add-fleet-server/widget.asciidoc[]
+
+
+Now you're ready to add {agent}s to your host systems. To learn how, see
+<<add-agent-to-fleet>>.
+
+//TODO: Describe other installation options (like using the enroll
+// command rather than installing as service) and point to that info.
+
+[discrete]
+[[fleet-server-deployment]]
+== Scale your {fleet-server} deployment
+
+coming[a future update]
+
+//TODO: Describe how to scale up the number of {agent}s that can be managed in
+// {fleet} by deploying more Fleet Servers. Document limits and recommendations.
+// Also describe deployment options (like adding a load balancer)
+
+//needed to render tab widgets
+include::{tab-widgets}/code.asciidoc[]
