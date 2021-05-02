@@ -1,0 +1,596 @@
+:tutorial: tutorial
+:aws: AWS
+
+[[monitor-aws]]
+== Monitoring Amazon Web Services ({aws})
+
+In this tutorial, you’ll learn how to monitor your {aws} infrastructure using
+Elastic Observability: Logs and Metrics.
+
+[discrete]
+=== What you'll learn
+
+You'll learn how to:
+
+- Create and configure an S3 bucket
+- Create and configure an SQS queue.
+- Install and configure Filebeat and Metricbeat to collect Logs and Metrics
+- Collect logs from S3
+- Collect metrics from Amazon CloudWatch
+
+
+[discrete]
+=== Before you begin
+
+Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}].
+The deployment includes an {es} cluster for storing and searching your data,
+and {kib} for visualizing and managing your data.
+For more information, see <<spin-up-stack,Spin up the Elastic Stack>>.
+
+In this tutorial, we are going to assume that your logs and your infrastructure
+data are already shipped to CloudWatch. We are going to show you how you can
+stream your data from CloudWatch to Elasticsearch. If you don’t know how to put
+your {aws} logs and infrastructure data in CloudWatch, Amazon provides a lot of
+documentation around this specific topic:
+
+* Collect your logs and infrastructure data from specific https://www.youtube.com/watch?v=vAnIhIwE5hY[{aws} services]
+* Export your logs https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/S3ExportTasksConsole.html[to an S3 bucket]
+
+
+[discrete]
+=== Step 1:  Create an S3 Bucket
+
+In order to centralize your logs in Elasticsearch, we need to have an S3 bucket.
+Filebeat, the agent that we are going to use to collect logs, has an input for
+S3.
+
+In the https://s3.console.aws.amazon.com/s3[{aws} S3 console] click on *Create
+bucket*. Give the bucket a name and specify the region in which you want it
+deployed.
+
+image::creating-a-s3-bucket.png[S3 bucket creation]
+
+[discrete]
+=== Step 2:  Create an SQS Queue
+
+You should now have an S3 bucket in which you can export your logs, but you will
+also need an SQS queue. In order to avoid significant lagging with polling all
+log files from each S3 bucket, we will use Amazon Simple Queue Service (SQS).
+This will provide us with Amazon S3 notification when a new S3 object is
+created. The {filebeat-ref}/filebeat-input-aws-s3.html[Filebeat s3 input]
+checks SQS for new messages regarding the new object created in S3 and uses the
+information in these messages to retrieve logs from S3 buckets. With this setup,
+periodic polling from each S3 bucket is not needed. Instead, the Filebeat s3
+input guarantees near real-time data collection from S3 buckets with both speed
+and reliability. So what we need to do at this point is to create a SQS queue
+and configure our S3 bucket to send a message to the SQS queue whenever new logs
+are present in the S3 bucket. Go to the https://eu-central-1.console.aws.amazon.com/sqs/[SQS console]
+
+image::creating-a-queue.png[Queue Creation]
+
+Create a standard SQS queue and edit the access policy by using a JSON object to
+define an advanced access policy:
+
+[NOTE]
+=====
+Replace `<sqs-arn>` with the ARN of the SQS queue, `<s3-bucket-arn>` with the
+ARN of the S3 bucket you just created, the `<source-account>` with your source
+account.
+=====
+[source,console]
+----
+{
+  "Version": "2012-10-17",
+  "Id": "example-ID",
+  "Statement": [
+    {
+      "Sid": "example-statement-ID",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "*"
+      },
+      "Action": "SQS:SendMessage",
+      "Resource": "<sqs-arn>",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "<source-account>"
+        },
+        "ArnLike": {
+          "aws:SourceArn": "<s3-bucket-arn>"
+        }
+      }
+    }
+  ]
+}
+----
+
+[discrete]
+=== Step 3:  Enable Event Notification
+
+Now that your queue is created, go to the properties of the S3 bucket you
+created and then to *Event notification*.
+
+image::configure-event-notification.png[Event Notification Setting]
+
+Specify that you want to send notification every time an object is being created
+and that you will send the notification to the SQS queue you just created.
+
+image::configure-notification-output.png[Event Notification Setting]
+
+[discrete]
+=== Step 4: Install and Configure Filebeat
+
+To monitor {aws} using the {stack}, you need two main components:
+an Elastic deployment to store and analyze the data and an agent to collect and
+ship the data.
+
+On a new terminal window, download and install {filebeat}.
+
+include::{beats-repo-dir}/tab-widgets/install-widget-filebeat.asciidoc[]
+
+{filebeat} comes with predefined assets for parsing,
+indexing, and visualizing your data.
+Run the following command to load these assets. It may take a few minutes.
+
+[source,bash]
+----
+./filebeat setup -e -E 'cloud.id=YOUR_DEPLOYMENT_CLOUD_ID' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
+----
+
+[IMPORTANT]
+====
+Setting up {filebeat} is an admin-level task that requires extra privileges.
+As a best practice, {filebeat-ref}/privileges-to-setup-beats.html[use an administrator role to set up]
+and a more restrictive role for event publishing (which you will do next).
+====
+
+[discrete]
+==== Configure the {filebeat} output
+
+Next, you are going to configure the {filebeat} output to ship data to {ess}.
+
+Use the {filebeat} keystore to store {filebeat-ref}/keystore.html[secure
+settings]. Store the Cloud ID in the keystore.
+[source,bash]
+----
+./filebeat keystore create
+echo -n "<Your Deployment Cloud ID>" | ./filebeat keystore add CLOUD_ID --stdin
+----
+
+To store logs in {es} with minimal permissions, create an API key to send
+data from {filebeat} to {ess}. Log into {kib} (you can do so from the Cloud
+Console without typing in any permissions) and select *Management* -> *Dev
+Tools*. Send the following request:
+
+[source,console]
+----
+POST /_security/api_key
+{
+  "name": "filebeat-monitor-gcp",
+  "role_descriptors": {
+    "filebeat_writer": {
+      "cluster": [
+        "monitor",
+        "read_ilm",
+        "cluster:admin/ingest/pipeline/get", <1>
+        "cluster:admin/ingest/pipeline/put" <1>
+      ],
+      "index": [
+        {
+          "names": ["filebeat-*"],
+          "privileges": ["view_index_metadata", "create_doc"]
+        }
+      ]
+    }
+  }
+}
+----
+
+<1> {filebeat} needs extra cluster permissions to publish logs, which differs
+from the {metricbeat} configuration used previously. You can find more
+details {filebeat-ref}/feature-roles.html[here].
+
+The response contains an `api_key` and an `id` field, which can be stored in
+the {filebeat} keystore in the following format: `id:api_key`.
+
+[source,bash]
+----
+echo -n "IhrJJHMB4JmIUAPLuM35:1GbfxhkMT8COBB4JWY3pvQ" | ./filebeat keystore add ES_API_KEY --stdin
+----
+
+[NOTE]
+=====
+Make sure you specify the `-n` parameter; otherwise, you will have painful
+debugging sessions due to adding a newline at the end of your API key.
+=====
+
+To see if both settings have been stored, run the following command:
+
+[source,bash]
+----
+./filebeat keystore list
+----
+
+To configure {filebeat} to output to {ess}, edit the `filebeat.yml`
+configuration file. Add the following lines to the end of the file.
+
+[source,yml]
+----
+cloud.id: ${CLOUD_ID}
+output.elasticsearch:
+  api_key: ${ES_API_KEY}
+----
+
+Finally, test if the configuration is working. If it is not working,
+verify that you used the right credentials and, if necessary, add them again.
+
+[source,bash]
+----
+./filebeat test output
+----
+
+[discrete]
+==== Step 5: Configuring the {aws} Module
+
+Now that the output is working, you are going to set up the {aws} module which
+is going to automatically going to define the {aws} input. You are going to use
+the {filebeat-ref}/filebeat-module-aws.html[Amazon Web Services] module. This
+module checks SQS for new messages regarding the new object created in the S3
+bucket and uses the information in these messages to retrieve logs from S3
+buckets. With this setup, periodic polling from each S3 bucket is not needed.
+There are many diferent filesets available: `cloudtrail`, `vpcflow`, `ec2`,
+`cloudwatch`, `elb` and `s3access`. In this tutorial we are going to show you a
+few examples using the `ec2` and the `s3access` filesets. The `ec2` fileset is
+used to ship and process logs stored in cloudwatch and exported them to a S3
+bucket. The `s3access` fileset is used when S3 access logs need to be collected,
+it provides detailed records for the requests that are made to a bucket. Server
+access logs are useful for many applications. For example, access log
+information can be useful in security and access audits. It can also help you
+learn about your customer base and understand your Amazon S3 bill.
+
+Let's enable the {aws} module in {metricbeat}.
+
+[source,bash]
+----
+./filebeat modules enable aws
+----
+
+Edit the `modules.d/aws.yml` file with the following configurations.
+
+[source,yml]
+----
+- module: aws
+  cloudtrail:
+    enabled: false <1>
+  cloudwatch:
+    enabled: false <1>
+  ec2:
+    enabled: true <2>
+    var.credential_profile_name: fb-aws <3>
+    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/howtoguide-tutorial <4>
+  elb:
+    enabled: false <1>
+  s3access:
+    enabled: false <1>
+  vpcflow:
+    enabled: false <1>
+----
+<1> Disables the filesets.
+<2> Enables the `ec2` fileset.
+<3> This is the aws profile define following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
+<4> Add the URL to the queue containing notifications around the bucket containing the EC2 logs
+
+You can now upload your logs to the S3 bucket. If you are using cloudwatch,
+make sure to edit the policy of your bucket like shown in the https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/S3ExportTasksConsole.html[step 3 of the {aws} user guide]
+it will help you avoiding permissions issues.
+
+Start {filebeat} to collect the logs.
+
+[source,bash]
+----
+./filebeat -e
+----
+
+Let's now configure another fileset and we are going to use the `s3access`
+one. The goal here is to be able to monitor how people access the bucket we
+created. This is what we achieved:
+
+image::one-bucket-archi.png[Current Architecture]
+
+Now what we need to do is to create another bucket and another queue. In order
+to create the following architecture:
+
+image::two-buckets-archi.png[Architecture with Access Logging Enabled]
+
+Make sure the event notifications on the bucket you created is enabled and is
+sending notifications to the new queue you also just created. Now you need to go
+back to the first bucket you created, go to the properties, go to **Server access
+logging**, specify that you want to ship the access logs to the bucket you last
+created.
+
+image::Server-Access-Logging.png[Enabling Server Access Logging]
+
+Copy the URL of the queue you created. Edit the `modules.d/aws.yml`file with
+the following configurations.
+
+[source,yml]
+----
+- module: aws
+  cloudtrail:
+    enabled: false <1>
+  cloudwatch:
+    enabled: false <1>
+  ec2:
+    enabled: true <2>
+    var.credential_profile_name: fb-aws <3>
+    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/howtoguide-tutorial <4>
+  elb:
+    enabled: false <1>
+  s3access:
+    enabled: true <5>
+    var.credential_profile_name: fb-aws <3>
+    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/access-log <5>
+  vpcflow:
+    enabled: false <1>
+----
+<1> Disables the filesets.
+<2> Enables the `ec2` fileset.
+<3> This is the aws profile define following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
+<4> Add the URL to the queue containing notifications around the bucket containing the EC2 logs
+<5> Add the URL to the queue containing notifications around the bucket containing the S3 access logs
+
+Once you have edited the config file, you need to restart filebeat. To stop
+flebeat, you can press CTRL + C in the terminal. Now let's restart filebeat by
+running the following command:
+
+[source,bash]
+----
+./filebeat -e
+----
+
+[discrete]
+==== Step 6: Visualizing Logs
+
+Now that the logs are being shipped to Elasticsearch we can visualize them in
+Kibana. Go to Kibana, in the interface click on the left panel, click on
+**Logs** to see how your raw logs look like:
+
+image::EC2-logs.png[EC2 logs in the Logs UI]
+
+The filesets we used in the previous steps also comes with prebuilt dashboard
+that you can use to visualize the data. In Kibana, on the left panel, click on
+**dashboard**, search for S3 and select the dashboard called:
+**[Filebeat AWS] S3 Server Access Log Overview**:
+
+image::S3-Server-Access-Logs.png[S3 Server Access Log Overview]
+
+This give you an overview of how your S3 buckets are being accessed.
+
+[discrete]
+==== Step 7: Collecting Metrics
+
+To monitor your {aws} infrastructure you will need to first make sure your
+infrastructure data are being shipped to CloudWatch. To ship the data to
+Elasticsearch we are going to use the {aws} module from Metricbeat. This module
+periodically fetches monitoring metrics from AWS CloudWatch using
+**GetMetricData** API for {aws} services.
+
+[IMPORTANT]
+====
+Extra AWS charges on CloudWatch API requests will be generated by this module.
+Please see https://www.elastic.co/guide/en/beats/metricbeat/current/metricbeat-module-aws.html#aws-api-requests[AWS API requests] for more details.
+====
+
+[discrete]
+==== Step 8: Install {metricbeat}
+
+On a new terminal window, download and install {metricbeat}.
+
+include::{beats-repo-dir}/tab-widgets/install-widget-metricbeat.asciidoc[]
+
+[discrete]
+==== Set up the assets
+
+Similarly to {filebeat}, {metricbeat} comes with predefined assets for parsing,
+indexing, and visualizing your data. Run the following command to load these
+assets. It may take a few minutes.
+
+[NOTE]
+=====
+Substitute the Cloud ID from your deployment in the following command. To find
+your Cloud ID, click on your https://cloud.elastic.co/deployments[deployment].
+=====
+[source,bash]
+----
+./metricbeat setup -e -E 'cloud.id=YOUR_DEPLOYMENT_CLOUD_ID' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
+----
+[IMPORTANT]
+====
+Setting up {metricbeat} is an admin-level task that requires extra privileges.
+As a best practice, {metricbeat-ref}/privileges-to-setup-beats.html[use an administrator role to set up],
+and a more restrictive role for event publishing (which you will do next).
+====
+
+[discrete]
+==== Configure the {metricbeat} output
+
+Next, you are going to configure {metricbeat} output to {ess}.
+
+. Use the {metricbeat} keystore to store
+{metricbeat-ref}/keystore.html[secure settings].
+Store the Cloud ID in the keystore.
++
+[source,bash]
+----
+./metricbeat keystore create
+echo -n "<Your Deployment Cloud ID>" | ./metricbeat keystore add CLOUD_ID --stdin
+----
+
+. To store metrics in {es} with minimal permissions, create an API key to send
+data from {metricbeat} to {ess}. Log into Kibana (you can do so from the Cloud
+Console without typing in any permissions) and select *Management* -> *Dev
+Tools*. Send the following request:
++
+[source,console]
+----
+POST /_security/api_key
+{
+  "name": "metricbeat-monitor-gcp",
+  "role_descriptors": {
+    "metricbeat_writer": {
+      "cluster": ["monitor", "read_ilm"],
+      "index": [
+        {
+          "names": ["metricbeat-*"],
+          "privileges": ["view_index_metadata", "create_doc"]
+        }
+      ]
+    }
+  }
+}
+----
+
+. The response contains an `api_key` and an `id` field, which can be stored in
+the {metricbeat} keystore in the following format: `id:api_key`.
++
+[source,bash]
+----
+echo -n "IhrJJHMB4JmIUAPLuM35:1GbfxhkMT8COBB4JWY3pvQ" | ./metricbeat keystore add ES_API_KEY --stdin
+----
++
+[NOTE]
+=====
+Make sure you specify the `-n` parameter; otherwise, you will have
+painful debugging sessions due to adding a newline at the end of
+your API key.
+=====
+
+. To see if both settings have been stored, run the following command:
++
+[source,bash]
+----
+./metricbeat keystore list
+----
+
+. To configure {metricbeat} to output to {ess}, edit the `metricbeat.yml`
+configuration file. Add the following lines to the end of the file.
++
+[source,yml]
+----
+cloud.id: ${CLOUD_ID}
+output.elasticsearch:
+  api_key: ${ES_API_KEY}
+----
+
+. Finally, test if the configuration is working. If it is not working,
+verify if you used the right credentials and add them again.
++
+[source,bash]
+----
+./metricbeat test output
+----
+
+Now that the output is working, you are going to set up the {aws} module.
+
+[discrete]
+==== Step 9: Configuring the {aws} module
+
+To collect the metrics from your {aws} infrastructure we will use the
+{metricbeat-ref}/metricbeat-module-aws.html[{aws}] module. The {aws} module is
+containing a lot of metricsets: `billing`, `cloudwatch`, `dynamodb`, `ebs`,
+`ec2`, `elb`, `lambda` and many more. Each metricsets is created to help you
+stream and process your data. In this tutorial we are going to show you a
+few examples using the `ec2` and the `billing` metricsets.
+
+. Let's enable the {aws} module in {metricbeat}.
++
+[source,bash]
+----
+./metricbeat modules enable aws
+----
+
+. Edit the `modules.d/aws.yml` file with the following configurations.
++
+[source,yml]
+----
+- module: aws <1>
+  period: 24h <2>
+  metricsets:
+    - billing <3>
+  credential_profile_name: mb-aws <4>
+  cost_explorer_config:
+    group_by_dimension_keys:
+      - "AZ"
+      - "INSTANCE_TYPE"
+      - "SERVICE"
+    group_by_tag_keys:
+      - "aws:createdBy"
+- module: aws <1>
+  period: 300s <2>
+  metricsets:
+    - ec2 <3>
+  credential_profile_name: mb-aws <4>
+----
++
+<1> Defines the module that is going to be used.
+<2> Defines the period at which the metrics are going to be collected
+<3> Defines the metricset that is going to be used.
+<4> This is the aws profile define following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
+
+Make sure that the {aws} user used to collect the metrics from CloudWatch has at
+least the following permissions attached to it:
+
+[source,yml]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+                "ec2:DescribeInstances",
+                "ec2:DescribeRegions",
+                "cloudwatch:GetMetricData",
+                "cloudwatch:ListMetrics",
+                "sts:GetCallerIdentity",
+                "iam:ListAccountAliases",
+                "tag:getResources",
+                "ce:GetCostAndUsage"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        }
+    ]
+}
+----
+
+You can now start Metricbeat:
+
+[source,bash]
+----
+./metricbeat -e
+----
+
+[discrete]
+==== Step 10: Visualizing Metrics
+
+Now that the metrics are being streamed to Elasticsearch we can visualize them in
+Kibana. Go to Kibana, in the interface click on the left panel, click on
+**Metrics** to see how your infrastructure look like. Once in the **Metrics UI**
+make sure to show the **{aws}** source and the **EC2 Instances**:
+
+image::EC2-instances.png[Your EC2 Infrastructure]
+
+The metricsets we used in the previous steps also comes with prebuilt dashboard
+that you can use to visualize the data. In Kibana, on the left panel, click on
+**dashboard**, search for EC2 and select the dashboard called: **[Metricbeat
+AWS] EC2 Overview**:
+
+image::ec2-dashboard.png[EC2 Overview]
+
+If you want to track your billings on {aws}, you can also check the
+**[Metricbeat AWS] Billing Overview** dashboard:
+
+image::aws-billing.png[Billing Overview]
+
+// Add Javascript and CSS for tabbed panels
+include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
