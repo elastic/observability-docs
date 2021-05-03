@@ -9,6 +9,44 @@ beta[]
 
 coming[a future update]
 
+
+
+
+
+## Service account
+
+To communicate with Elasticsearch, `fleet-server` uses a service token. Elasticsearch contains a `fleet-server` service account. Each fleet-server can use its own service token but it the same token can be shared across multiple servers. The advantage of using a separate token for each server is that each can be invalidated separately.
+
+//TODO: Find docs for service accounts: https://www.elastic.co/guide/en/elasticsearch/reference/7.x/security-api-get-service-accounts.html
+
+
+A service token can either be created through the Fleet UI or manually by using the Elasticsearch API:
+
+```
+POST _security/service/elastic/fleet-server/credential/token/my-fleet-server-token
+```
+
+The above creates a fleet-server service token with the name `my-fleet-server-token`. After the creation, the token is returned by the API and must be copied. It is not possible to retrieve it afterwards again.
+
+## API Keys
+
+As described before, fleet-server connects to Elasticsearch through service tokens. For the connection between Elastic Agent and fleet-server, Elasticsearch API Keys are used. Each Elastic Agent receives two API keys:
+
+* Output API Key: Used to send data to Elasticsearch
+* Communication API Key: Used to communicate with fleet-server
+
+The communicaiton API key does not have any permissions besides to communicate with fleet-server. fleet-server validates the API key against Elasticsearch. If the API key is invalidated, fleet-server stops communicating with the Elastic Agent.
+
+The output API Key is used to ingest data into Elasticsearch. This API Key will have the minimal permissions needed to ingest all the data which could be collected by the policy (Note: Currently the API Key has permissions to ingest data into all logs-*, metrics-* indices, but this is soon going to change). If the API Key is invalidate, this Elastic Agent stops to ingest data into Elasticsearch.
+
+
+## Enrollment token
+
+The enrollment token is an Elasticsearch API key which can be retrived multiple times by Fleet. The enrollment token is used for the initial communication between Elastic Agent and fleet-server. The enrollment token can be used as many times as needed. If invalidated, it cannot be used anymore.
+
+After the initial connection request from the Elastic Agent to fleet-server with the enrollment token, the fleet-server hands out two API Keys to the Elastic Agent (see above).
+
+
 //TODO: Describe the various ways to secure connections between Fleet Server
 //and Elastic Agents:
 // - Service accounts and tokens
