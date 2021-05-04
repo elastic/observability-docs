@@ -3,8 +3,8 @@
 [[monitor-azure]]
 == Monitor Microsoft Azure
 
-In this {tutorial}, you'll learn how to monitor your Azure deployments using
-Elastic Observability: Logs and Metrics.
+In this {tutorial}, you'll learn how to monitor your Microsoft Azure deployments
+using Elastic Observability: Logs and Metrics.
 
 [discrete]
 === What you'll learn
@@ -43,33 +43,33 @@ This {tutorial} uses the Azure portal.
 ==== Create an Azure service principal
 
 . Go to the https://portal.azure.com/[Azure Management Portal]. Search and click
-on Azure Active Directory.
+on *Azure Active Directory*.
 +
 image:monitor-azure-search-active-directory.png[Search and click on Azure
 Active Directory]
 +
-. Click on **App registrations** in the navigation pane of the selected Active
-Directory and then click on **New registration**.
+. Click on *App registrations* in the navigation pane of the selected Active
+Directory and then click on *New registration*.
 +
 image:monitor-azure-click-app-registration.png[Click on App registrations]
 +
-. Type the name of your application (this tutorial uses `monitor-azure`) and
-click on **Register** (leave all the other options with the default value).
+. Type the name of your application (this {tutorial} uses `monitor-azure`) and
+click on *Register* (leave all the other options with the default value).
 +
 image:monitor-azure-register-app.png[Register an application]
 +
-Copy the **Application (client) ID**, and save it for future reference.
-This ID is required to configure {beats} to connect to your Azure account.
+Copy the *Application (client) ID*, and save it for future reference.
+This id is required to configure {metricbeat} to connect to your Azure account.
 +
-. Click on **Certificates & secrets**. Then, click on **New client secret** to
+. Click on *Certificates & secrets*. Then, click on *New client secret* to
 create a new security key.
 +
 image:monitor-azure-click-client-secret.png[Click on new client secret]
 +
-. Type a key description and select a key duration in the Expires list.
-Then, click on Add to save the new key, which displays the key value in the
-Value field. Copy the value and save it (along with your Client ID) for
-future reference.
+. Type a key description and select a key duration in the expire list.
+Click on *Add* to create a client secret. The next page will display the key
+value under the *Value* field. Copy the secret and save it (along with your
+Client ID) for future reference.
 +
 [IMPORTANT]
 ====
@@ -81,19 +81,19 @@ key value after you leave the page.
 ==== Grant access permission for your service principal
 
 After creating the Azure service principal you need to grant it the correct
-permission. You need `Reader` permission to configure {beats} to monitor your
-services.
+permission. You need `Reader` permission to configure {metricbeat} to monitor
+your services.
 
-. On Azure Portal, search and click on **Subscriptions**.
+. On Azure Portal, search and click on *Subscriptions*.
 +
 image:monitor-azure-search-subscriptions.png[Search and click on Subscriptions]
 +
 . In the Subscriptions page, click on your subscription.
-. Click on **Access control (IAM)** in the subscription navigation pane.
-. Click on **Add** and select **Add role assignment**.
-. Select the **Reader** role.
-. In the **Select** field, paste the description name or application (client) ID
-obtained when creating the Azure service principal.
+. Click on *Access control (IAM)* in the subscription navigation pane.
+. Click on *Add* and select *Add role assignment*.
+. Select the *Reader* role.
+. In the *Select* field, type the description name of the configured service
+principal (`monitor-azure`).
 +
 image:monitor-azure-add-role-assignment.png[Add role assignment]
 +
@@ -103,7 +103,7 @@ access to your subscription.
 [discrete]
 === Step 2: Install and configure {metricbeat}
 
-To monitor Azure using the {stack}, you need two main components:
+To monitor Microsoft Azure using the {stack}, you need two main components:
 an Elastic deployment to store and analyze the data and an agent to collect
 and ship the data.
 
@@ -115,7 +115,7 @@ have your *cloud ID* and your *credentials* on hand.
 
 Two agents can be used to monitor Azure: {metricbeat} is used to
 monitor metrics, and {filebeat} to monitor logs. You can run the agents on any
-machine. This {tutorial} uses a small Azure instance, **B2s** (2 vCPUs,
+machine. This {tutorial} uses a small Azure instance, *B2s* (2 vCPUs,
 4 GB memory), with an Ubuntu distribution.
 
 [discrete]
@@ -130,7 +130,8 @@ include::{beats-repo-dir}/tab-widgets/install-widget-metricbeat.asciidoc[]
 ==== Set up assets
 
 {metricbeat} comes with predefined assets for parsing, indexing, and visualizing
-your data. Run the following command to load these assets.
+your data. From the {metricbeat} directory, run the following command to load
+these assets.
 It may take a few minutes.
 
 [NOTE]
@@ -255,6 +256,12 @@ echo -n "<client_secret>" | ./metricbeat keystore add AZURE_CLIENT_SECRET --stdi
 echo -n "<tenant_id>" | ./metricbeat keystore add AZURE_TENANT_ID --stdin
 echo -n "<subscription_id>" | ./metricbeat keystore add AZURE_SUBSCRIPTION_ID --stdin
 ----
++
+[NOTE]
+====
+You can find the `tenant_id` in the main Azure Active Directory page.
+You can find the `subscription_id` in the main Subscriptions page.
+====
 
 . Enable the Azure module.
 +
@@ -297,7 +304,13 @@ following command:
 ./metricbeat test modules azure
 ----
 +
-{metricbeat} will print {azure} metrics to the terminal, if the setup is correct.
+{metricbeat} will print `compute_vms` metrics to the terminal, if the setup is
+correct.
++
+[NOTE]
+====
+If it returns a timeout error, try again. The `test modules` timeout is short.
+====
 
 . Edit the `modules.d/azure.yml` file to also collect `billing` metrics.
 +
@@ -327,19 +340,20 @@ should be 24h or multiples of 24h.
 ./metricbeat -e
 ----
 
-. Finally, log into {kib} and open the *[{metricbeat} Azure] [Metricbeat Azure]
-Compute VMs Overview* dashboard.
+. Finally, log into {kib} and open the *[{metricbeat} Azure] Compute VMs
+Overview* dashboard.
 +
 image:monitor-azure-compute-vms-overview-dashboard.png[{metricbeat} azure
 compute vms overview dashboard]
 +
 [NOTE]
 ====
-The **VM Available Memory** visualization might be empty if you only have Linux
+The *VM Available Memory* visualization might be empty if you only have Linux
 VMs as discussed https://github.com/elastic/beats/issues/20289[here].
 ====
 +
-You can also check the **[Metricbeat Azure] Billing overview** dashboard.
+You can also check the *[{metricbeat} Azure] Billing overview* dashboard, even
+though it might take longer to collect data.
 +
 image:monitor-azure-billing-overview-dashboard.png[{metricbeat} azure compute
 vms overview dashboard]
@@ -517,24 +531,24 @@ New-AzEventHub -ResourceGroupName monitor-azure-resource-group `
 +
 [NOTE]
 ====
-Adjust the `-MessageRetentionInDays` value to your needs. This tutorial uses the
-default value suggest on the Azure quick start.
+Adjust the `-MessageRetentionInDays` value to your needs. This {tutorial} uses the
+default value suggested in the Azure quick start.
 ====
 
 [discrete]
-==== Configure activity logs to stream to event the hub
+==== Configure activity logs to stream to the event hub
 
-. Navigate to **Activity log**.
+. Navigate to *Activity log*.
 +
 image::monitor-azure-search-activity-log.png[Navigate to Activity log]
 
-. Click on **Diagnostics settings**.
+. Click on *Diagnostics settings*.
 +
 image::monitor-azure-click-diagnostics-settings.png[Click on diagnostics settings]
 
-. Click on **Add diagnostic setting**.
+. Click on *Add diagnostic setting*.
 
-. Configure it and click on **Save**.
+. Configure it and click on *Save*.
 +
 image::monitor-azure-configure-diagnostics-settings.png[Configure on diagnostics settings]
 +
@@ -568,7 +582,7 @@ image::monitor-azure-click-policy.png[Click on policy]
 +
 [source,bash]
 ----
-./filebeat keystore add AZURE_CONNECTION_STRING
+echo -n "<Your Connection string-primary key>" | ./filebeat keystore add AZURE_CONNECTION_STRING --stdin
 ----
 
 [discrete]
@@ -594,11 +608,11 @@ New-AzStorageAccount -ResourceGroupName monitor-azure-resource-group `
 +
 image::monitor-azure-search-storage-accounts.png[Search storage accounts]
 
-. Click on the created storage account and then on **Access keys**.
+. Click on the created storage account and then on *Access keys*.
 +
 image::monitor-azure-click-access-keys.png[Click on access keys]
 
-. Click on **View keys** and copy one of the keys.
+. Click on *Show keys* and copy one of the keys.
 +
 image::monitor-azure-click-view-keys.png[Click on view keys]
 
@@ -606,7 +620,7 @@ image::monitor-azure-click-view-keys.png[Click on view keys]
 +
 [source,bash]
 ----
-./filebeat keystore add AZURE_STORAGE_KEY
+echo -n "<Your Storage account key>" | ./filebeat keystore add AZURE_STORAGE_KEY --stdin
 ----
 
 [discrete]
@@ -641,6 +655,12 @@ image::monitor-azure-click-view-keys.png[Click on view keys]
 <4> Persists the state of the eventhub messages to the `monitorazurestorage`
 storage account.
 <5> Uses the configured key to authenticate to the storage account.
++
+[IMPORTANT]
+====
+You cannot remove any of the other filesets from the configuration file.
+You must have them in the config file and disabled.
+====
 
 . Start {filebeat} to collect the logs.
 +
