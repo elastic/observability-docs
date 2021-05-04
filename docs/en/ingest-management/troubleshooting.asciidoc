@@ -9,38 +9,25 @@ described here, please review open issues in the following GitHub repositories:
 
 * https://github.com/elastic/kibana/issues[{kib}]
 * https://github.com/elastic/beats/issues[{beats}]
+* https://github.com/elastic/fleet-server/issues[{fleet-server}]
 * https://github.com/elastic/package-registry/issues[{package-registry}]
 
 Have a question? Read our <<fleet-faq,FAQ>>, or contact us in the
 {forum}[discuss forum]. Your feedback is very valuable to us.
 
 [discrete]
-[[fleet-not-in-kibana]]
-== {fleet} is not listed in the {kib} side navigation
+[[fleet-server-not-in-kibana-cloud]]
+== {fleet-server} is not listed in {kib} when using {ecloud}
 
-The {fleet} app is enabled by default. If you are unable to 
-see the app in {kib}, make sure it's enabled.
+If you are unable to see {fleet-server} in {kib}, make sure it's setup.
 
-**To enable {fleet} on {ecloud}:**
+**To setup {fleet-server} on {ecloud}:**
 
-. Go to your deployment in the user console.
+. Go to your deployment in the user console and follow the {ecloud} prompts
+to set up 'APM & Agent', the rest is handled for you, {fleet-server} {agent}
+will show up in {fleet}.
 
-. Under the deployment name in the side navigation, click **Edit**.
-
-. In the {kib} section, expand **User setting overrides** and enter the
-following setting:
-+
-[source,yaml]
-----
-xpack.fleet.enabled: true
-----
-
-. Click **Save**.
-
-{kib} will restart automatically. When {kib} is available, refresh the browser
-to see the {fleet} app in the navigation menu.
-
-**To enable {fleet} on a self-managed cluster:**
+**To enable {fleet} and setup {fleet-server} on a self-managed cluster:**
 
 . In the {es} configuration file, `config/elasticsearch.yml`, set the following
 security settings to enable security and API keys:
@@ -77,9 +64,11 @@ To set up passwords, you can use the documented {es} APIs or the
 After running the command, copy the Elastic user name to the {kib} config file.
 Then restart {kib}.
 
+Then follow the documented steps for setting up a self-managed {fleet-server}.
+
 [discrete]
-[[ingest-management-setup-fails]]
-== The `/api/ingest_management/setup` endpoint can't reach the package registry
+[[fleet-setup-fails]]
+== The `/api/fleet/setup` endpoint can't reach the package registry
 
 In order to install {integrations}, the {fleet} app needs to connect to
 an external service called the {package-registry}. For this to work, the {kib}
@@ -99,22 +88,27 @@ us in the {forum}[discuss forum].
 [[agent-enrollment-timeout]]
 == {agent} enrollment fails on the host with `Client.Timeout exceeded` message
 
-{agent} must be able to connect to the {kib} instance to enroll in {fleet}.
+{agent} must be able to connect to the {fleet-server} instance to enroll in {fleet}.
 If the agent is unable to connect, you will see the following failure:
 
 [source,output]
 -----
-fail to enroll: fail to execute request to {kib}:Post http://kibana:5601/api/fleet/agents/enroll?: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+fail to enroll: fail to execute request to {fleet-server}:Post http://fleet-server:8220/api/fleet/agents/enroll?: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
 -----
 
-This may occur if the host is unable to connect to {kib}. To troubleshoot the
+This may occur if the host is unable to connect to {fleet-server}. To troubleshoot the
 problem:
 
 . Check for networking problems. Run the `ping` command from the host to confirm
-that it can reach the {kib} instance.
+that it can reach the {fleet-server} instance.
 
-. Verify that the URL and port you specified during enrollment are correct for
-your environment.
+. Further try to 'curl' the actual
+/status api of {fleet-server} as:
+curl -f http://<fleet-server-url>:8220/api/status
+
+. Verify that the {kib} {fleet} settings URL and port you specified are correct for
+your environment.  HTTPS protocol is the default expected by {fleet-server} to communicate
+with {es} and port 8220 is the port, unless you have explicitly set it otherwise.
 
 . Check the enrollment key that you specified during enrollment to confirm that
 the key is valid. To do this:
@@ -125,11 +119,99 @@ that you used to enroll {agent} on your host.
 token when you run the `elastic-agent enroll` command.
 
 [discrete]
+[[general-fleet-server-triage]]
+== Many {fleet-server} problems can be triaged and fixed with the below tips
+
+{fleet-server} allows {agent} to connect to {es}, in this it is the same as the connection
+to {kib} as in prior releases.  But since {fleet-server} is on the edge host, it may
+result in some additional networking setup and trouble-shooting.  This section can help
+identify what is needed when logging an SDH or sending a support forum communication.
+
+This is how to get the 'version' of the Agent on disk:
+. If you ‘installed’ the Elastic Agent you can run the following.  The example is for posix
+based systems.
+elastic-agent version
+
+or if you have not installed it and are running Agent as a temporary process, you can run:
+./elastic-agent version
+
+Both commands are accessible via Windows or macOS with their OS specific slight variation in
+how you call them.  Please check the main install documentation for examples of how to adjust them,
+if needed.
+
+Also valuable is the following command line call:
+elastic-agent status
+This command can tell you what Agent thinks its status is, and this may be helpful to know.
+Further action can be taken based on the info received at this point.
+
+If Agent is running but you are not seeing what you expect, here are some common items to check:
+. check which policy is listed in the {kib} UI as associated with the running Agent.
+.. if it is not the Policy you expected, change it to the desired one!
+. check the Policy in the {kib} UI for what Integrations are intended to be included.
+.. If you wish to include System data, make sure the System Integration is included in the Policy.
+. check the {agent} Policy Integration ‘Settings’ page to confirm if the ‘Collect Agent Logs (or Metrics)’
+options are selected or not.
+.. If you wish to collect logs or Metrics but the options are unselected, enable them and save it.
+
+{escloud} usage note: The collection of logs / metrics is not intended to be included in cloud oriented
+‘Elastic Agent on Cloud policy’.  FYI: This Policy is only created in {escloud} deployments.
+
+Also, for some more advanced debugging cases, you can collect a few more files up front to assess
+and give to the Elastic team for review, which should all be in the Agent directory on disk:
+state.yml
+fleet.yml
+elastic-agent.yml
+
+[discrete]
+[[not-installing-no-logs-in-terminal]]
+== Some problems occur so early that insufficient logging is available, stand-alone install can help
+
+The following command will install the Agent with a default configuration:
+./elastic-agent install -f
+At this point, all of the service configuration will be setup and so the 'enrollment' command can be run:
+
+Then the enrollment command can be give, with the same params as indicted for your usage prior.  example:
+elastic-agent enroll -f --fleet-server-es=https://<es-url>:443 --fleet-server-service-token=<token> --fleet-server-policy=<policy-id>
+
+At this point you can check the cited 'installed' Agent log locations in the documentation to find better info!
+
+[discrete]
+[[agent-healthy-but-no-data-in-es]]
+== The Agent can be cited as 'Healthy' but still have setup problems sending data to {es} this triage can help
+
+Confirm the Agent is running and is ‘Healthy’ (even as shown in {fleet}).  If you have elected to ‘collect
+Agent Logs’ option you can see the logs in the {agent} details page Logs tab.  If they do not show there it
+likely points to a communication problem of your host with {es}. This could be possibly because of:
+. the port is already in use.  You can check the port usage with a tool like wireshark or netstat and confirm
+nothing is already binding to it.  On a posix system you can call akin to this:
+netstat -nat | grep :8220
+
+If there is a response data for this command line call, then you know it is in use (which may be correct
+or may not be, if you had intended the Fleet Server to be uninstalled (in which case you can re-check that
+and continue)
+
+[discrete]
+[[secondary-agent-not-connecting]]
+== {fleet-server} is running and healthy with data, but other Agents cannot use it to connect to {es}
+
+There are some settings that are only used if you have multiple {agents}.  In this case, it may help
+to check that the hosts can communicate with the {fleet-server}.  To do this, check this with the
+/status api as below, from the non-fleet-server host. Execute:
+curl -f http://<fleet-server-ip>:8220/api/status
+
+This may yield errors that can be debugged further, or it may work and show that communication ports and
+networking are not the problem.
+
+One common problem is that the default port of 8220 for {fleet-server} isn’t open on the {fleet-server}
+host to communicate, so you can review and correct this using common tools, in alignment with any
+networking and security concerns you or your system may have.
+
+[discrete]
 [[es-apikey-failed]]
 == {es} authentication service fails with `Authentication using apikey failed` message
 
 {fleet} requires an encryption key in order to save API keys and encrypt them in
-{kib}. To provide an API key, set the `xpack.encryptedSavedObjects.encryptionKey`
+{es}. To provide an API key, set the `xpack.encryptedSavedObjects.encryptionKey`
 property in the `kibana.yml` configuration file. For example:
 
 [source,yaml]
