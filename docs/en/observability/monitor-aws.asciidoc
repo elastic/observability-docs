@@ -68,10 +68,13 @@ periodic polling from each S3 bucket is not needed. Instead, the Filebeat S3
 input guarantees near real-time data collection from S3 buckets with both speed
 and reliability.
 
-Create an SQS queue
-and configure our S3 bucket to send a message to the SQS queue whenever new logs
-are present in the S3 bucket. Go to the https://eu-central-1.console.aws.amazon.com/sqs/[SQS console]
+Create an SQS queue and configure our S3 bucket to send a message to the SQS
+queue whenever new logs are present in the S3 bucket. Go to the https://eu-central-1.console.aws.amazon.com/sqs/[SQS console]
 
+[NOTE]
+=====
+Make sure that the queue is created in the same region as the S3 bucket.
+=====
 image::creating-a-queue.png[Queue Creation]
 
 Create a standard SQS queue and edit the access policy by using a JSON object to
@@ -181,8 +184,8 @@ POST /_security/api_key
       "cluster": [
         "monitor",
         "read_ilm",
-        "cluster:admin/ingest/pipeline/get", <1>
-        "cluster:admin/ingest/pipeline/put" <1>
+        "cluster:admin/ingest/pipeline/get",
+        "cluster:admin/ingest/pipeline/put"
       ],
       "index": [
         {
@@ -194,10 +197,6 @@ POST /_security/api_key
   }
 }
 ----
-
-<1> {filebeat} needs extra cluster permissions to publish logs, which differs
-from the {metricbeat} configuration used previously. You can find more
-details {filebeat-ref}/feature-roles.html[here].
 
 The response contains an `api_key` and an `id` field, which can be stored in
 the {filebeat} keystore in the following format: `id:api_key`.
@@ -274,24 +273,45 @@ Edit the `modules.d/aws.yml` file with the following configurations.
 ----
 - module: aws
   cloudtrail:
-    enabled: false <1>
+    enabled: false
   cloudwatch:
-    enabled: false <1>
+    enabled: false
   ec2:
-    enabled: true <2>
-    var.credential_profile_name: fb-aws <3>
-    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/howtoguide-tutorial <4>
+    enabled: true <1>
+    var.credential_profile_name: fb-aws <2>
+    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/howtoguide-tutorial <3>
   elb:
-    enabled: false <1>
+    enabled: false
   s3access:
-    enabled: false <1>
+    enabled: false
   vpcflow:
-    enabled: false <1>
+    enabled: false
 ----
-<1> Disables the filesets.
-<2> Enables the `ec2` fileset.
-<3> This is the AWS profile defined following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
-<4> Add the URL to the queue containing notifications around the bucket containing the EC2 logs
+<1> Enables the `ec2` fileset.
+<2> This is the AWS profile defined following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
+<3> Add the URL to the queue containing notifications around the bucket containing the EC2 logs
+
+Make sure that the {aws} user used to collect the logs from S3 has at least the
+following permissions attached to it:
+
+[source,yml]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Action": [
+              "s3:GetObject",
+              "sqs:ReceiveMessage",
+              "sqs:ChangeMessageVisibility",
+              "sqs:DeleteMessage"
+            ],
+            "Effect": "Allow",
+            "Resource": "*"
+        }
+    ]
+}
+----
 
 You can now upload your logs to the S3 bucket. If you are using cloudwatch,
 make sure to edit the policy of your bucket as shown in https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/S3ExportTasksConsole.html[step 3 of the {aws} user guide].
@@ -331,27 +351,26 @@ the following configurations.
 ----
 - module: aws
   cloudtrail:
-    enabled: false <1>
+    enabled: false
   cloudwatch:
-    enabled: false <1>
+    enabled: false
   ec2:
-    enabled: true <2>
-    var.credential_profile_name: fb-aws <3>
-    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/howtoguide-tutorial <4>
+    enabled: true <1>
+    var.credential_profile_name: fb-aws <2>
+    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/howtoguide-tutorial <3>
   elb:
-    enabled: false <1>
+    enabled: false
   s3access:
-    enabled: true <5>
-    var.credential_profile_name: fb-aws <3>
-    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/access-log <5>
+    enabled: true <1>
+    var.credential_profile_name: fb-aws <2>
+    var.queue_url: https://sqs.eu-central-1.amazonaws.com/836370109380/access-log <4>
   vpcflow:
-    enabled: false <1>
+    enabled: false
 ----
-<1> Disables the filesets.
-<2> Enables the `ec2` fileset.
-<3> This is the aws profile define following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
-<4> Add the URL to the queue containing notifications around the bucket containing the EC2 logs
-<5> Add the URL to the queue containing notifications around the bucket containing the S3 access logs
+<1> Enables the `ec2` fileset.
+<2> This is the aws profile defined following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
+<3> Add the URL to the queue containing notifications around the bucket containing the EC2 logs
+<4> Add the URL to the queue containing notifications around the bucket containing the S3 access logs
 
 Once you have edited the config file, you need to restart filebeat. To stop
 flebeat, you can press CTRL + C in the terminal. Now let's restart filebeat by
@@ -553,7 +572,7 @@ few examples using the `ec2` and the `billing` metricsets.
 <1> Defines the module that is going to be used.
 <2> Defines the period at which the metrics are going to be collected
 <3> Defines the metricset that is going to be used.
-<4> This is the aws profile define following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
+<4> This is the aws profile defined following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
 
 Make sure that the {aws} user used to collect the metrics from CloudWatch has at
 least the following permissions attached to it:
