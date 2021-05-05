@@ -1,6 +1,7 @@
 // tag::cloud[]
 * Access to a deployment of our {ess-product}[hosted {ess}]
 on {ecloud}. The {ess} is available on AWS, GCP, and Azure. {ess-trial}[Try it out for free].
+This deployment must include an APM & Fleet node. 
 
 * User with the superuser role. See {ref}/built-in-roles.html[Built-in roles].
 // end::cloud[]
@@ -16,15 +17,8 @@ on {ecloud}. The {ess} is available on AWS, GCP, and Azure. {ess-trial}[Try it o
 license. {stack-gs}/get-started-elastic-stack.html[Learn how to install the
 {stack} on your own hardware].
 
-* Secure, encrypted connection between {kib} and {es}. See:
-** {ref}/configuring-security.html[Configuring security in {es}]
-** {kibana-ref}/using-kibana-with-security.html[Configuring security in {kib}]
-** {kibana-ref}/configuring-tls.html[Encrypt communications in {kib}]
-+
-TIP: You can disable the TLS check by setting
-`xpack.fleet.agents.tlsCheckDisabled: true` in the {kib}
-configuration. For example, you might want to do this if {kib} is
-behind a proxy that terminates the SSL connection.
+* Secure, encrypted connection between {kib} and {es}. For more information,
+see {ref}/configuring-stack-security.html[Configure security for the {stack}].
 
 * User with the superuser role. See {ref}/built-in-roles.html[Built-in roles].
 
@@ -38,7 +32,7 @@ must be set. {fleet} requires this setting in order to save API keys and encrypt
 them in {kib}. You can either set `xpack.encryptedSavedObjects.encryptionKey` to
 an alphanumeric value of at least 32 characters, or run the
 {kibana-ref}/kibana-encryption-keys.html[`kibana-encryption-keys` command] to
-generate the key. 
+generate the key.
 
 **Example security settings**
 
@@ -58,9 +52,6 @@ kibana.yml example:
 [source,yaml]
 ----
 xpack.security.enabled: true
-xpack.fleet.agents.tlsCheckDisabled: true
 xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters"
-elasticsearch.username: "my_username"
-elasticsearch.password: "my_password"
 ----
 // end::self-managed[]
