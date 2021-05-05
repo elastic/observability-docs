@@ -38,25 +38,12 @@ include::{tab-widgets}/prereq-widget.asciidoc[]
 
 Use {fleet} in {kib} to get APM data into the {stack}.
 
-The first time you use {fleet}, you need to set it up:
+The first time you use {fleet}, you might need to set it up and add a
+{fleet-server}:
 
-. Log in to {kib} and go to **Management > {fleet}**.
-+
-[role="screenshot"]
-image::images/kibana-fleet-start.png[{fleet} in {kib}]
+include::{tab-widgets}/add-fleet-server/widget.asciidoc[]
 
-. In {fleet}, click **Settings** and change the defaults, if necessary.
-For self-managed installations, set the URLs for {es} and {kib}, including
-the http ports, then save your changes.
-+
-[role="screenshot"]
-image::images/kibana-fleet-settings.png[{fleet} settings]
-
-. Enable central management. Click the **Agents** tab and click
-**Create user and enable central management**.
-+
-[role="screenshot"]
-image::images/kibana-fleet-enable.png[{fleet} showing prompt to enable central management]
+For more information, see <<fleet-server>>.
 
 [discrete]
 [[add-agent-to-fleet-traces]]
@@ -76,45 +63,40 @@ If RUM is disabled, you should run {agent} on edge machines.
 
 To send APM data to the {stack}:
 
-. On the **Agents** tab in {fleet}, click **Add agent**, and look at the
-deployment instructions under **Enroll in {fleet}**.
+. On the **Agents** tab in {fleet}, click **Add agent**.
 
-. As instructed, download and extract the {agent} to your host. To do this
-quickly from the command line, run:
-+
---
-include::elastic-agent/install-elastic-agent.asciidoc[tag=install-elastic-agent]
-
-See the https://www.elastic.co/downloads/elastic-agent[download page] for other
-installation options.
---
-
-. Back in {fleet}, under **Choose an agent policy**, notice that the default
-policy is selected. The default policy includes a system integration for
-collecting logs and metrics from the host system. Use the default policy to get
-started quickly.
-
-. Under **Enroll and start the {agent}**, copy the install command if it's
-available for your platform, or make a note of the {kib} URL and enrollment
-token that {fleet} generated.
+. Under **Enroll in {fleet}**, follow the in-product installation steps.
 +
 [role="screenshot"]
-image::images/kibana-fleet-enroll.png[{fleet} showing agent enrollment page]
+image::images/add-agent.png[]
++
+See the https://www.elastic.co/downloads/elastic-agent[download page] for other
+installation options.
 
-. From the agent directory, run the appropriate command to install, enroll, and
-start an {agent}. Note that this command installs {agent} files in the locations
-described in <<installation-layout>>.
-+
---
-include::{tab-widgets}/install-widget.asciidoc[]
---
-+
-Because {agent} is installed as an auto-starting service, it will restart
-automatically if the system is rebooted.
+*Notes:*
 
-. In {fleet}, click **Continue** to go to the **Agents** tab. You should
-see the newly enrolled agent.
+* Use the default agent policy to get started quickly. This policy includes a
+system integration for collecting logs and metrics from the host system. You
+can change the policy later.
+
+* The `install` command installs the {agent} as a managed service,  enrolls it
+in the selected policy, and starts the service. For example:
 +
+[source, yaml]
+----
+./elastic-agent install -f --url=https://10.0.2.2:8220 \
+--enrollment-token=blJqaUdua0JqYXA0bmNscVVjUkE6ZGh4WWNRSHRRek9aSS1paEs2cHdFQQ==
+----
+
+* Because {agent} is installed as an auto-starting service, it will restart
+automatically if the system is rebooted. 
+
+* To see where files are installed, see <<installation-layout>>. 
+
+If installation is successful, you’ll see the agent on the *Agents*
+tab in *Fleet*. Notice that the Default policy is assigned to the
+agent.
+
 [role="screenshot"]
 image::images/kibana-fleet-agents.png[{fleet} showing enrolled agents]
 
@@ -122,6 +104,7 @@ TIP: If the status hangs at Enrolling, make sure the `elastic-agent` process
 is running.
 
 If you run into problems, see <<fleet-troubleshooting>>.
+
 
 [discrete]
 [[add-apm-integration]]
@@ -157,7 +140,8 @@ image::images/add-integration-apm.png[{fleet} Add APM integration page]
 Under **Host**, define the host and port where APM Server will listen.
 Inspect or change other settings.
 
-. When you're done, save and deploy the changes.
+. To see the updated policy, click the *Policies* tab, then click the
+*Default policy* link.
 +
 The newly added APM integration should appear under **Integrations** in the
 default policy, along with the default `system-1` integration.
