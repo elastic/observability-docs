@@ -1,0 +1,73 @@
+// tag::ess[]
+
+No extra setup is required. {ecloud} runs a hosted version of {fleet-server}.
+
+To confirm that {fleet-server} is available in your deployment:
+
+. Log in to {kib} and go to *Management > {fleet}*.
+. Click the *Agents* tab.
+. Under *Policies*, confirm that {fleet-server} is running and healthy. 
+
+{fleet-server} is the agent enrolled in the Elastic Agent on Cloud policy.
+This policy is managed by {ecloud}. You cannot modify it.
+
+Don't see the {fleet-server} agent? Make sure your deployment includes an
+APM & {fleet} node. This node is required to use {fleet-server}.
+
+[role="screenshot"]
+image::images/add-fleet-node-on-cloud.png[Edit page showing settings for APM & {fleet} node]
+
+// end::ess[]
+
+// tag::self-managed[]
+
+To deploy {fleet-server} on a self-managed cluster, install an {agent} and
+enroll it in the default {fleet-server} policy. The policy is created
+automatically when you run {fleet} for the first time.
+
+To add {fleet-server}:
+
+//TODO: Mention API for adding the token.
+
+. Log in to {kib} and go to *Management > {fleet}*. The first time you visit
+this page, it might take a minute to load.
+
+. Click *{fleet} settings*, and in the *{fleet-server} hosts* field, specify the
+URLs {agent}s will use to connect to {fleet-server}. For example,
+`https://192.0.2.1:8220`, where `192.0.2.1` is the host IP where you will
+install {fleet-server}.
+
+. In the *{es} hosts* field, specify the {es} URLs where {agent}s will send data.
+For example, `https://192.0.2.0:9200`.
+
+. Save and apply the settings.
+
+. Click the *Agents* tab and follow the in-product instructions to add a
+{fleet} server:
++
+[role="screenshot"]
+image::images/add-fleet-server.png[In-product instructions for adding a {fleet-server}]
+
+*Notes:*
+
+* Make sure you download an x64 architecture installation package.
+* After generating the service token, save it to a secure location. You might
+need to use this token later to scale your deployment by adding {fleet-server}s. 
+* The `install` command installs the {agent} as a managed service and enrolls it
+in a {fleet-server} policy:
++
+[source,yaml]
+----
+sudo ./elastic-agent install -f --fleet-server-es=http://localhost:9200 \
+--fleet-server-service-token=AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg6dzEta0JDTmZUZGlDTjlwRmNVTjNVQQ
+----
++
+If installation is successful, you'll see the {fleet-server} {agent} on the
+*Agents* tab in *{fleet}*. Notice that the Default Fleet Server Policy is
+assigned to the {agent}. This policy is created when you run {fleet} for the
+first time. 
++
+[role="screenshot"]
+image::images/agents-tab-fleet-server.png[Agent tab showing a healthy agent enrolled in the Default Fleet Server policy]
+
+// end::self-managed[]
