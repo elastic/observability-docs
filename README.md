@@ -24,6 +24,8 @@ In general, we only backport documentation changes to [live stack versions](http
 
 After your PR is merged, we recommend using the [backport tool](https://github.com/sqren/backport) to easily open backport PRs:
 `npx backport`. Alternatively, ping **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** and we'd be happy to handle the backport process for you.
+`backport`. Alternatively, ping **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** and we'd be happy to handle the backport process for you.
+
 
 ## Build
 
