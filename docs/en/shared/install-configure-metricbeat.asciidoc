@@ -1,0 +1,104 @@
+[discrete]
+= Install {metricbeat}
+
+Download and install {metricbeat}.
+
+include::{beats-repo-dir}/tab-widgets/install-widget-metricbeat.asciidoc[]
+
+[discrete]
+= Set up assets
+
+{metricbeat} comes with predefined assets for parsing, indexing, and visualizing your data.
+Run the following command to load these assets. It may take a few minutes.
+
+[source,bash]
+----
+./metricbeat setup -e -E 'cloud.id=YOUR_DEPLOYMENT_CLOUD_ID' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS' <1>
+----
+<1> Substitute your Cloud ID and an administrator's `username:password` in this command.
+To find your Cloud ID, click on your https://cloud.elastic.co/deployments[deployment].
+
+[IMPORTANT]
+====
+Setting up {metricbeat} is an admin-level task that requires extra privileges.
+As a best practice, {metricbeat-ref}/privileges-to-setup-beats.html[use an administrator role to set up],
+and a more restrictive role for event publishing (which you will do next).
+====
+
+[discrete]
+= Configure {metricbeat} output
+
+Next, you are going to configure {metricbeat} output to {ess}.
+
+. Use the {metricbeat} keystore to store {metricbeat-ref}/keystore.html[secure settings].
+Store the Cloud ID in the keystore.
++
+[source,bash]
+----
+./metricbeat keystore create
+echo -n "<Your Deployment Cloud ID>" | ./metricbeat keystore add CLOUD_ID --stdin
+----
+
+. To store metrics in {es} with minimal permissions, create an API key to send
+data from {metricbeat} to {ess}. Log into Kibana (you can do so from the Cloud
+Console without typing in any permissions) and select *Management* -> *Dev
+Tools*. Send the following request:
++
+[source,console]
+----
+POST /_security/api_key
+{
+  "name": "metricbeat-monitor",
+  "role_descriptors": {
+    "metricbeat_writer": {
+      "cluster": ["monitor", "read_ilm"],
+      "index": [
+        {
+          "names": ["metricbeat-*"],
+          "privileges": ["view_index_metadata", "create_doc"]
+        }
+      ]
+    }
+  }
+}
+----
+
+. The response contains an `api_key` and an `id` field, which can be stored in
+the {metricbeat} keystore in the following format: `id:api_key`.
++
+[source,bash]
+----
+echo -n "IhrJJHMB4JmIUAPLuM35:1GbfxhkMT8COBB4JWY3pvQ" | ./metricbeat keystore add ES_API_KEY --stdin
+----
++
+[NOTE]
+=====
+Make sure you specify the `-n` parameter; otherwise, you will have
+painful debugging sessions due to adding a newline at the end of
+your API key.
+=====
+
+. To see if both settings have been stored, run the following command:
++
+[source,bash]
+----
+./metricbeat keystore list
+----
+
+. To configure {metricbeat} to output to {ess}, edit the `metricbeat.yml`
+configuration file. Add the following lines to the end of the file.
++
+[source,yml]
+----
+cloud.id: ${CLOUD_ID}
+output.elasticsearch:
+  api_key: ${ES_API_KEY}
+----
+
+. Finally, test if the configuration is working. If it is not working,
+verify if you used the right credentials and add them again.
++
+[source,bash]
+----
+./metricbeat test output
+----
