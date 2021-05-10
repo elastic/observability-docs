@@ -82,129 +82,23 @@ in an accessible place to use later.
 [discrete]
 === Step 2: Install and configure {metricbeat}
 
-To monitor {gcp} using the {stack}, you need two main components:
-an Elastic deployment to store and analyze the data and an agent to collect
-and ship the data.
-
 [NOTE]
 ====
 This {tutorial} assumes the Elastic cluster is already running. Make sure you have your *cloud ID* and your *credentials* on hand.
 ====
+
+To monitor {gcp} using the {stack}, you need two main components:
+an Elastic deployment to store and analyze the data and an agent to collect
+and ship the data.
 
 Two agents can be used to monitor {gcp}: {metricbeat} is used to
 monitor metrics, and {filebeat} to monitor logs. You can run the agents on any
 machine. This {tutorial} uses a small {gcp} instance, e2-small (2 vCPUs,
 2 GB memory), with an Ubuntu distribution.
 
-[discrete]
-==== Install {metricbeat}
-
-After starting and connecting to the GCP instance, download and install
-{metricbeat}.
-
-include::{beats-repo-dir}/tab-widgets/install-widget-metricbeat.asciidoc[]
-
-[discrete]
-==== Set up assets
-
-{metricbeat} comes with predefined assets for parsing, indexing, and visualizing
-your data. Run the following command to load these assets.
-It may take a few minutes.
-
-[NOTE]
-=====
-Substitute the Cloud ID from your deployment in the following command. To find
-your Cloud ID, click on your https://cloud.elastic.co/deployments[deployment].
-=====
-[source,bash]
-----
-./metricbeat setup -e -E 'cloud.id=YOUR_DEPLOYMENT_CLOUD_ID' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
-----
-[IMPORTANT]
-====
-Setting up {metricbeat} is an admin-level task that requires extra privileges.
-As a best practice, {metricbeat-ref}/privileges-to-setup-beats.html[use an administrator role to set up],
-and a more restrictive role for event publishing (which you will do next).
-====
-
-[discrete]
-==== Configure {metricbeat} output
-
-Next, you are going to configure {metricbeat} output to {ess}.
-
-. Use the {metricbeat} keystore to store
-{metricbeat-ref}/keystore.html[secure settings].
-Store the Cloud ID in the keystore.
-+
-[source,bash]
-----
-./metricbeat keystore create
-echo -n "<Your Deployment Cloud ID>" | ./metricbeat keystore add CLOUD_ID --stdin
-----
-
-. To store metrics in {es} with minimal permissions, create an API key to send
-data from {metricbeat} to {ess}. Log into Kibana (you can do so from the Cloud
-Console without typing in any permissions) and select *Management* -> *Dev
-Tools*. Send the following request:
-+
-[source,console]
-----
-POST /_security/api_key
-{
-  "name": "metricbeat-monitor-gcp",
-  "role_descriptors": {
-    "metricbeat_writer": {
-      "cluster": ["monitor", "read_ilm"],
-      "index": [
-        {
-          "names": ["metricbeat-*"],
-          "privileges": ["view_index_metadata", "create_doc"]
-        }
-      ]
-    }
-  }
-}
-----
-
-. The response contains an `api_key` and an `id` field, which can be stored in
-the {metricbeat} keystore in the following format: `id:api_key`.
-+
-[source,bash]
-----
-echo -n "IhrJJHMB4JmIUAPLuM35:1GbfxhkMT8COBB4JWY3pvQ" | ./metricbeat keystore add ES_API_KEY --stdin
-----
-+
-[NOTE]
-=====
-Make sure you specify the `-n` parameter; otherwise, you will have
-painful debugging sessions due to adding a newline at the end of
-your API key.
-=====
-
-. To see if both settings have been stored, run the following command:
-+
-[source,bash]
-----
-./metricbeat keystore list
-----
-
-. To configure {metricbeat} to output to {ess}, edit the `metricbeat.yml`
-configuration file. Add the following lines to the end of the file.
-+
-[source,yml]
-----
-cloud.id: ${CLOUD_ID}
-output.elasticsearch:
-  api_key: ${ES_API_KEY}
-----
-
-. Finally, test if the configuration is working. If it is not working,
-verify if you used the right credentials and add them again.
-+
-[source,bash]
-----
-./metricbeat test output
-----
+:leveloffset: +3
+include::{shared}/install-configure-metricbeat.asciidoc[]
+:leveloffset: -3
 
 Now that the output is working, you are going to set up the input (GCP).
 
@@ -286,116 +180,11 @@ collect Google Cloud logs.
 [discrete]
 ==== Install {filebeat}
 
-On a new terminal window connected to the GCP instance, download and install
-{filebeat}.
+On a new terminal window, connected to the GCP instance, complete the following steps.
 
-include::{beats-repo-dir}/tab-widgets/install-widget-filebeat.asciidoc[]
-
-[discrete]
-==== Set up assets
-
-Similar to {metricbeat}, {filebeat} comes with predefined assets for parsing,
-indexing, and visualizing your data.
-Run the following command to load these assets. It may take a few minutes.
-
-[source,bash]
-----
-./filebeat setup -e -E 'cloud.id=YOUR_DEPLOYMENT_CLOUD_ID' -E 'cloud.auth=elastic:YOUR_SUPER_SECRET_PASS'
-----
-
-[IMPORTANT]
-====
-Setting up {filebeat} is an admin-level task that requires extra privileges.
-As a best practice, {filebeat-ref}/privileges-to-setup-beats.html[use an administrator role to set up]
-and a more restrictive role for event publishing (which you will do next).
-====
-
-[discrete]
-==== Configure {filebeat} output
-
-Next, you are going to configure {filebeat} output to {ess}.
-
-. Use the {filebeat} keystore to store {filebeat-ref}/keystore.html[secure
-settings]. Store the Cloud ID in the keystore.
-+
-[source,bash]
-----
-./filebeat keystore create
-echo -n "<Your Deployment Cloud ID>" | ./filebeat keystore add CLOUD_ID --stdin
-----
-
-. To store logs in {es} with minimal permissions, create an API key to send
-data from {filebeat} to {ess}. Log into {kib} (you can do so from the Cloud
-Console without typing in any permissions) and select *Management* -> *Dev
-Tools*. Send the following request:
-+
-[source,console]
-----
-POST /_security/api_key
-{
-  "name": "filebeat-monitor-gcp",
-  "role_descriptors": {
-    "filebeat_writer": {
-      "cluster": [
-        "monitor",
-        "read_ilm",
-        "cluster:admin/ingest/pipeline/get", <1>
-        "cluster:admin/ingest/pipeline/put" <1>
-      ],
-      "index": [
-        {
-          "names": ["filebeat-*"],
-          "privileges": ["view_index_metadata", "create_doc"]
-        }
-      ]
-    }
-  }
-}
-----
-+
-<1> {filebeat} needs extra cluster permissions to publish logs, which differs
-from the {metricbeat} configuration used previously. You can find more
-details {filebeat-ref}/feature-roles.html[here].
-
-. The response contains an `api_key` and an `id` field, which can be stored in
-the {filebeat} keystore in the following format: `id:api_key`.
-+
-[source,bash]
-----
-echo -n "IhrJJHMB4JmIUAPLuM35:1GbfxhkMT8COBB4JWY3pvQ" | ./filebeat keystore add ES_API_KEY --stdin
-----
-+
-[NOTE]
-=====
-Make sure you specify the `-n` parameter; otherwise, you will have
-painful debugging sessions due to adding a newline at the end of
-your API key.
-=====
-
-. To see if both settings have been stored, run the following command:
-+
-[source,bash]
-----
-./filebeat keystore list
-----
-
-. To configure {filebeat} to output to {ess}, edit the `filebeat.yml`
-configuration file. Add the following lines to the end of the file.
-+
-[source,yml]
-----
-cloud.id: ${CLOUD_ID}
-output.elasticsearch:
-  api_key: ${ES_API_KEY}
-----
-
-. Finally, test if the configuration is working. If it is not working,
-verify that you used the right credentials and, if necessary, add them again.
-+
-[source,bash]
-----
-./filebeat test output
-----
+:leveloffset: +3
+include::{shared}/install-configure-filebeat.asciidoc[]
+:leveloffset: -3
 
 Now that the output is working, you are going to set up the input ({gcp}).
 
