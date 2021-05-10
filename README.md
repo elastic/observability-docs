@@ -27,7 +27,10 @@ After your PR is merged, we recommend using the [backport tool](https://github.c
 
 ## Build
 
-To build the docs, the `elastic/docs` repository has to be checked out. To build the observabilty docs and open it in the browser, run the following command:
+To build the docs:
+
+. Check out the `elastic/docs` repository, along with any repositories that contain source files.
+. Run the `build_docs` script, passing in the path to the `index.asciidoc` and resource paths to other repos that contain source files. For example, to build the Observability Guide and open it in the browser, run:
 
 ```
 ../docs/build_docs --doc ./docs/en/observability/index.asciidoc --chunk 1 --resource ../beats/libbeat/docs --resource ../apm-server/docs/guide --open
