@@ -52,11 +52,11 @@ Putting it all together, a basic, two step journey might look something like thi
 
 [source,js]
 ----
-journey("Journey name", async ({page}) => {
+journey("Journey name", ({ page }) => {
     step("Step 1 name", async () => {
       // Do something here
     })
-    step("Step 2 name", async () => {
+    step("Step 2 name", () => {
       // Do something else here
     })
 });
@@ -119,7 +119,7 @@ A complete example of a basic synthetic test looks like this:
 import { journey, step } from '@elastic/synthetics';
 import { deepStrictEqual } from 'assert';
 
-journey("Ensure placeholder is correct", async ({page}) => {
+journey("Ensure placeholder is correct", ({page}) => {
     step("Go to elastic.co", async () => {
       await page.goto('https://www.elastic.co');
     })
@@ -261,13 +261,8 @@ npm install
 ----
 
 You are now inside the a synthetics test-suite, which is also an NPM project.
-You can now run the provided tests; all files matching the filename `*.journey.*`
+You can now run the provided tests; Note that, by default, only files matching the filename `*.journey.(ts|js)*`
 will be run.
-
-Please note, you must run the following commands from within the `examples/todos` folder.
-The `todos` folder has its own `package.json`, which makes it its own NPM project. If you
-run these commands outside the `todos` folder you can run into confusing situations with
-NPM's module resolution that can cause this command to not work.
 
 [source,sh]
 ----
