@@ -1,0 +1,180 @@
+[[agent-environment-variables]]
+= {agent} environment variables
+
+++++
+<titleabbrev>Environment variables</titleabbrev>
+++++
+
+// Use the `TCP` input to read events over TCP.
+
+// Example configuration:
+
+// [source,yaml]
+// ----
+// inputs:
+//   - type: tcp
+//     max_message_size: 10MiB
+//     host: "localhost:9000"
+// ----
+
+// The `tcp` input supports the following settings, grouped by category.
+// Many of these settings have sensible defaults that allow you to run {agent}
+// with minimal configuration.
+
+// <<input-tcp-tcp-settings>>::
+// Settings for reading over TCP.
+
+// <<input-tcp-data-parsing-settings>>::
+// Settings used to parse, filter, and transform data.
+
+// [[input-tcp-tcp-settings]]
+// === TCP settings
+
+// Settings for reading over TCP.
+
+// table was here
+
+
+
+
+
+
+// =============================================================================
+
+= Container environment variables
+
+Environment variables on this page are grouped by action.
+In general, there are three types of actions you'll want to take:
+
+
+* Configure {kib}: Prepare the {fleet} plugin in {kib}
+* Configure {fleet-server}: Bootstrap {fleet-server} on an {agent}
+* Configure {agent} and {fleet}: Enroll an {agent}
+
+
+
+
+In certain use cases, blah blah blah convenience:
+
+
+[discrete]
+[[env-convenience-vars]]
+== Convenience variables
+
+To limit the number of environment variables that need to be set for all actions,
+{agent} offers the following convenience variables.
+These can be used across all action types
+The following environment variables are provided as a convenience to prevent a large number of environment variable to
+be used when the same credentials will be used across all the possible actions above.
+
+  ELASTICSEARCH_HOST - elasticsearch host [http://elasticsearch:9200]
+  ELASTICSEARCH_USERNAME - elasticsearch username [elastic]
+  ELASTICSEARCH_PASSWORD - elasticsearch password [changeme]
+  ELASTICSEARCH_CA - path to certificate authority to use with communicate with elasticsearch
+  KIBANA_HOST - kibana host [http://kibana:5601]
+  KIBANA_USERNAME - kibana username [$ELASTICSEARCH_USERNAME]
+  KIBANA_PASSWORD - kibana password [$ELASTICSEARCH_PASSWORD]
+  KIBANA_CA - path to certificate authority to use with communicate with Kibana [$ELASTICSEARCH_CA]
+
+
+[discrete]
+[[env-prepare-kibana-for-fleet]]
+== Prepare {kib} for {fleet}
+
+// forces a unique ID so that settings can be included multiple times on the same page
+:type: fleet-kib
+
+Settings used to prepare the {fleet} plugin in {kib}.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::shared-env.asciidoc[tag=kibana-fleet-setup]
+
+include::shared-env.asciidoc[tag=kibana-fleet-host]
+
+include::shared-env.asciidoc[tag=kibana-fleet-username]
+
+include::shared-env.asciidoc[tag=kibana-fleet-password]
+
+include::shared-env.asciidoc[tag=kibana-fleet-ca]
+
+|===
+
+[discrete]
+[[env-bootstrap-fleet-server]]
+== Bootstrap {fleet-server}
+
+// forces a unique ID so that settings can be included multiple times on the same page
+:type: bootstrap-fleet
+
+Settings used to bootstrap {fleet-server} on this {agent}.
+At least one {fleet-server} is required in a deployment.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::shared-env.asciidoc[tag=fleet-server-enable]
+
+include::shared-env.asciidoc[tag=fleet-server-elasticsearch-host]
+
+include::shared-env.asciidoc[tag=fleet-server-elasticsearch-username]
+
+include::shared-env.asciidoc[tag=fleet-server-elasticsearch-password]
+
+include::shared-env.asciidoc[tag=fleet-server-elasticsearch-ca]
+
+include::shared-env.asciidoc[tag=fleet-server-policy-name]
+
+include::shared-env.asciidoc[tag=fleet-server-policy-id]
+
+include::shared-env.asciidoc[tag=fleet-server-host]
+
+include::shared-env.asciidoc[tag=fleet-server-port]
+
+include::shared-env.asciidoc[tag=fleet-server-cert]
+
+include::shared-env.asciidoc[tag=fleet-server-cert-key]
+
+include::shared-env.asciidoc[tag=fleet-server-insecure-http]
+
+|===
+
+[discrete]
+[[env-enroll-agent]]
+== Enroll {agent}
+
+// forces a unique ID so that settings can be included multiple times on the same page
+:type: enroll
+
+Settings used to enroll an {agent} into a {fleet-server}.
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::shared-env.asciidoc[tag=fleet-enroll]
+
+include::shared-env.asciidoc[tag=fleet-url]
+
+include::shared-env.asciidoc[tag=fleet-enrollment-token]
+
+include::shared-env.asciidoc[tag=fleet-token-name]
+
+include::shared-env.asciidoc[tag=fleet-token-policy-name]
+
+include::shared-env.asciidoc[tag=fleet-ca]
+
+include::shared-env.asciidoc[tag=fleet-insecure]
+
+include::shared-env.asciidoc[tag=kibana-fleet-host]
+
+include::shared-env.asciidoc[tag=kibana-fleet-username]
+
+include::shared-env.asciidoc[tag=kibana-fleet-password]
+
+include::shared-env.asciidoc[tag=kibana-fleet-ca]
+
+|===
