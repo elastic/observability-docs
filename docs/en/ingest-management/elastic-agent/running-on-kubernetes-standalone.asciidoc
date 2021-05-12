@@ -1,9 +1,11 @@
-[[running-on-kubernetes]]
+[[running-on-kubernetes-standalone]]
 [role="xpack"]
-=== Run {agent} on Kubernetes
+= Run {agent} standalone on Kubernetes
 
 Use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
 retrieve cluster metrics.
+
+TIP: Running {ecloud} on Kubernetes? See {eck-ref}/k8s-elastic-agent.html[Run {elastic-agent} on ECK].
 
 ifeval::["{release-state}"=="unreleased"]
 
@@ -12,8 +14,8 @@ A Docker image is not currently available for this version, as version {version}
 endif::[]
 
 
-[float]
-==== Kubernetes deploy manifests
+[discrete]
+== Kubernetes deploy manifests
 
 Deploy {agent} in two different ways at the same time:
 
@@ -44,8 +46,8 @@ This manifest includes the Kubernetes integration to collect Kubernetes metrics,
 System integration to collect system level metrics and logs from nodes, and
 the Pod's log collection using <<kubernetes-provider,dynamic inputs and kubernetes provider>>.
 
-[float]
-==== Settings
+[discrete]
+== Settings
 
 Set the Elasticsearch settings before deploying the manifest:
 
@@ -59,8 +61,8 @@ Set the Elasticsearch settings before deploying the manifest:
   value: "https://somesuperhostiduuid.europe-west1.gcp.cloud.es.io:443"
 ------------------------------------------------
 
-[float]
-===== Running {agent} on master nodes
+[discrete]
+=== Running {agent} on master nodes
 
 Kubernetes master nodes use https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints]
 to limit the workloads that can run on them. The manifest for standalone {agent} defines
@@ -77,8 +79,8 @@ spec:
 ------------------------------------------------
 
 
-[float]
-==== Deploy
+[discrete]
+== Deploy
 To deploy to Kubernetes, run:
 
 ["source", "sh", subs="attributes"]
@@ -98,8 +100,8 @@ elastic-agent-fj2z9             1/1     Running   0          81m
 elastic-agent-hs4pb             1/1     Running   0          81m
 ------------------------------------------------
 
-[float]
-==== Autodiscover targeted Pods
+[discrete]
+== Autodiscover targeted Pods
 
 You can define autodiscover conditions to allow {agent} to automatically
 identify Pods and start collecting from them using predefined integrations. For example, if a
