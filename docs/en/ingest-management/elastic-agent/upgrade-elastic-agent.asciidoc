@@ -1,8 +1,63 @@
 [[upgrade-elastic-agent]]
 [role="xpack"]
-= Upgrade {agent}
+= Upgrade {stack} and {agent}
 
 experimental[]
+
+[discrete]
+[[upgrade-fleet]]
+== Upgrade to {fleet-server}
+
+As part of the 7.13 release, we introduce <<fleet-server,{fleet-server}>>,
+a mechanism to connect your {agent}s to {fleet}. 
+
+[WARNING]
+====
+When you upgrade to 7.13 from 7.12 or lower, please note the following:
+
+* All of your existing {agent}s will be automatically unenrolled from {fleet} and will stop sending data.
+* Before you can add your {agent}s again to {fleet}, you must have {fleet-server} running.
+* All of your policies will be migrated.
+====
+
+[discrete]
+[[upgrade-your-stack]]
+=== Step 1: Upgrade {stack}
+
+Here’s what you need for upgrading your deployment type:
+
+--
+include::{tab-widgets}/upgrade-stack-widget.asciidoc[]
+--
+
+[discrete]
+[[upgrade-fleet-server]]
+=== Step 2: Upgrade to {fleet-server}
+
+Here’s what you need to set up {fleet-server} for each deployment type:
+
+--
+include::{tab-widgets}/upgrade-fleet-widget.asciidoc[]
+--
+
+
+[discrete]
+[[reenroll-agent]]
+=== Step 3: Install and enroll {agent}s
+
+IMPORTANT: Before installing and enrolling your {agent}s, make sure to uninstall
+your previous {agent}s. See <<uninstall-elastic-agent>>.
+
+{fleet-server} and {agent} running on {fleet-server} all run on the same version.
+Any {agent} enrolling in {fleet-server} must match this version.
+
+--
+include::{observability-docs-root}/docs/en/ingest-management/getting-started.asciidoc[tag=agent-enroll]
+--
+
+[discrete]
+[[upgrade-agent]]
+== Upgrade {agent}
 
 Starting with version 7.10, {fleet} provides upgrade capabilities. You can view
 and select agents that are out of date, and trigger selected agents to download,
@@ -56,3 +111,6 @@ sudo elastic-agent upgrade 7.10.1
 
 For more command-line options, see the help for the
 <<elastic-agent-upgrade-command,`upgrade`>> command.
+
+// Add Javascript and CSS for tabbed panels
+include::{tab-widgets}/code.asciidoc[]
