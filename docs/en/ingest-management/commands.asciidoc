@@ -87,7 +87,7 @@ To enroll the {agent} in {fleet} and set up {fleet-server}:
 ----
 elastic-agent enroll [--ca-sha256 <string>]
                      [--certificate-authorities <string>]
-                     [--fleet-server-cert <string>]
+                     [--fleet-server-cert <string>] <1>
                      [--fleet-server-cert-key <string>]
                      [--fleet-server-es <string>]
                      [--fleet-server-es-ca <string>]
@@ -101,6 +101,12 @@ elastic-agent enroll [--ca-sha256 <string>]
                      [--insecure ]
                      [global-flags]
 ----
+<1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
+self-signed certificate with the hostname of the machine.
+
+//QUESTION: Does this mean that the agent enrolling in this Fleet Server needs
+//to pass the insecure flag? Does accepting the auto-generated flags make the
+//connection less secure?
 
 [discrete]
 === Options
@@ -141,7 +147,10 @@ Path to certificate authority to use to communicate with {es}.
 {fleet-server} HTTP binding host (overrides the policy).
 
 `--fleet-server-insecure-http`::
-Expose {fleet-server} over HTTP (not recommended; insecure).
+Expose {fleet-server} over HTTP. This option is not recommended because it's
+insecure. It's useful during development and testing, but should not be used in
+production. When using this option, you should bind {fleet-server} to the
+local host (this is the default).
 
 `--fleet-server-policy <string>`::
 Start a {fleet-server} process when {agent} is started, and use the
@@ -168,6 +177,9 @@ Allow insecure connections to {fleet-server}. When this flag is specified, API
 keys are sent in clear text. We strongly recommend that you use a secure
 connection.
 
+//QUESTION: Is this true? Are the keys really sent in clear text, or does this
+//have to do with accepting auto-generated certificates?
+
 `--kibana-url <string>`::
 deprecated:[7.13.0] This deprecated setting has been replaced by `--url`.
 
@@ -184,15 +196,24 @@ Fleet Server URL to use to enroll the {agent} into {fleet}.
 [discrete]
 === Examples
 
+Enroll the {agent} in {fleet}:
+
 [source,shell]
 ----
 elastic-agent enroll -f \
   --url=https://cedd4e0e21e240b4s2bbbebdf1d6d52f.fleet.eu-west-1.aws.cld.elstc.co:443 \
   --enrollment-token=NEFmVllaa0JLRXhKebVKVTR5TTI6N2JaVlJpSGpScmV0ZUVnZVlRUExFQQ==
+----
 
+Enroll the {agent} in {fleet} and set up {fleet-server}:
+
+[source,shell]
+----
 elastic-agent enroll -f --fleet-server-es=http://myhost:9200 \
   --fleet-server-service-token=AbEAAdesYXN1abMvZmxlZXQtc2VldmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg7dzEta0JDTmZUcGlDTjlwRmNVTjNVQQ
 ----
+
+//TODO: Add examples that show how to use custom certificates.
 
 ++++
 <hr>
@@ -299,8 +320,8 @@ complete. On Linux (tar package), this command requires a system and service
 manager like systemd.
 
 IMPORTANT: If you installed {agent} from a DEB or RPM package, use the
-`enroll` command instead of `install`. The DEB and RPM packages include a
-service unit for Linux systems with systemd.
+<<elastic-agent-enroll-command,`enroll` command>> instead of `install`. The DEB
+and RPM packages include a service unit for Linux systems with systemd.
 
 You must run this command as the root user (or Administrator on Windows)
 to write files to the correct locations. This command overwrites the
@@ -362,12 +383,21 @@ include::commands.asciidoc[tag=enroll-install-options]
 [discrete]
 === Examples
 
+Install the {agent} as a service, enroll it in {fleet}, and start the
+`elastic-agent` service:
+
 [source,shell]
 ----
 elastic-agent install -f \
   --url=https://cedd4e0e21e240b4s2bbbebdf1d6d52f.fleet.eu-west-1.aws.cld.elstc.co:443 \
   --enrollment-token=NEFmVllaa0JLRXhKebVKVTR5TTI6N2JaVlJpSGpScmV0ZUVnZVlRUExFQQ==
+----
+  
+Install the {agent} as a service, enroll it in {fleet}, and start
+a `fleet-server` process alongside the `elastic-agent` service:
 
+[source,shell]
+----
 elastic-agent install -f --fleet-server-es=http://myhost:9200 \
   --fleet-server-service-token=AbEAAdesYXN1abMvZmxlZXQtc2VldmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg7dzEta0JDTmZUcGlDTjlwRmNVTjNVQQ
 ----
