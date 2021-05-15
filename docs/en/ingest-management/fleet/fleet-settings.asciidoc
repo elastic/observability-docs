@@ -1,0 +1,94 @@
+[[fleet-settings]]
+= {fleet} settings
+
+beta[]
+
+Configure {fleet} settings in {kib} to apply global settings to all {agent}s
+enrolled in {fleet}:
+
+. In {kib}, open the main menu, then click *Management > {fleet}*.
+
+. Click *{fleet} settings*
++
+--
+[cols="2*<a"]
+|===
+|
+[id="fleet-server-hosts-setting"]
+*{fleet-server} hosts*
+
+| The URLs your {agent}s will use to connect to a {fleet-server}. This setting
+is required. On self-managed clusters, you must specify one or more URLs. On
+{ecloud}, this field is populated automatically.
+
+//QUESTION: What is valid here? URL implies something like http://localhost:8220.
+//Is the scheme and port required or does the setting use defaults if their
+//not specified?
+
+//QUESTION: What do we need to say about IPv6 addresses?
+
+By default, {fleet-server} is exposed on the following ports:
+
+`8220`::
+Default {fleet-server} port for self-managed clusters
+
+`443`::
+Default {fleet-server} port for {ecloud}
+
+//QUESTION: Is this true? Is 443 always the default on cloud?
+
+Specify multiple URLs to scale out your deployment and provide automatic
+failover.
+
+If multiple URLs exist, {fleet} shows the first provided URL for enrollment
+purposes. Enrolled {agent}s will connect to the URLs in round robin order until
+they connect successfully. 
+
+//QUESTION: I'm assuming users can use any Fleet Server for enrollment though?
+
+When a {fleet-server} is added or removed from the list, all agent policies
+are updated automatically.
+
+*Examples:*
+
+* `https://192.0.2.1:8220`
+* `https://abae718c1276457893b1096929e0f557.fleet.eu-west-1.aws.qa.cld.elstc.co:443`
+* `https://[2001:db8::1]:8220`
+
+// =============================================================================
+
+|
+[id="es-hosts-setting"]
+*{es} hosts*
+
+| The {es} URLs where {agent}s will send data. By default, {es} is exposed
+on the following ports:
+
+`9200`::
+Default {es} port for self-managed clusters
+
+`443`::
+Default {es} port for {ecloud}
+
+*Examples:*
+
+* `https://192.0.2.0:9200`
+* `https://1d7a52f5eb344de18ea04411fe09e564.fleet.eu-west-1.aws.qa.cld.elstc.co:443`
+* `https://[2001:db8::1]:9200`
+
+
+// =============================================================================
+
+|
+[id="es-output-configuration-setting"]
+*{es} output configuration (YAML)*
+
+| YAML settings that will be added to the {es} output section
+of each policy. This setting allows you to specify global output settings for
+all {agent}s enrolled in {fleet}. Make sure you specify valid YAML. The UI does
+not currently provide validation.
+
+|===
+--
+
+. Save and apply the settings.
