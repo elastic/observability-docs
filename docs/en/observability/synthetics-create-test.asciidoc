@@ -140,13 +140,15 @@ journey("Ensure placeholder is correct", ({page}) => {
 
 As explained in the <<synthetics-quickstart,quickstart>>, there are two ways to run synthetic tests:
 
-* Run as an inline journey -- copy/paste into `heartbeat.yml`
+* Run as an inline journey -- embed into `heartbeat.yml`
 * Run a test suite -- import your tests into Heartbeat
 
 Which option is right for you? That depends.
 If you want to invoke a single journey with few steps, an inline journey might be the easiest workflow --
-you only need paste your tests into your `heartbeat.yml` file.
-if you have a complex test suite, or your tests need to live with your application code,
+you only need to write your tests into your `heartbeat.yml` file.
+
+Note that you can only paste the steps into an inline script, so these cannot be dependent on any packages that you may want to `import`. If you do have any dependencies, these would need to be defined with an `import` outside of the `journey` object and run via a test suite.
+If you have a complex test suite, or your tests need to live with your application code,
 you're likely better off setting up a synthetic test suite.
 
 [discrete]
@@ -154,7 +156,7 @@ you're likely better off setting up a synthetic test suite.
 === Run an inline journey
 
 The easiest way to run a synthetic test is by creating an inline journey.
-The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic.
+The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic. Remember you cannot `import` any dependencies using inline scripts.
 
 Copy and paste your test steps into `heartbeat.yml`.
 Heartbeat spawns a separate Node.js process, schedules your tests, and runs them on a chromium browser.
