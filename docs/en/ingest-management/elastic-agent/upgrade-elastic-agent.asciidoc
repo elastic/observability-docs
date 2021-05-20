@@ -4,6 +4,10 @@
 
 experimental[]
 
+[discrete]
+[[upgrade-agent]]
+== Upgrade {agent}
+
 Starting with version 7.10, {fleet} provides upgrade capabilities. You can view
 and select agents that are out of date, and trigger selected agents to download,
 install, and run the new version.
@@ -56,3 +60,64 @@ sudo elastic-agent upgrade 7.10.1
 
 For more command-line options, see the help for the
 <<elastic-agent-upgrade-command,`upgrade`>> command.
+
+[discrete]
+[[upgrade-7.12-lower]]
+== Upgrade from 7.12 or lower
+
+As part of the 7.13 release, we introduce <<fleet-server,{fleet-server}>>,
+a mechanism to connect your {agent}s to {fleet}. 
+
+[WARNING]
+====
+When you upgrade to 7.13 from 7.12 or lower, please note the following:
+
+* All of your existing {agent}s will be automatically unenrolled from {fleet} and will stop sending data.
+* Before you can add your {agent}s again to {fleet}, you must have {fleet-server} running.
+* All of your policies will be migrated.
+====
+
+[discrete]
+[[fleet-prereqs-upgrade]]
+=== Prerequisite
+
+You must upgrade your deployment to 7.13. If your deployment is running in our {ess-product}[hosted {ess}]
+on {ecloud}, see {cloud}/ec-upgrade-deployment.html[Upgrade versions]. If you are running a self-managed
+deployment, see {stack-ref}/upgrading-elastic-stack.html[Upgrading the {stack}].
+
+[discrete]
+[[set-up-fleet-server]]
+=== Step 1: Set up {fleet-server}
+
+Here’s what you need to set up {fleet-server} for each deployment type:
+
+--
+include::{tab-widgets}/upgrade-fleet-widget.asciidoc[]
+--
+
+[discrete]
+[[reenroll-agent]]
+=== Step 2: Install and enroll {agent} on more hosts
+
+[IMPORTANT]
+====
+When you upgrade to 7.13 from 7.12 or lower, you may see the following error message in the {es} logs:
+
+`Authentication using apikey failed - api key has been invalidated`
+
+Before installing and enrolling your {agent}s, make sure to uninstall your previous {agent}s.
+See <<uninstall-elastic-agent>>.
+====
+
+From the perspective of a host, {fleet-server} will be running with the version of the installed
+{agent} that started it. Any other {agent}s enrolling with {fleet-server} must have an equal or
+lower version than that of the {fleet-server}.
+
+NOTE: Starting from version 7.13.0 {fleet-server} is required.
+
+--
+include::{observability-docs-root}/docs/en/ingest-management/getting-started.asciidoc[tag=agent-enroll]
+--
+
+// Add Javascript and CSS for tabbed panels
+include::{tab-widgets}/code.asciidoc[]
