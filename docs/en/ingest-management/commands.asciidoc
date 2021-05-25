@@ -18,7 +18,7 @@ doing common tasks:
 * <<elastic-agent-uninstall-command,uninstall>>
 * <<elastic-agent-upgrade-command,upgrade>>
 * <<elastic-agent-version-command,version>>
-* <<elastic-agent-watch-command,watch>>
+//* <<elastic-agent-watch-command,watch>>
 
 NOTE: You might need to log in as a root user (or Administrator on Windows) to
 run these commands.
@@ -59,16 +59,6 @@ agent from a terminal.
 [discrete]
 === Synopsis
 
-//QUESTION: Which flags are relevant when running a Fleet
-//Server agent vs a regular agent? Which flags are required? (We should list
-//required flags first and they shouldn't be wrapped in square brackets). I'm
-//making some guesses here, but I'm not sure about the Ca and certificate
-//settings.
-
-//Also, should we include deprecated flags (like kibana-url) in the synopsis? I think
-//probably not.
-
-
 To enroll the {agent} in {fleet}:
 
 [source,shell]
@@ -104,11 +94,9 @@ elastic-agent enroll --fleet-server-es <string>
                      [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
-self-signed certificate with the hostname of the machine.
-
-//QUESTION: Does this mean that the agent enrolling in this Fleet Server needs
-//to pass the insecure flag? Does accepting the auto-generated flags make the
-//connection less secure?
+self-signed certificate with the hostname of the machine. Remote {agent}s
+enrolling into a {fleet-server} with self-signed certificates must specify
+the `insecure` flag.
 
 [discrete]
 === Options
@@ -137,9 +125,6 @@ Private key to use for exposed {fleet-server} HTTPS endpoint.
 Start a {fleet-server} process when {agent} is started, and connect to the
 specified {es} URL. 
 
-//QUESTION: Is this correct? ^^ The description in --help needs work (I've
-//opened an issue to get it fixed).
-
 `--fleet-server-es-ca <string>`::
 Path to certificate authority to use to communicate with {es}.
 
@@ -153,11 +138,8 @@ production. When using this option, you should bind {fleet-server} to the
 local host (this is the default).
 
 `--fleet-server-policy <string>`::
-Start a {fleet-server} process when {agent} is started, and use the
-specified policy.
-
-//QUESTION: Is this correct? The description in --help says, "Start and run a
-//Fleet Server on this specific policy."
+Used when starting a {fleet-server} process to allow for options configured the
+specified policy. 
 
 `--fleet-server-port <uint16>`::
 {fleet-server} HTTP binding port (overrides the policy).
@@ -173,18 +155,16 @@ This flag is helpful when using automation software or scripted deployments.
 Show help for the `enroll` command.
 
 `--insecure`::
-Allow insecure connections to {fleet-server}. When this flag is specified, API
-keys are sent in clear text. We strongly recommend that you use a secure
-connection.
-
-//QUESTION: Is this true? Are the keys really sent in clear text, or does this
-//have to do with accepting auto-generated certificates?
-
-`--kibana-url <string>`::
-deprecated:[7.13.0] This deprecated setting has been replaced by `--url`.
-
-//QUESTION: In the past, we've left out --staging to avoid confusion. Should I
-//add it here?
+Allow insecure connections to {fleet-server}. This setting is required in the
+following situations:
++
+--
+* When connecting to an HTTP server. The API keys are sent in clear text.
+* When connecting to an HTTPs server and the certificate chain cannot be
+verified. The content is encrypted, but the certificate is not verified.
+--
++
+We strongly recommend that you use a secure connection.
 
 `--url <string>`::
 Fleet Server URL to use to enroll the {agent} into {fleet}.
@@ -205,15 +185,37 @@ elastic-agent enroll -f \
   --enrollment-token=NEFmVllaa0JLRXhKebVKVTR5TTI6N2JaVlJpSGpScmV0ZUVnZVlRUExFQQ==
 ----
 
-Enroll the {agent} in {fleet} and set up {fleet-server}:
+Enroll the {agent} in {fleet} and start {fleet-server}:
 
 [source,shell]
 ----
-elastic-agent enroll -f --fleet-server-es=http://myhost:9200 \
+elastic-agent enroll -f --fleet-server-es=http://elasticsearch:9200 \
   --fleet-server-service-token=AbEAAdesYXN1abMvZmxlZXQtc2VldmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg7dzEta0JDTmZUcGlDTjlwRmNVTjNVQQ
 ----
 
-//TODO: Add examples that show how to use custom certificates.
+Start {agent} with {fleet-server} (running on a custom CA). This example
+assumes you've generated the certificates with the following names:
+
+* `ca.crt`: Root CA certificate
+* `fleet-server.crt`: {fleet-server} certificate
+* `fleet-server.key`: {fleet-server} private key
+
+[source,shell]
+----
+elastic-agent enroll -f --fleet-server-es=https://elasticsearch:9200 \
+  --fleet-server-es-ca=ca.crt --fleet-server-service-token=AbEAAdesYXN1abMvZmxlZXQtc2VldmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg7dzEta0JDTmZUcGlDTjlwRmNVTjNVQQ \
+  --fleet-server-cert fleet-server.crt --fleet-server-cert-key fleet-server.key
+----
+
+Then enroll another {agent} into the {fleet-server} started in the previous
+example:
+
+[source,shell]
+----
+elastic-agent enroll -f --url https://other-host:8220 \
+  --enrollment-token NEFmVllaa0JLRXhKebVKVTR5TTI6N2JaVlJpSGpScmV0ZUVnZVlRUExFQQ==
+  --certificate-authorities root.ca
+----
 
 ++++
 <hr>
@@ -330,11 +332,6 @@ to write files to the correct locations. This command overwrites the
 [discrete]
 === Synopsis
 
-//QUESTION: Same question as before: Which of these settings are still relevant
-//when running Elastic Agent vs Elastic Agent + Fleet. Which options are
-//required?
-
-
 To install the {agent} as a service, enroll it in {fleet}, and start the
 `elastic-agent` service:
 
@@ -398,9 +395,34 @@ a `fleet-server` process alongside the `elastic-agent` service:
 
 [source,shell]
 ----
-elastic-agent install -f --fleet-server-es=http://myhost:9200 \
+elastic-agent install -f --fleet-server-es=http://elasticsearch:9200 \
   --fleet-server-service-token=AbEAAdesYXN1abMvZmxlZXQtc2VldmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg7dzEta0JDTmZUcGlDTjlwRmNVTjNVQQ
 ----
+
+Start {agent} with {fleet-server} (running on a custom CA). This example
+assumes you've generated the certificates with the following names:
+
+* `ca.crt`: Root CA certificate
+* `fleet-server.crt`: {fleet-server} certificate
+* `fleet-server.key`: {fleet-server} private key
+
+[source,shell]
+----
+elastic-agent install -f --fleet-server-es=https://elasticsearch:9200 \
+  --fleet-server-es-ca=ca.crt --fleet-server-service-token=AbEAAdesYXN1abMvZmxlZXQtc2VldmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg7dzEta0JDTmZUcGlDTjlwRmNVTjNVQQ \
+  --fleet-server-cert fleet-server.crt --fleet-server-cert-key fleet-server.key
+----
+
+Then install another {agent} and enroll it into the {fleet-server} started in
+the previous example:
+
+[source,shell]
+----
+elastic-agent install -f --url https://other-host:8220 \
+  --enrollment-token NEFmVllaa0JLRXhKebVKVTR5TTI6N2JaVlJpSGpScmV0ZUVnZVlRUExFQQ==
+  --certificate-authorities root.ca
+----
+
 
 ++++
 <hr>
@@ -616,13 +638,13 @@ elastic-agent version
 <hr>
 ++++
 
+////
+//commenting out until we decide whether we want to expose this in public docs
 [discrete]
 [[elastic-agent-watch-command]]
 == elastic-agent watch
 
 Watch the {agent} for failures and initiate rollback.
-
-//QUESTION: When is this command used? During testing? 
 
 [discrete]
 === Synopsis
@@ -651,3 +673,4 @@ elastic-agent watch
 ++++
 <hr>
 ++++
+////
