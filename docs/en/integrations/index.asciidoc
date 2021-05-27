@@ -1,0 +1,266 @@
+include::{docs-root}/shared/versions/stack/{source_branch}.asciidoc[]
+include::{docs-root}/shared/attributes.asciidoc[]
+
+:doctype: book
+:forum: https://discuss.elastic.co/
+
+// Naming is a big problem
+
+= Integrations Developer Guide
+
+// Included file description
+// include::file-name.asciidoc[leveloffset=+1]
+
+// Build these docs
+// $GIT_HOME/docs/build_docs --doc $GIT_HOME/observability-docs/docs/en/integrations/index.asciidoc --open
+
+== Packages? Integrations? Oh my!
+
+=== What's a package?
+
+// Ingest Observability data from popular services into the Elastic Stack
+
+// Benefits:
+// Packages group by service to be observed, not monitoring agent
+// Easy, less error-prone configuration
+// Fewer monitoring agents for users to install
+// Most integrations can be deployed in just a few clicks
+// A decoupled release process from the Elastic Stack
+
+// Package is a set of self-contained resources that can define the entire ingestion pipeline.
+// An "integration" is a special type of package. A package that defines resources that we can use to enable an integration with a specific product. Everything is in a single folder.
+// manifest.yml -- basic properties
+// Fields -- used during processing, like agent, ecs, or package specific
+// Ingest pipeline -- defines data processing
+// Tests
+
+An Elastic Package is a collection of assets for the Elastic Stack. In addition, it contains manifest files which contain additional information about the package. The exact content and structure of a package are described by the package spec.
+
+A package with all its assets is downloaded as a .zip file from the package-registry by Fleet inside Kibana. The assets are then unpacked and each asset is installed into the related API and the package can be configured.
+
+=== What's an integration?
+
+// https://github.com/elastic/integrations
+// https://github.com/elastic/integrations/blob/master/docs/definitions.md
+
+An Elastic Integration is an Elastic Package that defines how to observe a specific product with the Elastic Stack.
+
+An Elastic Package may define configuration for the Elastic Agent as well as assets (such as Kibana dashboards and Elasticsearch index templates) for the Elastic Stack. It should also define documentation about the package. Finally, a package may also define tests to ensure that it is functioning as expected.
+
+Elastic Packages have a certain, well-defined structure. This structure is described by the Package Specification. The repository is also used for discussions about extending the specification (with proposals).
+
+While this repository contains sources for Elastic Integrations, built Elastic Integrations are stored in the Package Storage repository and served up via the Package Registry. The Fleet UI in Kibana connects to the Package Registry and allows users to discover, install, and configure Elastic Packages.
+
+=== Integration lifecycle
+
+1. Create a source package. This can live anywhere. Commonly, you'll find package sources in the `elastic/integrations` repo, but packages like the `apm` integration live elsewhere.
+
+2. When a package dev is ready to publish a package, they bump the version in the manifest file and they publish the package to the package registry (using `elastic-package`)
+// the three stages of EPR reflect the maturity of a package
+// snapshot
+// staging
+// production
+
+3. When a package is in the package registry, it becomes available in Kibana. The Fleet UI can be used to explore and install packages.
+
+4. When you install a package, assets get installed into Elasticsearch and Kibana using stack APIs. In addition, configuration for the package is persisted in Elasticsearch as an Elastic Agent policy.
+
+5. A user can then add that Elastic Agent policy to an Elastic Agent, and the Agent will begin to collect and ship data to the Elastic Stack based on the Elastic package and its configuration.
+
+6. Package data may now come into play here. For example, if a package installed ingest pipelines, those will intercept the data, and transform it before it is indexed.
+
+7. Users can now visualize data in Kibana like they would with any other data type! If there are any visualizations and dashboards provided with the package, they will look for data in matching index patterns and can be used to visualize data.
+
+=== Repositories
+
+==== Package specification
+
+* Formal spec of what an Elastic package is
+* What we use for validation of new or updated packages
+
+Repo: https://github.com/elastic/package-spec
+
+Right now it's on V1. Should we pull some of this content into the documentation?
+https://github.com/elastic/package-spec/tree/master/versions/1
+
+==== Package storage
+
+* Backing store for the package registry service
+* Whatever you see in this repo is what you can find via the package registry service
+* 3 branches: snapshot, staging, production
+
+Repo: https://github.com/elastic/package-storage
+
+==== Package registry
+
+* Source code for the package registry server
+
+Repo: https://github.com/elastic/package-registry
+
+==== Integrations
+
+* Where most _Elastic_ packages are kept
+
+Repo: https://github.com/elastic/integrations
+
+
+=== Data streams
+
+What are data streams?
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu mollis ipsum. Suspendisse dui risus, maximus gravida ante ac, tempor imperdiet sapien. Donec finibus euismod sodales. Sed vel neque eu odio suscipit vestibulum eget vitae magna. Pellentesque id lobortis turpis. Mauris lacinia mollis urna vel blandit. Nam blandit, felis a bibendum hendrerit, erat dolor auctor sem, a pulvinar enim risus ac urna. Aliquam erat volutpat. Suspendisse convallis laoreet lorem, vel aliquam risus aliquam vitae. Sed pellentesque metus dolor, non tempus nulla elementum at.
+
+== `elastic-package`
+
+// https://github.com/elastic/elastic-package/blob/master/README.md
+
+`elastic-package` is a command line tool, written in Go, used for developing Elastic packages. It can help you lint, format, test, build, and promote your packages.
+
+=== Installation
+
+Download and build the latest master of elastic-package binary:
+
+[source,terminal]
+----
+git clone https://github.com/elastic/elastic-package.git
+make build
+----
+
+=== Command reference
+
+==== `elastic-package help`
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu mollis ipsum. Suspendisse dui risus, maximus gravida ante ac, tempor imperdiet sapien. Donec finibus euismod sodales. Sed vel neque eu odio suscipit vestibulum eget vitae magna. Pellentesque id lobortis turpis. Mauris lacinia mollis urna vel blandit. Nam blandit, felis a bibendum hendrerit, erat dolor auctor sem, a pulvinar enim risus ac urna. Aliquam erat volutpat. Suspendisse convallis laoreet lorem, vel aliquam risus aliquam vitae. Sed pellentesque metus dolor, non tempus nulla elementum at.
+
+==== `elastic-package build`
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu mollis ipsum. Suspendisse dui risus, maximus gravida ante ac, tempor imperdiet sapien. Donec finibus euismod sodales. Sed vel neque eu odio suscipit vestibulum eget vitae magna. Pellentesque id lobortis turpis. Mauris lacinia mollis urna vel blandit. Nam blandit, felis a bibendum hendrerit, erat dolor auctor sem, a pulvinar enim risus ac urna. Aliquam erat volutpat. Suspendisse convallis laoreet lorem, vel aliquam risus aliquam vitae. Sed pellentesque metus dolor, non tempus nulla elementum at.
+
+==== `elastic-package check`
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu mollis ipsum. Suspendisse dui risus, maximus gravida ante ac, tempor imperdiet sapien. Donec finibus euismod sodales. Sed vel neque eu odio suscipit vestibulum eget vitae magna. Pellentesque id lobortis turpis. Mauris lacinia mollis urna vel blandit. Nam blandit, felis a bibendum hendrerit, erat dolor auctor sem, a pulvinar enim risus ac urna. Aliquam erat volutpat. Suspendisse convallis laoreet lorem, vel aliquam risus aliquam vitae. Sed pellentesque metus dolor, non tempus nulla elementum at.
+
+== Build a new integration (package?)
+
+=== Overview
+
+// This section might not belong here
+// https://github.com/elastic/package-spec
+
+==== Asset organization
+
+==== Supported assets
+
+==== Specification format
+
+==== Specification versioning
+
+=== Prerequisites
+
+==== Install `elastic-package`
+
+==== Spin up the Elastic Stack
+
+// Step 1. Bring up the stack.
+[source,terminal]
+----
+elastic-package stack up -v -d
+----
+
+=== Create a new package
+
+// internal docs recommend copying a package that already exists.
+// need more here
+
+// copy nginx package
+[source,terminal]
+----
+cd packages
+cp -r nginx new_package
+----
+
+// Review all resources, remove unnecessary ones, adjusts manifests, create new data streams.
+// need more here
+
+=== Build
+
+[source,terminal]
+----
+elastic-package build
+----
+
+// recycle the package-registry Docker container (run from inside of the integration directory)
+// This allows you to refresh the Fleet UI and pick up the new package in Kibana
+[source,terminal]
+----
+elastic-package stack up --services package-registry
+----
+
+=== Lint
+
+// verify the package is aligned with the package-spec
+[source,terminal]
+----
+elastic-package lint
+----
+
+// problems and potential solutions will be shown
+
+=== Format
+
+// format the package contents (JSON, YAML)
+[source,terminal]
+----
+elastic-package format
+----
+
+=== Test
+
+// https://github.com/elastic/elastic-package/tree/master/docs/howto
+// https://github.com/elastic/integrations/blob/master/docs/testing_and_validation.md
+
+=== Final checklist
+
+// https://github.com/elastic/integrations/blob/master/docs/fine_tune_integration.md
+
+==== Add an icon
+
+==== Add screenshots
+
+==== Create a readme file
+
+==== Review artifacts
+
+==== Define variable properties
+
+==== Add sample events
+
+=== Promote (?)
+
+// https://github.com/elastic/integrations/blob/master/docs/developer_workflow_promote_release_integration.md
+
+=== Open a PR (?)
+
+// When the PR is merged, the CI will kick off a build job for the master branch, which can release your integration to the package-storage. It means that it will open a PR to the Package Storage/snapshot with the built integration if only the package version doesn't already exist in the storage (hasn't been released yet).
+
+// When you are ready for your changes in the integration to be released, remember to bump up the package version. It is up to you, as the package developer, to decide how many changes you want to release in a single version. For example, you could implement a change in a PR and bump up the package version in the same PR. Or you could implement several changes across multiple PRs and then bump up the package version in the last of these PRs or in a separate follow up PR.
+
+== Dashboards
+
+// Not sure if this should be a separate section or not
+// Kibana dashboards can be exported to local directories
+[source,terminal]
+----
+elastic-package export
+----
+
+== Testing and validation
+
+== Pull request review guidelines
+
+== Tutorial: Hello world integration
+
+// A tutorail for getting started from scratch
+// Something super simple
+
+/end
