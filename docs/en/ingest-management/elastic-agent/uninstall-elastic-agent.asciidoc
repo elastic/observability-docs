@@ -22,17 +22,39 @@ stops and uninstalls any managed programs, such as {beats} and
 
 If you run into problems, see <<fleet-troubleshooting>>.
 
+If you are using DEB or RPM, you can use the package manager to remove the
+installed package.
+
 [discrete]
-== Uninstall on DEB or RPM
+== Remove {agent} files manually
 
-The `uninstall` command is not supported for DEB or RPM installations. To
-uninstall {agent} on DEB or RPM:
+You might need to remove {agent} files manually if there's a failure during
+installation.
 
-. If the agent is managed by {fleet}, <<unenroll-elastic-agent,unenroll the agent>>.
-. On your host, <<stop-elastic-agent,stop the agent>>.
-. Manually remove the agent files from your system.
+To remove {agent} manually from your system:
 
-//TODO: Confirm this procedure.
+. <<unenroll-elastic-agent,Unenroll the agent>> if it's managed by {fleet}.
+
+. For standalone agents, back up any configuration files you want to preserve. 
+
+. On your host, <<stop-elastic-agent,stop the agent>>. If any {agent}-related
+processes are still running, stop them too.
++
+TIP: Search for these processes and stop them if they're still running:
+`filebeat`, `metricbeat`, `fleet-server`, and `elastic-endpoint`.
+
+. Manually remove the {agent} files from your system. For example, if you're
+running {agent} on macOS, delete `/Library/Elastic/Agent/*`. Not sure where the
+files are installed? See <<installation-layout>>.
+
+. If you've configured the Elastic Endpoint integration, also remove the files
+installed for endpoint protection. The directory structure is similar to {agent},
+for example, `/Library/Elastic/Endpoint/*`.
++
+//TODO: Add to docs when this is confirmed.
+//NOTE: When you remove the Elastic Endpoint integration from a macOS host, the
+//Endpoint System Extension is left on disk intentionally. If you want to remove
+//the extension, refer to the documentation for your operating sytem.
 
 // Add Javascript and CSS for tabbed panels
 include::{tab-widgets}/code.asciidoc[]
