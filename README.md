@@ -24,3 +24,17 @@ In general, we only backport documentation changes to [live stack versions](http
 
 After your PR is merged, we recommend using the [backport tool](https://github.com/sqren/backport) to easily open backport PRs:
 `backport`. Alternatively, ping **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** and we'd be happy to handle the backport process for you.
+
+
+## Build
+
+To build the docs:
+
+. Check out the `elastic/docs` repository, along with any repositories that contain source files.
+. Run the `build_docs` script, passing in the path to the `index.asciidoc` and resource paths to other repos that contain source files. For example, to build the Observability Guide and open it in the browser, run:
+
+```
+../docs/build_docs --doc ./docs/en/observability/index.asciidoc --chunk 1 --resource ../beats/libbeat/docs --resource ../apm-server/docs/guide --open
+```
+
+The above command assumes that [elastic/docs](https://github.com/elastic/docs), [elastic/beats](https://github.com/elastic/beats) and [elastic/apm-server](https://github.com/elastic/apm-server) are checked out into the same parent directory.
