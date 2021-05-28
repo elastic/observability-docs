@@ -2,7 +2,7 @@
 [role="xpack"]
 = Run {agent} standalone on Kubernetes
 
-Use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
+You can use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
 retrieve cluster metrics.
 
 TIP: Running {ecloud} on Kubernetes? See {eck-ref}/k8s-elastic-agent.html[Run {elastic-agent} on ECK].
@@ -37,7 +37,7 @@ deployment] docs)
 Everything is deployed under the `kube-system` namespace by default. To change
 the namespace, modify the manifest file.
 
-Download the manifest file by running:
+To download the manifest file, run:
 
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
@@ -63,14 +63,37 @@ Set the Elasticsearch settings before deploying the manifest:
   value: "https://somesuperhostiduuid.europe-west1.gcp.cloud.es.io:443"
 ------------------------------------------------
 
-[discrete]
-=== Running {agent} on master nodes
+// Begin collapsed section
+[%collapsible]
+.Configuration details
+====
+****
 
-Kubernetes master nodes use https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints]
+[cols="2*<a"]
+|===
+| Setting | Description
+
+include::configuration/env/shared-env.asciidoc[tag=es-username]
+
+include::configuration/env/shared-env.asciidoc[tag=es-password]
+
+include::configuration/env/shared-env.asciidoc[tag=es-host]
+
+|===
+
+See <<agent-environment-variables>> for all available options.
+
+****
+====
+
+[discrete]
+=== Run {agent} on master nodes
+
+Kubernetes master nodes can use https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints]
 to limit the workloads that can run on them. The manifest for standalone {agent} defines
-tolerations to run on master nodes, which collects metrics from the control plane
-components of Kuberentes (scheduler, controller manager).
-To disable {agent} from running on master nodes remove the following part of the Daemonset spec:
+tolerations to run on master nodes. Agents running on master nodes collect metrics from the control plane
+components (scheduler, controller manager) of Kuberentes.
+To disable {agent} from running on master nodes, remove the following part of the Daemonset spec:
 
 [source,yaml]
 ------------------------------------------------
@@ -136,5 +159,5 @@ the following configuration should be added as an extra input in the Daemonset m
       condition: ${kubernetes.pod.labels.app} == 'redis'
 ------------------------------------------------
 
-Users can find more information about how to shape their dynamic inputs
-for autodiscover at <<kubernetes-provider,dynamic inputs and kubernetes provider>> docs.
+See <<kubernetes-provider,dynamic inputs and kubernetes provider>> for more information
+about shaping dynamic inputs for autodiscovery.
