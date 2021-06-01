@@ -1,0 +1,38 @@
+[[running-in-container]]
+[role="xpack"]
+= Run {agent} in a Container
+
+Elastic Agent can be run inside a container (add link to image). The Elastic Agent can be run as standalone inside the container, enrolled into Fleet or also with fleet-server.
+
+// TODO link to kubernetes docs
+
+If the Elastic Agent is run inside a container, this {agent} cannot be upgraded through Fleet as it is expected that the container itself is upgraded. Enrolling and running an Elastic Agent is normally a two step process. As this does not work in a container, a special subcommand called `container` is called. This command allows to pass environment variables for configuration of all the properties and will do enroll and run in a single command.
+
+== Elastic Agent container command
+
+The {agent} container command offers a wide variety of options. To see the full list, run `elastic-agent container -h`. In the following we share some basic example setups.
+
+== Startup examples
+
+* Connect to default fleet server policy
+* Select a specific policy to enroll into
+
+== Also examples for fleet-server
+== Where are logs
+== Debugging
+
+== Logs
+
+The logs in a container are under a different default directory then when run outside a container. By default the logs for elastic-agent itself are sent to stdout. These can also be found under:
+
+```
+/usr/share/elastic-agent/data/logs
+```
+
+In addition, each subprocess like writes its own logs to the `default` directory inside the above logs directory:
+
+```
+/usr/share/elastic-agent/data/logs/default
+```
+
+Each processe run by Elastic Agent writes its log files into these directory. For example in case of errors with fleet-server, it helps to check out the fleet-server logs for more details.
