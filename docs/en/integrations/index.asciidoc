@@ -12,7 +12,7 @@ include::{docs-root}/shared/attributes.asciidoc[]
 // include::file-name.asciidoc[leveloffset=+1]
 
 // Build these docs
-// $GIT_HOME/docs/build_docs --doc $GIT_HOME/observability-docs/docs/en/integrations/index.asciidoc --open
+// $GIT_HOME/docs/build_docs --doc $GIT_HOME/observability-docs/docs/en/integrations/index.asciidoc --chunk 1 --open
 
 == Packages? Integrations? Oh my!
 
@@ -139,6 +139,206 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu mollis ipsum
 ==== `elastic-package check`
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit. Aliquam eu mollis ipsum. Suspendisse dui risus, maximus gravida ante ac, tempor imperdiet sapien. Donec finibus euismod sodales. Sed vel neque eu odio suscipit vestibulum eget vitae magna. Pellentesque id lobortis turpis. Mauris lacinia mollis urna vel blandit. Nam blandit, felis a bibendum hendrerit, erat dolor auctor sem, a pulvinar enim risus ac urna. Aliquam erat volutpat. Suspendisse convallis laoreet lorem, vel aliquam risus aliquam vitae. Sed pellentesque metus dolor, non tempus nulla elementum at.
+
+== Anatomy of an integration
+
+Why build an integration?
+
+* I want to observe _some_ service
+* I need to ingest metrics and/or logs from that service
+* I need to visualize this data in a meaningful way
+
+[discrete]
+== Example: Apache
+
+[discrete]
+=== High-level overview
+
+There are seven main components of an integration:
+
+`changelog.yml`::
+The integration's changelog.
+
+`manifest.yml`::
+Integration metadata, like version, name, license level, description, category,
+icon and screenshot mappings, and policy template definitions.
+
+`_dev`::
+??? Raw docs and deploy ???
+
+`data_stream`::
+Data stream assets, including ingest pipelines, field definitions, metadata, and sample events.
+
+`docs`::
+The built integration readme file.
+
+`img`::
+Screenshots of the integration.
+
+`kibana`::
+Kibana assets, like dasboards, visualizations, machine learning modules, and ??? search ???.
+
+The directory structure looks like this:
+
+[source,text]
+----
+apache
+│   changelog.yml
+│   manifest.yml
+└───_dev
+└───data_stream
+└───docs
+└───img
+└───kibana
+----
+
+=== `data_stream` directory
+
+Apache exposes metrics and logs.
+Specifically, access logs, error logs, and status metrics.
+Each of these different data types is considered a **data stream**.
+
+****
+**Data streams** are blah blah blah.
+
+[%collapsible]
+.Expand to learn more
+====
+stuff
+====
+****
+
+Each data stream is a directory in the `apache/data_stream` directory:
+
+[source,text]
+----
+apache
+└───data_stream
+│   └───access
+│   └───error
+│   └───status
+----
+
+Let's choose one of these data streams to dig into--access logs.
+
+==== Ingest pipelines
+
+Access logs (or any logs) should be parsed into structured data prior to ingesting them into Elasticsearch.
+**Ingest pipelines** take care of the heavy lifting here.
+
+****
+**Ingest pipelines** let you perform common transformations on your data before indexing. For example, you can use pipelines to remove fields, extract values from text, and enrich your data.
+
+A pipeline consists of a series of configurable tasks called processors. Each processor runs sequentially, making specific changes to incoming documents. After the processors have run, Elasticsearch adds the transformed documents to your data stream or index.
+
+[%collapsible]
+.Expand to learn more
+====
+stuff
+====
+****
+
+Ingest pipelines are defined in the `elasticsearch/ingest_pipeline` directory.
+They only apply to the datastream which they live in:
+
+[source,text]
+----
+apache
+└───data_stream
+│   └───access
+│   │   └───elasticsearch/ingest_pipeline
+│   │          default.yml <1>
+│   └───error
+│   └───status
+----
+<1> The ingest pipeline for the access logs data stream lives here, in `default.yml`
+
+==== Mappings
+
+Ingest pipelines create fields in an Elasticsearch index, but don't define the fields themselves.
+Each field needs a defined data type, or mapping.
+
+****
+**Mapping** is the process of defining how a document, and the fields it contains, are stored and indexed.
+Each document is a collection of fields, which each have their own data type. When mapping your data, you create a mapping definition, which contains a list of fields that are pertinent to the document. A mapping definition also includes metadata fields, like the _source field, which customize how a document’s associated metadata is handled.
+
+[%collapsible]
+.Expand to learn more
+====
+stuff
+====
+****
+
+Mappings are defined in the `fields` directory.
+They only apply to the datastream which they live in.
+The apache integration has four different field definitions:
+
+[source,text]
+----
+apache
+└───data_stream
+│   └───access
+│   │   └───elasticsearch/ingest_pipeline
+│   │   │      default.yml
+│   │   └───fields
+│   │          agent.yml <1>
+│   │          base-fields.yml <2>
+│   │          ecs.yml <3>
+│   │          fields.yml <4>
+│   └───error
+│   └───status
+----
+<1> ??
+<2> `base-fields.yml` never changes and is required for all integrations
+<3> Defines the relevant ECS fields
+<4> Custom apache access log fields ??
+
+==== ECS fields
+
+****
+**ECS**
+
+Something about ECS here.
+
+[%collapsible]
+.Expand to learn more
+====
+stuff
+====
+****
+
+
+Other things...
+
+==== `_dev/test`
+
+??
+
+==== `agent/stream`
+
+??
+
+==== `manifest.yml`
+
+??
+
+==== `sample_event.json`
+
+??
+
+
+=== `_dev` directory
+
+=== `docs` directory
+
+=== `img` directory
+
+=== `kibana` directory
+
+=== `changelog.yml` file
+
+=== `manifest.yml` file
+
 
 == Build a new integration (package?)
 
