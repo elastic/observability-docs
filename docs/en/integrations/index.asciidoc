@@ -18,6 +18,7 @@ include::{docs-root}/shared/attributes.asciidoc[]
 // Build these docs
 // $GIT_HOME/docs/build_docs --doc $GIT_HOME/observability-docs/docs/en/integrations/index.asciidoc --resource $GIT_HOME/package-spec/versions --chunk 1 --open
 
+[[what-is-an-integration]]
 == What is an integration?
 
 // Ingest Observability data from popular services into the Elastic Stack
@@ -46,12 +47,14 @@ Integrations have a strict, well-defined structure.
 This structure is described by the package specification.
 
 [discrete]
+[[why-build-an-integration]]
 === Why build an integration?
 
 * You want to observe _some_ service
 * You observe that service by ingesting metrics and/or logs from it
 * You want to visualize this data in a meaningful way
 
+[[integration-lifecycle]]
 == Integration lifecycle
 
 . Create a source package
@@ -92,6 +95,7 @@ Integrations can ship with custom dashboards and visualizations that are install
 Use these for a tailored view at your Observability data.
 
 [discrete]
+[[integration-repos]]
 === Repositories
 
 // While this repository contains sources for Elastic Integrations, built Elastic Integrations are stored in the Package Storage repository and served up via the Package Registry. The Fleet UI in Kibana connects to the Package Registry and allows users to discover, install, and configure Elastic Packages.
@@ -130,46 +134,63 @@ Repo: https://github.com/elastic/package-registry
 
 Repo: https://github.com/elastic/integrations
 
+[[specification]]
+== Specification
 
-== Integration specification
+Integrations are a type of package and therefore must adhere to the Elastic package specification.
+The package specification describes:
 
-The following folders and files make up an integration:
-
-`changelog.yml`::
-The integration's changelog.
-+
-**required**
-
-`manifest.yml`::
-Integration metadata, like version, name, license level, description, category,
-icon and screenshot mappings, and policy template definitions.
-+
-**required**
-
-`_dev`::
-Development resources.
-
-**required**
-
-`data_stream`::
-Data stream assets, including ingest pipelines, field definitions, metadata, and sample events.
-
-**required**
-
-`docs`::
-The built integration readme file.
-
-**required**
-
-// `img`::
-// Screenshots of the integration.
-
-`kibana`::
-The integration's Kibana assets, like dashboards, visualizations, machine learning modules, etc.
-
-**required**
+* The folder structure of a package and the expected files within these folders
+* The structure of expected files' contents
 
 [discrete]
+[[asset-organization]]
+=== Asset organization
+
+In general, assets within a package are organized by `<elastic-stack-component>/<asset-type>`.
+For example, ingest pipelines are stored in the `elasticsearch/ingest-pipeline` folder.
+This logic applies to all Elasticsearch, Kibana, and Agent assets.
+
+Top-level assets are picked up as JSON documents, and pushed to the corresponding Elasticsearch and Kibana APIs.
+
+[discrete]
+[[data-streams]]
+==== Data streams
+
+There is a special folder called `data_stream`.
+Each data stream should have its own folder of assets within this folder,
+and the names of these data streams must follow the data stream naming scheme.
+
+The contents of these folders follow the `<elastic-stack-component>/<asset-type>` structure.
+During installation, Fleet enforces data stream naming rules.
+All assets in this folder belong directly or indirectly to data streams.
+
+In most scenarios, only data stream assets are needed. There are exceptions where global assets are required to get more flexibility. This could be, for example, an ILM policy that applies to all data streams.
+
+[discrete]
+[[supported-assets]]
+=== Supported assets
+
+The following assets are typically found in an Elastic package:
+
+* Elasticsearch
+** Ingest Pipeline
+** Index Template
+** Transform
+** Index template settings
+* Kibana
+** Dashboards
+** Visualization
+** Index patterns
+** ML Modules
+** Map
+** Search
+** Security rules
+* Other
+** fields.yml
+
+[discrete]
+[[directory-structure]]
 === Directory structure
 
 [source,text]
@@ -185,46 +206,120 @@ apache
 ----
 
 [discrete]
+[[directory-spec]]
 === Spec
 
-[source,yml]
+Included from the package-spec repository. This will update when the spec is updated.
+
+[source,yaml]
 ----
 include::{package-spec}/spec.yml[]
 ----
 
-=== `data_stream` directory
+[[dev-spec]]
+=== `_dev`
 
-==== `_dev/test`
+Development resources.
 
-==== `agent/stream`
+**required**
 
-==== `manifest.yml`
+Included from the package-spec repository. This will update when the spec is updated.
 
-==== `sample_event.json`
+[source,yaml]
+----
+include::{package-spec}/_dev/spec.yml[]
+----
 
-=== `_dev` directory
+[[data-stream-spec]]
+=== `data_stream`
 
-=== `docs` directory
+Data stream assets, including ingest pipelines, field definitions, metadata, and sample events.
 
-=== `img` directory
+**required**
 
-=== `kibana` directory
+Included from the package-spec repository. This will update when the spec is updated.
 
-=== `changelog.yml` file
+[source,yaml]
+----
+include::{package-spec}/data_stream/spec.yml[]
+----
 
-=== `manifest.yml` file
+[[docs-spec]]
+=== `docs`
 
+The built integration readme file.
 
+**required**
+
+Included from the package-spec repository. This will update when the spec is updated.
+
+[source,yaml]
+----
+include::{package-spec}/docs/spec.yml[]
+----
+
+[[kibana-spec]]
+=== `kibana`
+
+The integration's Kibana assets, like dashboards, visualizations, machine learning modules, etc.
+
+**required**
+
+Included from the package-spec repository. This will update when the spec is updated.
+
+[source,yaml]
+----
+include::{package-spec}/kibana/spec.yml[]
+----
+
+[[changelog-spec]]
+=== `changelog.yml`
+
+The integration's changelog.
+
+**required**
+
+Included from the package-spec repository. This will update when the spec is updated.
+
+[source,yaml]
+----
+include::{package-spec}/changelog.spec.yml[]
+----
+
+[[manifest-spec]]
+=== `manifest.yml`
+
+Integration metadata, like version, name, license level, description, category,
+icon and screenshot mappings, and policy template definitions.
+
+**required**
+
+Included from the package-spec repository. This will update when the spec is updated.
+
+[source,yaml]
+----
+include::{package-spec}/manifest.spec.yml[]
+----
+
+[[integration-example-apache]]
 == Integration example: Apache
 
-Consider the Apache integration...
+Let's look at an example:
+The https://github.com/elastic/integrations/tree/master/packages/apache[Apache integration].
+This integration periodically:
 
-Apache exposes metrics and logs.
-Specifically, access logs, error logs, and status metrics.
+* fetches **status metrics** from the Apache server
+* fetches and parses **access logs** created by the Apache server
+* fetches and parses **error logs** created by the Apache server
+
 Each of these different data types is considered a **data stream**.
 
+[discrete]
+[[apache-data-streams]]
+=== Data streams
+
 ****
-**Data streams** are blah blah blah.
+**Data streams** allow you to store time series data across multiple indices while giving you a single named resource for requests.
 
 [%collapsible]
 .Expand to learn more
@@ -233,24 +328,26 @@ stuff
 ====
 ****
 
-Each data stream is a directory in the `apache/data_stream` directory:
+Each data stream is represented by a folder in the `data_stream` directory:
 
 [source,text]
 ----
 apache
 └───data_stream
-│   └───access
-│   └───error
-│   └───status
+│   └───access <1>
+│   └───error <1>
+│   └───status <1>
 ----
+<1> Apache's three different data streams
 
-Let's choose one of these data streams to dig into--access logs.
+Let's choose one of these data streams to dig into: access logs.
 
 [discrete]
+[[apache-ingest-pipelines]]
 === Ingest pipelines
 
 Access logs (or any logs) should be parsed into structured data prior to ingesting them into Elasticsearch.
-**Ingest pipelines** take care of the heavy lifting here.
+To do this, integrations use **ingest pipelines**
 
 ****
 **Ingest pipelines** let you perform common transformations on your data before indexing. For example, you can use pipelines to remove fields, extract values from text, and enrich your data.
@@ -265,7 +362,7 @@ stuff
 ****
 
 Ingest pipelines are defined in the `elasticsearch/ingest_pipeline` directory.
-They only apply to the datastream which they live in:
+They only apply to the parent data stream:
 
 [source,text]
 ----
@@ -277,9 +374,30 @@ apache
 │   └───error
 │   └───status
 ----
-<1> The ingest pipeline for the access logs data stream lives here, in `default.yml`
+<1> The ingest pipeline definition for the access logs data stream of the apache integration
+
+The ingest pipeline definition requires a description and an array of processors.
+Here's a snippet of the access logs ingest pipeline:
+
+[source,yaml]
+----
+description: "Pipeline for parsing Apache HTTP Server access logs."
+processors:
+- set:
+    field: event.ingested
+    value: '{{_ingest.timestamp}}'
+- rename:
+    field: message
+    target_field: event.original
+- remove:
+    field: apache.access.time
+    ignore_failure: true
+----
+
+For more information, see ((add a link here of some kind))
 
 [discrete]
+[[apache-mappings]]
 === Mappings
 
 Ingest pipelines create fields in an Elasticsearch index, but don't define the fields themselves.
@@ -297,7 +415,7 @@ stuff
 ****
 
 Mappings are defined in the `fields` directory.
-They only apply to the datastream which they live in.
+Like ingest pipelines, mappings only apply to the parent datastream.
 The apache integration has four different field definitions:
 
 [source,text]
@@ -320,7 +438,10 @@ apache
 <3> Defines the relevant ECS fields
 <4> Custom apache access log fields ??
 
+Maybe include one here or something
+
 [discrete]
+[[apache-ecs]]
 === ECS fields
 
 ****
@@ -335,10 +456,25 @@ stuff
 ====
 ****
 
+[discrete]
+[[apache-policy-templates]]
+=== Policy templates?
 
-Other things...
+??
 
+[discrete]
+[[apache-kibana-assets]]
+=== Kibana assets
 
+Something about Kibana dashboards or visualizations
+
+[discrete]
+[[apache-everything-else]]
+=== Everything else
+
+Something about docs, screenshots, and tests
+
+[[elastic-package]]
 == `elastic-package`
 
 `elastic-package` is a command line tool, written in Go, used for developing Elastic packages.
@@ -347,6 +483,7 @@ It can help you lint, format, test, build, and promote your packages.
 // Currently, elastic-package only supports packages of type Elastic Integrations.
 
 [discrete]
+[[elastic-package-start]]
 === Get started
 
 . Download and build the latest master of elastic-package binary:
@@ -375,6 +512,7 @@ elastic-package help
 ----
 
 [discrete]
+[[elastic-package-command-reference]]
 === Command reference
 
 The following `elastic-package` commands are available.
@@ -584,29 +722,29 @@ Use this command to print the version of elastic-package that you have installed
 // End COPIED CONTENT
 // *************************
 
+[[build-a-new-integration]]
+== Build a new integration
 
-== Build a new integration (package?)
+You have something you want to monitor and you're ready to build an integration to do it.
+Uh... Now what?
 
-=== Overview
-
-// This section might not belong here
-// https://github.com/elastic/package-spec
-
-==== Asset organization
-
-==== Supported assets
-
-==== Specification format
-
-==== Specification versioning
-
+[[build-integration-prerequisites]]
 === Prerequisites
 
-==== Install `elastic-package`
+Before building an integration, you should have an understanding of the following concepts:
 
-==== Spin up the Elastic Stack
+* the <<integration-lifecycle>>
+* the package <<specification>>
+* Elastic Stack concepts, like data streams, ingest pipelines, and mappings
 
-// Step 1. Bring up the stack.
+TIP: See <<integration-example-apache>> for a breakdown of a real integration.
+
+In addition, you must have <<elastic-package>> installed on your machine.
+
+=== Spin up the Elastic Stack
+
+Bring up the Elastic Stack with `elastic-package`:
+
 [source,terminal]
 ----
 elastic-package stack up -v -d
@@ -614,28 +752,34 @@ elastic-package stack up -v -d
 
 === Create a new package
 
-// internal docs recommend copying a package that already exists.
-// need more here
+An easy way to create a new package is by copying a preexisting one.
+This command copies the contents of the `nginx` package to a directory named `new_package`:
 
-// copy nginx package
 [source,terminal]
 ----
 cd packages
 cp -r nginx new_package
 ----
 
-// Review all resources, remove unnecessary ones, adjusts manifests, create new data streams.
-// need more here
+=== Review assets
+
+The fun begins.
+Remove unnecessary assets, adjust manifests, and create new data streams.
+
+**We need more here. A lot more.**
 
 === Build
+
+Next, build the package:
 
 [source,terminal]
 ----
 elastic-package build
 ----
 
-// recycle the package-registry Docker container (run from inside of the integration directory)
-// This allows you to refresh the Fleet UI and pick up the new package in Kibana
+Run the following command from inside of the integration directory to recycle the package-registry docker container.
+This refreshes the Fleet UI, allowing it to pick up the new integration in Kibana.
+
 [source,terminal]
 ----
 elastic-package stack up --services package-registry
@@ -643,23 +787,30 @@ elastic-package stack up --services package-registry
 
 === Lint
 
-// verify the package is aligned with the package-spec
+Verify the package is aligned with the specification with the lint command:
+
 [source,terminal]
 ----
 elastic-package lint
 ----
 
-// problems and potential solutions will be shown
+Problems and potential solutions will be shown.
+Fix them and rebuild the package.
 
 === Format
 
-// format the package contents (JSON, YAML)
+Format the package contents (JSON and YAML files) with the format command:
+
 [source,terminal]
 ----
 elastic-package format
 ----
 
 === Test
+
+`elastic-package` supports multiple types of tests -- pipeline, system, assets, and more.
+
+See LINK_TO_TESTING_DOCS for more information.
 
 // https://github.com/elastic/elastic-package/tree/master/docs/howto
 // https://github.com/elastic/integrations/blob/master/docs/testing_and_validation.md
@@ -670,13 +821,43 @@ elastic-package format
 
 ==== Add an icon
 
+The integration icons are presented in different places in Kibana, hence it's better to define custom icons to make the UI easier to navigate.
+
 ==== Add screenshots
 
+The Kibana Integration Manager shows screenshots related with the integration. Screenshots present Kibana dashboards visualizing the metric/log data.
+
 ==== Create a readme file
+
+The README template is used to render the final README file including exported fields. The template should be placed in the package/<integration-name>/_dev/build/docs/README.md. If the directory doesn't exist, please create it.
+
+Review the MySQL docs template to see how to use template functions (e.g. {{fields "data-stream-name"}}). If the same data stream name is used in both metrics and logs, please add -metrics and -logs in the template. For example, elb is a data stream for log and also a data stream for metrics. In README.md template, {{fields "elb_logs"}} and {{fields "elb_metrics"}} are used to separate them.
 
 ==== Review artifacts
 
 ==== Define variable properties
+
+The variable properties customize visualization of configuration options in the Kibana UI. Make sure they're defined in all manifest files.
+
+[source,yaml]
+----
+vars:
+  - name: paths
+    required: true <1>
+    show_user: true <2>
+    title: Access log paths <3>
+    description: Paths to the nginx access log file. <4>
+    type: text <5>
+    multi: true <6>
+    default:
+      - /var/log/nginx/access.log*
+----
+<1> option is required
+<2> don't hide the configuration option (collapsed menu)
+<3> human readable variable name
+<4> variable description (may contain some details)
+<5> field type (according to the reference: text, password, bool, integer)
+<6> the field has mutliple values.
 
 ==== Add sample events
 
@@ -684,13 +865,17 @@ elastic-package format
 
 // https://github.com/elastic/integrations/blob/master/docs/developer_workflow_promote_release_integration.md
 
-=== Open a PR (?)
+=== Open a PR
+
+If you think that you've finished works on your integration, you've verified that it collects data, wrote some tests, you can open a PR to include your integration in the Integrations repository. The CI will verify if your integration is correct (elastic-package check) - a green status is a must.
 
 // When the PR is merged, the CI will kick off a build job for the master branch, which can release your integration to the package-storage. It means that it will open a PR to the Package Storage/snapshot with the built integration if only the package version doesn't already exist in the storage (hasn't been released yet).
 
 // When you are ready for your changes in the integration to be released, remember to bump up the package version. It is up to you, as the package developer, to decide how many changes you want to release in a single version. For example, you could implement a change in a PR and bump up the package version in the same PR. Or you could implement several changes across multiple PRs and then bump up the package version in the last of these PRs or in a separate follow up PR.
 
 == Dashboards
+
+sooooooon
 
 // Not sure if this should be a separate section or not
 // Kibana dashboards can be exported to local directories
@@ -701,11 +886,30 @@ elastic-package export
 
 == Testing and validation
 
+https://github.com/elastic/elastic-package/tree/master/docs/howto
+
+=== Asset testing
+
+https://github.com/elastic/elastic-package/tree/master/docs/howto
+
+=== Pipeline testing
+
+https://github.com/elastic/elastic-package/tree/master/docs/howto
+
+=== Static testing
+
+https://github.com/elastic/elastic-package/tree/master/docs/howto
+
+=== System testing
+
+https://github.com/elastic/elastic-package/tree/master/docs/howto
+
 == Pull request review guidelines
+
+soooooon
 
 == Tutorial: Hello world integration
 
-// A tutorail for getting started from scratch
-// Something super simple
+felt cute, might remove later
 
 /end
