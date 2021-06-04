@@ -56,15 +56,16 @@ image::creating-a-s3-bucket.png[S3 bucket creation]
 [[aws-step-two]]
 === Step 2:  Create an SQS Queue
 
-You have created an S3 bucket. This will be where you can export your logs.
-This doesn't notify you when users create new S3 objects. Rather than poll
-for all log files in each S3 bucket, use Amazon Simple Queue Service (SQS).
-This provides you with an Amazon S3 notification when someone creates a new
-S3 object. The {filebeat-ref}/filebeat-input-aws-s3.html[Filebeat S3 input]
-checks SQS for messages about new S3 objects. It uses the information in
-these messages to retrieve logs from S3 buckets. With this setup, you don't
-need periodic polling from each S3 bucket. The Filebeat S3 input guarantees
-reliable, near real-time data collection from S3 buckets.
+You should now have an S3 bucket in which you can export your logs, but you will
+also need an SQS queue. To avoid significant lagging with polling all
+log files from each S3 bucket, we will use Amazon Simple Queue Service (SQS).
+This will provide us with an Amazon S3 notification when a new S3 object is
+created. The {filebeat-ref}/filebeat-input-aws-s3.html[Filebeat S3 input]
+checks SQS for new messages regarding the new object created in S3 and uses the
+information in these messages to retrieve logs from S3 buckets. With this setup,
+periodic polling from each S3 bucket is not needed. Instead, the Filebeat S3
+input guarantees near real-time data collection from S3 buckets with both speed
+and reliability.
 
 Create an SQS queue and configure our S3 bucket to send a message to the SQS
 queue whenever new logs are present in the S3 bucket. Go to the https://eu-central-1.console.aws.amazon.com/sqs/[SQS console]
