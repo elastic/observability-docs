@@ -1,0 +1,198 @@
+[[build-a-new-integration]]
+= Build a new integration
+
+You have something you want to monitor and you're ready to build an integration to do it.
+Uh... Now what?
+
+[[build-integration-prerequisites]]
+== Prerequisites
+
+Before building an integration, you should have an understanding of the following concepts:
+
+* the <<integration-lifecycle>>
+* the package <<specification>>
+* Elastic Stack concepts, like data streams, ingest pipelines, and mappings
+
+TIP: See <<integration-example-apache>> for a breakdown of a real integration.
+
+In addition, you must have <<elastic-package>> installed on your machine.
+
+== Spin up the Elastic Stack
+
+Bring up the Elastic Stack with `elastic-package`:
+
+[source,terminal]
+----
+elastic-package stack up -v -d
+----
+
+== Create a new package
+
+// An easy way to create a new package is by copying a preexisting one.
+// This command copies the contents of the `nginx` package to a directory named `new_package`:
+
+// [source,terminal]
+// ----
+// cd packages
+// cp -r nginx new_package
+// ----
+
+The `elastic-package` tool can be used to bootstrap a new package or add a data stream using an embedded archetype
+(https://github.com/elastic/elastic-package/tree/master/internal/packages/archetype[resource templates]).
+It's advised to use `elastic-package create` to build new package rather than copying sources of an existing package.
+This will ensure that you're following latest recommendations for the package format.
+
+. Bootstrap a new package using the TUI wizard:
++
+[source,terminal]
+----
+elastic-package create package.
+----
+
+. Manually adjust the package:
++
+* define policy templates and inputs
+* add icons and screenshots
+* update README files
+* update changelog.yml file
+
+. Verify the package
++
+Enter the package directory and ensure the package fits the spec:
++
+[source,terminal]
+----
+cd <your_new_package>
+elastic-package check
+----
+
+== Add a data stream
+
+. Bootstrap a new data stream using the TUI wizard:
++
+[source,terminal]
+----
+elastic-package create data-stream.
+----
+
+. Manually adjust the data stream:
++
+* define streams and required variables
+* define used fields
+* define ingest pipeline definition (if necessary)
+* update the agent's stream configuration
+
+. Verify the package
++
+Enter the package directory and ensure the package fits the spec:
++
+[source,terminal]
+----
+cd <your_new_package>
+elastic-package check
+----
+
+== Build the package
+
+Next, build the package:
+
+[source,terminal]
+----
+elastic-package build
+----
+
+Run the following command from inside of the integration directory to recycle the package-registry docker container.
+This refreshes the Fleet UI, allowing it to pick up the new integration in Kibana.
+
+[source,terminal]
+----
+elastic-package stack up --services package-registry
+----
+
+== Lint
+
+Verify the package is aligned with the specification with the lint command:
+
+[source,terminal]
+----
+elastic-package lint
+----
+
+Problems and potential solutions will be shown.
+Fix them and rebuild the package.
+
+== Format
+
+Format the package contents (JSON and YAML files) with the format command:
+
+[source,terminal]
+----
+elastic-package format
+----
+
+== Test
+
+`elastic-package` supports multiple types of tests -- pipeline, system, assets, and more.
+
+See LINK_TO_TESTING_DOCS for more information.
+
+// https://github.com/elastic/elastic-package/tree/master/docs/howto
+// https://github.com/elastic/integrations/blob/master/docs/testing_and_validation.md
+
+== Final checklist
+
+// https://github.com/elastic/integrations/blob/master/docs/fine_tune_integration.md
+
+=== Add an icon
+
+The integration icons are presented in different places in Kibana, hence it's better to define custom icons to make the UI easier to navigate.
+
+=== Add screenshots
+
+The Kibana Integration Manager shows screenshots related with the integration. Screenshots present Kibana dashboards visualizing the metric/log data.
+
+=== Create a readme file
+
+The README template is used to render the final README file including exported fields. The template should be placed in the package/<integration-name>/_dev/build/docs/README.md. If the directory doesn't exist, please create it.
+
+Review the MySQL docs template to see how to use template functions (e.g. {{fields "data-stream-name"}}). If the same data stream name is used in both metrics and logs, please add -metrics and -logs in the template. For example, elb is a data stream for log and also a data stream for metrics. In README.md template, {{fields "elb_logs"}} and {{fields "elb_metrics"}} are used to separate them.
+
+=== Review artifacts
+
+=== Define variable properties
+
+The variable properties customize visualization of configuration options in the Kibana UI. Make sure they're defined in all manifest files.
+
+[source,yaml]
+----
+vars:
+  - name: paths
+    required: true <1>
+    show_user: true <2>
+    title: Access log paths <3>
+    description: Paths to the nginx access log file. <4>
+    type: text <5>
+    multi: true <6>
+    default:
+      - /var/log/nginx/access.log*
+----
+<1> option is required
+<2> don't hide the configuration option (collapsed menu)
+<3> human readable variable name
+<4> variable description (may contain some details)
+<5> field type (according to the reference: text, password, bool, integer)
+<6> the field has mutliple values.
+
+=== Add sample events
+
+== Promote (?)
+
+// https://github.com/elastic/integrations/blob/master/docs/developer_workflow_promote_release_integration.md
+
+== Open a PR
+
+If you think that you've finished works on your integration, you've verified that it collects data, wrote some tests, you can open a PR to include your integration in the Integrations repository. The CI will verify if your integration is correct (elastic-package check) - a green status is a must.
+
+// When the PR is merged, the CI will kick off a build job for the master branch, which can release your integration to the package-storage. It means that it will open a PR to the Package Storage/snapshot with the built integration if only the package version doesn't already exist in the storage (hasn't been released yet).
+
+// When you are ready for your changes in the integration to be released, remember to bump up the package version. It is up to you, as the package developer, to decide how many changes you want to release in a single version. For example, you could implement a change in a PR and bump up the package version in the same PR. Or you could implement several changes across multiple PRs and then bump up the package version in the last of these PRs or in a separate follow up PR.
