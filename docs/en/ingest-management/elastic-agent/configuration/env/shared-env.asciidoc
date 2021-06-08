@@ -1,0 +1,543 @@
+// These env variables are shared across the docs. Copy and use
+// the following template to add a shared setting. Replace values in all caps.
+// Use an include statement // to pull the tagged region into your source file:
+// include::input-shared-settings.asciidoc[tag=NAME-setting]
+
+// tag::NAME-setting[]
+|
+[id="env-{type}-NAME"]
+`NAME`
+
+| (TYPE) DESCRIPTION.
+
+*Default:* `DEFAULT`
+
+OPTIONAL INFO AND EXAMPLE
+// end::NAME-setting[]
+
+// =============================================================================
+
+// tag::kibana-fleet-setup[]
+|
+[id="env-{type}-kibana-fleet-setup"]
+`KIBANA_FLEET_SETUP`
+
+| (int) Set to `1` to enable {fleet} setup.
+Enabling {fleet} is required before {fleet-server} will start.
+When this action is not performed, a user must manually log in to Kibana and visit the Fleet page to enable setup.
+
+*Default:* none
+
+NOTE: `FLEET_SETUP` has been deprecated and will be removed in v8.0.0.
+Use `KIBANA_FLEET_SETUP` instead.
+
+// end::kibana-fleet-setup[]
+
+// =============================================================================
+
+// tag::kibana-fleet-host[]
+|
+[id="env-{type}-kibana-fleet-host"]
+`KIBANA_FLEET_HOST`
+
+| (string) The {kib} host to enable {fleet} on.
+Overrides `FLEET_HOST` when set.
+
+*Default:* `http://kibana:5601`
+
+// end::kibana-fleet-host[]
+
+// =============================================================================
+
+// tag::kibana-fleet-username[]
+|
+[id="env-{type}-kibana-fleet-username"]
+`KIBANA_FLEET_USERNAME`
+
+| (string) The basic authentication username used to connect to {kib} and enable {fleet}.
+Overrides `KIBANA_USERNAME` when set.
+
+*Default:* `elastic`
+
+// end::kibana-fleet-username[]
+
+// =============================================================================
+
+// tag::kibana-fleet-password[]
+|
+[id="env-{type}-kibana-fleet-password"]
+`KIBANA_FLEET_PASSWORD`
+
+| (string) The basic authentication password used to connect to {kib} and enable {fleet}.
+Overrides `KIBANA_PASSWORD` when set.
+
+*Default:* `changeme`
+
+// end::kibana-fleet-password[]
+
+// =============================================================================
+
+// tag::kibana-fleet-ca[]
+|
+[id="env-{type}-kibana-fleet-ca"]
+`KIBANA_FLEET_CA`
+
+| (string) The path to a certificate authority. Overrides `KIBANA_CA` when set.
+
+By default, {agent} uses the list of trusted certificate authorities (CA) from the operating
+system where it is running.
+If the certificate authority that signed your node certificates is not in the host system's
+trusted certificate authorities list, use this config to add the path to the `.pem` file that
+contains your CA's certificate.
+
+*Default:* `""`
+
+// end::kibana-fleet-ca[]
+
+// =============================================================================
+
+// tag::fleet-server-enable[]
+|
+[id="env-{type}-fleet-server-enable"]
+`FLEET_SERVER_ENABLE`
+
+| (int) Set to `1` to bootstrap {fleet-server} on this {agent}.
+When set to `1`, this automatically forces {fleet} enrollment as well.
+
+*Default:* none
+
+// end::fleet-server-enable[]
+
+// =============================================================================
+
+// tag::fleet-server-elasticsearch-host[]
+|
+[id="env-{type}-fleet-server-elasticsearch-host"]
+`FLEET_SERVER_ELASTICSEARCH_HOST`
+
+
+| (string) The {es} host for {fleet-server} to communicate with.
+Overrides `ELASTICSEARCH_HOST` when set.
+
+*Default:* `http://elasticsearch:9200`
+
+// end::fleet-server-elasticsearch-host[]
+
+// =============================================================================
+
+// tag::fleet-server-elasticsearch-username[]
+|
+[id="env-{type}-fleet-server-elasticsearch-username"]
+`FLEET_SERVER_ELASTICSEARCH_USERNAME`
+
+| (string) The basic authentication username used to connect to {es}.
+Overrides `ELASTICSEARCH_USERNAME` when set.
+This user needs the privileges required to publish events to {es}.
+
+// To do: link to required privileges
+
+*Default:* `elastic`
+
+// end::fleet-server-elasticsearch-username[]
+
+// =============================================================================
+
+// tag::fleet-server-elasticsearch-password[]
+|
+[id="env-{type}-fleet-server-elasticsearch-password"]
+`FLEET_SERVER_ELASTICSEARCH_PASSWORD`
+
+| (string) The basic authentication password used to connect to {es}.
+Overrides `ELASTICSEARCH_PASSWORD` when set.
+
+*Default:* `changeme`
+
+// end::fleet-server-elasticsearch-password[]
+
+// =============================================================================
+
+// tag::fleet-server-elasticsearch-ca[]
+|
+[id="env-{type}-fleet-server-elasticsearch-ca"]
+`FLEET_SERVER_ELASTICSEARCH_CA`
+
+| (string) The path to a certificate authority. Overrides `ELASTICSEARCH_CA` when set.
+
+By default, {agent} uses the list of trusted certificate authorities (CA) from the operating
+system where it is running.
+If the certificate authority that signed your node certificates is not in the host system's
+trusted certificate authorities list, use this config to add the path to the `.pem` file that
+contains your CA's certificate.
+
+*Default:* `""`
+
+// end::fleet-server-elasticsearch-ca[]
+
+// =============================================================================
+
+// tag::fleet-server-policy-name[]
+|
+[id="env-{type}-fleet-server-policy-name"]
+`FLEET_SERVER_POLICY_NAME`
+
+| (string) The name of the policy for {fleet-server} to use on itself.
+Overrides `FLEET_TOKEN_POLICY_NAME` when set.
+
+*Default:* none
+
+// end::fleet-server-policy-name[]
+
+// =============================================================================
+
+// tag::fleet-server-service-token[]
+|
+[id="env-{type}-fleet-server-service-token"]
+`FLEET_SERVER_SERVICE_TOKEN`
+
+| (string) Service token to use for communication with Elasticsearch.
+
+*Default:* none
+
+// end::fleet-server-service-token[]
+
+// =============================================================================
+
+// tag::fleet-server-policy-id[]
+|
+[id="env-{type}-fleet-server-policy-id"]
+`FLEET_SERVER_POLICY_ID`
+
+| (string) The policy ID for {fleet-server} to use on itself.
+
+*Default:* When undefined, the "Default Fleet Server policy" is used.
+
+// end::fleet-server-policy-id[]
+
+// =============================================================================
+
+// tag::fleet-server-host[]
+|
+[id="env-{type}-fleet-server-host"]
+`FLEET_SERVER_HOST`
+
+| (string) The binding host for {fleet-server} HTTP.
+Overrides the host defined in the policy.
+
+*Default:* none
+
+// end::fleet-server-host[]
+
+// =============================================================================
+
+// tag::fleet-server-port[]
+|
+[id="env-{type}-fleet-server-port"]
+`FLEET_SERVER_PORT`
+
+| (string) The binding port for {fleet-server} HTTP.
+Overrides the port defined in the policy.
+
+*Default:* none
+
+// end::fleet-server-port[]
+
+// =============================================================================
+
+// tag::fleet-server-cert[]
+|
+[id="env-{type}-fleet-server-cert"]
+`FLEET_SERVER_CERT`
+
+| (string) The path to the certificate to use for HTTPS.
+
+*Default:* none
+
+// end::fleet-server-cert[]
+
+// =============================================================================
+
+// tag::fleet-server-cert-key[]
+|
+[id="env-{type}-fleet-server-cert-key"]
+`FLEET_SERVER_CERT_KEY`
+
+| (string) The path to the private key for the certificate used for HTTPS.
+
+*Default:* none
+
+// end::fleet-server-cert-key[]
+
+// =============================================================================
+
+// tag::fleet-server-insecure-http[]
+|
+[id="env-{type}-fleet-server-insecure-http"]
+`FLEET_SERVER_INSECURE_HTTP`
+
+| (bool) When `true`, exposes {fleet-server} over HTTP (insecure).
+Setting this to `true` is not recommended.
+
+*Default:* `false`
+
+// end::fleet-server-insecure-http[]
+
+// =============================================================================
+
+// tag::fleet-enroll[]
+|
+[id="env-{type}-fleet-enroll"]
+`FLEET_ENROLL`
+
+| (bool) Set to `1` to enroll the {agent} into {fleet-server}.
+
+*Default:* `false`
+
+// end::fleet-enroll[]
+
+// =============================================================================
+
+// tag::fleet-url[]
+|
+[id="env-{type}-fleet-url"]
+`FLEET_URL`
+
+| (string) URL to enroll the {fleet-server} into.
+
+*Default:* `""`
+
+// end::fleet-url[]
+
+// =============================================================================
+
+// tag::fleet-enrollment-token[]
+|
+[id="env-{type}-fleet-enrollment-token"]
+`FLEET_ENROLLMENT_TOKEN`
+
+| (string) The token to use for enrollment.
+
+*Default:* `""`
+
+// end::fleet-enrollment-token[]
+
+// =============================================================================
+
+// tag::fleet-token-name[]
+|
+[id="env-{type}-fleet-token-name"]
+`FLEET_TOKEN_NAME`
+
+| (string) The token name to use to fetch the token from {kib}.
+
+*Default:* `""`
+
+// end::fleet-token-name[]
+
+// =============================================================================
+
+// tag::fleet-token-policy-name[]
+|
+[id="env-{type}-fleet-token-policy-name"]
+`FLEET_TOKEN_POLICY_NAME`
+
+| (string) The token policy name to use to fetch the token from {kib}.
+
+*Default:* `false`
+
+// end::fleet-token-policy-name[]
+
+// =============================================================================
+
+// tag::fleet-ca[]
+|
+[id="env-{type}-fleet-ca"]
+`FLEET_CA`
+
+| (string) The path to a certificate authority. Overrides `ELASTICSEARCH_CA` when set.
+
+By default, {agent} uses the list of trusted certificate authorities (CA) from the operating
+system where it is running.
+If the certificate authority that signed your node certificates is not in the host system's
+trusted certificate authorities list, use this config to add the path to the `.pem` file that
+contains your CA's certificate.
+
+*Default:* `false`
+
+// end::fleet-ca[]
+
+// =============================================================================
+
+// tag::fleet-insecure[]
+|
+[id="env-{type}-fleet-insecure"]
+`FLEET_INSECURE`
+
+| (bool) When `true`, {agent} communicates with {fleet-server} over insecure or unverified HTTP.
+Setting this to `true` is not recommended.
+
+*Default:* `false`
+
+// end::fleet-insecure[]
+
+// =============================================================================
+
+// tag::elasticsearch-host[]
+|
+[id="env-{type}-elasticsearch-host"]
+`ELASTICSEARCH_HOST`
+
+| (string) The {es} host to communicate with.
+
+*Default:* `http://elasticsearch:9200`
+
+// end::elasticsearch-host[]
+
+// =============================================================================
+
+// tag::es-host[]
+|
+[id="env-{type}-es-host"]
+`ES_HOST`
+
+| (string) The {es} host to communicate with.
+
+*Default:* `http://elasticsearch:9200`
+
+// end::es-host[]
+
+// =============================================================================
+
+// tag::elasticsearch-username[]
+|
+[id="env-{type}-elasticsearch-username"]
+`ELASTICSEARCH_USERNAME`
+
+| (string) The basic authentication username used to connect to {es}.
+This user needs the privileges required to publish events to {es}.
+
+// To do: link to required privileges
+
+*Default:* `elastic`
+
+// end::elasticsearch-username[]
+
+// =============================================================================
+
+// tag::es-username[]
+|
+[id="env-{type}-es-username"]
+`ES_USERNAME`
+
+| (string) The basic authentication username used to connect to {es}.
+This user needs the privileges required to publish events to {es}.
+
+// To do: link to required privileges
+
+*Default:* `elastic`
+
+// end::es-username[]
+
+// =============================================================================
+
+// tag::elasticsearch-password[]
+|
+[id="env-{type}-elasticsearch-password"]
+`ELASTICSEARCH_PASSWORD`
+
+| (string) The basic authentication password used to connect to {es}.
+
+*Default:* `changeme`
+
+// end::elasticsearch-password[]
+
+// =============================================================================
+
+// tag::es-password[]
+|
+[id="env-{type}-es-password"]
+`ES_PASSWORD`
+
+| (string) The basic authentication password used to connect to {es}.
+
+*Default:* `changeme`
+
+// end::es-password[]
+
+// =============================================================================
+
+// tag::elasticsearch-ca[]
+|
+[id="env-{type}-elasticsearch-ca"]
+`ELASTICSEARCH_CA`
+
+| (string) The path to a certificate authority.
+
+By default, {agent} uses the list of trusted certificate authorities (CA) from the operating
+system where it is running.
+If the certificate authority that signed your node certificates is not in the host system's
+trusted certificate authorities list, use this config to add the path to the `.pem` file that
+contains your CA's certificate.
+
+*Default:* `""`
+
+// end::elasticsearch-ca[]
+
+// =============================================================================
+
+// tag::kibana-host[]
+|
+[id="env-{type}-kibana-host"]
+`KIBANA_HOST`
+
+| (string) The {kib} host.
+
+*Default:* `http://kibana:5601`
+
+// end::kibana-host[]
+
+// =============================================================================
+
+// tag::kibana-username[]
+|
+[id="env-{type}-kibana-username"]
+`KIBANA_USERNAME`
+
+| (string) The basic authentication username used to connect to {kib}.
+
+*Default:* `elastic`
+
+// end::kibana-username[]
+
+// =============================================================================
+
+// tag::kibana-password[]
+|
+[id="env-{type}-kibana-password"]
+`KIBANA_PASSWORD`
+
+| (string) The basic authentication password used to connect to {kib}.
+
+*Default:* `changeme`
+
+// end::kibana-password[]
+
+// =============================================================================
+
+// tag::kibana-ca[]
+|
+[id="env-{type}-kibana-ca"]
+`KIBANA_CA`
+
+| (string) The path to a certificate authority.
+
+By default, {agent} uses the list of trusted certificate authorities (CA) from the operating
+system where it is running.
+If the certificate authority that signed your node certificates is not in the host system's
+trusted certificate authorities list, use this config to add the path to the `.pem` file that
+contains your CA's certificate.
+
+*Default:* `""`
+
+// end::kibana-ca[]
+
+// =============================================================================

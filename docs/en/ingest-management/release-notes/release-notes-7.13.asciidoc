@@ -3,15 +3,43 @@
 :kib-pull: https://github.com/elastic/kibana/pull/
 :agent-issue: https://github.com/elastic/beats/issues/
 :agent-pull: https://github.com/elastic/beats/pull/
+:fleet-server-issue: https://github.com/elastic/beats/issues/fleet-server/
+:fleet-server-pull: https://github.com/elastic/beats/pull/fleet-server/
 
-//QUESTION: Any other repos that are needed here? ^^
+[[release-notes]]
+= Release notes
+
+This section summarizes the changes in each release.
+
+* <<release-notes-7.13.1>>
+
+* <<release-notes-7.13.0>>
+
+Also see:
+
+* {kibana-ref}/release-notes.html[{kib} release notes]
+* {beats-ref}/release-notes.html[{beats} release notes]
+
+[[release-notes-7.13.1]]
+== {fleet} and {agent} 7.13.1
+
+The 7.13.1 release includes the following bug fixes.
+
+[discrete]
+[[bug-fixes-7.13.1]]
+=== Bug fixes
+
+{fleet}::
+* Add missing install button for integrations that aren't installed yet {kibana-pull}100370[#100370]
+
+{agent}::
+* Fix unenroll of {agent}s when connected to a self-managed {fleet-server} {fleet-server-pull}381[#381]
+
 
 [[release-notes-7.13.0]]
 == {fleet} and {agent} 7.13.0
 
 Review important information about the {fleet} and {agent} 7.13.x releases.
-
-// Add link to changelogs for Beats/Agent and Kibana.
 
 //[discrete]
 //[[security-updates-7.13.0]]
@@ -57,7 +85,12 @@ The existing agent API keys are invalidated and display as `Inactive` on the *Ag
 
 [discrete]
 [[known-issues-7.13.0]]
-=== Known issue
+=== Known issues
+
+[[known-issue-98745]]
+.`fleet_enroll` role and user no longer needed and should be removed
+[%collapsible]
+====
 
 *Details* 
 
@@ -67,6 +100,24 @@ of {agent}s in {kib}.
 *Impact* +
 If the role and user were set up in a previous release, remove them now to avoid
 them being orphaned in the cluster. {kib-pull}98745[#98745]
+====
+
+[[known-issue-25773]]
+.{agent}s unenrolling from a self-managed {fleet-server} hang at "Updating" and API keys are not invalidated
+[%collapsible]
+====
+
+*Details* 
+
+In {kib}, when you unenroll an {agent} from a self-managed {fleet-server},
+the status may hang at "Updating". This problem only occurs with {agent}s
+connecting to a {fleet-server} started with a service token.
+
+*Impact* +
+You must do a force unenroll to remove the {agent} and invalidate the API keys,
+or unenrollment hangs indefinitely. {fleet-server-issue}380[#380]
+====
+
 
 //[discrete]
 //[[deprecations-7.13.0]]

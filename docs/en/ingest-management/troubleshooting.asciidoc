@@ -200,6 +200,7 @@ The stand-alone install command installs the {agent}, and all of the service con
 ----
 elastic-agent enroll -f --fleet-server-es=https://<es-url>:443 --fleet-server-service-token=<token> --fleet-server-policy=<policy-id>
 ----
+Note: Port `443` is commonly used in {ecloud}. However, with self-managed deployments, your {es} may run on port `9200` or something entirely different.
 
 For information on where to find agent logs, see our <<where-are-the-agent-logs,FAQ>>.
 
@@ -309,6 +310,47 @@ agent you want to unenroll.
 . Click **Force unenroll**. 
 
 [discrete]
+[[ca-cert-testing]]
+== On {fleet-server} startup, ERROR seen with `State changed to CRASHED: exited with code: 1`
+
+You may see this error message for a number of different reasons. A common reason is when attempting production-like usage and the ca.crt file passed in cannot be found.  To verify if this is the problem, bootstrap {fleet-server} without passing a ca.crt file. This implies you would test any subsequent
+{agent} installs temporarily with {fleet-sever}'s own self-signed cert.
+
+Tip: Ensure to pass in the full path to the ca.crt file. A relative path is not viable.
+
+You will know if your {fleet-server} is set up with its testing oriented self-signed certificate usage,
+when you see the following error during {agent} installs:
+
+[source,sh]
+----
+Error: fail to enroll: fail to execute request to fleet-server: x509: certificate signed by unknown authority
+Error: enroll command failed with exit code: 1
+----
+
+To install or enroll against a self-signed cert {fleet-server} {agent}, add in the `--insecure` option to the
+command:
+
+[source,sh]
+----
+sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
+----
+
+[discrete]
+[[endpoint-not-uninstalled-with-agent]]
+== {elastic-endpoint} uninstallation fails
+
+When you uninstall {agent}, all the programs managed by {agent}, such as
+{elastic-endpoint}, are also removed. If uninstallation fails,
+{elastic-endpoint} might remain on your system.
+
+To remove {elastic-endpoint}, run the following commands:
+
+--
+include::{tab-widgets}/remove-endpoint-files/widget.asciidoc[]
+
+--
+
+[discrete]
 [[endpoint-unauthorized]]
 == API key is unauthorized to send telemetry to `.logs-endpoint.diagnostic.collection-*` indices
 
@@ -341,3 +383,6 @@ installed integrations.
 
 . Under advanced settings, set `windows.advanced.diagnostic.enabled`
 to `false`, and then save the integration.
+
+// Add Javascript and CSS for tabbed panels
+include::{tab-widgets}/code.asciidoc[]
