@@ -9,6 +9,7 @@ projects: 513
 ---
 
 ## Description
+
 *(Describe what needs to be documented. Link to relevant issues.)*
 
 ## Collaboration
@@ -18,7 +19,8 @@ projects: 513
 * [ ] The docs team will define with product team the structure and location, and the product team will provide the initial content
 * [ ] Other (please describe)
 
-## Suggested Target Date
+## Suggested Target Release
+
 *(Let us know if this feature is needed for a specific release.)*
 
 ## Stakeholders
