@@ -1,0 +1,216 @@
+[[secure-connections]]
+[role="xpack"]
+= Encrypt traffic in a self-managed cluster
+
+If you're running a self-managed cluster, configure Transport Layer Security
+(TLS) to encrypt traffic between {agent}s, {fleet-server}, and other components
+in the {stack}.
+
+TIP: Our {ess-product}[hosted {ess}] on {ecloud} provides secure, encrypted
+connections out of the box!
+
+[discrete]
+[[prereqs]]
+== Prerequisites
+
+Configure security and generate certificates for the {stack}:
+
+. {ref}/security-minimal-setup.html[Set up minimal security for {es}]
+. {ref}/security-basic-setup.html[Set up basic security for the {stack}]
+. {ref}/security-basic-setup-https.html[Set up basic security for the {stack} plus secured HTTPS traffic]
+
+[discrete]
+[[generate-fleet-server-certs]]
+== Generate a custom certificate and private key for {fleet-server}
+
+This section describes how to use the `certutil` tool provided by {es}, but you
+can use whatever process you typically use to generate certificates.
+
+. (Optional) Generate a certificate authority (CA). Skip this step if you want
+to use an existing CA.
++
+[source,shell]
+----
+./bin/elasticsearch-certutil ca --pem
+----
++
+This command creates a zip file that contains the CA certificate and key you'll
+use to sign the {fleet-server} certificate.
+
+. Use the certificate authority to generate certificates for {fleet-server}.
+For example:
++
+[source,shell]
+----
+./bin/elasticsearch-certutil cert \
+  --name fleet-server \
+  --ca-cert /path/to/ca/ca.crt \
+  --ca-key /path/to/ca/ca.key \
+  --dns your.host.name.here \
+  --ip 192.0.2.1 \
+  --pem
+----
++
+This command creates a certificate bundle that includes a `.crt` and `.key`
+file. You'll need these files later to encrypt traffic between {agent}s
+and {fleet-server}.
+
+. Store the files in a secure location until you are ready to use them.
+
+//QUESTION: Do we need to say anything here about key passwords not being supported?
+
+[discrete]
+== Encrypt traffic between {agent}s, {fleet-server}, and {es}
+
+{fleet-server} needs a CA certificate to connect securely to {es}. It also
+needs to expose a {fleet-server} certificate so other {agent}s can connect to it
+securely.
+
+. On the system running the {fleet-server} agent, add:
++
+--
+* The certificate and private key you generated for {fleet-server} (for example,
+`fleet-server.crt` and `fleet-server.key`).
+
+* The CA certificate to use to connect to {es}. This certificate was created
+when you configured TLS for the stack as described in the <<prereqs>>. 
+--
+
+. On the systems where other {agent}s are running, add:
++
+--
+* (Optional) The CA certificate to use to connect to {es}. This is optional
+because you can embed this certificate later when you specify {fleet}
+settings.
+* The CA certificate to use to connect to {fleet-server}. This is the CA you
+used to <<generate-fleet-server-certs,generate a certificate and key>> for
+{fleet-server}. For example, `ca.crt`.
+--
+
+. Configure {fleet} settings:
+
+.. In {kib} go to *Management > {fleet}*.
+
+.. In the upper-right corner, click *Fleet settings*.
+
+.. In the *Fleet Server hosts* field, specify the
+URLs {agent}s will use to connect to {fleet-server}. For example,
+https://192.0.2.1:8220, where 192.0.2.1 is the host IP where you will install
+{fleet-server}.
+
+.. In the *Elasticsearch host* field, specify the {es} URLs where {agent}s will
+send data. For example, https://192.0.2.0:9200.
++
+Use the `https` protocol for both host settings.
+
+.. Under *Elasticsearch output configuration (YAML)*, set
+`ssl.certificate_authorities` and specify the CA certificate to use to connect
+to {es}. You can specify a list of file paths (if the files are available), or
+embed a certificate directly in the YAML configuration:
++
+--
+Path example:
+
+[source,yaml]
+----
+ssl.certificate_authorities: ["/home/vagrant/certs/elasticsearch-ca.crt"] <1>
+----
+<1> The path to the CA certificate on the {agent} host.
+
+Pasted certificate example:
+
+[source,yaml]
+----
+ssl:
+  certificate_authorities:
+  - |
+    -----BEGIN CERTIFICATE-----
+    MIIDSjCCAjKgAwIBAgIVAKlphSqJclcni3P83gVsirxzuDuwMA0GCSqGSIb3DQEB
+    CwUAMDQxMjAwBgNVBAMTKUVsYXN0aWMgQ2VydGlmaWNhdGUgVG9vbCBBdXRvZ2Vu
+    ZXJhdGVkIENBMB4XDTIxMDYxNzAxMzIyOVoXDTI0MDYxNjAxMzIyOVowNDEyMDAG
+    A1UEAxMpRWxhc3RpYyBDZXJ0aWZpY2F0ZSBUb29sIEF1dG9nZW5lcmF0ZWQgQ0Ew
+    ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDOFgtVri7Msy2iR33nLrVO
+    /M/6IyF72kFXup1E67TzetI22avOxNlq+HZTpZoWGV1I4RgxiQeN12FLuxxhd9nm
+    rxfZEqpuIjvo6fvU9ifC03WjXg1opgdEb6JqH93RHKw0PYimxhQfFcwrKxFseHUx
+    DeUNQgHkMQhDZgIfNgr9H/1X6qSU4h4LemyobKY3HDKY6pGsuBzsF4iOCtIitE9p
+    sagiWR21l1gW/lNaEW2ICKhJXbaqbE/pis45/yyPI4Q1Jd1VqZv744ejnZJnpAx9
+    mYSE5RqssMeV6Wlmu1xWljOPeerOVIKUfHY38y8GZwk7TNYAMajratG2dj+v9eAV
+    AgMBAAGjUzBRMB0GA1UdDgQWBBSCNCjkb66eVsIaa+AouwUsxU4b6zAfBgNVHSME
+    GDAWgBSCNCjkb66eVsIaa+AouwUsxU4b6zAPBgNVHRMBAf8EBTADAQH/MA0GCSqG
+    SIb3DQEBCwUAA4IBAQBVSbRObxPwYFk0nqF+THQDG/JfpAP/R6g+tagFIBkATLTu
+    zeZ6oJggWNSfgcBviTpXc6i1AT3V3iqzq9KZ5rfm9ckeJmjBd9gAcyqaeF/YpWEb
+    ZAtbxfgPLI3jK+Sn8S9fI/4djEUl6F/kARpq5ljYHt9BKlBDyL2sHymQcrDC3pTZ
+    hEOM4cDbyKHgt/rjcNhPRn/q8g3dDhBdzjlNzaCNH/kmqWpot9AwmhhfPTcf1VRc
+    gxdg0CTQvQvuceEvIYYYVGh/cIsIhV2AyiNBzV5jJw5ztQoVyWvdqn3B1YpMP8oK
+    +nadUcactH4gbsX+oXRULNC7Cdd9bp2G7sQc+aZm
+    -----END CERTIFICATE-----
+----
+--
+
+. Configure the certificates for {fleet-server}:
+
+.. If you don't already have a {fleet-server} service token, click *Fleet* and
+generate one now.
+ 
+.. From the directory where the {fleet-server} agent is installed, run the
+`enroll` (or `install`) command and specify the certificates to use. For example:
++
+--
+[source,shell]
+----
+sudo ./elastic-agent enroll \
+   --url=https://192.0.2.1:8220 \ <1>
+   --fleet-server-es=https://192.0.2.0:9200 \ <2>
+   --fleet-server-service-token=AAEBAWVsYXm0aWMvZmxlZXQtc2XydmVyL3Rva2VuLTE2MjM4OTAztDU1OTQ6dllfVW1mYnFTVjJwTC2ZQ0EtVnVZQQ \ <3>
+   --fleet-server-es-ca=/path/to/elasticsearch-ca.crt \ <4>
+   --certificate-authorities=/path/to/ca.crt \ <5>
+   --fleet-server-cert=/path/to/fleet-server.crt \ <6>
+   --fleet-server-cert-key=/path/to/fleet-server.key <7>
+----
+
+<1> {fleet-server} URL.
+<2> {es} URL.
+<3> CA certificate to use to connect to {es}
+<4> Service token to use to communicate with {es}
+<5> CA certificate to use to connect to {fleet-server}
+<6> Certificate to use for the exposed {fleet-server} HTTPS endpoint
+<7> Private key to use for the exposed {fleet-server} HTTPS endpoint
+--
++
+.What happens if you enroll {fleet-server} without specifying certificates?
+****
+
+If the certificates are managed by your organization and installed at the system
+level, they will be used to encrypt traffic between {agent}s, {fleet-server},
+and {es}.
+
+If system-level certificates don't exist, {fleet-server} automatically generates
+self-signed certificates. Traffic between {fleet-server} and {agent}s over
+HTTPS is encrypted, but the certificate chain cannot be verified. Any {agent}s
+enrolling in {fleet-server} will need to pass the `--insecure` flag to
+acknowledge that the certificate chain is not verified.
+
+Allowing {fleet-server} to generate self-signed certificates is useful to get
+things running for development, but not recommended in a production environment.
+****
+
+.. Start the {fleet-server} agent.
+
+. Next, enroll (or install) your {agent}s into {fleet}. {agent}s connecting to a
+secured {fleet-server} need to pass in the CA certificate expected by
+{fleet-server}. The CA certificate expected by {es} is already specified in the
+agent policy because it's set under {fleet} settings in {kib}.
++
+[source,shell]
+----
+sudo elastic-agent enroll -f --url=https://192.0.2.1:8220 \
+  --enrollment-token=empGaEYzb0IxVUgzNjZDYzdpVWw6SlJmbHpXVFpRdmlySG45UHJMb05qZw== \
+  --certificate-authorities=/path/to/ca.crt
+----
+
+//TODO: I need to decide how to handle enroll vs install command because it
+//depends on OS and whether the user has already installed Fleet Server before
+//configuring TLS. I'm not sure which use case to focus on here.
+
+// QUESTION: Which SSL settings are supported in the output block for agent?
+// Are there any missing here that I should add? like verification mode?
