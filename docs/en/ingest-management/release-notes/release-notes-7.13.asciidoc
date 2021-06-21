@@ -1,0 +1,192 @@
+// Use these for links to issue and pulls. 
+:kib-issue: https://github.com/elastic/kibana/issues/
+:kib-pull: https://github.com/elastic/kibana/pull/
+:agent-issue: https://github.com/elastic/beats/issues/
+:agent-pull: https://github.com/elastic/beats/pull/
+:fleet-server-issue: https://github.com/elastic/beats/issues/fleet-server/
+:fleet-server-pull: https://github.com/elastic/beats/pull/fleet-server/
+
+[[release-notes]]
+= Release notes
+
+This section summarizes the changes in each release.
+
+* <<release-notes-7.13.2>>
+
+* <<release-notes-7.13.1>>
+
+* <<release-notes-7.13.0>>
+
+Also see:
+
+* {kibana-ref}/release-notes.html[{kib} release notes]
+* {beats-ref}/release-notes.html[{beats} release notes]
+
+[[release-notes-7.13.2]]
+== {fleet} and {agent} 7.13.2
+
+The 7.13.2 release includes the following bug fixes.
+
+[discrete]
+[[bug-fixes-7.13.2]]
+=== Bug fixes
+
+{fleet}::
+* Fixes the double install button on the Integrations page {kibana-pull}101511[#101511]
+* Fixes an issue where integration packages were accidentally upgraded when they were added to an agent policy {kibana-pull}101542[#101542]
+
+[[release-notes-7.13.1]]
+== {fleet} and {agent} 7.13.1
+
+The 7.13.1 release includes the following bug fixes.
+
+[discrete]
+[[bug-fixes-7.13.1]]
+=== Bug fixes
+
+{fleet}::
+* Add missing install button for integrations that aren't installed yet {kibana-pull}100370[#100370]
+
+{agent}::
+* Fix unenroll of {agent}s when connected to a self-managed {fleet-server} {fleet-server-pull}381[#381]
+
+
+[[release-notes-7.13.0]]
+== {fleet} and {agent} 7.13.0
+
+Review important information about the {fleet} and {agent} 7.13.x releases.
+
+//[discrete]
+//[[security-updates-7.13.0]]
+//=== Security updates
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+[discrete]
+[[breaking-changes-7.13.0]]
+=== Breaking changes
+
+Breaking changes can prevent your application from optimal operation and
+performance. Before you upgrade, review the breaking changes, then mitigate the
+impact to your application.
+
+[discrete]
+[[breaking-97206]]
+.Remove Elastic Agent routes and related services from {kib} and implement them in {fleet-server}
+[%collapsible]
+====
+*Details* +
+Elastic Agents now use the Fleet Server to enroll agents, get agent policies, collect status information, and more. For more information, refer to {kibana-pull}97206[#97206].
+
+*Impact* +
+To run and manage Elastic Agents, use the Fleet Server instead of {kib}. For more information, refer to {fleet-guide}/fleet-server.html[Fleet Server].
+====
+      
+[discrete]
+[[breaking-95789]]
+.Invalidate API keys for existing agents
+[%collapsible]
+====
+*Details* +
+The existing agents in {kib} are not migrated as part of the migration to Fleet. For more information, refer to {kibana-pull}95789[#95789].
+
+*Impact* +
+The existing agent API keys are invalidated and display as `Inactive` on the *Agents* page.
+====
+
+[discrete]
+[[known-issues-7.13.0]]
+=== Known issues
+
+[[known-issue-98745]]
+.`fleet_enroll` role and user no longer needed and should be removed
+[%collapsible]
+====
+
+*Details* 
+
+The `fleet_enroll` role and user are no longer needed for central management
+of {agent}s in {kib}.
+
+*Impact* +
+If the role and user were set up in a previous release, remove them now to avoid
+them being orphaned in the cluster. {kib-pull}98745[#98745]
+====
+
+[[known-issue-25773]]
+.{agent}s unenrolling from a self-managed {fleet-server} hang at "Updating" and API keys are not invalidated
+[%collapsible]
+====
+
+*Details* 
+
+In {kib}, when you unenroll an {agent} from a self-managed {fleet-server},
+the status may hang at "Updating". This problem only occurs with {agent}s
+connecting to a {fleet-server} started with a service token.
+
+*Impact* +
+You must do a force unenroll to remove the {agent} and invalidate the API keys,
+or unenrollment hangs indefinitely. {fleet-server-issue}380[#380]
+====
+
+
+//[discrete]
+//[[deprecations-7.13.0]]
+//=== Deprecations
+
+//The following functionality is deprecated in 7.13.0, and will be removed in
+//8.0.0. Deprecated functionality does not have an immediate impact on your
+//application, but we strongly recommend you make the necessary updates after you
+//upgrade to 7.13.0.
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[new-features-7.13.0]]
+//=== New features
+
+//The 7.13.0 release adds the following new and notable features.
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+[discrete]
+[[enhancements-7.13.0]]
+=== Enhancements
+
+{fleet}::
+* Hide Fleet Server policies in standalone agent instructions {kibana-pull}98787[#98787]
+* Adds troubleshooting link to setup instructions {kibana-pull}98531[#98531]
+* Adds ability to specify which integration variables should be configurable {kibana-pull}97163[#97163]
+* Configure Fleet packages and integrations through endpoint {kibana-pull}94509[#94509]
+* Adds submitOnBlur functionality to QueryStringInput {kibana-pull}93819[#93819]
+
+//{agent}::
+//* add info
+
+[discrete]
+[[bug-fixes-7.13.0]]
+=== Bug fixes
+
+{fleet}::
+* Correctly parse falsy YAML fields in agent policy integrations {kibana-pull}95966[#95966]
+* Match telemetry key names to UI agent states {kibana-pull}95567[#95567]
+* Ignore inactive agents when removing a policy {kibana-pull}94311[#94311]
+* Correctly track install status of an integration {kibana-pull}93464[#93464]
+* Fix default integration name when adding 10+ names {kibana-pull}93278[#93278]
+* Prevent duplicate enrollment token names {kibana-pull}92735[#92735]
+* Set all keyword and text fields for `index.query.default_field` index template setting {kibana-pull}91791[#91791]
+
+//{agent}::
+//* add info

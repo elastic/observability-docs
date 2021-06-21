@@ -1,6 +1,6 @@
 [[fleet-overview]]
 [role="xpack"]
-= Overview
+= {fleet} and {agent} overview
 
 beta[]
 
@@ -12,6 +12,8 @@ beta[]
 other types of data to each host. A single agent makes it easier and faster
 to deploy monitoring across your infrastructure. The agent's single, unified
 policy makes it easier to add integrations for new data sources.
+
+For more information, see <<elastic-agent-installation-configuration>>.
 
 [discrete]
 [[fleet]]
@@ -28,13 +30,36 @@ within seconds.
 image::images/integrations.png[Integrations page]
 
 [discrete]
-[[fleet-server]]
+[[fleet-server-intro]]
 == {fleet-server}
 
 {fleet-server} is the mechanism to connect {agent}s to {fleet}.  It allows for
 a scalable infrastructure and is supported in {ecloud} and self-managed clusters.
 {fleet-server} is a separate process that communicates with the deployed {agent}s.
 It can be started from any available x64 architecture {agent} artifact.
+
+For more information, see <<fleet-server>>.
+
+[discrete]
+[[package-registry-intro]]
+== {package-registry}
+
+The {package-registry} is an online package hosting service for the integrations
+available in the {fleet} UI in {kib}.
+
+{kib} connects to the {package-registry} at `epr.elastic.co` using the Elastic Package Manager,
+downloads the latest integration package and stores its assets in {es}. This process
+currently requires an internet connection because integrations are updated and released periodically.
+
+If you are running a self-managed deployment, you may need to configure the outbound connection
+so that the Elastic Package Manager can reach the {package-registry}.
+
+To do so, add the following setting to your `kibana.yml` file:
+
+[source,yaml]
+----
+xpack.ingestManager.registryProxyUrl: <your-proxy-address>
+----
 
 [discrete]
 [[configuring-integrations]]
