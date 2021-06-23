@@ -13,21 +13,27 @@ connections out of the box!
 [[prereqs]]
 == Prerequisites
 
-Configure security and generate certificates for the {stack}:
+Configure security and generate certificates for the {stack}. 
 
-. {ref}/security-minimal-setup.html[Set up minimal security for {es}]
-. {ref}/security-basic-setup.html[Set up basic security for the {stack}]
-. {ref}/security-basic-setup-https.html[Set up basic security for the {stack} plus secured HTTPS traffic]
+IMPORTANT: {agent}s require a PEM-formatted CA certificate to send encrypted
+data to {es}.
+
+//QUESTION: Is this a true statement? ^^ I could not get other formats to work.
+//I think that is a requirement of Beats.
+
+For more information about securing the {stack}, refer to
+{ref}/configuring-stack-security.html[Configure security for the {stack}].
 
 [discrete]
 [[generate-fleet-server-certs]]
 == Generate a custom certificate and private key for {fleet-server}
 
 This section describes how to use the `certutil` tool provided by {es}, but you
-can use whatever process you typically use to generate certificates.
+can use whatever process you typically use to generate PEM-formatted
+certificates.
 
-. (Optional) Generate a certificate authority (CA). Skip this step if you want
-to use an existing CA.
+. Generate a certificate authority (CA). Skip this step if you want to use an
+existing CA.
 +
 [source,shell]
 ----
@@ -35,7 +41,11 @@ to use an existing CA.
 ----
 +
 This command creates a zip file that contains the CA certificate and key you'll
-use to sign the {fleet-server} certificate.
+use to sign the {fleet-server} certificate. Extract the zip file:
++
+image::images/ca.png[Screen capture of a folder called ca that contains two files: ca.crt and ca.key]
++
+Store the files in a secure location.
 
 . Use the certificate authority to generate certificates for {fleet-server}.
 For example:
@@ -51,11 +61,16 @@ For example:
   --pem
 ----
 +
-This command creates a certificate bundle that includes a `.crt` and `.key`
-file. You'll need these files later to encrypt traffic between {agent}s
-and {fleet-server}.
-
-. Store the files in a secure location until you are ready to use them.
+Where `dns` and `ip` specify the name and IP address of the {fleet-server}. Run
+this command for each {fleet-server} you plan to deploy.
++
+This command creates a zip file that includes a `.crt` and `.key`
+file. Extract the zip file:
++
+image::images/fleet-server-certs.png[Screen capture of a folder called fleet-server that contains two files: fleet-server.crt and fleet-server.key]
++
+Store the files in a secure location. You'll need these files later to encrypt
+traffic between {agent}s and {fleet-server}.
 
 //QUESTION: Do we need to say anything here about key passwords not being supported?
 
@@ -66,32 +81,43 @@ and {fleet-server}.
 needs to expose a {fleet-server} certificate so other {agent}s can connect to it
 securely.
 
-. On the system running the {fleet-server} agent, add:
-+
---
-* The certificate and private key you generated for {fleet-server} (for example,
-`fleet-server.crt` and `fleet-server.key`).
+For the steps in this section, imagine you have the following files:
 
-* The CA certificate to use to connect to {es}. This certificate was created
-when you configured TLS for the stack as described in the <<prereqs>>. 
---
+[cols=2*] 
+|===
 
-. On the systems where other {agent}s are running, add:
-+
---
-* (Optional) The CA certificate to use to connect to {es}. This is optional
-because you can embed this certificate later when you specify {fleet}
-settings.
-* The CA certificate to use to connect to {fleet-server}. This is the CA you
-used to <<generate-fleet-server-certs,generate a certificate and key>> for
-{fleet-server}. For example, `ca.crt`.
---
+|`ca.crt`
+|The CA certificate to use to connect to {fleet-server}. This is the
+CA used to <<generate-fleet-server-certs,generate a certificate and key>>
+for {fleet-server}.
+
+|`fleet-server.crt`
+|The certificate you generated for {fleet-server}
+
+|`fleet-server.key`
+|The private key you generated for {fleet-server}
+
+|`elasticsearch-ca.crt`
+|The CA certificate to use to connect to {es}. This is the CA used to generate
+certs for {es} (see <<prereqs>>).
+
+|===
+
+//QUESTION: What formats are supported for the CA certificate? I followed our
+//documented steps in the Elasticsearch docs to secure the stack, but I couldn't
+//get everything to work. What does the user need to do if the CA is a pk12 file?
+
+To encrypt traffic between {agent}s, {fleet-server}, and {es}:
 
 . Configure {fleet} settings:
 
 .. In {kib} go to *Management > {fleet}*.
 
-.. In the upper-right corner, click *Fleet settings*.
+.. In the upper-right corner, click *Fleet settings* and set connection details
+that apply to all {fleet}-managed {agent}s:
++
+[role="screenshot"]
+image::images/fleet-settings-ssl.png[Screen capture that shows {fleet-server} hosts, {es} hosts, and {es} output settings]
 
 .. In the *Fleet Server hosts* field, specify the
 URLs {agent}s will use to connect to {fleet-server}. For example,
@@ -149,8 +175,11 @@ ssl:
 
 . Configure the certificates for {fleet-server}:
 
-.. If you don't already have a {fleet-server} service token, click *Add agent* > *Enroll in Fleet* > *Generate service token* and
-generate one now.
+.. If you don't already have a {fleet-server} service token, click the *Agents*
+tab in {fleet} and follow the instructions to generate the service token now.
++
+TIP: The quick start command shown in the instructions is incomplete. You need
+to add the settings shown in the next step before running the command. 
  
 .. From the directory where the {fleet-server} agent is installed, run the
 `enroll` (or `install`) command and specify the certificates to use. For example:
@@ -158,23 +187,34 @@ generate one now.
 --
 [source,shell]
 ----
-sudo ./elastic-agent enroll \
-   --url=https://192.0.2.1:8220 \ <1>
-   --fleet-server-es=https://192.0.2.0:9200 \ <2>
-   --fleet-server-service-token=AAEBAWVsYXm0aWMvZmxlZXQtc2XydmVyL3Rva2VuLTE2MjM4OTAztDU1OTQ6dllfVW1mYnFTVjJwTC2ZQ0EtVnVZQQ \ <3>
-   --fleet-server-es-ca=/path/to/elasticsearch-ca.crt \ <4>
-   --certificate-authorities=/path/to/ca.crt \ <5>
-   --fleet-server-cert=/path/to/fleet-server.crt \ <6>
-   --fleet-server-cert-key=/path/to/fleet-server.key <7>
+sudo ./elastic-agent enroll -f \
+   --url=https://192.0.2.1:8220 \
+   --fleet-server-es=https://192.0.2.0:9200 \
+   --fleet-server-service-token=AAEBAWVsYXm0aWMvZmxlZXQtc2XydmVyL3Rva2VuLTE2MjM4OTAztDU1OTQ6dllfVW1mYnFTVjJwTC2ZQ0EtVnVZQQ \
+   --fleet-server-es-ca=/path/to/elasticsearch-ca.crt \
+   --certificate-authorities=/path/to/ca.crt \
+   --fleet-server-cert=/path/to/fleet-server.crt \
+   --fleet-server-cert-key=/path/to/fleet-server.key
 ----
-
-<1> {fleet-server} URL
-<2> {es} URL
-<3> CA certificate to use to connect to {es}
-<4> Service token to use to communicate with {es}
-<5> CA certificate to use to connect to {fleet-server}
-<6> Certificate to use for the exposed {fleet-server} HTTPS endpoint
-<7> Private key to use for the exposed {fleet-server} HTTPS endpoint
+--
++
+Where:
++
+--
+`url`::
+{fleet-server} URL
+`fleet-server-es`::
+{es} URL
+`fleet-server-service-token`::
+Service token to use to communicate with {es}
+`fleet-server-es-ca`::
+CA certificate to use to connect to {es}
+`certificate-authorities`::
+CA certificate to use to connect to {fleet-server}
+`fleet-server-cert`::
+Certificate to use for the exposed {fleet-server} HTTPS endpoint
+`fleet-server-cert-key`::
+Private key to use for the exposed {fleet-server} HTTPS endpoint
 --
 +
 .What happens if you enroll {fleet-server} without specifying certificates?
