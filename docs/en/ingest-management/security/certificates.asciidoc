@@ -1,0 +1,287 @@
+[[secure-connections]]
+[role="xpack"]
+= Encrypt traffic in a self-managed cluster
+
+If you're running a self-managed cluster, configure Transport Layer Security
+(TLS) to encrypt traffic between {agent}s, {fleet-server}, and other components
+in the {stack}.
+
+TIP: Our {ess-product}[hosted {ess}] on {ecloud} provides secure, encrypted
+connections out of the box!
+
+[discrete]
+[[prereqs]]
+== Prerequisites
+
+Configure security and generate certificates for the {stack}. For more
+information about securing the {stack}, refer to
+{ref}/configuring-stack-security.html[Configure security for the {stack}].
+
+[IMPORTANT]
+====
+{agent}s require a PEM-formatted CA certificate to send encrypted data to {es}.
+If you followed the steps in {ref}/configuring-stack-security.html[Configure
+security for the {stack}], your certificate will be in a p12 file. To convert
+it, use openssl:
+
+[source,shell]
+----
+openssl pkcs12 -in path.p12 -out cert.crt -clcerts -nokeys
+openssl pkcs12 -in path.p12 -out private.key -nocerts -nodes
+----
+
+Key passwords are not currently supported.
+====
+
+[discrete]
+[[generate-fleet-server-certs]]
+== Generate a custom certificate and private key for {fleet-server}
+
+This section describes how to use the `certutil` tool provided by {es}, but you
+can use whatever process you typically use to generate PEM-formatted
+certificates.
+
+. Generate a certificate authority (CA). Skip this step if you want to use an
+existing CA.
++
+--
+[source,shell]
+----
+./bin/elasticsearch-certutil ca --pem
+----
+
+This command creates a zip file that contains the CA certificate and key you'll
+use to sign the {fleet-server} certificate. Extract the zip file:
+
+image::images/ca.png[Screen capture of a folder called ca that contains two files: ca.crt and ca.key]
+
+Store the files in a secure location.
+--
+
+. Use the certificate authority to generate certificates for {fleet-server}.
+For example:
++
+--
+[source,shell]
+----
+./bin/elasticsearch-certutil cert \
+  --name fleet-server \
+  --ca-cert /path/to/ca/ca.crt \
+  --ca-key /path/to/ca/ca.key \
+  --dns your.host.name.here \
+  --ip 192.0.2.1 \
+  --pem
+----
+
+Where `dns` and `ip` specify the name and IP address of the {fleet-server}. Run
+this command for each {fleet-server} you plan to deploy.
+
+This command creates a zip file that includes a `.crt` and `.key`
+file. Extract the zip file:
+
+image::images/fleet-server-certs.png[Screen capture of a folder called fleet-server that contains two files: fleet-server.crt and fleet-server.key]
+
+Store the files in a secure location. You'll need these files later to encrypt
+traffic between {agent}s and {fleet-server}.
+--
+
+[discrete]
+== Encrypt traffic between {agent}s, {fleet-server}, and {es}
+
+{fleet-server} needs a CA certificate to connect securely to {es}. It also
+needs to expose a {fleet-server} certificate so other {agent}s can connect to it
+securely.
+
+For the steps in this section, imagine you have the following files:
+
+[cols=2*] 
+|===
+
+|`ca.crt`
+|The CA certificate to use to connect to {fleet-server}. This is the
+CA used to <<generate-fleet-server-certs,generate a certificate and key>>
+for {fleet-server}.
+
+|`fleet-server.crt`
+|The certificate you generated for {fleet-server}.
+
+|`fleet-server.key`
+|The private key you generated for {fleet-server}.
+
+|`elasticsearch-ca.crt`
+|The CA certificate to use to connect to {es}. This is the CA used to generate
+certs for {es} (see <<prereqs>>).
+
+|===
+
+To encrypt traffic between {agent}s, {fleet-server}, and {es}:
+
+. Configure {fleet} settings:
+
+.. In {kib} go to *Management > {fleet}*.
+
+.. In the upper-right corner, click *Fleet settings* and set connection details
+that apply to all {fleet}-managed {agent}s:
++
+[role="screenshot"]
+image::images/fleet-settings-ssl.png[Screen capture that shows {fleet-server} hosts, {es} hosts, and {es} output settings]
+
+.. In the *Fleet Server hosts* field, specify the
+URLs {agent}s will use to connect to {fleet-server}. For example,
+https://192.0.2.1:8220, where 192.0.2.1 is the host IP where you will install
+{fleet-server}.
+
+.. In the *Elasticsearch host* field, specify the {es} URLs where {agent}s will
+send data. For example, https://192.0.2.0:9200.
++
+Use the `https` protocol for both host settings. DNS-based names are also
+allowed.
+
+.. Under *Elasticsearch output configuration (YAML)*, set
+`ssl.certificate_authorities` and specify the CA certificate to use to connect
+to {es}. You can specify a list of file paths (if the files are available), or
+embed a certificate directly in the YAML configuration. If you specify file
+paths, the certificates must be available on the hosts running the {agent}s.
++
+--
+Path example:
+
+[source,yaml]
+----
+ssl.certificate_authorities: ["/path/to/your/elasticsearch-ca.crt"] <1>
+----
+<1> The path to the CA certificate on the {agent} host.
+
+Pasted certificate example:
+
+[source,yaml]
+----
+ssl:
+  certificate_authorities:
+  - |
+    -----BEGIN CERTIFICATE-----
+    MIIDSjCCAjKgAwIBAgIVAKlphSqJclcni3P83gVsirxzuDuwMA0GCSqGSIb3DQEB
+    CwUAMDQxMjAwBgNVBAMTKUVsYXN0aWMgQ2VydGlmaWNhdGUgVG9vbCBBdXRvZ2Vu
+    ZXJhdGVkIENBMB4XDTIxMDYxNzAxMzIyOVoXDTI0MDYxNjAxMzIyOVowNDEyMDAG
+    A1UEAxMpRWxhc3RpYyBDZXJ0aWZpY2F0ZSBUb29sIEF1dG9nZW5lcmF0ZWQgQ0Ew
+    ggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIBAQDOFgtVri7Msy2iR33nLrVO
+    /M/6IyF72kFXup1E67TzetI22avOxNlq+HZTpZoWGV1I4RgxiQeN12FLuxxhd9nm
+    rxfZEqpuIjvo6fvU9ifC03WjXg1opgdEb6JqH93RHKw0PYimxhQfFcwrKxFseHUx
+    DeUNQgHkMQhDZgIfNgr9H/1X6qSU4h4LemyobKY3HDKY6pGsuBzsF4iOCtIitE9p
+    sagiWR21l1gW/lNaEW2ICKhJXbaqbE/pis45/yyPI4Q1Jd1VqZv744ejnZJnpAx9
+    mYSE5RqssMeV6Wlmu1xWljOPeerOVIKUfHY38y8GZwk7TNYAMajratG2dj+v9eAV
+    AgMBAAGjUzBRMB0GA1UdDgQWBBSCNCjkb66eVsIaa+AouwUsxU4b6zAfBgNVHSME
+    GDAWgBSCNCjkb66eVsIaa+AouwUsxU4b6zAPBgNVHRMBAf8EBTADAQH/MA0GCSqG
+    SIb3DQEBCwUAA4IBAQBVSbRObxPwYFk0nqF+THQDG/JfpAP/R6g+tagFIBkATLTu
+    zeZ6oJggWNSfgcBviTpXc6i1AT3V3iqzq9KZ5rfm9ckeJmjBd9gAcyqaeF/YpWEb
+    ZAtbxfgPLI3jK+Sn8S9fI/4djEUl6F/kARpq5ljYHt9BKlBDyL2sHymQcrDC3pTZ
+    hEOM4cDbyKHgt/rjcNhPRn/q8g3dDhBdzjlNzaCNH/kmqWpot9AwmhhfPTcf1VRc
+    gxdg0CTQvQvuceEvIYYYVGh/cIsIhV2AyiNBzV5jJw5ztQoVyWvdqn3B1YpMP8oK
+    +nadUcactH4gbsX+oXRULNC7Cdd9bp2G7sQc+aZm
+    -----END CERTIFICATE-----
+----
+--
+
+. Install an {agent} as a {fleet-server} on the host and configure it to use TLS:
+
+.. If you don't already have a {fleet-server} service token, click the *Agents*
+tab in {fleet} and follow the instructions to generate the service token now.
++
+TIP: The in-product installation steps are incomplete. Before running the
+`install` command, add the settings shown in the next step.
+ 
+.. From the directory where you extracted {fleet-server}, run the `install`
+command and specify the certificates to use.
++
+--
+The following command installs {agent} as a service, enrolls it in the
+{fleet-server} policy, and starts the service.
+
+NOTE: If you're using DEB or RPM, or already have the {agent} installed, use the
+`enroll` command along with the following options, then start the service as
+described in <<start-elastic-agent>>.
+
+[source,shell]
+----
+sudo ./elastic-agent install -f \
+   --url=https://192.0.2.1:8220 \
+   --fleet-server-es=https://192.0.2.0:9200 \
+   --fleet-server-service-token=AAEBAWVsYXm0aWMvZmxlZXQtc2XydmVyL3Rva2VuLTE2MjM4OTAztDU1OTQ6dllfVW1mYnFTVjJwTC2ZQ0EtVnVZQQ \
+   --fleet-server-es-ca=/path/to/elasticsearch-ca.crt \
+   --certificate-authorities=/path/to/ca.crt \
+   --fleet-server-cert=/path/to/fleet-server.crt \
+   --fleet-server-cert-key=/path/to/fleet-server.key
+----
+
+Where:
+
+`url`::
+{fleet-server} URL.
+`fleet-server-es`::
+{es} URL
+`fleet-server-service-token`::
+Service token to use to communicate with {es}.
+`fleet-server-es-ca`::
+CA certificate to use to connect to {es}.
+`certificate-authorities`::
+CA certificate to use to connect to {fleet-server}.
+`fleet-server-cert`::
+Certificate to use for the exposed {fleet-server} HTTPS endpoint.
+`fleet-server-cert-key`::
+Private key to use for the exposed {fleet-server} HTTPS endpoint.
+
+.What happens if you enroll {fleet-server} without specifying certificates?
+****
+
+If the certificates are managed by your organization and installed at the system
+level, they will be used to encrypt traffic between {agent}s, {fleet-server},
+and {es}.
+
+If system-level certificates don't exist, {fleet-server} automatically generates
+self-signed certificates. Traffic between {fleet-server} and {agent}s over
+HTTPS is encrypted, but the certificate chain cannot be verified. Any {agent}s
+enrolling in {fleet-server} will need to pass the `--insecure` flag to
+acknowledge that the certificate chain is not verified.
+
+Allowing {fleet-server} to generate self-signed certificates is useful to get
+things running for development, but not recommended in a production environment.
+****
+--
+
+. Install your {agent}s and enroll them in {fleet}.
++
+--
+{agent}s connecting to a secured {fleet-server} need to pass in the CA
+certificate used by the {fleet-server}. The CA certificate used by {es} is
+already specified in the agent policy because it's set under {fleet} settings in
+{kib}. You do not need to pass it on the command line.
+
+The following command installs {agent} as a service, enrolls it
+in the agent policy associated with the specified token, and starts the service.
+
+[source,shell]
+----
+sudo elastic-agent install -f --url=https://192.0.2.1:8220 \
+  --enrollment-token=<string> \
+  --certificate-authorities=/path/to/ca.crt
+----
+
+Where:
+
+`url`::
+Fleet Server URL to use to enroll the {agent} into {fleet}.
+`enrollment-token`::
+The enrollment token for the policy that will be applied to the {agent}.
+`certificate-authorities`::
+CA certificate to use to connect to {fleet-server}. This is the
+CA used to <<generate-fleet-server-certs,generate a certificate and key>>
+for {fleet-server}.
+
+Don't have an enrollment token? On the *Agents* tab in Fleet, click *Add agent*.
+Under *Enroll in Fleet*, follow the in-product installation steps, making sure
+that you add the `--certificate-authorities` option before you run the command.
+--
+
+// TODO: Add reference docs about SSL settings and point to the content from
+// this topics. Before I can do this, I need to know which settings from Beats
+// are supported for Elastic Agent.
