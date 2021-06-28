@@ -39,40 +39,44 @@ Elastic Cloud.
 [NOTE]
 ====
 Ensure your Azure account is configured with *Owner* access on the subscription
-in which you want to deploy {es}. You can read more about Azure
-subscriptions in the https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/add-change-subscription-administrator#assign-a-subscription-administrator[Microsoft Azure documentation].
+you want to deploy {es}. To learn more about Azure
+subscriptions, see the https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/add-change-subscription-administrator#assign-a-subscription-administrator[Microsoft Azure documentation].
 ====
 
-. Search and click on *{es}*.
+. In the search bar, enter *{es}* and then select it.
 +
+[role="screenshot"]
 image:monitor-azure-search-elasticsearch.png[Search and click on {es}]
 
-. Click on *Create*.
+. Click *Create*.
 
-. Fill in the *Subscription*, the *Resource group*, and the *Resource name*.
-Select a region and click on *Review + create*.
+. Enter the *Subscription*, *Resource group*, and the *Resource name*.
+. Select a region and then click *Review + create*.
 +
+[role="screenshot"]
 image:monitor-azure-create-elastic-resource.png[Create Elastic resource]
 +
 [NOTE]
 ====
-*Logs & metrics* will be discussed later.
+We will cover *logs* and *metrics* later in this tutorial.
 ====
 
-. Click on *Create* to create the {es} cluster.
+. To create the {es} cluster, click *Create*.
 
-. After your deployment is complete, click on *Go to resource*.
+. After your deployment is complete, click *Go to resource*.
 Here you can see and configure your deployment details.
-Click on *{kib}* to access the cluster.
+To access the cluster, click *{kib}*.
 +
+[role="screenshot"]
 image:monitor-azure-elastic-deployment.png[Elastic resource]
 
-. Select your Azure account to follow through with single sign-on directly
-into Elastic.
+. To single sign-on directly
+into Elastic, select your Azure account.
 
-. Click on *Observability* to see if there is any data available.
-There should be no data yet, but you will ingest logs next.
+. To see if there is any available data, click *Observability*.
+There should be no data yet, but next, you will ingest logs.
 +
+[role="screenshot"]
 image:monitor-azure-kibana-observability-page-empty.png[{kib} observability
 page (no data)]
 
@@ -80,71 +84,79 @@ page (no data)]
 [[azure-step-two]]
 === Step 2: Ingest logs using the native integration
 
-It is very easy to ingest Azure subscription and resource logs into Elastic
-using the Microsoft Azure native integration.
+To ingest Azure subscription and resource logs into Elastic
+using the Microsoft Azure native integration is straightforward.
 
-. Go back to the Elasticsearch resource page in Azure and click on
+. On to the {es} resource page in Azure, click
 *Ingest logs and metrics from Azure Services*.
 +
+[role="screenshot"]
 image:monitor-azure-elastic-click-ingest-logs.png[Click on Ingest logs and
 metrics from Azure Services]
 
 . Check both checkboxes and click *Save*.
 +
+[role="screenshot"]
 image:monitor-azure-elastic-config-logs-metrics.png[Elastic configure logs and
 metrics]
 +
 [NOTE]
 ====
-This configuration can also be done during the Elastic resource creation.
-This tutorial separates the two steps to make the concepts clearer.
+This configuration can also be applied during the Elastic resource creation.
+To make the concepts clearer, this tutorial separates the two steps.
 ====
 +
 [NOTE]
 ====
-Native metrics collection is not fully supported yet and will be discussed
+Native metrics collection is not fully supported yet and is discussed
 later.
 ====
 
-. Go back to {kib} and click on *Observability* at the breadcrumbs until you
+. Within {kib}, click *Observability* until you
 see some data.
-It might take a few minutes before you see some data.
+This may take a few minutes.
 +
+[role="screenshot"]
 image:monitor-azure-kibana-observability-page-data.png[{kib} observability page
 (with data)]
  
-. Click *View in app* to access the Logs app and analyze all your subscription
-and resource logs.
+. To access the Logs app and analyze all your subscription
+and resource logs, click *View in app*.
 +
+[role="screenshot"]
 image:monitor-azure-kibana-logs-app.png[{kib} Logs app]
 
 [discrete]
 [[azure-step-three]]
 === Step 3: Ingest logs and metrics from your virtual machines.
 
-. Go to your Elastic resource and click on *Virtual machines*.
+. Go to your Elastic resource and click *Virtual machines*.
 +
+[role="screenshot"]
 image:monitor-azure-elastic-deployment.png[Elastic resource]
 
-. Select the VMs that you want to collect logs and metrics from, click on
-*Install Extension*, and click *OK*.
+. Select the VMs that you want to collect logs and metrics from, click
+*Install Extension*, and then click *OK*.
 +
+[role="screenshot"]
 image:monitor-azure-elastic-vms.png[Select VMs to collect logs and metrics from]
 
-. Wait until it is installed and sending data (click on *Refresh* if the list
-does not update).
-Then, click on *Logs* to see the VMs logs in the Logs app.
+. Wait until it is installed and sending data (if the list
+does not update, click *Refresh* ).
+To see the logs from the VM in the Logs app, click  *Logs*.
 +
+[role="screenshot"]
 image:monitor-azure-kibana-vms-logs.png[VMs logs in the Logs app]
 +
-And click on *Metrics* to see the VMs metrics dashboard.
+To see the VM metrics dashboard, click *Metrics*.
 +
+[role="screenshot"]
 image:monitor-azure-kibana-vms-metrics.png[VMs metrics dashboard]
 +
 [NOTE]
 ====
-Both logs and metrics will be filtered by the VM's name that you clicked on.
-Delete the filter to view the data for all the monitored VMs.
+Both logs and metrics are filtered by the VM name that you selected.
+To view the data for all the monitored VMs, delete the filter.
 ====
 
 [discrete]
@@ -161,7 +173,7 @@ and {metricbeat}.
 The Azure Monitor REST API allows you to get insights into your Azure
 resources using different operations.
 To access the Azure Monitor REST API you need to use the Azure Resource Manager
-authentication model. Therefore, all requests must be authenticated with Azure
+authentication model. Therefore, you must authenticate all requests with Azure
 Active Directory (Azure AD).
 You can create the service principal using the https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal[Azure portal]
 or https://docs.microsoft.com/en-us/powershell/azure/create-azure-service-principal-azureps?view=azps-2.7.0[Azure PowerShell].
@@ -232,24 +244,27 @@ access to your subscription.
 [discrete]
 ==== Install and configure {metricbeat}
 
-To properly configure {metricbeat} you will need the Elasticsearch cluster
+To configure {metricbeat} you need the {es} cluster
 details.
 
-. Go to the Elasticsearch resource page and click on *Manage changes in
+. On the {es} resource page, click *Manage changes in
 Elastic Cloud*.
 +
+[role="screenshot"]
 image:monitor-azure-elastic-deployment.png[Elastic resource]
 
-. Copy the *Cloud ID* and keep it safe as you will use it later.
+. Copy the *Cloud ID* and keep it safe. You will use it later.
 +
+[role="screenshot"]
 image:monitor-azure-kibana-deployment.png[Elastic Cloud deployment]
 
-. Click on *Security* and then on *Reset password*. Confirm, copy the
-password, and keep it safe as you will use it later.
+. Click *Security* and then click *Reset password*. Confirm, and copy the
+password. Keep it safe as you will use it later.
 +
+[role="screenshot"]
 image:monitor-azure-kibana-security.png[Elastic Cloud security]
 
-You can run the {metricbeat} on any machine. This {tutorial} uses a small
+You can run {metricbeat} on any machine. This {tutorial} uses a small
 Azure VM, *B2s* (2 vCPUs, 4 GB memory), with an Ubuntu distribution.
 
 :leveloffset: +3
@@ -342,8 +357,9 @@ If it returns a timeout error, try again. The `test modules` timeout is short.
 ----
 
 . Finally, log into {kib} and open the *[{metricbeat} Azure] Billing overview*
-dashboard. (Keep in mind it collects data every 24h.)
+dashboard. Keep in mind it collects data every 24 hours.
 +
+[role="screenshot"]
 image:monitor-azure-billing-overview-dashboard.png[{metricbeat} azure billing
 overview dashboard]
 
