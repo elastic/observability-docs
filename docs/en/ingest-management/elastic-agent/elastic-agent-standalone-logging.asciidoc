@@ -1,8 +1,8 @@
-[[elastic-agent-logging-config]]
+[[elastic-agent-standalone-logging-config]]
 [role="xpack"]
-= Configure logging
+= Configure logging for {agent} standalone
 
-The `Logging` section of the `elastic-agent.yml` config file contains settings for configuring the logging output.
+The Logging section of the `elastic-agent.yml` config file contains settings for configuring the logging output.
 The logging system can write logs to the `syslog`, `file`, `stderr`, `eventlog` or rotate log files.
 If you do not explicitly configure logging, the `stderr` output is used.
 
@@ -18,10 +18,10 @@ agent.logging.files:
 ----
 
 [discrete]
-[[elastic-agent-logging-settings]]
+[[elastic-agent-standalone-logging-settings]]
 == Logging configuration settings
 
-You can specify the following settings in the `Logging` section of the `elastic-agent.yml` config file.
+You can specify the following settings in the Logging section of the `elastic-agent.yml` config file.
 
 [cols="2*<a"]
 |===
@@ -53,27 +53,19 @@ Possible values: `[beat]`, `[publish]`, `[service]`
 | `agent.logging.to_stderr` | Set to `true` to write all logging output to the `stderr` output—this is equivalent to
 using the `-e` command line option.
 
-Possible values: `true`, `false`
-
 Default: `true`
 
 | `agent.logging.to_syslog` | Set to `true` to write all logging output to the `syslog` output.
 
-Possible values: `true`, `false`
-
 Default: `false`
 
 | `agent.logging.to_eventlog` | Set to `true` to write all logging output to the Windows `eventlog` output.
-
-Possible values: `true`, `false`
 
 Default: `false`
 
 | `agent.logging.metrics.enabled` | Set to `true` for {agent} to periodically log its internal metrics that have changed in the
 last period. For each metric that changed, the delta from the value at the beginning of the period is logged.
 Also, the total values for all non-zero internal metrics get logged on shutdown.
-
-Possible values: `true`, `false`
 
 Default: `true`
 
@@ -83,14 +75,13 @@ Default: `30s`
 
 | `agent.logging.to_files` | Set to `true` to log to rotating files. Set to `false` to disable logging to files.
 
-Possible values: `true`, `false`
-
 Default: `true`
 
-| `agent.logging.files.path` | The directory that log files is written to. The default is the logs directory
-under the home path (the binary location).
+| `agent.logging.files.path` | The directory that log files is written to.
 
-Default: `/var/log/elastic-agent`
+include::{tab-widgets}/logging-widget.asciidoc[]
+
+Logs are numbered log.1, log.2, and so on as they are rotated off the main log.
 
 | `agent.logging.files.name` | The name of the file that logs are written to.
 
@@ -98,7 +89,7 @@ Default: `elastic-agent`
 
 | `agent.logging.files.rotateeverybytes` | The maximum size limit of a log file. If the limit is reached, a new log file is generated.
 
-Default: `10485760 # = 10MB`
+Default: `10485760` (10MB)
 
 |  `agent.logging.files.keepfiles` | The most recent number of rotated log files to keep on disk. Older files are deleted during log rotation.
 The value must be in the range of `2` to `1024` files.
@@ -116,7 +107,7 @@ reported by the local system clock. All other intervals get calculated from the 
 
 Default: `0` (disabled)
 
-| `agent.logging.files.rotateonstartup` | Uncomment this setting to rotate existing logs on startup rather than to append to the existing file. 
+| `agent.logging.files.rotateonstartup` | Set to `true` to rotate existing logs on startup rather than to append to the existing file. 
 
 Default: `true`
 
@@ -130,3 +121,6 @@ information. We recommended to use this option in combination with `agent.loggin
 Default: `false`
 
 |===
+
+// Add Javascript and CSS for tabbed panels
+include::{tab-widgets}/code.asciidoc[]
