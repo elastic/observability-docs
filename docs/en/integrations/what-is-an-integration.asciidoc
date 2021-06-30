@@ -1,13 +1,7 @@
 [[what-is-an-integration]]
 = What is an integration?
 
-// Ingest Observability data from popular services into the Elastic Stack
-// https://github.com/elastic/integrations
-// https://github.com/elastic/integrations/blob/master/docs/definitions.md
-// This needs WORK
-
-An Elastic integration is a collection of assets that defines how to observe a specific product with the Elastic Stack.
-These assets include:
+An Elastic integration is a collection of assets that defines how to observe a specific product or service with the Elastic Stack:
 
 * Data ingest, storage, and transformation rules
 * Configuration options
@@ -23,51 +17,39 @@ Integrations have a strict, well-defined structure, and offer a number of benefi
 * Deploy in just a few clicks
 * Decoupled release process from the Elastic Stack
 
-
 [discrete]
-[[why-build-an-integration]]
-== Why build an integration?
+[[how-integrations-work]]
+== Integration lifecycle
 
-* You want to observe _some_ service
-* You observe that service by ingesting metrics and/or logs from it
-* You want to visualize this data in a meaningful way
+. Create a source package
++
+All integrations start as a source package.
+You'll find most Elastic integrations in the {integrations-repo-link}[`elastic/integrations`] repository,
+but a package can live anywhere.
++
+All packages must adhere to the <<package-spec,package specification>> -- a formal spec used for the creation and validation of new or updated integrations.
 
-[discrete]
-[[integration-repos]]
-== Repositories
+. Publish the integration to the package registry
++
+Once an integration (package) has been created, it needs to be built. Built integrations are stored in the {package-storage-repo-link}[Package Storage repository] and served up via the {package-registry-repo-link}[Elastic Package Registry (EPR)].
+The Fleet UI in Kibana connects to the Package Registry and allows users to discover, install, and configure Elastic Packages.
+The EPR can also be run locally for testing purposes.
 
-// While this repository contains sources for Elastic Integrations, built Elastic Integrations are stored in the Package Storage repository and served up via the Package Registry. The Fleet UI in Kibana connects to the Package Registry and allows users to discover, install, and configure Elastic Packages.
+. Install the integration
++
+Using Fleet in Kibana, install the integration and add it to an Elastic Agent policy.
+When you install a package, its assets are unpacked and installed into Elasticsearch and Kibana using stack APIs.
+In addition, configuration for the package is persisted in Elasticsearch as an Elastic Agent policy.
 
-[discrete]
-=== Package specification
+. Add the policy with the integration to an Elastic Agent
++
+Once the policy with an integration is added to an Elastic Agent,
+the agent will begin to collect and ship data to the Elastic Stack based on the Elastic integration.
++
+Package assets may come into play here. For example, if a package installed ingest pipelines,
+those will intercept the data and transform it before it is indexed.
 
-* Formal spec of what an Elastic package is
-* What we use for validation of new or updated packages
-
-Repo: https://github.com/elastic/package-spec
-
-Right now it's on V1. Should we pull some of this content into the documentation?
-https://github.com/elastic/package-spec/tree/master/versions/1
-
-[discrete]
-=== Package storage
-
-* Backing store for the package registry service
-* Whatever you see in this repo is what you can find via the package registry service
-* 3 branches: snapshot, staging, production
-
-Repo: https://github.com/elastic/package-storage
-
-[discrete]
-=== Package registry
-
-* Source code for the package registry server
-
-Repo: https://github.com/elastic/package-registry
-
-[discrete]
-=== Integrations
-
-* Where most _Elastic_ packages are kept
-
-Repo: https://github.com/elastic/integrations
+. Visualize the results
++
+Integrations can and should ship with custom dashboards and visualizations that are installed with the integration.
+Use these for a tailored view of your Observability data.

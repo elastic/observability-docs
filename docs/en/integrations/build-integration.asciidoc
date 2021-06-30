@@ -1,16 +1,17 @@
 [[build-a-new-integration]]
 = Build an integration
 
-Ready to monitor _something_? Let's get started.
+Ready to monitor, ingest, and visualize something? Let's get started.
 
 * <<build-overview>>
 * <<build-spin-stack>>
-* More links
-* More links
-* More links
-* More links
-* More links
-* More links
+* <<build-create-package>>
+* <<add-a-data-stream>>
+* <<edit-ingest-pipeline>>
+* <<add-a-mapping>>
+* <<create-dashboards>>
+* <<testing-and-validation>>
+* <<finishing-touches>>
 
 TIP: Familiar with the {stack} and just want a quick way to get started?
 See <<quick-start>>.
@@ -21,122 +22,61 @@ See <<quick-start>>.
 Before building an integration, you should have an understanding of the following:
 
 * Elastic Stack concepts, like data streams, ingest pipelines, and mappings
-* The package <<package-spec>>
+* The <<package-spec>>
 
 In addition, you must have <<elastic-package>> installed on your machine.
-`elastic-package` is written in http://golang.org/[Go], so you'll need to have Go installed,
-and the https://golang.org/doc/gopath_code.html#GOPATH[`GOPATH` environment variable] set up correctly.
-
-[discrete]
-[[build-steps]]
-== Build steps
-
-. Create a source package
-+
-All integrations start as a source package.
-You'll find most Elastic integrations in the `elastic/integrations` repo,
-but a package can live anywhere.
-
-. Publish to the package registry
-+
-When an integration is ready to be published, bump the version in the manifest file
-and publish the package to the Elastic Package Registry (EPR) using `elastic-package`
-// the three stages of EPR reflect the maturity of a package
-// snapshot
-// staging
-// production
-
-. Install the package
-+
-After a package is published in the EPR, it is downloaded as a .zip file from the package-registry by Fleet inside Kibana.
-The package is now ready to be installed.
-+
-Click **add integration** to install the integration and add it to an Elastic Agent policy.
-When you install a package, its assets are unpacked and installed into Elasticsearch and Kibana using stack APIs.
-In addition, configuration for the package is persisted in Elasticsearch as an Elastic Agent policy.
-
-. Add the policy with the integration to an Elastic Agent
-+
-Once the policy with an integration is added to an Elastic Agent,
-the agent will begin to collect and ship data to the Elastic Stack based on the Elastic integration.
-+
-Package assets may come into play here. For example, if a package installed ingest pipelines,
-those will intercept the data, and transform it before it is indexed.
-
-. Visualize
-+
-Integrations can ship with custom dashboards and visualizations that are installed with the integration.
-Use these for a tailored view at your Observability data.
 
 [[build-spin-stack]]
 == Spin up the Elastic Stack
 
-The <<elastic-package>> tool provides a quick way to spin up the Elastic Stack:
+The <<elastic-package,`elastic-package`>> tool provides a quick way to spin up the Elastic Stack.
+The following command deployes {es}, {kib}, and the Package registry:
 
 [source,terminal]
 ----
 elastic-package stack up -v -d
 ----
 
-Navigate to http://localhost:5601 to ensure the Stack is up and running before proceeding.
+For a complete list of options available for this command, run:
+
+[source,terminal]
+----
+package stack up -h
+----
+
+When complete, navigate to http://localhost:5601 and login with the username, `elastic` and password, `changeme`.
 
 [[build-create-package]]
 == Create a new package
 
-TIP: We recommend using `elastic-package create` to build a new package, rather than copying the source of an existing package -- this ensures you're integration is following the latest recommendations for the package format.
+We recommend using the `elastic-package create` command to build a new package,
+rather than copying the source of an existing package. This ensures your integration is following the latest recommendations for the package format.
 
-Use the `elastic-package` tool's TUI wizard to bootstrap a new package:
+Use the `elastic-package` TUI wizard to bootstrap a new package:
 
 [source,terminal]
 ----
 elastic-package create package
 ----
 
-Follow along with the wizard to set your package's name, version, category, etc.
+The wizard will walk you through the creation of the package, including setting a package name, version, category, etc.
 When the wizard completes, you'll have a basic package complete with a sample manifest,
 changelog, documentation, and screenshot.
 
+[NOTE]
+====
+It may not do anything yet, but from this step onwards,
+your integration can be built and loaded into your locally running package registry.
+Jump to <<build-it>> at any point in this documentation to take your integration for a test run.
+====
 
-
-
-//  or add a data stream using an embedded archetype
-// (https://github.com/elastic/elastic-package/tree/master/internal/packages/archetype[resource templates]).
-// It's advised to use
-
-// . Bootstrap a new package using the TUI wizard:
-// +
-
-
-// . Manually adjust the package:
-// +
-// * define policy templates and inputs
-// * add icons and screenshots
-// * update README files
-// * update changelog.yml file
-
-// . Verify the package
-// +
-// Enter the package directory and ensure the package fits the spec:
-// +
-// [source,terminal]
-// ----
-// cd <your_new_package>
-// elastic-package check
-// ----
-
+[[add-a-data-stream]]
 == Add a data stream
 
-****
-**Data streams** allow you to store time series data across multiple indices while giving you a single named resource for requests.
-
-[%collapsible]
-.Expand to learn more
-====
-stuff
-====
-****
-
-Each data stream within an integration is represented by a folder in the `data_stream` directory. For example, the https://github.com/elastic/integrations/tree/master/packages/apache[Apache integration] has the following data streams:
+A data stream is logical sub-division of an integration package,
+dealing with a specific type of observable aspect of the service or product being observed. For example,
+the https://github.com/elastic/integrations/tree/master/packages/apache[Apache integration] has three data streams,
+each represented by a separate folder of assets in the `data_stream` directory:
 
 [source,text]
 ----
@@ -147,6 +87,19 @@ apache
 │   └───status
 ----
 
+****
+**Data streams** allow you to store time series data across multiple indices while giving you a single named resource for requests.
+
+A data stream defines multiple {es} assets, like index templates, ingest pipelines, and field definitions.
+These assets are loaded into {es} when a user installs an integration via the Fleet UI in Kibana.
+
+A data stream also defines a policy template.
+Policy templates include variables that allow users to configure the data stream via the Fleet UI in {kib}.
+The resulting policy is interpreted by the {agent} to collect relevant information from the product or service being observed.
+
+See {fleet-guide}/data-streams.html[data streams] for more information.
+****
+
 Bootstrap a new data stream using the TUI wizard.
 In the directory of your package, run:
 
@@ -155,9 +108,10 @@ In the directory of your package, run:
 elastic-package create data-stream
 ----
 
-Name and title the data stream, and then select the data stream type: logs or metrics.
-Run the command for each data stream you need to add to your integration.
+Follow the prompts to name, title, and select your data stream type.
+Run this command each time you add a new data stream to your integration.
 
+// This needs work
 Next, manually adjust the data stream:
 
 * define required variables
@@ -165,29 +119,19 @@ Next, manually adjust the data stream:
 * define ingest pipeline definitions (if necessary)
 * update the agent's stream configuration
 
-After making updates, verify the package fits the package specification:
+[[edit-ingest-pipeline]]
+== Edit ingest pipelines
 
-[source,terminal]
-----
-elastic-package check
-----
-
-== Edit an ingest pipeline
-
-In most instances, data will need to be manipulated before it is ingested into the Elastic Stack -- for example,
+In most instances, data needs to be manipulated before it is ingested into the Elastic Stack -- for example,
 logs should be parsed into structured data prior to ingestion.
 To accomplish this, integrations use **ingest pipelines**.
 
 ****
 **Ingest pipelines** let you perform common transformations on your data before indexing. For example, you can use pipelines to remove fields, extract values from text, and enrich your data.
 
-A pipeline consists of a series of configurable tasks called processors. Each processor runs sequentially, making specific changes to incoming documents. After the processors have run, Elasticsearch adds the transformed documents to your data stream or index.
+A pipeline consists of a series of configurable tasks called processors. Each processor runs sequentially, making specific changes to incoming documents. After the processors have run, {es} adds the transformed documents to your data stream or index.
 
-[%collapsible]
-.Expand to learn more
-====
-stuff
-====
+Learn more in the {ref}/ingest.html[ingest pipeline reference].
 ****
 
 Ingest pipelines are defined in the `elasticsearch/ingest_pipeline` directory.
@@ -225,11 +169,13 @@ processors:
     ignore_failure: true
 ----
 
-Edit each ingest pipeline definition to match your needs.
+Open each `elasticsearch/ingest_pipeline/default.yml` file created for each data stream.
+Edit each ingest pipeline to match your needs.
 
-For more information, see ((add a link here of some kind))
+The {ref}/processors.html[processor reference] provides a list of all available processors and their configurations.
 
-== Add a mapping
+[[add-a-mapping]]
+== Edit field mappings
 
 Ingest pipelines create fields in an Elasticsearch index, but don't define the fields themselves.
 Each field needs a defined data type, or mapping.
@@ -238,11 +184,7 @@ Each field needs a defined data type, or mapping.
 **Mapping** is the process of defining how a document, and the fields it contains, are stored and indexed.
 Each document is a collection of fields, which each have their own data type. When mapping your data, you create a mapping definition, which contains a list of fields that are pertinent to the document. A mapping definition also includes metadata fields, like the _source field, which customize how a document’s associated metadata is handled.
 
-[%collapsible]
-.Expand to learn more
-====
-stuff
-====
+To learn more, see {ref}/mapping.html[mapping].
 ****
 
 Mappings are defined in the `fields` directory.
@@ -269,9 +211,13 @@ apache
 <3> Defines the relevant ECS fields
 <4> Custom apache access log fields ??
 
-Maybe include one here or something
 
-== Create a visualization
+// Need more on mapping
+
+// Maybe something on ECS too??
+
+[[create-dashboards]]
+== Create and export dashboards
 
 // https://github.com/elastic/integrations/issues/269
 
@@ -419,6 +365,7 @@ Examples:
 elastic-package export
 ----
 
+[[build-it]]
 == Build
 
 To format, lint, and build your integration -- in that order -- run:
@@ -446,17 +393,115 @@ This refreshes the Fleet UI, allowing it to pick up the new integration in Kiban
 elastic-package stack up --services package-registry
 ----
 
+[[testing-and-validation]]
+== Testing and validation
 
+. Build the package you'd like to verify (e.g. `apache`):
++
+[source,terminal]
+----
+cd apache
+elastic-package build
+----
 
-== Test
+. Start the testing environment:
++
+Run from inside the Integrations repository:
++
+[source,terminal]
+----
+elastic-package stack up -d -v
+----
++
+The command above will boot up the Elastic stack (Elasticsearch, Kibana, Package Registry) using Docker containers.
+It rebuilds the Package Registry Docker image using packages built in step 1. and boots up the Package Registry.
++
+To reload the already deployed Package Registry use the following command:
++
+[source,terminal]
+----
+elastic-package stack up -v -d --services package-registry
+----
 
-`elastic-package` supports multiple types of tests -- pipeline, system, assets, and more.
+. Verify that your integration is available (in the right version), e.g. MySQL: http://localhost:8080/search?package=mysql (use `experimental=true` parameter if the package is in experimental version.
+Alternatively set `release` to `beta` or higher in your package's `manifest.yml`, if appropriate.)
++
+[source,json]
+----
+[
+  {
+    "description": "MySQL Integration",
+    "download": "/epr/mysql/mysql-0.0.1.tar.gz",
+    "icons": [
+      {
+        "src": "/package/mysql/0.0.1/img/logo_mysql.svg",
+        "title": "logo mysql",
+        "size": "32x32",
+        "type": "image/svg+xml"
+      }
+    ],
+    "name": "mysql",
+    "path": "/package/mysql/0.0.1",
+    "title": "MySQL",
+    "type": "integration",
+    "version": "0.0.1"
+  }
+]
+----
++
+The `elastic-package stack` provides an enrolled instance of the Elastic Agent. Use that one instead of a local application
+if you can run the service (you're integrating with) in the Docker network and you don't need to rebuild the Elastic-Agent
+or it's subprocesses (e.g. Filebeat or Metricbeat). The service Docker image can be used for [system
+testing](https://github.com/elastic/elastic-package/blob/master/docs/howto/system_testing.md). If you prefer to use a local
+instance of the Elastic Agent, proceed with steps 4 an 5:
 
-See LINK_TO_TESTING_DOCS for more information.
+. (Optional) Download the Elastic-Agent from https://www.elastic.co/downloads/elastic-agent
 
-// https://github.com/elastic/elastic-package/tree/master/docs/howto
-// https://github.com/elastic/integrations/blob/master/docs/testing_and_validation.md
+. (Optional) Enroll the agent and start it:
++
+Use the "Enroll new agent" option in the Kibana UI (Ingest Manager -> Fleet -> Create user and enable Fleet) and run a similar command:
++
+[source,terminal]
+----
+./elastic-agent enroll http://localhost:5601/rel cFhNVlZIRUIxYjhmbFhqNTBoS2o6OUhMWkF4SFJRZmFNZTh3QmtvR1cxZw==
+./elastic-agent run
+----
++
+The `elastic-agent` will start two other processes - `metricbeat` and `filebeat`.
 
+. Run the product you're integrating with (e.g. a docker image with MySQL).
+
+. Install package.
++
+Click out the configuration in the Kibana UI, deploy it and wait for the agent to pick out the updated configuration.
+
+. Navigate with Kibana UI to freshly installed dashboards, verify the metrics/logs flow.
+
+=== Use test runners
+
+`elastic-package` provides different types of test runners.
+See <<testing>> to learn about the various methods for testing packages.
+
+The `test` subcommand requires a reference to the live Elastic stack. Service endpoints can be defined via environment variables.
+If you're using the Elastic stack created with `elastic-package`, you can use export endpoints with `elastic-package stack shellinit`:
+
+[source,terminal]
+----
+$ eval "$(elastic-package stack shellinit)"
+----
+
+To preview environment variables:
+
+[source,terminal]
+----
+$ elastic-package stack shellinit
+export ELASTIC_PACKAGE_ELASTICSEARCH_HOST=http://127.0.0.1:9200
+export ELASTIC_PACKAGE_ELASTICSEARCH_USERNAME=elastic
+export ELASTIC_PACKAGE_ELASTICSEARCH_PASSWORD=changeme
+export ELASTIC_PACKAGE_KIBANA_HOST=http://127.0.0.1:5601
+----
+
+[[finishing-touches]]
 == Finishing touches
 
 // https://github.com/elastic/integrations/blob/master/docs/fine_tune_integration.md
