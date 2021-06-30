@@ -1,107 +1,444 @@
 [[build-a-new-integration]]
-= Build a new integration
+= Build an integration
 
-You have something you want to monitor and you're ready to build an integration to do it.
-Uh... Now what?
+Ready to monitor _something_? Let's get started.
 
-[[build-integration-prerequisites]]
-== Prerequisites
+* <<build-overview>>
+* <<build-spin-stack>>
+* More links
+* More links
+* More links
+* More links
+* More links
+* More links
 
-Before building an integration, you should have an understanding of the following concepts:
+TIP: Familiar with the {stack} and just want a quick way to get started?
+See <<quick-start>>.
 
-* the <<integration-lifecycle>>
-* the package <<specification>>
+[[build-overview]]
+== Overview and prerequisites
+
+Before building an integration, you should have an understanding of the following:
+
 * Elastic Stack concepts, like data streams, ingest pipelines, and mappings
-
-TIP: See <<integration-example-apache>> for a breakdown of a real integration.
+* The package <<package-spec>>
 
 In addition, you must have <<elastic-package>> installed on your machine.
+`elastic-package` is written in http://golang.org/[Go], so you'll need to have Go installed,
+and the https://golang.org/doc/gopath_code.html#GOPATH[`GOPATH` environment variable] set up correctly.
 
+[discrete]
+[[build-steps]]
+== Build steps
+
+. Create a source package
++
+All integrations start as a source package.
+You'll find most Elastic integrations in the `elastic/integrations` repo,
+but a package can live anywhere.
+
+. Publish to the package registry
++
+When an integration is ready to be published, bump the version in the manifest file
+and publish the package to the Elastic Package Registry (EPR) using `elastic-package`
+// the three stages of EPR reflect the maturity of a package
+// snapshot
+// staging
+// production
+
+. Install the package
++
+After a package is published in the EPR, it is downloaded as a .zip file from the package-registry by Fleet inside Kibana.
+The package is now ready to be installed.
++
+Click **add integration** to install the integration and add it to an Elastic Agent policy.
+When you install a package, its assets are unpacked and installed into Elasticsearch and Kibana using stack APIs.
+In addition, configuration for the package is persisted in Elasticsearch as an Elastic Agent policy.
+
+. Add the policy with the integration to an Elastic Agent
++
+Once the policy with an integration is added to an Elastic Agent,
+the agent will begin to collect and ship data to the Elastic Stack based on the Elastic integration.
++
+Package assets may come into play here. For example, if a package installed ingest pipelines,
+those will intercept the data, and transform it before it is indexed.
+
+. Visualize
++
+Integrations can ship with custom dashboards and visualizations that are installed with the integration.
+Use these for a tailored view at your Observability data.
+
+[[build-spin-stack]]
 == Spin up the Elastic Stack
 
-Bring up the Elastic Stack with `elastic-package`:
+The <<elastic-package>> tool provides a quick way to spin up the Elastic Stack:
 
 [source,terminal]
 ----
 elastic-package stack up -v -d
 ----
 
+Navigate to http://localhost:5601 to ensure the Stack is up and running before proceeding.
+
+[[build-create-package]]
 == Create a new package
 
-// An easy way to create a new package is by copying a preexisting one.
-// This command copies the contents of the `nginx` package to a directory named `new_package`:
+TIP: We recommend using `elastic-package create` to build a new package, rather than copying the source of an existing package -- this ensures you're integration is following the latest recommendations for the package format.
 
+Use the `elastic-package` tool's TUI wizard to bootstrap a new package:
+
+[source,terminal]
+----
+elastic-package create package
+----
+
+Follow along with the wizard to set your package's name, version, category, etc.
+When the wizard completes, you'll have a basic package complete with a sample manifest,
+changelog, documentation, and screenshot.
+
+
+
+
+//  or add a data stream using an embedded archetype
+// (https://github.com/elastic/elastic-package/tree/master/internal/packages/archetype[resource templates]).
+// It's advised to use
+
+// . Bootstrap a new package using the TUI wizard:
+// +
+
+
+// . Manually adjust the package:
+// +
+// * define policy templates and inputs
+// * add icons and screenshots
+// * update README files
+// * update changelog.yml file
+
+// . Verify the package
+// +
+// Enter the package directory and ensure the package fits the spec:
+// +
 // [source,terminal]
 // ----
-// cd packages
-// cp -r nginx new_package
+// cd <your_new_package>
+// elastic-package check
 // ----
-
-The `elastic-package` tool can be used to bootstrap a new package or add a data stream using an embedded archetype
-(https://github.com/elastic/elastic-package/tree/master/internal/packages/archetype[resource templates]).
-It's advised to use `elastic-package create` to build new package rather than copying sources of an existing package.
-This will ensure that you're following latest recommendations for the package format.
-
-. Bootstrap a new package using the TUI wizard:
-+
-[source,terminal]
-----
-elastic-package create package.
-----
-
-. Manually adjust the package:
-+
-* define policy templates and inputs
-* add icons and screenshots
-* update README files
-* update changelog.yml file
-
-. Verify the package
-+
-Enter the package directory and ensure the package fits the spec:
-+
-[source,terminal]
-----
-cd <your_new_package>
-elastic-package check
-----
 
 == Add a data stream
 
-. Bootstrap a new data stream using the TUI wizard:
-+
-[source,terminal]
+****
+**Data streams** allow you to store time series data across multiple indices while giving you a single named resource for requests.
+
+[%collapsible]
+.Expand to learn more
+====
+stuff
+====
+****
+
+Each data stream within an integration is represented by a folder in the `data_stream` directory. For example, the https://github.com/elastic/integrations/tree/master/packages/apache[Apache integration] has the following data streams:
+
+[source,text]
 ----
-elastic-package create data-stream.
+apache
+└───data_stream
+│   └───access
+│   └───error
+│   └───status
 ----
 
-. Manually adjust the data stream:
-+
-* define streams and required variables
+Bootstrap a new data stream using the TUI wizard.
+In the directory of your package, run:
+
+[source,terminal]
+----
+elastic-package create data-stream
+----
+
+Name and title the data stream, and then select the data stream type: logs or metrics.
+Run the command for each data stream you need to add to your integration.
+
+Next, manually adjust the data stream:
+
+* define required variables
 * define used fields
-* define ingest pipeline definition (if necessary)
+* define ingest pipeline definitions (if necessary)
 * update the agent's stream configuration
 
-. Verify the package
-+
-Enter the package directory and ensure the package fits the spec:
-+
+After making updates, verify the package fits the package specification:
+
 [source,terminal]
 ----
-cd <your_new_package>
 elastic-package check
 ----
 
-== Build the package
+== Edit an ingest pipeline
 
-Next, build the package:
+In most instances, data will need to be manipulated before it is ingested into the Elastic Stack -- for example,
+logs should be parsed into structured data prior to ingestion.
+To accomplish this, integrations use **ingest pipelines**.
+
+****
+**Ingest pipelines** let you perform common transformations on your data before indexing. For example, you can use pipelines to remove fields, extract values from text, and enrich your data.
+
+A pipeline consists of a series of configurable tasks called processors. Each processor runs sequentially, making specific changes to incoming documents. After the processors have run, Elasticsearch adds the transformed documents to your data stream or index.
+
+[%collapsible]
+.Expand to learn more
+====
+stuff
+====
+****
+
+Ingest pipelines are defined in the `elasticsearch/ingest_pipeline` directory.
+They only apply to the parent data stream within which they live.
+
+For example, the https://github.com/elastic/integrations/tree/master/packages/apache[Apache integration]:
+
+[source,text]
+----
+apache
+└───data_stream
+│   └───access
+│   │   └───elasticsearch/ingest_pipeline
+│   │          default.yml <1>
+│   └───error
+│   └───status
+----
+<1> The ingest pipeline definition for the access logs data stream of the apache integration
+
+An ingest pipeline definition requires a description and an array of processors.
+Here's a snippet of the access logs ingest pipeline:
+
+[source,yaml]
+----
+description: "Pipeline for parsing Apache HTTP Server access logs."
+processors:
+- set:
+    field: event.ingested
+    value: '{{_ingest.timestamp}}'
+- rename:
+    field: message
+    target_field: event.original
+- remove:
+    field: apache.access.time
+    ignore_failure: true
+----
+
+Edit each ingest pipeline definition to match your needs.
+
+For more information, see ((add a link here of some kind))
+
+== Add a mapping
+
+Ingest pipelines create fields in an Elasticsearch index, but don't define the fields themselves.
+Each field needs a defined data type, or mapping.
+
+****
+**Mapping** is the process of defining how a document, and the fields it contains, are stored and indexed.
+Each document is a collection of fields, which each have their own data type. When mapping your data, you create a mapping definition, which contains a list of fields that are pertinent to the document. A mapping definition also includes metadata fields, like the _source field, which customize how a document’s associated metadata is handled.
+
+[%collapsible]
+.Expand to learn more
+====
+stuff
+====
+****
+
+Mappings are defined in the `fields` directory.
+Like ingest pipelines, mappings only apply to the parent data stream.
+The apache integration has four different field definitions:
+
+[source,text]
+----
+apache
+└───data_stream
+│   └───access
+│   │   └───elasticsearch/ingest_pipeline
+│   │   │      default.yml
+│   │   └───fields
+│   │          agent.yml <1>
+│   │          base-fields.yml <2>
+│   │          ecs.yml <3>
+│   │          fields.yml <4>
+│   └───error
+│   └───status
+----
+<1> ??
+<2> `base-fields.yml` never changes and is required for all integrations
+<3> Defines the relevant ECS fields
+<4> Custom apache access log fields ??
+
+Maybe include one here or something
+
+== Create a visualization
+
+// https://github.com/elastic/integrations/issues/269
+
+Visualizing integration data in a meaningful way is an important aspect of an integration.
+
+When creating a new integration, it's important to add dashboards.
+
+To get started, create a new dashboard, or customize an existing one.
+When you're done making changes, you can use `elastic-package` to export the dashboards and their dependencies to the package source.
+
+[discrete]
+== Dashboard planning
+
+Many integrations cover more than one component of a target system.
+For example, the RabitMQ module provides several metricsets covering connection, exchange, node, queue.
+It makes sense to break this information down into several interconnected dashboards,
+with the default one being an overview of a target system, and the others providing deep-dives into the various parts of the target system.
+The content of the Overview dashboard should be cherry-picked from all datasets and individually compiled for every such integration.
+
+[discrete]
+=== Metrics
+
+Always check the type of a metric and ensure that the correct transformation is applied where applicable.
+For example, in the majority of cases for cumulative counters, it makes sense to apply the rate function.
+
+// relevant blog post: https://www.elastic.co/blog/visualizing-observability-with-kibana-event-rates-and-rate-of-change-in-tsvb
+
+[discrete]
+=== Visualization type
+
+For new visualizations, we recommend using Lens first.
+If what you're trying to achieve cannot be accomplished with the current capabilities of Lens, try TSVB.
+
+// add links
+
+[discrete]
+=== Filters
+
+When building a dashboard always consider adding a filter dropdown. Why?
+In most cases the integrations are used to monitor multiple instances of a target system,
+so we need to provide a way to switch between them.
+
+Use the Controls visualization to build a filter dropdown.
+Here's an example of a host name dropdown that can be added the System dashboard:
+
+// screenshot omitted for now
+
+// screenshot omitted for now
+
+// screenshot omitted for now
+
+[discrete]
+=== Navigation
+
+If an integration has several dashboards, ensure that all of them can be easily navigated.
+To build dashboard navigation use the Markdown visualization type.
+
+For example, the System dashboard provides the following navigation:
+
+// screenshot omitted for now
+
+Source:
+
+[source,text]
+----
+[System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
+[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
+----
+
+While this can work, it doesn't highlight the selected dashboard.
+Unfortunately the Markdown control is not optimized for navigation,
+which makes it cumbersome to build navigation with highlighted links because each link should be highlighted separately.
+This means that the navigation control you're building has to be cloned as many times as there are dashboard to ensure proper link highlighting. E.g.
+
+[source,text]
+----
+**[System Overview](#/dashboard/system-Metrics-system-overview-ecs)**  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
+[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
+
+[System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | **[Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs)** |
+[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
+
+[System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
+**[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)**
+----
+
+[discrete]
+=== Target system name
+
+Currently we don't make it a rule to show on a dashboard what system it's designed to monitor. The only way to see it is through the dashboard name.
+
+// screenshot omitted for now
+
+When using multiple dashboard on bigger screens, it makes it hard to distinguish between the dashboards. This can be improved by using the Markdown control to show what target system the dashboard is used for.
+
+[discrete]
+=== Naming
+
+Use the following naming convention when building dashboards
+
+[discrete]
+==== Visualizations
+
+[source,text]
+----
+<NAME> [<Metrics | Logs> <PACKAGE NAME>]
+----
+
+Examples:
+
+* Memory Usage Gauge [Metrics System]
+* New groups [Logs System]
+
+Rename all visualizations added to a dashboard to only show the <NAME> part.
+
+// screenshot omitted for now
+
+[discrete]
+==== Dashboards
+
+[source,text]
+----
+[<Metrics | Logs> <PACKAGE NAME>] <Name>
+----
+
+Examples:
+
+* [Metrics System] Host overview
+* [Metrics MongoDB] Overview
+
+[discrete]
+=== Screenshots
+
+// add tips
+
+[discrete]
+== Exporting
+
+// move to new page
+
+// add https://www.elastic.co/guide/en/beats/devguide/current/export-dashboards.html
+
+[source,terminal]
+----
+elastic-package export
+----
+
+== Build
+
+To format, lint, and build your integration -- in that order -- run:
+
+[source,terminal]
+----
+elastic-package check
+----
+
+Problems and potential solutions will display in the console.
+Fix them and rerun the command.
+Alternatively,
+skip formatting and linting with the `build` command:
 
 [source,terminal]
 ----
 elastic-package build
 ----
 
-Run the following command from inside of the integration directory to recycle the package-registry docker container.
+With the package built, run the following command from inside of the integration directory to recycle the package-registry docker container.
 This refreshes the Fleet UI, allowing it to pick up the new integration in Kibana.
 
 [source,terminal]
@@ -109,26 +446,7 @@ This refreshes the Fleet UI, allowing it to pick up the new integration in Kiban
 elastic-package stack up --services package-registry
 ----
 
-== Lint
 
-Verify the package is aligned with the specification with the lint command:
-
-[source,terminal]
-----
-elastic-package lint
-----
-
-Problems and potential solutions will be shown.
-Fix them and rebuild the package.
-
-== Format
-
-Format the package contents (JSON and YAML files) with the format command:
-
-[source,terminal]
-----
-elastic-package format
-----
 
 == Test
 
@@ -139,7 +457,7 @@ See LINK_TO_TESTING_DOCS for more information.
 // https://github.com/elastic/elastic-package/tree/master/docs/howto
 // https://github.com/elastic/integrations/blob/master/docs/testing_and_validation.md
 
-== Final checklist
+== Finishing touches
 
 // https://github.com/elastic/integrations/blob/master/docs/fine_tune_integration.md
 
@@ -185,14 +503,4 @@ vars:
 
 === Add sample events
 
-== Promote (?)
-
-// https://github.com/elastic/integrations/blob/master/docs/developer_workflow_promote_release_integration.md
-
-== Open a PR
-
-If you think that you've finished works on your integration, you've verified that it collects data, wrote some tests, you can open a PR to include your integration in the Integrations repository. The CI will verify if your integration is correct (elastic-package check) - a green status is a must.
-
-// When the PR is merged, the CI will kick off a build job for the master branch, which can release your integration to the package-storage. It means that it will open a PR to the Package Storage/snapshot with the built integration if only the package version doesn't already exist in the storage (hasn't been released yet).
-
-// When you are ready for your changes in the integration to be released, remember to bump up the package version. It is up to you, as the package developer, to decide how many changes you want to release in a single version. For example, you could implement a change in a PR and bump up the package version in the same PR. Or you could implement several changes across multiple PRs and then bump up the package version in the last of these PRs or in a separate follow up PR.
+text

@@ -1,147 +1,149 @@
 = Create Kibana Dashboards
 
-// https://github.com/elastic/integrations/issues/269
+THIS FILE HAS BEEN REPLACED
 
-Visualizing integration data in a meaningful way is an important aspect of an integration.
+// // https://github.com/elastic/integrations/issues/269
 
-When creating a new integration, it's important to add dashboards.
+// Visualizing integration data in a meaningful way is an important aspect of an integration.
 
-To get started, create a new dashboard, or customize an existing one.
-When you're done making changes, you can use `elastic-package` to export the dashboards and their dependencies to the package source.
+// When creating a new integration, it's important to add dashboards.
 
-[discrete]
-== Dashboard planning
+// To get started, create a new dashboard, or customize an existing one.
+// When you're done making changes, you can use `elastic-package` to export the dashboards and their dependencies to the package source.
 
-Many integrations cover more than one component of a target system.
-For example, the RabitMQ module provides several metricsets covering connection, exchange, node, queue.
-It makes sense to break this information down into several interconnected dashboards,
-with the default one being an overview of a target system, and the others providing deep-dives into the various parts of the target system.
-The content of the Overview dashboard should be cherry-picked from all datasets and individually compiled for every such integration.
+// [discrete]
+// == Dashboard planning
 
-[discrete]
-=== Metrics
+// Many integrations cover more than one component of a target system.
+// For example, the RabitMQ module provides several metricsets covering connection, exchange, node, queue.
+// It makes sense to break this information down into several interconnected dashboards,
+// with the default one being an overview of a target system, and the others providing deep-dives into the various parts of the target system.
+// The content of the Overview dashboard should be cherry-picked from all datasets and individually compiled for every such integration.
 
-Always check the type of a metric and ensure that the correct transformation is applied where applicable.
-For example, in the majority of cases for cumulative counters, it makes sense to apply the rate function.
+// [discrete]
+// === Metrics
 
-// relevant blog post: https://www.elastic.co/blog/visualizing-observability-with-kibana-event-rates-and-rate-of-change-in-tsvb
+// Always check the type of a metric and ensure that the correct transformation is applied where applicable.
+// For example, in the majority of cases for cumulative counters, it makes sense to apply the rate function.
 
-[discrete]
-=== Visualization type
+// // relevant blog post: https://www.elastic.co/blog/visualizing-observability-with-kibana-event-rates-and-rate-of-change-in-tsvb
 
-For new visualizations, we recommend using Lens first.
-If what you're trying to achieve cannot be accomplished with the current capabilities of Lens, try TSVB.
+// [discrete]
+// === Visualization type
 
-// add links
+// For new visualizations, we recommend using Lens first.
+// If what you're trying to achieve cannot be accomplished with the current capabilities of Lens, try TSVB.
 
-[discrete]
-=== Filters
+// // add links
 
-When building a dashboard always consider adding a filter dropdown. Why?
-In most cases the integrations are used to monitor multiple instances of a target system,
-so we need to provide a way to switch between them.
+// [discrete]
+// === Filters
 
-Use the Controls visualization to build a filter dropdown.
-Here's an example of a host name dropdown that can be added the System dashboard:
+// When building a dashboard always consider adding a filter dropdown. Why?
+// In most cases the integrations are used to monitor multiple instances of a target system,
+// so we need to provide a way to switch between them.
 
-// screenshot omitted for now
+// Use the Controls visualization to build a filter dropdown.
+// Here's an example of a host name dropdown that can be added the System dashboard:
 
-// screenshot omitted for now
+// // screenshot omitted for now
 
-// screenshot omitted for now
+// // screenshot omitted for now
 
-[discrete]
-=== Navigation
+// // screenshot omitted for now
 
-If an integration has several dashboards, ensure that all of them can be easily navigated.
-To build dashboard navigation use the Markdown visualization type.
+// [discrete]
+// === Navigation
 
-For example, the System dashboard provides the following navigation:
+// If an integration has several dashboards, ensure that all of them can be easily navigated.
+// To build dashboard navigation use the Markdown visualization type.
 
-// screenshot omitted for now
+// For example, the System dashboard provides the following navigation:
 
-Source:
+// // screenshot omitted for now
 
-[source,text]
-----
-[System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
-[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
-----
+// Source:
 
-While this can work, it doesn't highlight the selected dashboard.
-Unfortunately the Markdown control is not optimized for navigation,
-which makes it cumbersome to build navigation with highlighted links because each link should be highlighted separately.
-This means that the navigation control you're building has to be cloned as many times as there are dashboard to ensure proper link highlighting. E.g.
+// [source,text]
+// ----
+// [System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
+// [Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
+// ----
 
-[source,text]
-----
-**[System Overview](#/dashboard/system-Metrics-system-overview-ecs)**  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
-[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
+// While this can work, it doesn't highlight the selected dashboard.
+// Unfortunately the Markdown control is not optimized for navigation,
+// which makes it cumbersome to build navigation with highlighted links because each link should be highlighted separately.
+// This means that the navigation control you're building has to be cloned as many times as there are dashboard to ensure proper link highlighting. E.g.
 
-[System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | **[Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs)** |
-[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
+// [source,text]
+// ----
+// **[System Overview](#/dashboard/system-Metrics-system-overview-ecs)**  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
+// [Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
 
-[System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
-**[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)**
-----
+// [System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | **[Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs)** |
+// [Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)
 
-[discrete]
-=== Target system name
+// [System Overview](#/dashboard/system-Metrics-system-overview-ecs)  | [Host Overview](#/dashboard/system-79ffd6e0-faa0-11e6-947f-177f697178b8-ecs) |
+// **[Containers overview](#/dashboard/system-CPU-slash-Memory-per-container-ecs)**
+// ----
 
-Currently we don't make it a rule to show on a dashboard what system it's designed to monitor. The only way to see it is through the dashboard name.
+// [discrete]
+// === Target system name
 
-// screenshot omitted for now
+// Currently we don't make it a rule to show on a dashboard what system it's designed to monitor. The only way to see it is through the dashboard name.
 
-When using multiple dashboard on bigger screens, it makes it hard to distinguish between the dashboards. This can be improved by using the Markdown control to show what target system the dashboard is used for.
+// // screenshot omitted for now
 
-[discrete]
-=== Naming
+// When using multiple dashboard on bigger screens, it makes it hard to distinguish between the dashboards. This can be improved by using the Markdown control to show what target system the dashboard is used for.
 
-Use the following naming convention when building dashboards
+// [discrete]
+// === Naming
 
-[discrete]
-==== Visualizations
+// Use the following naming convention when building dashboards
 
-[source,text]
-----
-<NAME> [<Metrics | Logs> <PACKAGE NAME>]
-----
+// [discrete]
+// ==== Visualizations
 
-Examples:
+// [source,text]
+// ----
+// <NAME> [<Metrics | Logs> <PACKAGE NAME>]
+// ----
 
-* Memory Usage Gauge [Metrics System]
-* New groups [Logs System]
+// Examples:
 
-Rename all visualizations added to a dashboard to only show the <NAME> part.
+// * Memory Usage Gauge [Metrics System]
+// * New groups [Logs System]
 
-// screenshot omitted for now
+// Rename all visualizations added to a dashboard to only show the <NAME> part.
 
-[discrete]
-==== Dashboards
+// // screenshot omitted for now
 
-[source,text]
-----
-[<Metrics | Logs> <PACKAGE NAME>] <Name>
-----
+// [discrete]
+// ==== Dashboards
 
-Examples:
+// [source,text]
+// ----
+// [<Metrics | Logs> <PACKAGE NAME>] <Name>
+// ----
 
-* [Metrics System] Host overview
-* [Metrics MongoDB] Overview
+// Examples:
 
-[discrete]
-=== Screenshots
+// * [Metrics System] Host overview
+// * [Metrics MongoDB] Overview
 
-// add tips
+// [discrete]
+// === Screenshots
 
-[discrete]
-== Exporting
+// // add tips
 
-// move to new page
+// [discrete]
+// == Exporting
 
-// add https://www.elastic.co/guide/en/beats/devguide/current/export-dashboards.html
+// // move to new page
 
-[source,terminal]
-----
-elastic-package export
-----
+// // add https://www.elastic.co/guide/en/beats/devguide/current/export-dashboards.html
+
+// [source,terminal]
+// ----
+// elastic-package export
+// ----
