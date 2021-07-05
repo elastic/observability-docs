@@ -12,30 +12,167 @@ using Elastic Observability: Logs and Metrics.
 
 You'll learn how to:
 
-- Set up an Azure service principal.
-- Ingest metrics using the {metricbeat-ref}/metricbeat-module-azure.html[{metricbeat}
-Azure module] and view those metrics in {kib}.
-- Export Azure activity logs through Event Hubs.
-- Ingest logs using the {filebeat-ref}/filebeat-module-azure.html[{filebeat}
-Azure module] and view those logs in {kib}.
-
-[discrete]
-[[azure-before-you-begin]]
-=== Before you begin
-
-Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}].
-The deployment includes an {es} cluster for storing and searching your data,
-and {kib} for visualizing and managing your data.
-For more information, see <<spin-up-stack,Spin up the Elastic Stack>>.
+- Create an {es} resource in the Azure portal.
+- Ingest Azure platform logs using the native integration and view those logs
+in Kibana.
+- Ingest logs and metrics from your virtual machines and view those logs and
+metrics in Kibana.
+- Ingest other metrics (such as billing) using the
+{metricbeat-ref}/metricbeat-module-azure.html[{metricbeat} Azure module] and
+view those metrics in {kib}.
 
 [discrete]
 [[azure-step-one]]
-=== Step 1: Create an Azure service principal and set permissions
+=== Step 1: Create an {es} resource in the Azure portal
 
-The https://docs.microsoft.com/en-us/rest/api/monitor/[Azure Monitor REST API]
-allows you to get insights into your Azure resources using different operations.
+Microsoft Azure allows you to find, deploy, and manage {es} from
+within the Azure portal.
+The Microsoft Azure portal integration makes it faster and easier for you to
+experience the value of Elastic in your Azure environment.
+Behind the scenes, this process will provision a marketplace subscription with
+Elastic Cloud.
+
+[discrete]
+==== Create an {es} resource
+
+. Log in to the https://portal.azure.com/[Azure portal].
++
+[NOTE]
+====
+Ensure your Azure account is configured with *Owner* access on the subscription
+you want to deploy {es}. To learn more about Azure
+subscriptions, see the https://docs.microsoft.com/en-us/azure/cost-management-billing/manage/add-change-subscription-administrator#assign-a-subscription-administrator[Microsoft Azure documentation].
+====
+
+. In the search bar, enter *{es}* and then select it.
++
+[role="screenshot"]
+image:monitor-azure-search-elasticsearch.png[Search and click on {es}]
+
+. Click *Create*.
+
+. Enter the *Subscription*, *Resource group*, and the *Resource name*.
+. Select a region and then click *Review + create*.
++
+[role="screenshot"]
+image:monitor-azure-create-elastic-resource.png[Create Elastic resource]
++
+[NOTE]
+====
+We will cover *logs* and *metrics* later in this tutorial.
+====
+
+. To create the {es} deployment, click *Create*.
+
+. After your deployment is complete, click *Go to resource*.
+Here you can see and configure your deployment details.
+To access the cluster, click *{kib}*.
++
+[role="screenshot"]
+image:monitor-azure-elastic-deployment.png[Elastic resource]
+
+. To single sign-on directly
+into Elastic, select your Azure account.
+
+. To see if there is any available data, click *Observability*.
+There should be no data yet, but next, you will ingest logs.
++
+[role="screenshot"]
+image:monitor-azure-kibana-observability-page-empty.png[{kib} observability
+page (no data)]
+
+[discrete]
+[[azure-step-two]]
+=== Step 2: Ingest logs using the native integration
+
+To ingest Azure subscription and resource logs into Elastic
+using the Microsoft Azure native integration is straightforward.
+
+. On to the {es} resource page in Azure, click
+*Ingest logs and metrics from Azure Services*.
++
+[role="screenshot"]
+image:monitor-azure-elastic-click-ingest-logs.png[Click on Ingest logs and
+metrics from Azure Services]
+
+. Check both checkboxes and click *Save*.
++
+[role="screenshot"]
+image:monitor-azure-elastic-config-logs-metrics.png[Elastic configure logs and
+metrics]
++
+[NOTE]
+====
+This configuration can also be applied during the Elastic resource creation.
+To make the concepts clearer, this tutorial separates the two steps.
+====
++
+[NOTE]
+====
+Native metrics collection is not fully supported yet and is discussed
+later.
+====
+
+. Within {kib}, click *Observability* until you
+see some data.
+This may take a few minutes.
++
+[role="screenshot"]
+image:monitor-azure-kibana-observability-page-data.png[{kib} observability page
+(with data)]
+ 
+. To access the Logs app and analyze all your subscription
+and resource logs, click *View in app*.
++
+[role="screenshot"]
+image:monitor-azure-kibana-logs-app.png[{kib} Logs app]
+
+[discrete]
+[[azure-step-three]]
+=== Step 3: Ingest logs and metrics from your virtual machines.
+
+. Go to your Elastic resource and click *Virtual machines*.
++
+[role="screenshot"]
+image:monitor-azure-elastic-deployment.png[Elastic resource]
+
+. Select the VMs that you want to collect logs and metrics from, click
+*Install Extension*, and then click *OK*.
++
+[role="screenshot"]
+image:monitor-azure-elastic-vms.png[Select VMs to collect logs and metrics from]
+
+. Wait until it is installed and sending data (if the list
+does not update, click *Refresh* ).
+To see the logs from the VM in the Logs app, click  *Logs*.
++
+[role="screenshot"]
+image:monitor-azure-kibana-vms-logs.png[VMs logs in the Logs app]
++
+To see the VM metrics dashboard, click *Metrics*.
++
+[role="screenshot"]
+image:monitor-azure-kibana-vms-metrics.png[VMs metrics dashboard]
++
+[NOTE]
+====
+Both logs and metrics are filtered by the VM name that you selected.
+To view the data for all the monitored VMs, delete the filter.
+====
+
+[discrete]
+[[azure-step-four]]
+=== Step 4: Ingest other Azure metrics using the {metricbeat} Azure module
+
+Some Azure metrics are not available via the native integration.
+If you want to collect those metrics, you need to use the 
+https://docs.microsoft.com/en-us/rest/api/monitor/[Azure Monitor REST API]
+and {metricbeat}.
+
+The Azure Monitor REST API allows you to get insights into your Azure
+resources using different operations.
 To access the Azure Monitor REST API you need to use the Azure Resource Manager
-authentication model. Therefore, all requests must be authenticated with Azure
+authentication model. Therefore, you must authenticate all requests with Azure
 Active Directory (Azure AD).
 You can create the service principal using the https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal[Azure portal]
 or https://docs.microsoft.com/en-us/powershell/azure/create-azure-service-principal-azureps?view=azps-2.7.0[Azure PowerShell].
@@ -104,23 +241,30 @@ image:monitor-azure-add-role-assignment.png[Add role assignment]
 access to your subscription.
 
 [discrete]
-[[azure-step-two]]
-=== Step 2: Install and configure {metricbeat}
+==== Install and configure {metricbeat}
 
-[NOTE]
-====
-This {tutorial} assumes the Elastic cluster is already running. Make sure you
-have your *cloud ID* and your *credentials* on hand.
-====
+To configure {metricbeat} you need the {es} cluster
+details.
 
-To monitor Microsoft Azure using the {stack}, you need two main components:
-an Elastic deployment to store and analyze the data and an agent to collect
-and ship the data.
+. On the {es} resource page, click *Manage changes in
+Elastic Cloud*.
++
+[role="screenshot"]
+image:monitor-azure-elastic-deployment.png[Elastic resource]
 
-Two agents can be used to monitor Azure: {metricbeat} is used to
-monitor metrics, and {filebeat} to monitor logs. You can run the agents on any
-machine. This {tutorial} uses a small Azure instance, *B2s* (2 vCPUs,
-4 GB memory), with an Ubuntu distribution.
+. Copy the *Cloud ID* and keep it safe. You will use it later.
++
+[role="screenshot"]
+image:monitor-azure-kibana-deployment.png[Elastic Cloud deployment]
+
+. Click *Security* and then click *Reset password*. Confirm, and copy the
+password. Keep it safe as you will use it later.
++
+[role="screenshot"]
+image:monitor-azure-kibana-security.png[Elastic Cloud security]
+
+You can run {metricbeat} on any machine. This {tutorial} uses a small
+Azure VM, *B2s* (2 vCPUs, 4 GB memory), with an Ubuntu distribution.
 
 :leveloffset: +3
 include::{shared}/install-configure-metricbeat.asciidoc[]
@@ -129,8 +273,7 @@ include::{shared}/install-configure-metricbeat.asciidoc[]
 Now that the output is working, you are going to set up the input (Azure).
 
 [discrete]
-[[azure-step-three]]
-=== Step 3: Configure {metricbeat} Azure module
+==== Configure {metricbeat} Azure module
 
 To collect metrics from Microsoft Azure, use the
 {metricbeat-ref}/metricbeat-module-azure.html[{metricbeat} Azure module].
@@ -168,49 +311,7 @@ You can find the `subscription_id` in the main Subscriptions page.
 ./metricbeat modules enable azure
 ----
 
-. Edit the `modules.d/azure.yml` file to collect `compute_vms` metrics.
-+
-[source,yml]
-----
-- module: azure
-  metricsets:
-  - compute_vm  <1>
-  enabled: true
-  period: 300s  <2>
-  client_id: '${AZURE_CLIENT_ID:""}'  <3>
-  client_secret: '${AZURE_CLIENT_SECRET:""}'  <4>
-  tenant_id: '${AZURE_TENANT_ID:""}'  <5>
-  subscription_id: '${AZURE_SUBSCRIPTION_ID:""}'  <6>
-  refresh_list_interval: 600s
-----
-+
-<1> The `compute_vm` metricset is a predefined metricset that collects metrics
-from the virtual machines.
-<2> Collects metrics every 5 minutes. The period for `compute_vm` metricset
-should be 300s or multiples of 300s.
-<3> The unique identifier for the application (also known as Application ID,
-which you copied earlier).
-<4> The client/application secret/key (copied earlier).
-<5> The unique identifier of the Azure Active Directory instance.
-<6> The unique identifier for the azure subscription.
-
-. To check if {metricbeat} can collect data, test the input by running the
-following command:
-+
-[source,bash]
-----
-./metricbeat test modules azure
-----
-+
-{metricbeat} will print `compute_vms` metrics to the terminal, if the setup is
-correct.
-+
-[NOTE]
-====
-If it returns a timeout error, try again. The `test modules` timeout is short.
-====
-
-. Edit the `modules.d/azure.yml` file to also collect `billing` metrics.
+. Edit the `modules.d/azure.yml` file to collect `billing` metrics.
 +
 [source,yml]
 ----
@@ -231,6 +332,22 @@ usage data and forecast information of the subscription configured.
 <2> Collects metrics every 24 hours. The period for `billing` metricset
 should be 24h or multiples of 24h.
 
+. To check if {metricbeat} can collect data, test the input by running the
+following command:
++
+[source,bash]
+----
+./metricbeat test modules azure
+----
++
+{metricbeat} will print `billing` metrics to the terminal, if the setup is
+correct.
++
+[NOTE]
+====
+If it returns a timeout error, try again. The `test modules` timeout is short.
+====
+
 . When the input and output are ready, start {metricbeat} to collect the data.
 +
 [source,bash]
@@ -238,232 +355,12 @@ should be 24h or multiples of 24h.
 ./metricbeat -e
 ----
 
-. Finally, log into {kib} and open the *[{metricbeat} Azure] Compute VMs
-Overview* dashboard.
+. Finally, log into {kib} and open the *[{metricbeat} Azure] Billing overview*
+dashboard. Keep in mind it collects data every 24 hours.
 +
-image:monitor-azure-compute-vms-overview-dashboard.png[{metricbeat} azure
-compute vms overview dashboard]
-+
-[NOTE]
-====
-The *VM Available Memory* visualization might be empty if you only have Linux
-VMs as discussed https://github.com/elastic/beats/issues/20289[here].
-====
-+
-You can also check the *[{metricbeat} Azure] Billing overview* dashboard, even
-though it might take longer to collect data.
-+
-image:monitor-azure-billing-overview-dashboard.png[{metricbeat} azure compute
-vms overview dashboard]
-
-[discrete]
-[[azure-step-four]]
-=== Step 4: Install and configure {filebeat}
-
-Now that {metricbeat} is up and running, configure {filebeat} to collect Azure
-logs.
-
-:leveloffset: +3
-include::{shared}/install-configure-filebeat.asciidoc[]
-:leveloffset: -3
-
-Now that the output is working, you are going to set up the input (Azure).
-
-[discrete]
-[[azure-step-five]]
-=== Step 5: Create an event hub and configure diagnostics settings
-
-// New-AzResourceGroup –Name monitor-azure-resource-group –Location northeurope
-
-To collect logs from Microsoft Azure, use the
-{filebeat-ref}/filebeat-module-azure.html[{filebeat} Azure module].
-This module periodically fetches logs that have been forwarded to an Azure event
-hub.
-There are four available filesets: `activitylogs`, `platformlogs`, `signinlogs`,
-and `auditlogs`. This {tutorial} covers the `activitylogs` fileset.
-
-[discrete]
-==== Create Event Hubs namespace
-
-You have different options to create an event hub, such as
-https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-create[Azure portal]
-or https://docs.microsoft.com/en-us/azure/event-hubs/event-hubs-quickstart-powershell[PowerShell].
-This {tutorial} uses PowerShell.
-
-. Open the Azure PowerShell:
-+
-image::monitor-azure-open-powershell.png[Open the Azure PowerShell]
-
-. Run the following command to create an Event Hub namespace:
-+
-[source,bash]
-----
-New-AzEventHubNamespace -ResourceGroupName monitor-azure-resource-group `
-  -NamespaceName monitor-azure-namespace `
-  -Location northeurope
-----
-+
-[IMPORTANT]
-====
-You can only stream logs to event hubs in the same region. Make sure to choose
-an appropriate region.
-====
-
-. Create an event hub:
-+
-[source,bash]
-----
-New-AzEventHub -ResourceGroupName monitor-azure-resource-group `
-  -NamespaceName monitor-azure-namespace `
-  -EventHubName monitor-azure-event-hub `
-  -MessageRetentionInDays 3 `
-----
-+
-[NOTE]
-====
-Adjust the `-MessageRetentionInDays` value to your needs. This {tutorial} uses the
-default value suggested in the Azure quick start.
-====
-
-[discrete]
-==== Configure activity logs to stream to the event hub
-
-. Navigate to *Activity log*.
-+
-image::monitor-azure-search-activity-log.png[Navigate to Activity log]
-
-. Click on *Diagnostics settings*.
-+
-image::monitor-azure-click-diagnostics-settings.png[Click on diagnostics settings]
-
-. Click on *Add diagnostic setting*.
-
-. Configure it and click on *Save*.
-+
-image::monitor-azure-configure-diagnostics-settings.png[Configure on diagnostics settings]
-+
-[NOTE]
-====
-Select the log categories that you want.
-Select stream to an event hub and make sure to configure the correct namespace
-event hub.
-====
-
-[discrete]
-[[azure-step-six]]
-=== Step 6: Configure {filebeat} Azure module
-
-There are 2 configuration values that you need to get from the Azure portal:
-`connection_string` and `storage_account_key`.
-
-[discrete]
-==== Add the `connection_string` to the keystore
-
-. Navigate to Event Hubs.
-+
-image::monitor-azure-search-event-hubs.png[Search event hubs]
-
-. Click on the created namespace (`monitor-azure-namespace`).
-
-. Click on shared policies and then on the `RootManageSharedAccessKey` policy.
-
-. Copy the `Connection string–primary key` value and add it to the `keystore`.
-+
-image::monitor-azure-click-policy.png[Click on policy]
-+
-[source,bash]
-----
-echo -n "<Your Connection string-primary key>" | ./filebeat keystore add AZURE_CONNECTION_STRING --stdin
-----
-
-[discrete]
-==== Add `storage_account_key` to the keystore
-
-A Blob Storage account is required in order to store/retrieve/update the offset
-or state of the eventhub messages. This means that after stopping the {filebeat}
-azure module it can start back up at the spot that it stopped processing
-messages.
-
-. Create a storage account. (You can also use an existing one.)
-+
-[source,bash]
-----
-New-AzStorageAccount -ResourceGroupName monitor-azure-resource-group `
-  -Name monitorazurestorage `
-  -Location northeurope `
-  -SkuName Standard_ZRS `
-  -Kind StorageV2
-----
-
-. Navigate to Storage accounts.
-+
-image::monitor-azure-search-storage-accounts.png[Search storage accounts]
-
-. Click on the created storage account and then on *Access keys*.
-+
-image::monitor-azure-click-access-keys.png[Click on access keys]
-
-. Click on *Show keys* and copy one of the keys.
-+
-image::monitor-azure-click-view-keys.png[Click on view keys]
-
-. Add the `storage_account_key` to the `keystore`.
-+
-[source,bash]
-----
-echo -n "<Your Storage account key>" | ./filebeat keystore add AZURE_STORAGE_KEY --stdin
-----
-
-[discrete]
-==== Configure {filebeat} Azure module
-
-. Enable the {filebeat} Azure module.
-+
-[source,bash]
-----
-./filebeat modules enable azure
-----
-
-. Edit the `modules.d/azure.yml` file with the following configurations.
-+
-[source,yml]
-----
-- module: azure
-  # All logs
-  activitylogs:
-    enabled: true
-    var:
-      eventhub: "monitor-azure-event-hub"  <1>
-      consumer_group: "$Default"  <2>
-      connection_string: "${AZURE_CONNECTION_STRING}"  <3>
-      storage_account: "monitorazurestorage"  <4>
-      storage_account_key: "${AZURE_STORAGE_KEY}"  <5>
-----
-+
-<1> Collects logs from the `monitor-azure-event-hub` event hub.
-<2> Uses the default consumer group.
-<3> Connects using the configured connection string.
-<4> Persists the state of the eventhub messages to the `monitorazurestorage`
-storage account.
-<5> Uses the configured key to authenticate to the storage account.
-+
-[IMPORTANT]
-====
-You cannot remove any of the other filesets from the configuration file.
-You must have them in the config file and disabled.
-====
-
-. Start {filebeat} to collect the logs.
-+
-[source,bash]
-----
-./filebeat -e
-----
-
-. Finally, log into {kib} and open the *[{filebeat} Azure] Cloud Overview*
-dashboard.
-+
-image::monitor-azure-cloud-overview-dashboard.png[{filebeat} azure cloud overview dashboard]
+[role="screenshot"]
+image:monitor-azure-billing-overview-dashboard.png[{metricbeat} azure billing
+overview dashboard]
 
 // Add Javascript and CSS for tabbed panels
 include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
