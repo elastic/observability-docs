@@ -1,0 +1,152 @@
+[[running-on-kubernetes-managed-by-fleet]]
+[role="xpack"]
+= Run {agent} on Kubernetes managed by {fleet}
+
+Use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
+retrieve cluster metrics.
+
+ifeval::["{release-state}"=="unreleased"]
+
+However, version {version} of {agent} has not yet been
+released, so no Docker image is currently available for this version.
+
+endif::[]
+
+
+[discrete]
+== Kubernetes deploy manifests
+
+With {fleet}, each agent enrolls in a policy defined in {kib} and stored in
+{es}. The policy specifies how to collect observability data from the services
+to be monitored. The {agent} connects to a trusted {fleet-server} instance
+to retrieve the policy and report agent events.
+
+We recommend using {fleet} management because it makes the management and
+upgrade of agents considerably easier.
+
+On Kubernetes, deploy {agent} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+to ensure that there is a running instance on each node of the cluster.
+These instances are used to retrieve metrics from the host, such as system metrics, container stats,
+and metrics from all the services running on top of Kubernetes.
+
+In addition, one of the Pods in the DaemonSet will constantly hold a _leader lock_ which makes it responsible for
+handling cluster-wide monitoring.
+Find more information about leader election configuration options at <<kubernetes_leaderelection-provider, leader election provider>>.
+This instance is used to retrieve metrics that are unique for the whole
+cluster, such as Kubernetes events or
+https://github.com/kubernetes/kube-state-metrics[kube-state-metrics].
+
+
+Everything is deployed under the `kube-system` namespace by default. To change
+the namespace, modify the manifest file.
+
+To download the manifest file, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/elastic-agent-managed-kubernetes.yaml
+------------------------------------------------
+
+[discrete]
+== Settings
+
+{agent} is enrolled to a running {fleet-server} using `FLEET_URL` parameter.
+The `FLEET_ENROLLMENT_TOKEN` parameter is used to connect {agent} to a
+specific {agent} policy.
+Learn more on how to get an enrollment token from {fleet} in the  {fleet-guide}/fleet-quick-start.html[Quick start
+guide].
+
+If `FLEET_ENROLLMENT_TOKEN` is empty then agent will connect to {kib} and get the default policy.
+In that case `KIBANA_HOST`, `KIBANA_FLEET_USERNAME`, `KIBANA_FLEET_PASSWORD` have to be specified.
+
+To specify different destination/credentials,
+change the following parameters in the manifest file:
+
+[source,yaml]
+------------------------------------------------
+- name: FLEET_URL
+  value: "https://fleet-server_url:port"
+- name: FLEET_ENROLLMENT_TOKEN
+  value: "token"
+- name: KIBANA_HOST
+  value: ""
+- name: KIBANA_FLEET_USERNAME
+  value: ""
+- name: KIBANA_FLEET_PASSWORD
+  value: ""
+------------------------------------------------
+
+// Begin collapsed section
+[%collapsible]
+.Configuration details
+====
+****
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::configuration/env/shared-env.asciidoc[tag=fleet-url]
+
+include::configuration/env/shared-env.asciidoc[tag=fleet-enrollment-token]
+
+include::configuration/env/shared-env.asciidoc[tag=kibana-host]
+
+include::configuration/env/shared-env.asciidoc[tag=kibana-fleet-username]
+
+include::configuration/env/shared-env.asciidoc[tag=kibana-fleet-password]
+|===
+
+See <<agent-environment-variables>> for all available options.
+
+****
+====
+
+[discrete]
+=== Run {agent} on master nodes
+
+Kubernetes master nodes can use https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints]
+to limit the workloads that can run on them. The manifest for managed {agent} defines
+tolerations to run on master nodes. Agents running on master nodes collect metrics from the control plane
+components (scheduler, controller manager) of Kubernetes.
+To disable {agent} from running on master nodes, remove the following part of the Daemonset spec:
+
+[source,yaml]
+------------------------------------------------
+spec:
+ tolerations:
+ - key: node-role.kubernetes.io/master
+   effect: NoSchedule
+------------------------------------------------
+
+
+[discrete]
+== Deploy
+
+If planning to deploy `state_*` datasets of Kubernetes package,
+https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics] needs to be already deployed
+in the cluster. If `kube-state-metrics` is not already running, deploy it now (see the
+https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[Kubernetes
+deployment] docs).
+
+To deploy {agent} on Kubernetes, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+kubectl create -f elastic-agent-managed-kubernetes.yaml
+------------------------------------------------
+
+To check the status, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+$ kubectl get pod -n kube-system -l app=elastic-agent
+
+NAME                  READY   STATUS    RESTARTS   AGE
+elastic-agent-hrjbg   1/1     Running   0          12m
+elastic-agent-olpsd   1/1     Running   0          12m
+------------------------------------------------
+
+
+{agent}s should be enrolled to Fleet and users should be able to deploy the Kubernetes package accordingly.
+This can be confirmed in {kib} under Fleet  / Agents section.
