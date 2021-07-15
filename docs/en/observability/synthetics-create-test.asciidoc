@@ -19,14 +19,14 @@ Each journey provides a fresh playwright `browser`, `context`, and `page` instan
 See <<synthetics-create-journey>> for more information.
 * `step(name, function)` -- A journey consists of multiple steps, i.e., actions that should be completed in a specific order.
 Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
-* `beforeAll(function)` -- Runs a provided function prior to all `journey` runs.
+* `beforeAll(({ params }) => {})` -- Runs a provided function prior to all `journey` runs.
 If the provided function is a promise, the runner will wait for the promise to resolve before invoking the journey.
 This function is useful for setting up global state or a server that will be used across multiple journeys.
-* `before(function)` -- Runs a provided function prior to a single `journey` runs.
+* `before(({ params }) => {})` -- Runs a provided function prior to a single `journey` runs.
 This function is useful for setting up global state or a server that will be used for a single journey.
-* `afterAll(function)` -- Runs a provided function after all the journeys have completed.
+* `afterAll(({ params }) => {})` -- Runs a provided function after all the journeys have completed.
 This function is useful for removing global state or closing a server that was used in multiple journeys.
-* `after(function)` -- Runs a provided function after a single journey has completed.
+* `after(({ params }) => {})` -- Runs a provided function after a single journey has completed.
 This function is useful for removing global state or closing a server that was used in a single journey.
 
 TIP: {playwright-url}[Playwright] is browser testing library developed by Microsoft.
@@ -39,21 +39,20 @@ It is reliable and fast and features a modern API that auto waits for page eleme
 The `journey` function takes a single parameter, `name`,
 and provides access to `page`, `params`, `browser`, and `context`:
 
-* `browser` -- A browser is created by Playwright.
-* `page` -- A `page` object from Playwright that lets you control the browser's current page.
-* `context` -- A browser context that doesn't share cookies or cache with other browser contexts.
+* `browser` -- A {playwright-api-docs}[browser] object created by Playwright.
+* `page` -- A https://playwright.dev/docs/api/class-page[page] object from Playwright that lets you control the browser's current page.
+* `context` -- A https://playwright.dev/docs/api/class-browsercontext[browser context] that doesn't share cookies or cache with other browser contexts.
 * `params` -- User-defined variables that allow you to invoke the Synthetics suite with custom parameters.
 For example, if you want to use a different homepage depending on the `env`
-(localhost for `dev`, and a URL for `prod`).
-
-See the official https://playwright.dev/#version=v1.5.2&path=docs%2Fapi.md&q=class-browser[Playwright API documentation] for more information.
+(localhost for `dev`, and a URL for `prod`). See <<synthetics-params-secrets>>
+for more information.
 
 Putting it all together, a basic, two step journey might look something like this:
 
 [source,js]
 ----
 journey("Journey name", ({ page }) => {
-    step("Step 1 name", async () => {
+    step("Step 1 name", () => {
       // Do something here
     })
     step("Step 2 name", () => {
@@ -73,9 +72,9 @@ A basic first step might simply load a page:
 
 [source,js]
 ----
-await page.goto('https://www.elastic.co'); <1>
+await page.goto('https://elastic.github.io/synthetics-demo/'); <1>
 ----
-<1> See the https://github.com/microsoft/playwright/blob/master/docs/api.md#pagegotourl-options[`page.goto` reference] for more information.
+<1> See the https://playwright.dev/docs/api/class-page#page-goto[`page.goto` reference] for more information.
 
 A more complex second step might wait for a page element to be selected,
 and then ensure that it matches an expected value.
@@ -87,7 +86,7 @@ Consider the following HTML snippet:
   <h1>todos</h1>
   <input class="new-todo"
     autofocus autocomplete="off"
-    placeholder="What needs to be done?"
+    placeholder="What needs to be done?">
 </header>
 ----
 
@@ -97,16 +96,17 @@ with the following test:
 [source,js]
 ----
 step("Check placeholder text", async () => {
-  const input = await page.$('input.new-todo'); <1>
-  deepStrictEqual(await input.getAttribute('placeholder'), "What needs to be done?"); <2>
+  const placeholderValue = await page.getAttribute(
+      'input.new-todo',
+      'placeholder'
+  ); <1>
+  expect(placeholderValue).toBe('What needs to be done?'); <2>
 })
 ----
-<1> Query the page for the `input.new-todo` selector.
-See the https://github.com/microsoft/playwright/blob/master/docs/api.md#pageselector[`page.$` reference] for more information.
-<2> Return the `placeholder` attribute for `new-todo` with https://developer.mozilla.org/en-US/docs/Web/API/Element/getAttribute[`getAttribute()`], and ensure it equals the provided text.
-`deepStrictEqual` is provided by Node.js and tests for deep equality between the actual and
-expected parameters.
-See the https://nodejs.org/api/assert.html#assert_assert_deepstrictequal_actual_expected_message[Node.js API reference] for more information.
+<1> Query the page for the `input.new-todo` selector and get the `placeholder`
+attribute value. See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getAttribute` reference] for more information.
+<2> Use the assertion library provided by the Synthetics agent to look for the
+expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
 
 [discrete]
 [[synthetics-sample-test]]
@@ -116,16 +116,18 @@ A complete example of a basic synthetic test looks like this:
 
 [source,js]
 ----
-import { journey, step } from '@elastic/synthetics';
-import { deepStrictEqual } from 'assert';
+import { journey, step, expect } from '@elastic/synthetics';
 
 journey("Ensure placeholder is correct", ({page}) => {
-    step("Go to elastic.co", async () => {
-      await page.goto('https://www.elastic.co');
+    step("go to todos demo page", async () => {
+      await page.goto('https://elastic.github.io/synthetics-demo/');
     })
-    step("Check placeholder text", async () => {
-      const input = await page.$('input.new-todo');
-      deepStrictEqual(await input.getAttribute('placeholder'), "What needs to be done?");
+    step("assert placeholder text", async () => {
+      const placeholderValue = await page.getAttribute(
+        'input.new-todo',
+        'placeholder'
+      );
+      expect(placeholderValue).toBe('What needs to be done?');
     })
 });
 ----
@@ -133,10 +135,6 @@ journey("Ensure placeholder is correct", ({page}) => {
 [discrete]
 [[synthetic-run-tests]]
 == Running synthetic tests
-
-// REVIEWERS:
-// Should we doc required technologies?
-// Node.js, npx, typescript, etc.?
 
 As explained in the <<synthetics-quickstart,quickstart>>, there are two ways to run synthetic tests:
 
@@ -186,7 +184,7 @@ For example:
 cat examples/inline/short.js | npx @elastic/synthetics --inline
 ----
 
-If everything works as expected, you'll get the following response:
+If everything works as expected, you'll get the similar response:
 
 [source,sh]
 ----
@@ -203,8 +201,8 @@ The script can then be copied into your in your `heartbeat.yml`:
 ----
 heartbeat.monitors:
 - type: browser
-  id: my-monitor
-  name: My Monitor
+  id: elastic-website
+  name: Elastic website
   schedule: "@every 1m"
   source:
     inline:
@@ -244,7 +242,7 @@ npm install -g @elastic/synthetics
 
 Now it's time to write your tests:
 
-. Create a new NPM/Node.js project.
+. Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
 . Create a `javascript` or `typescript` file that imports your tests.
 All synthetic test files must use the `.journey.ts` or `.journey.js` file extension.
 . Compile everything together.
@@ -275,8 +273,6 @@ npx @elastic/synthetics .
 
 Once you have your tests up and running, follow the steps in the <<synthetics-quickstart,quickstart guide>>
 to integrate with the provided Docker project template.
-You'll need to write some additional orchestration to get Heartbeat on a box,
-pull your source of tests, and share it with Heartbeat.
 
 // Results. . .
 // [source,sh]
