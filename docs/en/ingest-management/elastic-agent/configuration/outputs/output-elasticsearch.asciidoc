@@ -10,24 +10,27 @@ The `elasticsearch` output sends events directly to {es} by using the
 https://www.elastic.co/support/matrix#matrix_compatibility[Elastic Support
 Matrix].
 
-Example configuration:
+Example output configuration in the `elastic-agent.yml` file:
 
 //TODO: Provide a example that shows more of the settings users are likely to
 //change.
 
 [source,yaml]
 ----
-output.elasticsearch:
-  hosts: ["https://myEShost:9200"] <1>
+outputs:
+  default:
+    type: elasticsearch
+    hosts: [127.0.0.1:9200]
+    username: elastic
+    password: changeme
 ----
-<1> To enable SSL, add `https` to all URLs defined under __hosts__.
 
 The `elasticsearch` output supports the following settings, grouped by category.
 Many of these settings have sensible defaults that allow you to run {agent} with
 minimal configuration.
 
 <<output-elasticsearch-commonly-used-settings>>::
-Settings frequently changed for this input type.
+Settings frequently changed for this output type.
 
 <<output-elasticsearch-authentication-settings>>::
 Settings for authenticating with {es}.
@@ -50,40 +53,16 @@ Settings that control timeouts and other behavior that affects performance.
 
 [cols="2*<a"]
 |===
-| Settings | Description
+| Setting | Description
 
 //QUESTION: I've removed index and indices because I don't think it makes sense
 //to document these settings for agent. Let me know if that's not correct.
 
 // =============================================================================
 
-// tag::enabled-setting[]
-|
-[id="output-{output-type}-enabled-setting"]
-`enabled`
+include::output-shared-settings.asciidoc[tag=enabled-setting]
 
-| (boolean) Enables or disables the output. If set to `false`, the output is
-disabled.
-
-*Default:* `enabled`
-
-// end::enabled-setting[]
-
-// =============================================================================
-
-// tag::escape_html-setting[]
-
-//QUESTION: What category would you put this in? Didn't fit in any other, so I
-//put it here.
-|
-[id="output-{output-type}-escape_html-setting"]
-`escape_html`
-
-| (boolean) Configures escaping of HTML in strings. Set to `true` to enable
-escaping.
-
-*Default:* `false`
-// end::escape_html-setting[]
+*Default:* `true`
 
 // =============================================================================
 
@@ -103,10 +82,12 @@ from the `protocol` and `path` settings.
 
 [source,yaml]
 ------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["10.45.3.2:9220", "10.45.3.1:9230"] <1>
-  protocol: https
-  path: /elasticsearch
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["10.45.3.2:9220", "10.45.3.1:9230"] <1>
+    protocol: https
+    path: /elasticsearch
 ------------------------------------------------------------------------------
 
 In the previous example, the {es} nodes are available at
@@ -183,29 +164,34 @@ methods.
 
 ["source","yaml",subs="attributes,callouts"]
 ----
-output.elasticsearch:
-  hosts: ["https://myEShost:9200"]
-  username: "your-username"
-  password: "your-password"
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["https://myEShost:9200"]
+    username: "your-username"
+    password: "your-password"
 ----
 
 *API key authentication:*
 
 ["source","yaml",subs="attributes,callouts"]
 ----
-output.elasticsearch:
-  hosts: ["https://myEShost:9200"]
-  api_key: "KnR6yE41RrSowb0kQ0HWoA"
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["https://myEShost:9200"]
+    api_key: "KnR6yE41RrSowb0kQ0HWoA"
 ----
 
 *PKI certificate authentication:*
 
 ["source","yaml",subs="attributes,callouts"]
 ----
-output.elasticsearch:
-  hosts: ["https://myEShost:9200"]
-  ssl.certificate: "/etc/pki/client/cert.pem"
-  ssl.key: "/etc/pki/client/cert.key"
+outputs:
+  default:
+    type: elasticsearch  hosts: ["https://myEShost:9200"]
+    ssl.certificate: "/etc/pki/client/cert.pem"
+    ssl.key: "/etc/pki/client/cert.key"
 ----
 
 
@@ -213,7 +199,7 @@ output.elasticsearch:
 
 [cols="2*<a"]
 |===
-| Settings | Description
+| Setting | Description
 
 // tag::api_key-setting[]
 |
@@ -287,7 +273,11 @@ Settings used to parse, filter, and transform data.
 
 [cols="2*<a"]
 |===
-| Settings | Description
+| Setting | Description
+
+include::output-shared-settings.asciidoc[tag=escape_html-setting]
+
+// =============================================================================
 
 // tag::pipeline-setting[]
 |
@@ -299,9 +289,11 @@ write events to.
 
 [source,yaml]
 ------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  pipeline: my_pipeline_id
+outputs:
+  default:
+    type: elasticsearchoutput.elasticsearch:
+    hosts: ["http://localhost:9200"]
+    pipeline: my_pipeline_id
 ------------------------------------------------------------------------------
 
 //For more information, see <<configuring-ingest-node>>.
@@ -312,9 +304,10 @@ access any event field. For example, this configuration uses a custom field,
 
 [source,yaml]
 ------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  pipeline: "%{[fields.log_type]}_pipeline"
+outputs:
+  default:
+    type: elasticsearch  hosts: ["http://localhost:9200"]
+    pipeline: "%{[fields.log_type]}_pipeline"
 ------------------------------------------------------------------------------
 
 With this configuration, all events with `log_type: normal` are sent to a
@@ -361,15 +354,16 @@ The following example sends events to a specific pipeline based on whether the
 
 [source,yaml]
 ------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  pipelines:
-    - pipeline: "warning_pipeline"
-      when.contains:
-        message: "WARN"
-    - pipeline: "error_pipeline"
-      when.contains:
-        message: "ERR"
+outputs:
+  default:
+    type: elasticsearch  hosts: ["http://localhost:9200"]
+    pipelines:
+      - pipeline: "warning_pipeline"
+        when.contains:
+          message: "WARN"
+      - pipeline: "error_pipeline"
+        when.contains:
+          message: "ERR"
 ------------------------------------------------------------------------------
 
 
@@ -379,14 +373,16 @@ pipeline:
 
 [source,yaml]
 ------------------------------------------------------------------------------
-output.elasticsearch:
-  hosts: ["http://localhost:9200"]
-  pipelines:
-    - pipeline: "%{[fields.log_type]}"
-      mappings:
-        critical: "sev1_pipeline"
-        normal: "sev2_pipeline"
-      default: "sev3_pipeline"
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["http://localhost:9200"]
+    pipelines:
+      - pipeline: "%{[fields.log_type]}"
+        mappings:
+          critical: "sev1_pipeline"
+          normal: "sev2_pipeline"
+        default: "sev3_pipeline"
 ------------------------------------------------------------------------------
 
 
@@ -409,7 +405,7 @@ Settings that modify the HTTP requests sent to {es}.
 
 [cols="2*<a"]
 |===
-| Settings | Description
+| Setting | Description
 
 
 // tag::headers-setting[]
@@ -418,12 +414,16 @@ Settings that modify the HTTP requests sent to {es}.
 `headers`
 
 | Custom HTTP headers to add to each request created by the {es} output.
+
 Example:
 
 [source,yaml]
 ------------------------------------------------------------------------------
-output.elasticsearch.headers:
-  X-My-Header: Header contents
+outputs:
+  default:
+    type: elasticsearch
+    headers:
+      X-My-Header: Header contents
 ------------------------------------------------------------------------------
 
 Specify multiple header values for the same header name by separating them with
@@ -464,7 +464,7 @@ Settings that may affect performance.
 
 [cols="2*<a"]
 |===
-| Settings | Description
+| Setting | Description
 
 // tag::backoff.init-setting[]
 |
@@ -519,19 +519,9 @@ number of events to be contained in a batch.
 
 // =============================================================================
 
-// tag::compression_level-setting[]
-|
-[id="output-{output-type}-compression_level-setting"]
-`compression_level`
-
-| (int) The gzip compression level. Set this value to `0` to disable compression.
-The compression level must be in the range of `1` (best speed) to `9` (best
-compression).
-
-Increasing the compression level reduces network usage but increases CPU usage.
+include::output-shared-settings.asciidoc[tag=compression_level-setting]
 
 *Default:* `0`
-// end::compression_level-setting[]
 
 // =============================================================================
 
@@ -566,18 +556,8 @@ Set `max_retries` to a value less than 0 to retry until all events are published
 // end::timeout-setting[]
 
 // =============================================================================
-
-// tag::worker-setting[]
 |
-[id="output-{output-type}-worker-setting"]
-`worker`
-
-| (int) The number of workers per configured host publishing events to {es}.
-This is best used with load balancing mode enabled. Example: If you have two
-hosts and three workers, in total six workers are started (three for each host).
-
-*Default:* `1`
-// end::worker-setting[]
+include::output-shared-settings.asciidoc[tag=worker-setting]
 
 // =============================================================================
 
