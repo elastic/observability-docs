@@ -1,0 +1,288 @@
+:output-type: logstash
+
+[[logstash-output]]
+== {ls} output
+
+The {ls} output uses an internal protocol to send events directly to {ls} over
+TCP. {ls} provides additional parsing, transformation, and routing of data
+collected by {agent}.
+
+//QUESTION: I assume we don't want to mention the lumberjack protocol anymore?
+//If so, do we want to describe it as an Elastic protocol? Proprietary protocol?
+//internal protocol?
+
+*Compatibility:* This output works with all compatible versions of {ls}. Refer
+to the https://www.elastic.co/support/matrix#matrix_compatibility[Elastic
+Support Matrix].
+
+Example output configuration in the `elastic-agent.yml` file:
+
+//TODO: Provide a example that shows more of the settings users are likely to
+//change.
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: logstash
+    hosts: ["127.0.0.1:5044"] <1>
+------------------------------------------------------------------------------
+<1> The {ls} server and the port (`5044`) where {ls} is configured to listen for
+incoming {agent} connections.
+
+//QUESTION: Can `default` be replaced with any string?
+
+//QUESTION: I've removed the section about metadata fields because I think
+//they are no longer relevant with data streams. But I'm not sure how logstash
+//knows to route events to the correct data stream.
+
+//QUESTION: Do we want to show the LS pipeline config here?
+
+[TIP]
+====
+To send events to {ls}, you also need to create a {ls} configuration pipeline.
+The {ls} configuration pipeline listens for incoming {agent} connections and
+sends the received events to {es}. For more information about creating a {ls}
+configuration pipeline, see:
+
+* {logstash-ref}/getting-started-with-logstash.html[Getting Started with {ls}]
+* {logstash-ref}/plugins-inputs-elastic_agent.html[{agent} input] plugin
+* {logstash-ref}/plugins-outputs-elasticsearch.html[{es} output] plugin
+====
+
+The `logstash` output supports the following settings, grouped by category.
+Many of these settings have sensible defaults that allow you to run {agent} with
+minimal configuration.
+
+<<output-logstash-commonly-used-settings>>::
+Settings frequently changed for this output type.
+
+//<<output-logstash-data-parsing-settings>>::
+//Settings used to parse, filter, and transform data.
+
+//<<output-logstash-http-settings>>::
+//Settings that modify the HTTP request sent to {es}.
+
+<<output-logstash-performance-tuning-settings>>::
+Settings that control timeouts and other behavior that affects performance.
+
+
+[[output-logstash-commonly-used-settings]]
+=== Commonly used settings
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=enabled-setting]
+
+*Default:* `false`
+
+// =============================================================================
+
+// tag::hosts-setting[]
+|
+[id="output-{output-type}-hosts-setting"]
+`hosts`
+
+| (list) The list of known {ls} servers to connect to. If load balancing is
+disabled, but multiple hosts are configured, one host is selected randomly
+(there is no precedence). If one host becomes unreachable, another one is
+selected randomly.
+
+All entries in this list can contain a port number. If no port is specified,
+`5044` is used.
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=compression_level-setting]
+
+*Default:* `3`
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=escape_html-setting]
+
+// =============================================================================
+
+|===
+
+[[output-logstash-performance-tuning-settings]]
+=== Performance tuning settings
+
+Settings that may affect performance.
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+// tag::loadbalance-setting[]
+|
+[id="input-metrics-{input-type}-loadbalance-setting"]
+`loadbalance`
+
+| If `true` and multiple {ls} hosts are configured, the output plugin
+load balances published events onto all {ls} hosts. If `false`,
+the output plugin sends all events to one host (determined at random) and
+switches to another host if the selected one becomes unresponsive.
+
+*Default:* `false`
+
+Example:
+
+[source,yaml]
+------------------------------------------------------------------------------
+outputs:
+  default:
+    type: logstash
+    hosts: ["localhost:5044", "localhost:5045"]
+    loadbalance: true
+------------------------------------------------------------------------------
+
+// end::loadbalance-setting[]
+
+// =============================================================================
+
+include::output-shared-settings.asciidoc[tag=worker-setting]
+
+//QUESTION: Is the default really 1 for logstash? It's not documented in
+//the beats documentation
+
+// =============================================================================
+
+|===
+
+
+[discrete]
+===== `ttl`
+
+Time to live for a connection to {ls} after which the connection will be re-established.
+Useful when {ls} hosts represent load balancers. Since the connections to {ls} hosts
+are sticky, operating behind load balancers can lead to uneven load distribution between the instances.
+Specifying a TTL on the connection allows to achieve equal connection distribution between the
+instances.  Specifying a TTL of 0 will disable this feature.
+
+The default value is 0.
+
+NOTE: The "ttl" option is not yet supported on an async {ls} client (one with the "pipelining" option set).
+
+[discrete]
+===== `pipelining`
+
+Configures the number of batches to be sent asynchronously to {ls} while waiting
+for ACK from {ls}. Output only becomes blocking once number of `pipelining`
+batches have been written. Pipelining is disabled if a value of 0 is
+configured. The default value is 2.
+
+[discrete]
+===== `proxy_url`
+
+The URL of the SOCKS5 proxy to use when connecting to the {ls} servers. The
+value must be a URL with a scheme of `socks5://`. The protocol used to
+communicate to {ls} is not based on HTTP so a web-proxy cannot be used.
+
+If the SOCKS5 proxy server requires client authentication, then a username and
+password can be embedded in the URL as shown in the example.
+
+When using a proxy, hostnames are resolved on the proxy server instead of on the
+client. You can change this behavior by setting the
+<<logstash-proxy-use-local-resolver,`proxy_use_local_resolver`>> option.
+
+["source","yaml",subs="attributes"]
+------------------------------------------------------------------------------
+output.logstash:
+  hosts: ["remote-host:5044"]
+  proxy_url: socks5://user:password@socks5-proxy:2233
+------------------------------------------------------------------------------
+
+[discrete]
+[[logstash-proxy-use-local-resolver]]
+===== `proxy_use_local_resolver`
+
+The `proxy_use_local_resolver` option determines if {ls} hostnames are
+resolved locally when using a proxy. The default value is false, which means
+that when a proxy is used the name resolution occurs on the proxy server.
+
+[discrete]
+[[logstash-index]]
+===== `index`
+
+The index root name to write events to. The default is the Beat name. For
+example +"{beat_default_index_prefix}"+ generates +"[{beat_default_index_prefix}-]{version}-YYYY.MM.DD"+
+indices (for example, +"{beat_default_index_prefix}-{version}-2017.04.26"+).
+
+NOTE: This parameter's value will be assigned to the `metadata.beat` field. It
+can then be accessed in {ls}'s output section as `%{[@metadata][beat]}`.
+
+[discrete]
+===== `ssl`
+
+Configuration options for SSL parameters like the root CA for {ls} connections. See
+//<<configuration-ssl>> for more information. To use SSL, you must also configure the
+//https://www.elastic.co/guide/en/logstash/current/plugins-inputs-beats.html[Beats input plugin for Logstash] to use SSL/TLS.
+
+[discrete]
+===== `timeout`
+
+The number of seconds to wait for responses from the {ls} server before timing out. The default is 30 (seconds).
+
+[discrete]
+===== `max_retries`
+
+ifdef::ignores_max_retries[]
+{beatname_uc} ignores the `max_retries` setting and retries indefinitely.
+endif::[]
+
+ifndef::ignores_max_retries[]
+The number of times to retry publishing an event after a publishing failure.
+After the specified number of retries, the events are typically dropped.
+
+Set `max_retries` to a value less than 0 to retry until all events are published.
+
+The default is 3.
+endif::[]
+
+[discrete]
+===== `bulk_max_size`
+
+The maximum number of events to bulk in a single {ls} request. The default is 2048.
+
+If the Beat sends single events, the events are collected into batches. If the Beat publishes
+a large batch of events (larger than the value specified by `bulk_max_size`), the batch is
+split.
+
+Specifying a larger batch size can improve performance by lowering the overhead of sending events.
+However big batch sizes can also increase processing times, which might result in
+API errors, killed connections, timed-out publishing requests, and, ultimately, lower
+throughput.
+
+Setting `bulk_max_size` to values less than or equal to 0 disables the
+splitting of batches. When splitting is disabled, the queue decides on the
+number of events to be contained in a batch.
+
+
+[discrete]
+===== `slow_start`
+
+If enabled, only a subset of events in a batch of events is transferred per transaction.
+The number of events to be sent increases up to `bulk_max_size` if no error is encountered.
+On error, the number of events per transaction is reduced again.
+
+The default is `false`.
+
+[discrete]
+===== `backoff.init`
+
+The number of seconds to wait before trying to reconnect to {ls} after
+a network error. After waiting `backoff.init` seconds, {beatname_uc} tries to
+reconnect. If the attempt fails, the backoff timer is increased exponentially up
+to `backoff.max`. After a successful connection, the backoff timer is reset. The
+default is 1s.
+
+[discrete]
+===== `backoff.max`
+
+The maximum number of seconds to wait before attempting to connect to
+{ls} after a network error. The default is 60s.
