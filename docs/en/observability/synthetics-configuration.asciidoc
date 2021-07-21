@@ -1,0 +1,66 @@
+[[synthetics-configuration]]
+= Synthetic tests configuration
+
+++++
+<titleabbrev>Synthetic tests configuration</titleabbrev>
+++++
+
+beta[] Synthetic tests support the configuration of dynamic parameters that can be
+used in the suites. In addition, the Synthetics agent, which is built on top
+of Playwright, supports configuring browser and context options that are available
+in Playwright specific methods, for example, `ignoreHTTPSErrors`, `extraHTTPHeaders` and `viewport`. 
+
+[discrete]
+[[synthetics-config-file]]
+== Global Synthetics Configuration
+
+Create a `synthetics.config.js` or `synthetics.config.ts` file in the root of the
+synthetics project and specify the options:
+
+[source,js]
+----
+import { SyntheticsConfig } from "@elastic/synthetics"
+
+const config: SyntheticsConfig = {
+  params: {
+    url: "https://www.elastic.co"
+  },
+  playwrightOptions: {
+    ignoreHTTPSErrors: true, // ignores all HTTPS errors during navigation
+    extraHTTPHeaders: {
+      "foo": "bar" // additional HTTP headers to be sent with every request
+    }
+  }
+}
+
+export default config;
+----
+
+The configuration file can either export an object, or a function that when
+called should return the generated configuration. To know more about configuring
+the tests based on environments, look at the <<synthetics-dynamic-configs, dynamic configuration>> documentation.
+
+[discrete]
+[[synthetics-config-device-emulation]]
+=== Device emulation
+
+Users can emulate a mobile device using the configuration file.
+The example configuration below runs tests in "Pixel 5" emulation mode.
+
+[source,js]
+----
+import { SyntheticsConfig } from "@elastic/synthetics"
+import { devices } from "playwright-chromium"
+
+const config: SyntheticsConfig = {
+  playwrightOptions: {
+    ...devices['Pixel 5']
+  }
+}
+
+export default config;
+----
+
+
+NOTE: Synthetics tests configuration can only be used along with synthetics
+projects and is not available for inline suites.
