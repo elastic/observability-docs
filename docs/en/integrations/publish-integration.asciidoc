@@ -1,17 +1,36 @@
 = Publish an integration
 
-maybe remove this page for now?
+// source: https://github.com/elastic/integrations/blob/master/docs/developer_workflow_promote_release_integration.md
+
+When your integration is done, it's time to open a PR to include it in the integrations repository.
+Before opening your PR, run:
+
+[source,terminal]
+----
+elastic-package check
+----
+
+The `check` command ensures the package is built correctly, formatted properly,
+and aligned with the spec.
+Passing the `check` command is required before adding your integration to the repository.
+
+When CI is happy, merge your PR into the integrations repo.
+
+CI will kick off a build job for the master branch, which can release your integration to the package-storage. It means that it will open a PR to the Package Storage/snapshot with the built integration if only the package version doesn't already exist in the storage (hasn't been released yet).
 
 [discrete]
-== Promote (?)
+== Promote
 
-// https://github.com/elastic/integrations/blob/master/docs/developer_workflow_promote_release_integration.md
+Now that you've tested your integration with Kibana, it's time to promote it to staging or production.
+Run:
 
-[discrete]
-== Open a PR
+[source,terminal]
+----
+elastic-package promote
+----
 
-If you think that you've finished works on your integration, you've verified that it collects data, wrote some tests, you can open a PR to include your integration in the Integrations repository. The CI will verify if your integration is correct (elastic-package check) - a green status is a must.
+he tool will open 2 PRs (promote and delete) to the package-storage: target and source branches.
 
-// When the PR is merged, the CI will kick off a build job for the master branch, which can release your integration to the package-storage. It means that it will open a PR to the Package Storage/snapshot with the built integration if only the package version doesn't already exist in the storage (hasn't been released yet).
+Please review both PRs on your own, check if CI is happy and merge - first target, then source. Once any PR is merged, the CI will kick off a job to bake a new Docker image of package-storage (tracking). Ideally the "delete" PR should be merged once the CI job for "promote" is done, as the Docker image of previous stage depends on the later one.
 
-// When you are ready for your changes in the integration to be released, remember to bump up the package version. It is up to you, as the package developer, to decide how many changes you want to release in a single version. For example, you could implement a change in a PR and bump up the package version in the same PR. Or you could implement several changes across multiple PRs and then bump up the package version in the last of these PRs or in a separate follow up PR.
+TIP: When you are ready for your changes in the integration to be released, remember to bump up the package version. It is up to you, as the package developer, to decide how many changes you want to release in a single version. For example, you could implement a change in a PR and bump up the package version in the same PR. Or you could implement several changes across multiple PRs and then bump up the package version in the last of these PRs or in a separate follow up PR.
