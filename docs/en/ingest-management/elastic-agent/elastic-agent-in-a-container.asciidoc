@@ -39,7 +39,7 @@ docker run \
   --env FLEET_SERVER_ENABLE=true \
   --env FLEET_SERVER_ELASTICSEARCH_HOST={elasticsearch-host} \
   --env FLEET_SERVER_SERVICE_TOKEN={service-token} \
-  --rm docker.elastic.co/beats/elastic-agent:7.14.0-SNAPSHOT
+  --rm docker.elastic.co/beats/elastic-agent:{stack-version}
 ```
 
 To get the service token go the the Fleet UI and generate one.
@@ -65,7 +65,7 @@ The Elastic Agent can be run in docker-compose. An example on how to enroll an E
 version: "3"
 services:
   elastic-agent:
-    image: docker.elastic.co/beats/elastic-agent:7.14.0
+    image: docker.elastic.co/beats/elastic-agent:{stack-version}
     container_name: elastic-agent
     restart: always
     user: root
@@ -73,12 +73,9 @@ services:
       - FLEET_ENROLLMENT_TOKEN={enrollment-token}
       - FLEET_ENROLL=1
       - FLEET_URL={fleet-server-url}
-
 ```
 
-The same can be applied to run fleet-server in docker-compose.
-// TODO: Add example with fleet-server running (untrusted)
-
+The same can be applied to run fleet-server in docker-compose by taking the environment variables from the previous docker command.
 == Logs
 
 As a container supports only a single version of the Elastic Agent, logs and state are stored a bit differently from running an Elastic Agent outside a container. The logs can be found under `/usr/share/elastic-agent/state/data/logs/*`. It is important to note that only the logs from the Elastic Agent process itself are logged to stdout but not the one from the sub processes. Each subprocess like writes its own logs to the `default` directory inside the above logs directory:
