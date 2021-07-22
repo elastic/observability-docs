@@ -2,29 +2,35 @@
 [role="xpack"]
 = Run {agent} in a Container
 
-Elastic Agent can be run inside a container (docker.elastic.co/beats/elastic-agent:{stack-version}). The Elastic Agent can be run as standalone inside the container, enrolled into Fleet or also with fleet-server.
+Elastic Agent can be run inside a container (docker.elastic.co/beats/elastic-agent:{version}). The Elastic Agent can be run as standalone inside the container, enrolled into Fleet or also with fleet-server.
 
 If the Elastic Agent is run inside a container, this {agent} cannot be upgraded through Fleet as it is expected that the container itself is upgraded. Enrolling and running an Elastic Agent is normally a two step process. As this does not work in a container, a special subcommand called `container` is called. This command allows to pass in environment variables for configuration of all the properties and will do enroll and run in a single command.
 
-If you are running in k8s, you can find more details on how to run on ECK here: https://www.elastic.co/guide/en/cloud-on-k8s/master/k8s-elastic-agent.html
+If you are running in k8s, you can find more details on how to run on ECK here:
+{eck-ref}/k8s-elastic-agent.html[k8s link]
 
+// https://www.elastic.co/guide/en/cloud-on-k8s/master/k8s-elastic-agent.html
+
+[discrete]
 == Elastic Agent container command
 
 The {agent} container command offers a wide variety of options. To see the full list, run `elastic-agent container -h`. In the following we share some basic example setups.
 
+[discrete]
 == Cloud startup examples
 
 The simplest setup you can do is start an Elastic Cluster in Elastic Cloud. Go to the Fleet page under Fleet Settings and grab the fleet-server url and the enrollment token under "Enrollment Tokens". To enroll an Elastic Agent from a container use the follow command:
 
 Connect container to Cloud setup
 
-```
+[source,terminal]
+----
 docker run \
   --env FLEET_ENROLL=1 \
   --env FLEET_URL={fleet-server-url} \
   --env FLEET_ENROLLMENT_TOKEN={enrollment-token} \
-  --rm docker.elastic.co/beats/elastic-agent:{stack-version}
-```
+  --rm docker.elastic.co/beats/elastic-agent:{version}
+----
 
 Make sure the enrollment token is for the policy you want the Elastic Agent to enroll into.
 
@@ -34,38 +40,41 @@ In case you have an on prem environment and want to run your own fleet-server, u
 
 Run container with fleet-server:
 
-```
+[source,terminal]
+----
 docker run \
   --env FLEET_SERVER_ENABLE=true \
   --env FLEET_SERVER_ELASTICSEARCH_HOST={elasticsearch-host} \
   --env FLEET_SERVER_SERVICE_TOKEN={service-token} \
-  --rm docker.elastic.co/beats/elastic-agent:{stack-version}
-```
+  --rm docker.elastic.co/beats/elastic-agent:{version}
+----
 
 To get the service token go the the Fleet UI and generate one.
 
 
 We recommend to only have one fleet-server policy. If this is the default policy for fleet-server, it is picked automatically by fleet-server for enrollment.
 
-
-
+[discrete]
 == Where are logs
 
 As a container supports only a single version of the Elastic Agent, logs and state are stored a bit differently from running an Elastic Agent outside a container. The logs can be found under `/usr/share/elastic-agent/state/data/logs/*`. It is important to note that only the logs from the Elastic Agent process itself are logged to stdout but not the one from the sub processes.
 
+[discrete]
 == Debugging
 
-* TODO: Mention metrics endpoint, ping @michal for more details or reference it here if we have it already documented.
+// TODO: Mention metrics endpoint
 
+[discrete]
 == Docker compose example
 
 The Elastic Agent can be run in docker-compose. An example on how to enroll an Elastic Agent can be found below.
 
-```
+[source,terminal]
+----
 version: "3"
 services:
   elastic-agent:
-    image: docker.elastic.co/beats/elastic-agent:{stack-version}
+    image: docker.elastic.co/beats/elastic-agent:{version}
     container_name: elastic-agent
     restart: always
     user: root
@@ -73,15 +82,18 @@ services:
       - FLEET_ENROLLMENT_TOKEN={enrollment-token}
       - FLEET_ENROLL=1
       - FLEET_URL={fleet-server-url}
-```
+----
 
 The same can be applied to run fleet-server in docker-compose by taking the environment variables from the previous docker command.
+
+[discrete]
 == Logs
 
 As a container supports only a single version of the Elastic Agent, logs and state are stored a bit differently from running an Elastic Agent outside a container. The logs can be found under `/usr/share/elastic-agent/state/data/logs/*`. It is important to note that only the logs from the Elastic Agent process itself are logged to stdout but not the one from the sub processes. Each subprocess like writes its own logs to the `default` directory inside the above logs directory:
 
-```
+[source,terminal]
+----
 /usr/share/elastic-agent/state/data/logs/default/*
-```
+----
 
 Each processe run by Elastic Agent writes its log files into these directory. For example in case of errors with fleet-server, it helps to check out the fleet-server logs for more details.
