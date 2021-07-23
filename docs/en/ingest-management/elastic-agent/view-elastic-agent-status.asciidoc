@@ -1,0 +1,75 @@
+[[view-elastic-agent-status]]
+[role="xpack"]
+= View status of {agent}s
+
+To view the status of your {fleet}-managed agents, go to
+*Management > Fleet > Agents*.
+
+[role="screenshot"]
+image::images/agent-status.png[Agents tab showing status of each {agent}]
+
+{fleet} reports these statuses:
+
+|=== 
+
+| *Healthy* | The {agent} is online and running as expected. There are no agent
+policy updates or automatic agent binary updates pending, but there might be
+manual agent binary updates available.
+
+| *Unhealthy* | The {agent} is online, but requires attention because it's
+reporting either agent or integration-level errors.
+
+| *Updating* | The {agent} is online and updating the agent policy, updating the
+binary, or enrolling or unenrolling from {fleet}.
+
+| *Offline* | The {agent} has not checked in during the expected time period.
+
+| *Inactive* | The {agent} is inactive.
+
+|===
+
+//QUESTION: What elase can we say about the offline status? That the agent
+//might be stopped or no longer able to connect to Fleet? What else?
+//QUESTION: What does inactive mean? It shows up in the dropdown.
+
+[discrete]
+[[view-agent-list]]
+== Filter the list of agents
+
+To filter the list of agents by status, click the *Status* dropdown and select
+one or more statuses.
+
+[role="screenshot"]
+image::images/agent-status-filter.png[Agent Status dropdown with mutliple statuses selected]
+
+For advanced filtering, use the search bar to create structured queries
+using {kibana-ref}/kuery-query.html[Kibana Query Language]. For example, enter
+`local_metadata.os.family : "darwin"` to see only agents running on macOS.
+
+[discrete]
+[[view-agent-logs]]
+== View agent logs
+
+When {fleet} reports a status like `offline` or `unhealthy`, you might want to
+view the agent logs to diagnose potential causes:
+
+. In the *Agents* list, click the host name (or select *View agent* under
+Actions) to view agent details.
+
+. Click *Logs* to see the logs for the selected agent.
++
+[role="screenshot"]
+image::images/view-agent-logs.png[View agent logs under agent details]
+
+To filter the log lines, use the *Dataset* and *Log level* dropdowns. Change the
+date range to see log entries from an earlier period. Notice that you can  use
+the search bar to create structured queries using
+{kibana-ref}/kuery-query.html[Kibana Query Language].
+
+To tail the agent log files in real time, click *Open in Logs*. Refer to
+{observability-guide}/tail-logs.html[Tail log files] for more details.
+
+//QUESTION: Can users set alerts on these statuses yet? If so, we should mention
+//that here.
+
+//TODO: Cover standalone agent status (this is tracked in a different issue)
