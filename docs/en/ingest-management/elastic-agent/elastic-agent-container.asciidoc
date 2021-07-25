@@ -1,4 +1,4 @@
-[[agent-in-container]]
+[[elastic-agent-container]]
 [role="xpack"]
 = Run {agent} in a container
 
@@ -11,7 +11,7 @@ Considerations:
 
 * When {agent} runs inside of a container, it cannot be upgraded through Fleet as it expects that the container itself is upgraded.
 * Enrolling and running an {agent} is usually a two-step process.
-However, this doesn't work in a container, so a special subcommand, `container` is called.
+However, this doesn't work in a container, so a special subcommand, `container`, is called.
 This command allows environment variables to configure all properties, and runs the `enroll` and `run` commands as a single command.
 
 [discrete]
@@ -104,7 +104,7 @@ Subprocess logs are not.
 {agent} can be run in docker-compose.
 The example below shows how to enroll an {agent}:
 
-[source,terminal]
+[source,yaml]
 ----
 version: "3"
 services:
@@ -120,7 +120,14 @@ services:
 ----
 
 Need to run Fleet Server as well?
-Adjust the docker-compose file above by adding the environment variables listed in the <<agent-in-container-self>>.
+Adjust the docker-compose file above by adding these environment variables:
+
+[source,yaml]
+----
+      - FLEET_SERVER_ENABLE=true
+      - FLEET_SERVER_ELASTICSEARCH_HOST={elasticsearch-host}
+      - FLEET_SERVER_SERVICE_TOKEN={service-token}
+----
 
 [discrete]
 [[agent-in-container-docker-logs]]
