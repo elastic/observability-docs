@@ -79,6 +79,41 @@ One of the requests to the {fleet} API will most likely have returned an error. 
 message doesn't give you enough information to fix the problem, please contact us in the {forum}[discuss forum].
 
 [discrete]
+[[agent-enrollment-certs]]
+== {agent} enrollment fails on the host with `x509: certificate signed by unknown authority` message
+
+To ensure that communication with {fleet-server} is encrypted,
+{fleet-server} requires {agent}s to present a signed certificate. In a
+self-managed cluster, if you don't specify certificates when you set up
+{fleet-server}, self-signed certificates are generated automatically.
+
+If you attempt to enroll an {agent} in a {fleet-server} with a self-signed
+certificate, you will encounter the following error:
+
+[source,sh]
+----
+Error: fail to enroll: fail to execute request to fleet-server: x509: certificate signed by unknown authority
+Error: enroll command failed with exit code: 1
+----
+
+To fix this problem, pass the `--insecure` flag along with the `enroll` or
+`install` command. For example:
+
+[source,sh]
+----
+sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
+----
+
+Traffic between {agent}s and {fleet-server} over HTTPS will be encrypted; you're
+simply acknowledging that you understand that the certificate chain cannot be
+verified.
+
+Allowing {fleet-server} to generate self-signed certificates is useful to get
+things running for development, but not recommended in a production environment.
+
+For more information, refer to <<secure-connections>>.
+
+[discrete]
 [[agent-enrollment-timeout]]
 == {agent} enrollment fails on the host with `Client.Timeout exceeded` message
 
@@ -197,7 +232,7 @@ elastic-agent enroll -f --fleet-server-es=https://<es-url>:443 --fleet-server-se
 ----
 Note: Port `443` is commonly used in {ecloud}. However, with self-managed deployments, your {es} may run on port `9200` or something entirely different.
 
-For information on where to find agent logs, see our <<where-are-the-agent-logs,FAQ>>.
+For information on where to find agent logs, refer to our <<where-are-the-agent-logs,FAQ>>.
 
 [discrete]
 [[agent-healthy-but-no-data-in-es]]
@@ -311,7 +346,7 @@ agent you want to unenroll.
 You may see this error message for a number of different reasons. A common reason is when attempting production-like usage and the ca.crt file passed in cannot be found.  To verify if this is the problem, bootstrap {fleet-server} without passing a ca.crt file. This implies you would test any subsequent
 {agent} installs temporarily with {fleet-sever}'s own self-signed cert.
 
-Tip: Ensure to pass in the full path to the ca.crt file. A relative path is not viable.
+TIP: Ensure to pass in the full path to the ca.crt file. A relative path is not viable.
 
 You will know if your {fleet-server} is set up with its testing oriented self-signed certificate usage,
 when you see the following error during {agent} installs:
@@ -329,6 +364,8 @@ command:
 ----
 sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
 ----
+
+For more information, refer to <<agent-enrollment-certs>>.
 
 [discrete]
 [[endpoint-not-uninstalled-with-agent]]
