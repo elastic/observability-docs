@@ -1,6 +1,6 @@
 [[elastic-agent-configuration]]
 [role="xpack"]
-= Policy settings
+= Agent policy settings
 
 The policy settings for {fleet}-managed agents are specified through the UI.
 You do not set them explicitly in a configuration file.
@@ -13,16 +13,34 @@ described in <<installation-layout>>.
 TIP: To get started quickly, you can use {fleet} to generate a standalone
 configuration. For more information, see <<run-elastic-agent-standalone>>.
 
+The following sections describe some settings you might need to configure to
+run an {agent} standalone. For a full reference example, refer to the
+<<elastic-agent-reference-yaml,elastic-agent.reference.yml>> file.
+
+
 [discrete]
 [[elastic-agent-output-configuration]]
 == Output settings
 
-Specify one or more outputs. Specifying multiple outputs allows you to pair
-each data source with a different output.
+Output settings specify where to send data. You can specify multiple outputs to
+pair specific inputs with specific outputs.
 
-IMPORTANT: {agent} currently works with the {es} output only.
+{agent} currently supports these outputs:
 
-Example output configuration:
+* <<elasticsearch-output>>
+* <<logstash-output>> (standalone mode only)
+
+[discrete]
+[[elasticsearch-output]]
+=== {es} output
+
+The {es} output sends events directly to {es} by using the {es} HTTP API.
+
+*Compatibility:* This output works with all compatible versions of {es}. See the
+https://www.elastic.co/support/matrix#matrix_compatibility[Elastic Support
+Matrix].
+
+This example configures two {es} outputs: `default` and  `monitoring`:
 
 [source,yaml]
 -------------------------------------------------------------------------------------
@@ -40,7 +58,6 @@ outputs:
     ca_sha256: "7lHLiyp4J8m9kw38SJ7SURJP4bXRZv/BNxyyXkCcE/M="
 -------------------------------------------------------------------------------------
 
-This example configures two outputs: `default` and  `monitoring`.
 Notice that they use different authentication methods. The first one uses a
 username and password pair, and the second one contains an API key.
 
@@ -48,6 +65,61 @@ username and password pair, and the second one contains an API key.
 ==============
 A default output configuration is required.
 ==============
+
+[discrete]
+[[logstash-output]]
+= {ls} output
+
+IMPORTANT: The {ls} output is currently only supported for {agent}s in
+standalone mode. {fleet}-managed agents are not supported.
+
+The {ls} output uses an internal protocol to send events directly to {ls} over
+TCP. {ls} provides additional parsing, transformation, and routing of data
+collected by {agent}.
+
+*Compatibility:* This output works with all compatible versions of {ls}. Refer
+to the https://www.elastic.co/support/matrix#matrix_compatibility[Elastic
+Support Matrix].
+
+This example configures a {ls} output called `default` in the
+`elastic-agent.yml` file:
+
+[source,yaml]
+----
+outputs:
+  default:
+    type: logstash
+    hosts: ["127.0.0.1:5044"] <1>
+----
+<1> The {ls} server and the port (`5044`) where {ls} is configured to listen for
+incoming {agent} connections.
+
+To send events to {ls}, you also need to create a {ls} configuration pipeline.
+The {ls} configuration pipeline listens for incoming {agent} connections,
+processes received events, and then sends the events to {es}.
+
+The following example configures a {ls} pipeline that listens on port `5044` for
+incoming {agent} connections and routes received events to {es}:
+
+[source,yaml]
+----
+input {
+  elastic_agent {
+    port => 5044
+  }
+}
+output {
+  elasticsearch {
+    hosts => ["http://localhost:9200"] <1>
+    data_stream => "true"
+  }
+}
+----
+<1> The {es} server and the port (`9200`) where {es} is running.
+
+For more information about configuring {ls}, refer to
+{logstash-ref}/configuration.html[Configuring {ls}] and
+{logstash-ref}/plugins-inputs-elastic_agent.html[{agent} input plugin].
 
 [discrete]
 [[elastic-agent-monitoring-configuration]]
@@ -107,10 +179,11 @@ inputs:
 If `use_output` is not specified, the `default` output is used.
 
 [discrete]
+[[elastic-agent-reference-yaml]]
 == Reference yaml
 
 The {agent} installation includes an `elastic-agent.reference.yml` file that
-describes all the settings available in a standalone configuration.
+describes settings available in a standalone configuration.
 
 The contents of the file are included here for your convenience.
 
