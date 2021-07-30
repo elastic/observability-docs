@@ -1,0 +1,282 @@
+[[beats-agent-comparison]]
+= {beats} and {agent} capabilities
+
+//QUESTION: I think we need a short intro here for new users who don't know
+//about Beats, but might need to consider using it if the service they want to
+//monitor is not yet covered by agent. Is this good enough?
+
+Elastic provides two main ways to send data to {es}:
+
+* *{beats}* are lightweight data shippers that send operational data to
+{es}. Elastic provides separate {beats} for different types of data, such as
+logs, metrics, and uptime. Depending on what data you want to collect, you may
+need to install mutliple shippers on a single host.
+
+//QUESTION: Should I list the Beats by name here? Or maybe describe capabilities:
+//audit data, log files, cloud data, availability, systems journals, metrics,
+//network traffic, and Windows event logs." when written out, it's clear that
+//beats have more functionality right now. That's true, but is that what we
+//want to convey?
+
+* *{agent}* is a single agent for logs, metrics, security data, and threat
+prevention. {agent} supports central management through {fleet}.
+
+The method you use depends on your use case, which features you need, and
+whether you want to centrally manage your agents.
+
+{beats} and {agent} can both send data directly to {es} or via {ls}, where you
+can further process and enhance the data, before visualizing it in {kib}.
+
+This article summarizes the features and functionality you need to be aware of
+before adding new {agent}s or replacing your current {beats} with {agent}s.
+Starting in version 7.14.0, {agent} is generally available (GA).
+
+[discrete]
+[[supported-inputs-beats-and-agent]]
+== Supported inputs
+
+For {agent}s that are centrally managed by {fleet}, data collection is
+further simplified and defined by integrations. In this model, the decision on
+the inputs is driven by the integration you want to collect data from. The
+complexity of configuration details of various inputs is driven centrally by
+{fleet} and specifically by the integrations. 
+
+The following table shows the inputs supported by the {agent} in {version}:
+
+[options,header]
+|===
+|Input |{beats} support |{agent} support
+
+|AWS CloudWatch
+|{y} (beta)
+|{y} (beta)
+
+|AWS S3
+|{y}
+|{y}
+
+|Azure Event Hub
+|{y}
+|{y}
+
+|Cloud Foundry
+|{y}
+|{n}
+
+|Container
+|{y}
+|{n}
+
+|Docker
+|{y}
+|{n}
+
+|GCP Pub/Sub
+|{y}
+|{y}
+
+|HTTP Endpoint
+|{y} (beta)
+|{y} (beta)
+
+|HTTP JSON
+|{y}
+|{y}
+
+|Kafka
+|{y}
+|{n}
+
+|Logfile
+|{y}
+|{y}
+
+|MQTT
+|{y}
+|{n}
+
+|NetFlow
+|{y}
+|{y}
+
+|O365 Mgmt Act API
+|{y} (beta)
+|{y} (beta)
+
+|Redis
+|{y} (beta)
+|{n}
+
+|Stdin
+|{y}
+|{n}
+
+|Syslog
+|{y}
+|{y}
+
+|TCP
+|{y}
+|{y}
+
+|UDP
+|{y}
+|{y}
+
+|UNIX
+|{y} (beta)
+|NEED INFO HERE
+|===
+
+[discrete]
+[[supported-outputs-beats-and-agent]]
+== Supported outputs
+
+The following table shows the outputs supported by the {agent} in {version}:
+
+
+NOTE: {endpoint-sec} has a different output matrix.
+
+//QUESTION: Is the endpoint matrix available somewhere so that I can point to it?
+
+[options,header]
+|===
+|Output |Beats |{fleet}-managed {agent} |Standalone {agent}
+
+|{es} Service
+|{y}
+|{y}
+|{y}
+
+|{es}
+|{y}
+|{y}
+|{y}
+
+|{ls}
+|{y}
+|Under consideration
+|{y}
+
+|Kafka
+|{y}
+|Under consideration
+|Under consideration
+
+|Redis
+|{y}
+|{n}
+|{n}
+
+|File
+|{y}
+|{n}
+|{n}
+
+|Console
+|{y}
+|{n}
+|{n}
+|===
+
+[discrete]
+[[supported-configurations]]
+== Supported configurations
+
+//QUESTION: I've removed the verbs and gerunds from the config description
+//because they made the info harder to scan. I think the verb/gerund is
+//implied by the section title here and not required. Plus the link to the Beats
+//docs removes ambiguities.
+
+[options,header]
+|===
+|Beats configuration |{agent} support
+
+|{filebeat-ref}/configuration-filebeat-modules.html[Modules]
+|Supported via integrations.
+
+|{filebeat-ref}/advanced-settings.html[Input setting overrides]
+|Not configurable. Set to default values.
+
+|{filebeat-ref}/configuration-general-options.html[General settings]
+| Many of these global settings are now internal to the agent and for proper
+operations should not be modified.
+
+|{filebeat-ref}/configuration-path.html[Project paths]
+|{agent} configures these paths to provide a simpler and more streamlined
+configuration experience.
+
+|{filebeat-ref}/filebeat-configuration-reloading.html[External configuration file loading]
+|Config is distributed via policy.
+
+|{filebeat-ref}/_live_reloading.html[Live reloading]
+|Related to the config file reload.
+
+|{filebeat-ref}/configuring-output.html[Outputs]
+|Configured through {fleet}. See <<supported-outputs-beats-and-agent>>.
+
+|{filebeat-ref}/configuration-ssl.html[SSL]
+|Supported
+
+|{filebeat-ref}/ilm.html[Index lifecycle management]
+|Enabled by default although the Agent uses <<data-streams,data streams>>.
+
+|{filebeat-ref}/configuration-template.html[{es} index template loading]
+|No longer applicable
+
+|{filebeat-ref}/setup-kibana-endpoint.html[{kib} endpoint]
+|New {agent} workflow doesn’t need this.
+
+|{filebeat-ref}/configuration-dashboards.html[{kib} dashboard loading]
+|New {agent} workflow doesn’t need this.
+
+|{filebeat-ref}/defining-processors.html[Processors]
+|Processors can be defined at the integration level.
+
+|{filebeat-ref}/configuration-autodiscover.html[Autodiscover]
+|Autodiscover is facilitated through <<dynamic-input-configuration,dynamic inputs>>
+
+|{filebeat-ref}/configuring-internal-queue.html[Internal queues]
+|{agent} does not expose the internal memory queues to the end user. You can
+configure output queue parameters to tune your environment, and the Agent takes
+care of configuring the internal queues to accomplish your tuning intent.
+
+|{filebeat-ref}/load-balancing.html[Load balance output hosts]
+|Within the {fleet} UI, you can add yaml settings to configure multiple hosts
+per output type, which enables loadbalancing.
+
+|{filebeat-ref}/configuration-logging.html[Logging]
+|Supported
+
+|{filebeat-ref}/http-endpoint.html[HTTP Endpoint]
+|Supported
+
+|{filebeat-ref}/regexp-support.html[Regular expressions]
+|Supported
+|===
+
+[discrete]
+[[agent-monitoring-support]]
+== {agent} monitoring support
+
+You configure the collection of agent metrics in the agent policy. If metrics
+collection is selected (the default), all {agent}s enrolled in the policy will
+send metrics data to {es} (the output is configured globally).
+
+The following image shows the *Agent monitoring* settings for the default agent
+policy:
+
+[role="screenshot"]
+image::images/agent-monitoring-settings.png[Screen capture of agent monitoring settings in the default agent policy]
+
+There are also pre-built dashboards for agent metrics that you can access
+under *Assets* in the {agent} integration:
+
+[role="screenshot"]
+image::images/agent-monitoring-assets.png[Screen capture of Elastic Agent monitoring assets]
+
+The *[Elastic Agent] Agent metrics* dashboard shows an aggregated view of agent metrics:
+
+[role="screenshot"]
+image::images/agent-metrics-dashboard.png[Screen capture showing Elastic Agent metrics]
+
