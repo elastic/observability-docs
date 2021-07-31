@@ -1,0 +1,139 @@
+[[elastic-agent-container]]
+[role="xpack"]
+= Run {agent} in a container
+
+You can run {agent} inside of a container -- either with Fleet Server or standalone.
+Docker images for all versions of {agent} are available from the
+https://www.docker.elastic.co/r/beats/elastic-agent[Elastic Docker registry].
+If you are running in Kubernetes, see {eck-ref}/k8s-elastic-agent.html[run Elastic Agent on ECK].
+
+Considerations:
+
+* When {agent} runs inside of a container, it cannot be upgraded through Fleet as it expects that the container itself is upgraded.
+* Enrolling and running an {agent} is usually a two-step process.
+However, this doesn't work in a container, so a special subcommand, `container`, is called.
+This command allows environment variables to configure all properties, and runs the `enroll` and `run` commands as a single command.
+
+[discrete]
+[[agent-in-container-pull]]
+== Pull the image
+
+Run the `docker pull` command against the Elastic Docker registry:
+
+[source,terminal]
+----
+docker pull docker.elastic.co/r/beats/elastic-agent:{version}
+----
+
+[discrete]
+[[agent-in-container-command]]
+== {agent} container command
+
+The {agent} container command offers a wide variety of options.
+To see the full list, run:
+
+[source,terminal]
+----
+elastic-agent container -h
+----
+
+[discrete]
+[[agent-in-container-cloud]]
+== {ecloud} example
+
+The easiest way to get started is by using an Elastic cluster running on {ecloud}.
+
+. In Kibana, select *Fleet* > *Fleet Settings*, and copy the Fleet Server host URL.
+
+. Close the flyout panel and select *Enrollment tokens*.
+Find the Agent policy you want to enroll {agent} into, and display and copy the secret token.
+
+. Enroll an {agent} running in a container with the following command:
+
+[source,terminal]
+----
+docker run \
+  --env FLEET_ENROLL=1 \
+  --env FLEET_URL={fleet-server-host-url} \
+  --env FLEET_ENROLLMENT_TOKEN={enrollment-token} \
+  --rm docker.elastic.co/beats/elastic-agent:{version}
+----
+
+[discrete]
+[[agent-in-container-self]]
+== Self-managed example
+
+If you're running a self-managed cluster and want to run your own Fleet Server, run the following command, which will spin up {agent} and Fleet Server in a container:
+
+[source,terminal]
+----
+docker run \
+  --env FLEET_SERVER_ENABLE=true \
+  --env FLEET_SERVER_ELASTICSEARCH_HOST={elasticsearch-host} \ <1>
+  --env FLEET_SERVER_SERVICE_TOKEN={service-token} \ <2>
+  --rm docker.elastic.co/beats/elastic-agent:{version}
+----
+<1> Your cluster's {es} host URL
+<2> The Fleet service token -- generate one in the Fleet UI if you don't have one already
+
+We recommend only having one fleet-server policy.
+If this is the default policy for fleet-server,
+it is picked automatically by fleet-server for enrollment.
+
+// [discrete]
+// [[agent-in-container-cloud-debug]]
+// == Debugging
+
+// TODO: Mention metrics endpoint
+
+[discrete]
+[[agent-in-container-docker]]
+== Docker compose example
+
+{agent} can be run in docker-compose.
+The example below shows how to enroll an {agent}:
+
+[source,yaml]
+----
+version: "3"
+services:
+  elastic-agent:
+    image: docker.elastic.co/beats/elastic-agent:{version}
+    container_name: elastic-agent
+    restart: always
+    user: root
+    environment:
+      - FLEET_ENROLLMENT_TOKEN={enrollment-token}
+      - FLEET_ENROLL=1
+      - FLEET_URL={fleet-server-url}
+----
+
+Need to run Fleet Server as well?
+Adjust the docker-compose file above by adding these environment variables:
+
+[source,yaml]
+----
+      - FLEET_SERVER_ENABLE=true
+      - FLEET_SERVER_ELASTICSEARCH_HOST={elasticsearch-host}
+      - FLEET_SERVER_SERVICE_TOKEN={service-token}
+----
+
+[discrete]
+[[agent-in-container-docker-logs]]
+== Logs
+
+As a container supports only a single version of {agent},
+logs and state are stored a bit differently than when running an {agent} outside of a container.
+The logs can be found under: `/usr/share/elastic-agent/state/data/logs/*`.
+
+It's important to note that only the logs from the {agent} process itself are logged to `stdout`;
+Subprocess logs are not.
+Each subprocess writes its own logs to the `default` directory inside the logs directory:
+
+[source,terminal]
+----
+/usr/share/elastic-agent/state/data/logs/default/*
+----
+
+TIP: Running into errors with Fleet Server?
+Check the fleet-server subprocess logs for more information.
