@@ -133,12 +133,12 @@ NOTE: {endpoint-sec} has a different output matrix.
 
 |{es} Service
 |{y}
-|{y}
+|{y} only to the same cluster where Fleet runs
 |{y}
 
 |{es}
 |{y}
-|{y}
+|{y} only to the same cluster where Fleet runs
 |{y}
 
 |{ls}
@@ -166,6 +166,8 @@ NOTE: {endpoint-sec} has a different output matrix.
 |{n}
 |{n}
 |===
+
+Support for outputing to remote {es} clusters in {fleet}-managed agents is under consideration for a future release.
 
 [discrete]
 [[supported-configurations]]
@@ -217,7 +219,7 @@ configuration experience.
 |Processors can be defined at the integration level.
 
 |{filebeat-ref}/configuration-autodiscover.html[Autodiscover]
-|Autodiscover is facilitated through <<dynamic-input-configuration,dynamic inputs>>
+|Autodiscover is facilitated through <<dynamic-input-configuration,dynamic inputs>>. Elastic Agent does not support hints-based autodiscovery.
 
 |{filebeat-ref}/configuring-internal-queue.html[Internal queues]
 |{agent} does not expose the internal memory queues to the end user. You can
@@ -237,6 +239,106 @@ per output type, which enables loadbalancing.
 |{filebeat-ref}/regexp-support.html[Regular expressions]
 |Supported
 |===
+
+[discrete]
+[[additional-capabilties-beats-and-agent]]
+== Additional capabilities
+
+The following table shows the additional capabilties supported by Beats and the {agent} in {version}:
+
+
+[options,header]
+|===
+|Item |Beats |{fleet}-managed {agent} |Standalone {agent}
+
+|Single agent for all use cases
+|{n}
+|{y}
+|{y}
+
+|Install integrations from Kibana UI or API
+|{n}
+|{y}
+|{y}
+
+|Configure from integrations UI
+|{n}
+|{y}
+|{y} (optional)
+
+|Central, remote agent policy management
+|{n}
+|{y}
+|{n}
+
+|Central, remote agent binary upgrades
+|{n}
+|{y}
+|{n}
+
+|Choose which module or integration assets to add
+|{n}
+|{y}
+|{y}
+
+|Auto-generated ES API keys
+|{n}
+|{y}
+|{n}
+
+|Auto-generate minimal ES privileges on the edge
+|{n}
+|{y}
+|{y} (when using Integrations UI)
+
+|Data streams support
+|{n}
+|{y}
+|{y}
+
+|Variables and input conditions
+|{n}
+|{y}
+|{y}
+
+|Requires superuser role
+|{n}
+|{y}
+|{n} (required to use integrations UI)
+
+|Air-gapped network support
+|{y}
+|{n}
+|{y}
+
+|Run without root on host
+|{y}
+|{n}
+|{y}
+
+|Mulitple outputs
+|{y}
+|{n}
+|{y}
+
+|Separate monitoring cluster 
+|{y}
+|{n}
+|{y}
+
+|Keystore for secrets
+|{y}
+|{n}
+|{n}
+
+|Cloned machine images or virtual desktops
+|{y}
+|{n}
+|{n}
+
+|===
+
+Also, both Beats and {agent} standalone work well with version control, IaaC, and change management processes because the configuration is a simple text file. {fleet} only supports these processes through its REST API.
 
 [discrete]
 [[agent-monitoring-support]]
