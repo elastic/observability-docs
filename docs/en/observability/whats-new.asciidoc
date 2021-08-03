@@ -3,21 +3,129 @@
 
 Here are the highlights of what's new and improved in {minor-version}.
 
-coming[7.13.0]
+Other versions:
+{observability-guide-all}/7.13/whats-new.html[7.13] |
+{observability-guide-all}/7.12/whats-new.html[7.12] |
+{observability-guide-all}/7.11/whats-new.html[7.11] |
+{observability-guide-all}/7.10/whats-new.html[7.10] |
+https://www.elastic.co/blog/whats-new-elastic-observability-7-9-0-unified-agent-kpi-overview-dashboard[7.9] |
+https://www.elastic.co/blog/elastic-observability-7-8-0-released[7.8] |
+https://www.elastic.co/blog/elastic-observability-7-7-0-released[7.7] |
+https://www.elastic.co/blog/elastic-observability-7-6-0-released[7.6] |
+https://www.elastic.co/blog/elastic-observability-7-5-0-released[7.5] |
+https://www.elastic.co/blog/elastic-observability-update-7-4-0[7.4]
 
-// Other versions:
-// {observability-guide-all}/7.12/whats-new.html[7.12] |
-// {observability-guide-all}/7.11/whats-new.html[7.11] |
-// {observability-guide-all}/7.10/whats-new.html[7.10] |
-// https://www.elastic.co/blog/whats-new-elastic-observability-7-9-0-unified-agent-kpi-overview-dashboard[7.9] |
-// https://www.elastic.co/blog/elastic-observability-7-8-0-released[7.8] |
-// https://www.elastic.co/blog/elastic-observability-7-7-0-released[7.7] |
-// https://www.elastic.co/blog/elastic-observability-7-6-0-released[7.6] |
-// https://www.elastic.co/blog/elastic-observability-7-5-0-released[7.5] |
-// https://www.elastic.co/blog/elastic-observability-update-7-4-0[7.4]
+[discrete]
+== Give {minor-version} a try
+
+Try {minor-version} now by deploying {es} and {kib} on
+{ess-product}[Elastic Cloud] or
+by https://www.elastic.co/start[downloading them].
 
 // tag::whats-new[]
+[discrete]
+== {agent}, {fleet}, and Integrations now generally available (GA)
 
-// What's new content goes in here. Don't uncomment or remove the tags surrounding this content :)
+To make it easier to integrate your systems and applications with the {stack}, we are excited to announce
+three significant improvements in the 7.14 release.
+
+First, we are launching the generally available (GA) release of our {fleet-guide}/elastic-agent-installation-configuration.html[{agent}],
+a single, unified agent for Observability and Security. With fewer things to configure and install,
+a single agent will simplify data onboarding.
+
+Second, we are launching the GA release of {fleet-guide}/fleet-overview.html[{fleet}], which lets you centrally manage an entire fleet
+of {agent}s at scale. It acts as a control plane that gives you a real-time view of the agent status. In addition, it allows
+you to upgrade {agent}s remotely, execute queries on each host, and also contain security threats.
+
+[role="screenshot"]
+image::images/7.14-fleet.png[{fleet}]
+
+Third, we are launching our new {integrations} app in {kib} along with our first set of GA {integrations}. With a single click, you can
+integrate your systems and applications with the {stack}.
+
+{integrations} provide out-of-the box log parsing, dashboards, machine learning jobs, and more. In addition, you can deploy
+{integrations} on {agent}s through {fleet}, allowing you to go from data to insights in seconds. Our new GA {integrations} enable you to
+monitor your system infrastructure, including servers, laptops, containers, VMs, and more. You also protect your systems from security
+threats and analyze security events. There are over 70 {integrations} available, and we are continuously working on adding more.
+
+[discrete]
+== Unenrollment timeout in {fleet}
+
+{agent}s that run in container orchestration environments like ECE or Kubernetes should be stateless by design. When a container is
+removed, the agent API keys are deleted. This results in an orphan agent tracked in {fleet}.
+
+Within an agent policy, you can now specify an unenroll timeout to automatically unenroll an {agent} when it does not check into {fleet}
+for a period of time. This allows the {agent} to resume if the service or network recovers within the time window. After that,
+the {agent} will have to enroll again.
+
+[role="screenshot"]
+image::images/7.14-agent-unenroll-timeout.png[Unenrollment timeout setting in {fleet}]
+
+[discrete]
+== Removing Beats central management
+
+Beats Central Management was an old solution for centrally managing Beats. It was released as a beta and was deprecated several releases ago.
+We are now removing it from {kib}. We recommend that you switch to our new GA release of {fleet} instead.
+
+[discrete]
+== Advanced metrics collection from Couchbase Sync Gateway
+
+For 7.14, we’re enhancing the Couchbase integration with support for an extended list of metrics. You can now use the
+{metricbeat-ref}/metricbeat-module-couchbase.html[Couchbase module] in {metricbeat} to collect server metrics from
+https://docs.couchbase.com/sync-gateway/current/stats-monitoring.html[Sync Gateway].
+
+The module uses the {metricbeat} Couchbase input to get additional metrics related to resources, cache, database, delta sync, doc imports,
+CBL replication, security, and GSI views. With these expanded metrics, we have made sure that only the essential metrics are collected to keep
+the consumption of resources appropriate.
+
+[discrete]
+== Enhanced granularity of the AWS integration
+
+The pay-as-you-go model gets applied to each granular component of any cloud IaaS or PaaS to create more advanced cloud offerings.
+Therefore, it's essential not to administer and govern the whole cloud but instead focus only on the services you use.
+
+We understand that pain and have updated the list of AWS integrations on the Observability {integrations} page, improving the ability to search
+quickly, configure, and enable integrations for only those AWS services you are interested in. Again, there is no impact on the ability to enable
+the umbrella AWS integration.
+
+[role="screenshot"]
+image::images/7.14-aws-integrations.png[AWS integrations]
+
+[discrete]
+== Collect RDS Cluster tags as part of the AWS module in {metricbeat}
+
+With the number of assets increasing in our public and private cloud accounts, tags are becoming critical. Usage of tags can make it easy
+to observe aggregate performance across many machines and potentially narrow down the dataset for better comprehension. In addition, you
+can use tags to add more dimensions to telemetries so they can be sifted, aggregated, and compared in Elastic visualizations for advanced insights.
+
+For 7.14, we are pleased to announce that you can now collect and use RDS Instance tags and Cluster tags as
+part of the RDS metricset of the {metricbeat-ref}/metricbeat-module-aws.html[AWS module] in {metricbeat}.
+
+[discrete]
+== New Amazon Kinesis Data Streams metricset in the {metricbeat} AWS module
+
+Suppose your applications need complex real-time data stream processing. In that case, chances are you’re using Amazon Kinesis Data Streams
+for the rapid and continuous data intake and aggregation due to its low response times.
+
+In 7.14, we’ve added the metric collection from Amazon Kinesis Data Stream to our {metricbeat} {metricbeat-ref}/metricbeat-module-aws.html[AWS module].
+The new Amazon Kinesis Data Stream metricset contains all the essential Kinesis monitoring metrics sourced from AWS CloudWatch.
+
+Our AWS module comes with a prebuilt dashboard where you will see your Kinesis data streams and associated key metrics, giving you an overview
+of all your data streams.
+
+[role="screenshot"]
+image::images/7.14-aws-dashboards.png[AWS prebuilt dashboards]
+
+[discrete]
+== New cluster identifier field for the Kubernetes {metricbeat} Integration
+
+Kubernetes is viewed as the de facto standard for orchestrating and managing application containers. So if you use Elastic Observability and run a
+containerized deployment of applications, we have great news.
+
+For 7.14, you can now use a cluster identifier to distinguish between multiple Kubernetes clusters when monitoring and visualizing workloads in
+Elastic Observability. For a holistic view of your deployments, you can also quickly identify which cluster each node and pod belongs to.
+
+[role="screenshot"]
+image::images/7.14-cluster-id-kubernetes.png[Kubernetes metrics]
 
 // end::whats-new[]
