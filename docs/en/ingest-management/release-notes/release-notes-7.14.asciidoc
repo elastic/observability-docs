@@ -87,7 +87,6 @@ malicious users.
 ====
 
 [[known-issue-27114]]
-
 .{agent} fails to start correctly when enrolled in {fleet} through a proxy
 [%collapsible]
 ====
@@ -102,6 +101,44 @@ flag, the status of the agent hangs at `Updating` in {fleet}, and the
 
 Do not enroll {agent}s through a proxy until this issue is fixed.
 {agent-issue}27114[#27114] {agent-issue}27187[#27187]
+
+====
+
+[[known-issue-938]]
+.{fleet-server} policy setup failure may result in {fleet} not starting
+[%collapsible]
+====
+
+*Details*
+
+// tag::fleet-server-input-missing-detail[]
+
+During setup of the default {fleet-server} policy, an error may occur, such
+as a network error or connectivity issue, that results in a default policy with
+no input. {fleet} will be unable to start.
+
+// end::fleet-server-input-missing-detail[]
+
+*Impact* +
+
+// tag::fleet-server-input-missing-fix[]
+
+To fix this problem:
+
+. Delete the default {fleet-server} policy saved object:
+
+.. In {kib}, open the main menu, then go to **Management > Dev Tools > Console**.
+
+.. In the Console, send the following request:
++
+[source,console]
+----
+POST .kibana/_delete_by_query?q=ingest-agent-policies.is_default_fleet_server:true
+----
+
+. Go to **Management > {fleet}** to force reloading of the object.
+
+// end::fleet-server-input-missing-fix[]
 
 ====
 
