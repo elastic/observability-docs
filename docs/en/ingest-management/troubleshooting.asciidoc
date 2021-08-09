@@ -61,7 +61,6 @@ After running the command:
  .. Follow the documented steps for setting up a self-managed {fleet-server}.
 For more information, refer to <<fleet-server>>.
 
-
 [discrete]
 [[fleet-setup-fails]]
 == The `/api/fleet/setup` endpoint can't reach the package registry
@@ -430,3 +429,17 @@ to `false`, and then save the integration.
 
 // Add Javascript and CSS for tabbed panels
 include::{tab-widgets}/code.asciidoc[]
+
+
+[discrete]
+[[fleet-ece-config]]
+== {fleet} is not working when enabled in an {ece} deployment
+
+When an {ece} deployment is set up with APM and {fleet}, even though the deployment operates as expected {fleet} cannot be configured. Agent log files may contain a message like the following:
+
+[source,sh]
+----
+WARN [transport] transport/tcp.go:52 DNS lookup failure "instance-000000 0000": lookup instance-0000000000 on 169.254.165.225:23: no such host
+----
+
+This is a known issue with the Elastic Stack pack version 7.14 shipped with {ece} version 2.10. To resolve the problem, link:{ece-ref}/ece-manage-elastic-stack.html[re-upload a fresh copy] of the version 7.14 Elastic Stack pack to overwrite the original one. This issue will also be addressed in later Elastic stack packs and {ece} versions.
