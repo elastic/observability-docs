@@ -16,8 +16,6 @@ For feedback and questions, please contact us in the {forum}[discuss forum].
 [[fleet-prereqs-traces]]
 == Prerequisites
 
-* Please read the <<fleet-limitations,Fleet limitations>>.
-
 * The APM integration is experimental and has a number of known limitations.
 Please read the list of {apm-server-ref-v}/apm-integration.html[known limitations].
 
@@ -31,6 +29,13 @@ Here's what you need for each deployment type:
 --
 include::{tab-widgets}/prereq-widget.asciidoc[]
 --
+
+* An internet connection is required for {kib} to download integration packages
+from the Elastic Package Registry. Make sure the {kib} server can connect to
+`https://epr.elastic.co` on port `443`.
+
+* {fleet} is currently only available to users with the
+{ref}/built-in-roles.html[superuser role].
 
 [discrete]
 [[set-up-fleet-traces]]
@@ -87,11 +92,16 @@ in the selected policy, and starts the service. For example:
 ./elastic-agent install -f --url=https://10.0.2.2:8220 \
 --enrollment-token=blJqaUdua0JqYXA0bmNscVVjUkE6ZGh4WWNRSHRRek9aSS1paEs2cHdFQQ==
 ----
++
+TIP: If you see an "x509: certificate signed by unknown authority" error, you
+might be trying to enroll in a {fleet-server} that uses self-signed certs. To
+fix this problem in a non-production environment, pass the `--insecure` flag.
+For more information, refer to the <<agent-enrollment-certs,troubleshooting guide>>.
 
 * Because {agent} is installed as an auto-starting service, it will restart
-automatically if the system is rebooted. 
+automatically if the system is rebooted.
 
-* To see where files are installed, see <<installation-layout>>. 
+* To see where files are installed, see <<installation-layout>>.
 
 If installation is successful, you’ll see the agent on the *Agents*
 tab in *Fleet*. Notice that the Default policy is assigned to the
@@ -103,8 +113,13 @@ image::images/kibana-fleet-agents.png[{fleet} showing enrolled agents]
 TIP: If the status hangs at Enrolling, make sure the `elastic-agent` process
 is running.
 
-If you run into problems, see <<fleet-troubleshooting>>.
+If you run into problems:
 
+* Check the {agent} logs. If you use the default policy, agent logs and metrics
+are collected automatically unless you change the default settings. For more
+information, refer to <<elastic-agent-logging>>.
+
+* Refer to <<fleet-troubleshooting>>. 
 
 [discrete]
 [[add-apm-integration]]
@@ -116,8 +131,8 @@ across a group of agents. An agent policy may contain any number of integrations
 for collecting observability data from the various services running on your
 host.
 
-. In {kib}, go back to **Management > {fleet}**, and click the **Integrations**
-tab. Use the search bar to find the **Elastic APM** integration.
+. In {kib}, go to **Management > Integrations**,
+and search for the **Elastic APM** integration.
 +
 [role="screenshot"]
 image::images/kibana-fleet-integrations-apm.png[{fleet} showing APM integration]
@@ -127,21 +142,23 @@ image::images/kibana-fleet-integrations-apm.png[{fleet} showing APM integration]
 [role="screenshot"]
 image::images/kibana-fleet-integrations-apm-overview.png[{fleet} showing APM integration overview]
 
-. On the **Add APM integration** page, select the default policy.
+. On the **Add APM integration** page,
+click the down arrow next to Collect application traces.
+Under **Host**, define the host and port where APM Server will listen.
+Inspect or change other settings.
+
+. Under **Apply to agent policy**, select the default policy.
 +
+****
 In this guide, you add integrations to the default policy created by
 {kib}. After you learn the basics, you can create your own policies and assign
 them to agents.
+****
 +
 [role="screenshot"]
 image::images/add-integration-apm.png[{fleet} Add APM integration page]
 
-. Under **Configure integration**, click the down arrow next to Collect application traces.
-Under **Host**, define the host and port where APM Server will listen.
-Inspect or change other settings.
-
-. To see the updated policy, click the *Policies* tab, then click the
-*Default policy* link.
+. To see the updated policy, click the *Default policy* link.
 +
 The newly added APM integration should appear under **Integrations** in the
 default policy, along with the default `system-1` integration.
