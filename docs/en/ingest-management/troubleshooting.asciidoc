@@ -61,7 +61,6 @@ After running the command:
  .. Follow the documented steps for setting up a self-managed {fleet-server}.
 For more information, refer to <<fleet-server>>.
 
-
 [discrete]
 [[fleet-setup-fails]]
 == The `/api/fleet/setup` endpoint can't reach the package registry
@@ -430,3 +429,19 @@ to `false`, and then save the integration.
 
 // Add Javascript and CSS for tabbed panels
 include::{tab-widgets}/code.asciidoc[]
+
+
+[discrete]
+[[fleet-ece-config]]
+== {fleet} is not working when enabled in an {ece} deployment
+
+When an {ece} deployment is set up with APM and {fleet}, even though the deployment operates as expected, {fleet} cannot be configured. Agent log files may contain a message like the following:
+
+[source,sh]
+----
+WARN [transport] transport/tcp.go:52 DNS lookup failure "instance-000000 0000": lookup instance-0000000000 on 169.254.165.225:23: no such host
+----
+
+This is a known issue with the {stack} pack version 7.14 and {ece} version 2.10. With the original {stack} pack version 7.14, if downloaded from the Elastic website before August 10, 2021, Fleet does not work when enabled in a deployment. 
+
+To resolve the problem, link:{ece-ref}/ece-manage-elastic-stack.html[get and re-upload a fresh copy] of the version 7.14 Elastic {stack} pack to overwrite the original one. If you have existing version 7.14 deployments, then restart Fleet/APM after re-uploading the Elastic {stack} pack to enable Fleet. This issue will be addressed in later {stack} packs and {s} versions.
