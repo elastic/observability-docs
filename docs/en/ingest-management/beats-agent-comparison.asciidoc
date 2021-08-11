@@ -167,7 +167,7 @@ NOTE: {endpoint-sec} has a different output matrix.
 |{n}
 |===
 
-Currently, {agent}s managed by Fleet can only output to the same {es} cluster where {fleet} is running. Support for outputting to remote {es} clusters is under consideration for a future release.
+Currently, {agent}s managed by {fleet} can only output to the same {es} cluster where {fleet} is running. Support for outputting to remote {es} clusters is under consideration for a future release.
 
 [discrete]
 [[supported-configurations]]
@@ -249,96 +249,123 @@ The following table shows the additional capabilities supported by {beats} and t
 
 [options,header]
 |===
-|Item |{beats} |{fleet}-managed {agent} |Standalone {agent}
+|Item |{beats} |{fleet}-managed {agent} |Standalone {agent} |Description
 
 |Single agent for all use cases
 |{n}
 |{y}
 |{y}
+|{agent} provides logs, metrics and more. You'd need to install mulitple {beats} for these use cases.
 
-|Install integrations from Kibana UI or API
+|Install integrations from web UI or API
 |{n}
 |{y}
 |{y}
+|{agent} integrations are installed in a convenient web UI or API, but {beat}s modules are installed in a CLI. These installs ES assets such as index templates and ingest pipelines, and Kibana assets such as dashboards.
 
-|Configure from Integrations UI
+|Configure from web UI or API
 |{n}
 |{y}
 |{y} (optional)
+|{agent} integrations can be configured in the web UI or API. Standalone {agent} can use the web UI, API or YAML. {beats} can only configured via YAML file.
 
 |Central, remote agent policy management
 |{n}
 |{y}
 |{n}
+|{agent} policies can be centrally managed thorugh {fleet}. You have to manage {beats} configuration yourself or with a third party solution.
 
 |Central, remote agent binary upgrades
 |{n}
 |{y}
 |{n}
+|{agent}s can be remotely upgraded through {fleet}. You have to upgrade {beats} yourself or with a third party solution.
 
 |Choose which module or integration assets to add
 |{n}
 |{y}
 |{y}
+|Integrations allow you to choose which assets to add. {beats} installs hundreds of assets for all modules at once.
 
 |Auto-generated {es} API keys
 |{n}
 |{y}
 |{n}
+|{fleet} can automatically generate API keys with limited permissions for each {agent}, which can be individually revoked. {beats} requires you to create and manage credentials, and users often share them across hosts.
 
-|Auto-generate minimal {es} privileges on the edge
+|Auto-generate minimal {es} permissions
 |{n}
 |{y}
-|{y} (when using Integrations UI)
+|{n}
+|{fleet} can automatically give {agent}s minimal output permissions based on the inputs running. With {beats}, users often give broad permissions due to convenience.
 
 |Data streams support
 |{n}
 |{y}
 |{y}
+|{agent}s use https://www.elastic.co/guide/en/elasticsearch/reference/master/data-streams.html[data streams] with easier index life cycle management and the https://www.elastic.co/blog/an-introduction-to-the-elastic-data-stream-naming-scheme[data stream naming scheme]. {beats} uses a single index with potentially thousands of fields.
 
 |Variables and input conditions
 |{n}
+|{y} (limited)
 |{y}
-|{y}
+|{agent} offers https://www.elastic.co/guide/en/fleet/current/dynamic-input-configuration.html[variables and input conditions] to dynamically adjust based on the local host environment. The Integrations app allows users to enter variables and we are considering a https://github.com/elastic/obs-dc-team/issues/567[UI to edit conditions]. {beats} only offers static configuration.
 
 |Requires superuser role to add integrations and agent polices
 |{n}
-|{y} 
-|{n} (it's optional to use the Integrations UI)
+|{y}
+|{n} (it's optional)
+|{fleet}-managed {agent}s require a superuser role for the {fleet} and Integrations apps. We are considering https://github.com/elastic/kibana/issues/108252[changing] this requirement. These apps are optional for standalone agents. {beats} offers https://www.elastic.co/guide/en/beats/filebeat/current/feature-roles.html[finer grained] roles.
 
 |Air-gapped network support
 |{y}
 |{n}
 |{y}
+|The Integrations app requires a network connection to the https://www.elastic.co/guide/en/fleet/current/fleet-overview.html#package-registry-intro[Elastic Package Registry]. We are considering an https://github.com/elastic/integrations/issues/1178[offline version]. This is not required for standalone {agent}s or {beats}. 
 
 |Run without root on host
 |{y}
 |{n}
 |{y}
+|{fleet}-managed {agent}s require root permission, in particular for Endpoint Security. Standalone {agent}s and {beats} do not.
 
 |Mulitple outputs
 |{y}
 |{n}
 |{y}
+|{fleet} only supports output to {es} where {fleet} is running so it can generate API keys. We are considering support for https://github.com/elastic/kibana/issues/104980[more outputs]. Standalone {agent} and {beats} can send to mulitple outputs.
 
 |Separate monitoring cluster 
 |{y}
 |{n}
 |{y}
+|{fleet} only supports output to {es} where {fleet} is running so it can generate API keys. We are considering support for https://github.com/elastic/kibana/issues/104980[remote monitoring clusters]. Standalone {agent} and {beats} can send to a remote monitoring cluster.
 
 |Keystore for secrets
 |{y}
 |{n}
 |{n}
+|{agent} stores credentials in the agent policy. We are considering adding https://github.com/elastic/integrations/issues/244[keystore support]. {beats} allows users to access credentials in a local https://www.elastic.co/guide/en/beats/filebeat/current/keystore.html[keystore]. 
 
 |Cloned machine images or virtual desktops
 |{y}
 |{n}
 |{n}
+|{agent} may not work well with cloned images because it may lead to duplicate IDs, and we are considering a https://github.com/elastic/beats/issues/22281[solution]. {beats} do not have unique IDs.
+
+|Progressive or canary deployments
+|{y}
+|{n}
+|{y}
+|{fleet} does not have a feature to deploy a policy update progressively but we are considering https://github.com/elastic/kibana/issues/108267[improved support]. With standalone {agent} and {beats} you can deploy configuration files progressively using third party solutions.
+
+|Version control, change management, rollback, and infrastructure as code
+|{y}
+|{n} (only via API)
+|{y}
+|{fleet} offers support for externally managed policies through it's REST API and we are considering https://github.com/elastic/observability-dev/issues/1627[improved support]. Both {agent} standalone and {beats} offer a simple text file configuration, so you can more easily implement these processes in third party solutions.
 
 |===
-
-Also, both {beats} and {agent} standalone work well with version control, IaaC, and change management processes because the configuration is a simple text file. {fleet} only supports these processes through its REST API.
 
 [discrete]
 [[agent-monitoring-support]]
