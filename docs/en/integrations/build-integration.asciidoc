@@ -21,30 +21,30 @@ See <<quick-start>>.
 
 Before building an integration, you should have an understanding of the following:
 
-* Elastic Stack concepts, like data streams, ingest pipelines, and mappings
+* {stack} concepts, like data streams, ingest pipelines, and mappings
 * The <<package-spec>>
 
 In addition, you must have <<elastic-package>> installed on your machine.
 
 [[build-spin-stack]]
-== Spin up the Elastic Stack
+== Spin up the {stack}
 
-The <<elastic-package,`elastic-package`>> tool provides a quick way to spin up the Elastic Stack.
-The following command deployes {es}, {kib}, and the Package registry:
+The <<elastic-package,`elastic-package`>> tool provides a quick way to spin up the {stack}.
+The following command deploys {es}, {kib}, and the {package-registry}:
 
 [source,terminal]
 ----
 elastic-package stack up -v -d
 ----
 
-For a complete list of options available for this command, run:
+To view a list of the available options for this command, run:
 
 [source,terminal]
 ----
 elastic-package stack up -h
 ----
 
-When complete, navigate to http://localhost:5601 and login with the username, `elastic` and password, `changeme`.
+When complete, go to http://localhost:5601 and log in with the username `elastic` and the password `changeme`.
 
 [TIP]
 ====
@@ -59,8 +59,7 @@ elastic-package stack down
 [[build-create-package]]
 == Create a new package
 
-We recommend using the `elastic-package create` command to build a new package,
-rather than copying the source of an existing package. This ensures your integration is following the latest recommendations for the package format.
+Rather than copying the source of an existing package, we recommend using the `elastic-package create` command to build a new package. Running this command ensures that your integration follows the latest recommendations for the package format.
 
 Use the `elastic-package` TUI wizard to bootstrap a new package:
 
@@ -69,22 +68,21 @@ Use the `elastic-package` TUI wizard to bootstrap a new package:
 elastic-package create package
 ----
 
-The wizard will walk you through the creation of the package, including setting a package name, version, category, etc.
+The wizard walks you through the creation of the package, including setting a package name, version, category, etc.
 When the wizard completes, you'll have a basic package complete with a sample manifest,
 changelog, documentation, and screenshot.
 
 [NOTE]
 ====
-It may not do anything yet, but from this step onwards,
-your integration can be built and loaded into your locally running package registry.
+It may not do anything yet, but your integration can be built and loaded into your locally running package registry from this step onwards.
 Jump to <<build-it>> at any point in this documentation to take your integration for a test run.
 ====
 
 [[add-a-data-stream]]
 == Add a data stream
 
-A data stream is logical sub-division of an integration package,
-dealing with a specific type of observable aspect of the service or product being observed. For example,
+A data stream is a logical sub-division of an integration package,
+dealing with a specific observable aspect of the service or product being observed. For example,
 the https://github.com/elastic/integrations/tree/master/packages/apache[Apache integration] has three data streams,
 each represented by a separate folder of assets in the `data_stream` directory:
 
@@ -101,11 +99,11 @@ apache
 **Data streams** allow you to store time series data across multiple indices while giving you a single named resource for requests.
 
 A data stream defines multiple {es} assets, like index templates, ingest pipelines, and field definitions.
-These assets are loaded into {es} when a user installs an integration via the Fleet UI in Kibana.
+These assets are loaded into {es} when a user installs an integration using the {fleet} UI in {kib}.
 
 A data stream also defines a policy template.
-Policy templates include variables that allow users to configure the data stream via the Fleet UI in {kib}.
-The resulting policy is interpreted by the {agent} to collect relevant information from the product or service being observed.
+Policy templates include variables that allow users to configure the data stream using the {fleet} UI in {kib}.
+Then, the {agent} interprets the resulting policy to collect relevant information from the product or service being observed.
 
 See {fleet-guide}/data-streams.html[data streams] for more information.
 ****
@@ -119,7 +117,7 @@ elastic-package create data-stream
 ----
 
 Follow the prompts to name, title, and select your data stream type.
-Run this command each time you add a new data stream to your integration.
+Then, run this command each time you add a new data stream to your integration.
 
 // This needs work
 Next, manually adjust the data stream:
@@ -127,14 +125,14 @@ Next, manually adjust the data stream:
 * define required variables
 * define used fields
 * define ingest pipeline definitions (if necessary)
-* update the agent's stream configuration
+* update the {agent}'s stream configuration
 
 [[edit-ingest-pipeline]]
 == Edit ingest pipelines
 
-In most instances, data needs to be manipulated before it is ingested into the Elastic Stack -- for example,
-logs should be parsed into structured data prior to ingestion.
-To accomplish this, integrations use **ingest pipelines**.
+In most instances, before you ingest data into the {stack}, the data needs to be manipulated.
+For example, you should parse your logs into structured data before ingestion.
+To do so, integrations use **ingest pipelines**.
 
 ****
 **Ingest pipelines** let you perform common transformations on your data before indexing. For example, you can use pipelines to remove fields, extract values from text, and enrich your data.
@@ -187,12 +185,12 @@ The {ref}/processors.html[processor reference] provides a list of all available 
 [[add-a-mapping]]
 == Edit field mappings
 
-Ingest pipelines create fields in an Elasticsearch index, but don't define the fields themselves.
-Each field needs a defined data type, or mapping.
+Ingest pipelines create fields in an {es} index, but don't define the fields themselves.
+Instead, each field requires a defined data type or mapping.
 
 ****
 **Mapping** is the process of defining how a document, and the fields it contains, are stored and indexed.
-Each document is a collection of fields, which each have their own data type. When mapping your data, you create a mapping definition, which contains a list of fields that are pertinent to the document. A mapping definition also includes metadata fields, like the _source field, which customize how a document’s associated metadata is handled.
+Each document is a collection of fields, each having its own data type. When mapping your data, create a mapping definition containing a list of fields pertinent to the document. A mapping definition also includes metadata fields, like the _source field, which customize how the associated metadata of a document is handled.
 
 To learn more, see {ref}/mapping.html[mapping].
 ****
@@ -251,15 +249,15 @@ When you're done making changes, you can use `elastic-package` to export the das
 
 Many integrations cover more than one component of a target system.
 For example, the RabitMQ module provides several metricsets covering connection, exchange, node, queue.
-It makes sense to break this information down into several interconnected dashboards,
-with the default one being an overview of a target system, and the others providing deep-dives into the various parts of the target system.
+It makes sense to break this information down into several interconnected dashboards. 
+The default one is an overview of a target system, and the others provide deep-dives into the various parts of the target system.
 The content of the Overview dashboard should be cherry-picked from all datasets and individually compiled for every such integration.
 
 [discrete]
 === Metrics
 
 Always check the type of a metric and ensure that the correct transformation is applied where applicable.
-For example, in the majority of cases for cumulative counters, it makes sense to apply the rate function.
+For example, in most cases for cumulative counters, it makes sense to use the rate function.
 
 // relevant blog post: https://www.elastic.co/blog/visualizing-observability-with-kibana-event-rates-and-rate-of-change-in-tsvb
 
@@ -274,12 +272,12 @@ If what you're trying to achieve cannot be accomplished with the current capabil
 [discrete]
 === Filters
 
-When building a dashboard always consider adding a filter dropdown. Why?
-In most cases the integrations are used to monitor multiple instances of a target system,
+When building a dashboard, always consider adding a filter dropdown. Why?
+In most cases, the integrations monitor multiple instances of a target system,
 so we need to provide a way to switch between them.
 
-Use the Controls visualization to build a filter dropdown.
-Here's an example of a host name dropdown that can be added the System dashboard:
+To build a filter dropdown, use the Controls visualization.
+Here's an example of a host name dropdown that you can add to the System dashboard:
 
 // screenshot omitted for now
 
@@ -290,8 +288,8 @@ Here's an example of a host name dropdown that can be added the System dashboard
 [discrete]
 === Navigation
 
-If an integration has several dashboards, ensure that all of them can be easily navigated.
-To build dashboard navigation use the Markdown visualization type.
+If an integration has several dashboards, ensure that you can easily navigate all of them.
+To build dashboard navigation, use the Markdown visualization type.
 
 For example, the System dashboard provides the following navigation:
 
@@ -329,12 +327,12 @@ Currently we don't make it a rule to show on a dashboard what system it's design
 
 // screenshot omitted for now
 
-When using multiple dashboard on bigger screens, it makes it hard to distinguish between the dashboards. This can be improved by using the Markdown control to show what target system the dashboard is used for.
+When using multiple dashboards on bigger screens, it makes it hard to distinguish between the dashboards. You can improve this by using the Markdown control to display the target system the dashboard is used for.
 
 [discrete]
 === Naming
 
-Use the following naming convention when building dashboards
+When building dashboards, use the following naming convention.
 
 [discrete]
 ==== Visualizations
@@ -349,7 +347,7 @@ Examples:
 * Memory Usage Gauge [Metrics System]
 * New groups [Logs System]
 
-Rename all visualizations added to a dashboard to only show the <NAME> part.
+Rename all visualizations added to a dashboard only to show the <NAME> part.
 
 // screenshot omitted for now
 
@@ -370,9 +368,9 @@ Examples:
 === Screenshots
 
 Letter casing is important for screenshot descriptions.
-Descriptions are shown in the Kibana UI, so try and keep them clean and consistent.
+Descriptions are shown in the {kib} UI, so try and keep them clean and consistent.
 
-These descriptions are visualized in the Kibana UI. It would be better experience to have them clean and consistent.
+These descriptions are visualized in the {kib} UI. It would be better experience to have them clean and consistent.
 
 * Bad candidate: filebeat running on ec2 machine
 * Good candidates: Filebeat running on AWS EC2 machine
@@ -392,7 +390,7 @@ elastic-package export
 [[build-it]]
 == Build
 
-To format, lint, and build your integration -- in that order -- run:
+To format, lint, and build your integration, in that order, run:
 
 [source,terminal]
 ----
@@ -410,7 +408,7 @@ elastic-package build
 ----
 
 With the package built, run the following command from inside of the integration directory to recycle the package-registry docker container.
-This refreshes the Fleet UI, allowing it to pick up the new integration in Kibana.
+This refreshes the {fleet} UI, allowing it to pick up the new integration in {kib}.
 
 [source,terminal]
 ----
@@ -437,17 +435,17 @@ Run from inside the Integrations repository:
 elastic-package stack up -d -v
 ----
 +
-The command above will boot up the Elastic stack (Elasticsearch, Kibana, Package Registry) using Docker containers.
-It rebuilds the Package Registry Docker image using packages built in step 1. and boots up the Package Registry.
+The command above will boot up the {stack} ({es}, {kib}, and {package-registry}) using Docker containers.
+It rebuilds the {package-registry} Docker image using packages built in step 1. and boots up the {package-registry}.
 +
-To reload the already deployed Package Registry use the following command:
+To reload the already deployed {package-registry}, use the following command:
 +
 [source,terminal]
 ----
 elastic-package stack up -v -d --services package-registry
 ----
 
-. Verify that your integration is available (in the right version), e.g. MySQL: http://localhost:8080/search?package=mysql (use `experimental=true` parameter if the package is in experimental version.
+. Verify that your integration is available in the correct version. For example, MySQL: http://localhost:8080/search?package=mysql (use `experimental=true` parameter if the package is in experimental version.
 Alternatively set `release` to `beta` or higher in your package's `manifest.yml`, if appropriate.)
 +
 [source,json]
@@ -473,15 +471,15 @@ Alternatively set `release` to `beta` or higher in your package's `manifest.yml`
 ]
 ----
 +
-The `elastic-package stack` provides an enrolled instance of the Elastic Agent. Use that one instead of a local application
+The `elastic-package stack` provides an enrolled instance of the {agent}. Use that one instead of a local application
 if you can run the service (you're integrating with) in the Docker network and you don't need to rebuild the Elastic-Agent
-or it's subprocesses (e.g. Filebeat or Metricbeat). The service Docker image can be used for [system
+or it's subprocesses (e.g. {filebeat} or {metricbeat}). The service Docker image can be used for [system
 testing](https://github.com/elastic/elastic-package/blob/master/docs/howto/system_testing.md). If you prefer to use a local
-instance of the Elastic Agent, proceed with steps 4 an 5:
+instance of the {agent}, proceed with steps 4 and 5:
 
-. (Optional) Download the Elastic-Agent from https://www.elastic.co/downloads/elastic-agent
+. (Optional) Download the https://www.elastic.co/downloads/elastic-agent[{agent}].
 
-. (Optional) Enroll the agent and start it:
+. (Optional) Enroll the {agent} and start it:
 +
 Use the "Enroll new agent" option in the Kibana UI (Ingest Manager -> Fleet -> Create user and enable Fleet) and run a similar command:
 +
@@ -491,7 +489,7 @@ Use the "Enroll new agent" option in the Kibana UI (Ingest Manager -> Fleet -> C
 ./elastic-agent run
 ----
 +
-The `elastic-agent` will start two other processes - `metricbeat` and `filebeat`.
+The `elastic-agent` starts two other processes: `metricbeat` and `filebeat`.
 
 . Run the product you're integrating with (e.g. a docker image with MySQL).
 
@@ -506,8 +504,8 @@ Click out the configuration in the Kibana UI, deploy it and wait for the agent t
 `elastic-package` provides different types of test runners.
 See <<testing>> to learn about the various methods for testing packages.
 
-The `test` subcommand requires a reference to the live Elastic stack. Service endpoints can be defined via environment variables.
-If you're using the Elastic stack created with `elastic-package`, you can use export endpoints with `elastic-package stack shellinit`:
+The `test` subcommand requires a reference to the live {stack}. You can define service endpoints using environment variables.
+If you're using the {stack} created with `elastic-package`, you can use export endpoints with `elastic-package stack shellinit`:
 
 [source,terminal]
 ----
@@ -554,17 +552,17 @@ Simplify sentences, don't provide information about the input if not required.
 
 === Add an icon
 
-The integration icons are presented in different places in Kibana, hence it's better to define custom icons to make the UI easier to navigate.
+The integration icons are displayed in different places in {kib}, hence it's better to define custom icons to make the UI easier to navigate.
 
 === Add screenshots
 
-The Kibana Integration Manager shows screenshots related with the integration. Screenshots present Kibana dashboards visualizing the metric/log data.
+The {kib} Integration Manager shows screenshots related to the integration. Screenshots include {kib} dashboards visualizing the metric and log data.
 
 === Create a readme file
 
-The README template is used to render the final README file including exported fields. The template should be placed in the package/<integration-name>/_dev/build/docs/README.md. If the directory doesn't exist, please create it.
+The README template is used to render the final README file, including exported fields. The template should be placed in the package/<integration-name>/_dev/build/docs/README.md. If the directory doesn't exist, please create it.
 
-Review the MySQL docs template to see how to use template functions (e.g. {{fields "data-stream-name"}}). If the same data stream name is used in both metrics and logs, please add -metrics and -logs in the template. For example, elb is a data stream for log and also a data stream for metrics. In README.md template, {{fields "elb_logs"}} and {{fields "elb_metrics"}} are used to separate them.
+To see how to use template functions, for example {{fields "data-stream-name"}}, review the MySQL docs template. If the same data stream name is used in both metrics and logs, please add -metrics and -logs in the template. For example, elb is a data stream for log and also a data stream for metrics. In README.md template, {{fields "elb_logs"}} and {{fields "elb_metrics"}} are used to separate them.
 
 === Review artifacts
 
