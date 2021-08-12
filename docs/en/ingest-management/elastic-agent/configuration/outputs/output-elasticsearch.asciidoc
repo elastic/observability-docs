@@ -1,4 +1,4 @@
-:output-type: elasticsearch
+:type: output-elasticsearch
 
 [[elasticsearch-output]]
 = Configure the {es} output
@@ -54,9 +54,6 @@ category. Many of these settings have sensible defaults that allow you to run
 |===
 | Setting | Description
 
-//QUESTION: I've removed index and indices because I don't think it makes sense
-//to document these settings for agent. Let me know if that's not correct.
-
 // =============================================================================
 
 include::output-shared-settings.asciidoc[tag=enabled-setting]
@@ -67,7 +64,7 @@ include::output-shared-settings.asciidoc[tag=enabled-setting]
 
 // tag::hosts-setting[]
 |
-[id="output-{output-type}-hosts-setting"]
+[id="{type}-hosts-setting"]
 `hosts`
 
 | (list) The list of {es} nodes to connect to. The events are distributed to
@@ -97,7 +94,7 @@ outputs:
 
 // tag::protocol-setting[]
 |
-[id="output-{output-type}-protocol-setting"]
+[id="{type}-protocol-setting"]
 `protocol`
 
 | (string) The name of the protocol {es} is reachable on. The options are:
@@ -110,7 +107,7 @@ the URL.
 
 // tag::proxy_disable-setting[]
 |
-[id="output-{output-type}-proxy_disable-setting"]
+[id="{type}-proxy_disable-setting"]
 `proxy_disable`
 
 | (boolean) If set to `true`, all proxy settings, including `HTTP_PROXY` and
@@ -124,7 +121,7 @@ the URL.
 
 // tag::proxy_headers-setting[]
 |
-[id="output-{output-type}-proxy_headers-setting"]
+[id="{type}-proxy_headers-setting"]
 `proxy_headers`
 
 | (string) Additional headers to send to proxies during CONNECT requests.
@@ -134,7 +131,7 @@ the URL.
 // =============================================================================
 // tag::proxy_url-setting[]
 |
-[id="output-{output-type}-proxy_url-setting"]
+[id="{type}-proxy_url-setting"]
 `proxy_url`
 
 | (string) The URL of the proxy to use when connecting to the {es} servers. The
@@ -157,22 +154,15 @@ Settings for authenticating with {es}.
 When sending data to a secured cluster through the `elasticsearch`
 output, {agent} can use any of the following authentication methods:
 
-* Basic authentication credentials (username and password).
-* Token-based (API key) authentication.
-* Public Key Infrastructure (PKI) certificates.
+* <<output-elasticsearch-basic-authentication-settings>>
+* <<output-elasticsearch-apikey-authentication-settings>>
+* <<output-elasticsearch-pki-certs-authentication-settings>>
+* <<output-elasticsearch-kerberos-authentication-settings>>
 
-//QUESTION: Why isn't kerberos covered here?
+[[output-elasticsearch-basic-authentication-settings]]
+=== Basic authentication credentials
 
-//TODO: Maybe break this section down into mutliple tables to show options
-//for each type of authentication and consider pulling in all the descriptions?
-//We're missing detail on ssl and kerberos.
-
-The following examples show how to configure authentication by using these
-methods.
-
-*Basic authentication:*
-
-["source","yaml",subs="attributes,callouts"]
+[source,yaml]
 ----
 outputs:
   default:
@@ -182,64 +172,13 @@ outputs:
     password: "your-password"
 ----
 
-*API key authentication:*
-
-["source","yaml",subs="attributes,callouts"]
-----
-outputs:
-  default:
-    type: elasticsearch
-    hosts: ["https://myEShost:9200"]
-    api_key: "KnR6yE41RrSowb0kQ0HWoA"
-----
-
-*PKI certificate authentication:*
-
-["source","yaml",subs="attributes,callouts"]
-----
-outputs:
-  default:
-    type: elasticsearch
-    hosts: ["https://myEShost:9200"]
-    ssl.certificate: "/etc/pki/client/cert.pem"
-    ssl.key: "/etc/pki/client/cert.key"
-----
-
-
-//See <<securing-communication-elasticsearch>> for details on each
-//authentication method.
-
 [cols="2*<a"]
 |===
 | Setting | Description
 
-// tag::api_key-setting[]
-|
-[id="output-{output-type}-api_key-setting"]
-`api_key`
-
-| (string) Instead of using a username and password, you can use API keys to
-secure communication with {es}. The value must be the ID of the API key and the
-API key joined by a colon: `id:api_key`.
-// end::api_key-setting[]
-
-// =============================================================================
-
-// tag::kerberos-setting[]
-|
-[id="output-{output-type}-kerberos-setting"]
-`kerberos`
-
-| Configuration options for Kerberos authentication.
-
-//See <<configuration-kerberos>> for more information.
-// end::kerberos-setting[]
-
-// =============================================================================
-
 // tag::password-setting[]
 |
-[id="output-{output-type}-password-setting"]
+[id="{type}-password-setting"]
 `password`
 
 | (string) The basic authentication password for connecting to {es}.
@@ -247,27 +186,9 @@ API key joined by a colon: `id:api_key`.
 
 // =============================================================================
 
-// tag::ssl-setting[]
-|
-[id="output-{output-type}-ssl-setting"]
-`ssl`
-
-| Configuration options for SSL parameters like the certificate authority to use
-for HTTPS-based connections. If the `ssl` section is missing, the host CAs are
-used for HTTPS connections to {es}.
-
-//See the <<securing-communication-elasticsearch,secure communication with {es}>> guide
-//or <<configuration-ssl,SSL configuration reference>> for more information.
-
-//TODO: Need to add the ssl settings before we activate the link here.
-
-// end::ssl-setting[]
-
-// =============================================================================
-
 // tag::username-setting[]
 |
-[id="output-{output-type}-username-setting"]
+[id="{type}-username-setting"]
 `username`
 
 | (string) The basic authentication username for connecting to {es}.
@@ -279,6 +200,108 @@ This user needs the privileges required to publish events to {es}.
 // =============================================================================
 
 |===
+
+[[output-elasticsearch-apikey-authentication-settings]]
+=== Token-based (API key) authentication
+
+[source,yaml]
+----
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["https://myEShost:9200"]
+    api_key: "KnR6yE41RrSowb0kQ0HWoA"
+----
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+// tag::api_key-setting[]
+|
+[id="{type}-api_key-setting"]
+`api_key`
+
+| (string) Instead of using a username and password, you can use API keys to
+secure communication with {es}. The value must be the ID of the API key and the
+API key joined by a colon: `id:api_key`.
+// end::api_key-setting[]
+
+// =============================================================================
+
+|===
+
+[[output-elasticsearch-pki-certs-authentication-settings]]
+=== Public Key Infrastructure (PKI) certificates
+
+[source,yaml]
+----
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["https://myEShost:9200"]
+    ssl.certificate: "/etc/pki/client/cert.pem"
+    ssl.key: "/etc/pki/client/cert.key"
+----
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+// tag::ssl-setting[]
+|
+[id="{type}-ssl-setting"]
+`ssl`
+
+| Configuration options for SSL parameters like the certificate authority to use
+for HTTPS-based connections. If the `ssl` section is missing, the host CAs are
+used for HTTPS connections to {es}.
+
+//See the <<securing-communication-elasticsearch,secure communication with {es}>> guide
+//or <<configuration-ssl,SSL configuration reference>> for more information.
+
+// end::ssl-setting[]
+
+// =============================================================================
+
+|===
+
+//See <<securing-communication-elasticsearch>> for details on each
+//authentication method.
+
+[[output-elasticsearch-kerberos-authentication-settings]]
+=== Kerberos
+
+The following encryption types are supported:
+
+* aes128-cts-hmac-sha1-96
+* aes128-cts-hmac-sha256-128
+* aes256-cts-hmac-sha1-96
+* aes256-cts-hmac-sha384-192
+* des3-cbc-sha1-kd
+* rc4-hmac
+
+Example output config with Kerberos password-based authentication:
+
+[source,yaml]
+----
+outputs:
+  default:
+    type: elasticsearch
+    hosts: ["http://my-elasticsearch.elastic.co:9200"]
+    kerberos.auth_type: password
+    kerberos.username: "elastic"
+    kerberos.password: "changeme"
+    kerberos.config_path: "/etc/krb5.conf"
+    kerberos.realm: "ELASTIC.CO"
+----
+
+The service principal name for the {es} instance is constructed from these
+options. Based on this configuration, the name would be:
+
+`HTTP/my-elasticsearch.elastic.co@ELASTIC.CO`
+
+include::../authentication/kerberos-shared-settings.asciidoc[tag=kerberos-all-settings]
 
 [[output-elasticsearch-data-parsing-settings]]
 === Data parsing, filtering, and manipulation settings
@@ -296,7 +319,7 @@ include::output-shared-settings.asciidoc[tag=escape_html-setting]
 
 // tag::pipeline-setting[]
 |
-[id="output-{output-type}-pipeline-setting"]
+[id="{type}-pipeline-setting"]
 `pipeline`
 
 | (string) A format string value that specifies the ingest node pipeline to
@@ -339,7 +362,7 @@ dynamically.
 
 // tag::pipelines-setting[]
 |
-[id="output-{output-type}-pipelines-setting"]
+[id="{type}-pipelines-setting"]
 `pipelines`
 
 | An array of pipeline selector rules. Each rule specifies the ingest node
@@ -425,7 +448,7 @@ Settings that modify the HTTP requests sent to {es}.
 
 // tag::headers-setting[]
 |
-[id="output-{output-type}-headers-setting"]
+[id="{type}-headers-setting"]
 `headers`
 
 | Custom HTTP headers to add to each request created by the {es} output.
@@ -449,7 +472,7 @@ a comma.
 
 // tag::parameters-setting[]
 |
-[id="output-{output-type}-parameters-setting"]
+[id="{type}-parameters-setting"]
 `parameters`
 
 | Dictionary of HTTP parameters to pass within the url with index operations.
@@ -459,7 +482,7 @@ a comma.
 
 // tag::path-setting[]
 |
-[id="output-{output-type}-path-setting"]
+[id="{type}-path-setting"]
 `path`
 
 | (string) An HTTP path prefix that is prepended to the HTTP API calls. This is
@@ -483,7 +506,7 @@ Settings that may affect performance.
 
 // tag::backoff.init-setting[]
 |
-[id="output-{output-type}-backoff.init-setting"]
+[id="{type}-backoff.init-setting"]
 `backoff.init`
 
 | (string) The number of seconds to wait before trying to reconnect to {es}
@@ -498,7 +521,7 @@ to `backoff.max`. After a successful connection, the backoff timer is reset.
 
 // tag::backoff.max-setting[]
 |
-[id="output-{output-type}-backoff.max-setting"]
+[id="{type}-backoff.max-setting"]
 `backoff.max`
 
 | (string) The maximum number of seconds to wait before attempting to connect to
@@ -511,7 +534,7 @@ to `backoff.max`. After a successful connection, the backoff timer is reset.
 
 // tag::bulk_max_size-setting[]
 |
-[id="output-{output-type}-bulk_max_size-setting"]
+[id="{type}-bulk_max_size-setting"]
 `bulk_max_size`
 
 | (int) The maximum number of events to bulk in a single {es} bulk API index
@@ -542,7 +565,7 @@ include::output-shared-settings.asciidoc[tag=compression_level-setting]
 
 // tag::max_retries-setting[]
 |
-[id="output-{output-type}-max_retries-setting"]
+[id="{type}-max_retries-setting"]
 `max_retries`
 
 | (int) The number of times to retry publishing an event after a publishing
@@ -558,7 +581,7 @@ Set `max_retries` to a value less than 0 to retry until all events are published
 
 // tag::timeout-setting[]
 |
-[id="output-{output-type}-timeout-setting"]
+[id="{type}-timeout-setting"]
 `timeout`
 
 | (string) The HTTP request timeout in seconds for the {es} request.
@@ -575,4 +598,4 @@ include::output-shared-settings.asciidoc[tag=worker-setting]
 
 |===
 
-:output-type!: 
+:type!: 
