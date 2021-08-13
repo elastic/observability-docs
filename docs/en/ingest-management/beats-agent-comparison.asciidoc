@@ -267,7 +267,7 @@ The following table shows the additional capabilities supported by {beats} and t
 |{n}
 |{y}
 |{y} (optional)
-|{agent} integrations can be configured in the web UI or API. Standalone {agent} can use the web UI, API or YAML. {beats} can only configured via YAML file.
+|{fleet}-managed {agent} integrations can be configured in the web UI or API. Standalone {agent} can use the web UI, API or YAML. {beats} can only configured via YAML file.
 
 |Central, remote agent policy management
 |{n}
@@ -281,23 +281,23 @@ The following table shows the additional capabilities supported by {beats} and t
 |{n}
 |{agent}s can be remotely upgraded through {fleet}. You have to upgrade {beats} yourself or with a third party solution.
 
-|Choose which module or integration assets to add
+|Add {kibana} and {es} assets for a single integration or module
 |{n}
 |{y}
 |{y}
-|Integrations allow you to choose which assets to add. {beats} installs hundreds of assets for all modules at once.
+|{agent} integrations allow you to add {kibana} and {es} assets for a single integration at a time. {beats} installs hundreds of assets for all modules at once.
 
 |Auto-generated {es} API keys
 |{n}
 |{y}
 |{n}
-|{fleet} can automatically generate API keys with limited permissions for each {agent}, which can be individually revoked. {beats} requires you to create and manage credentials, and users often share them across hosts.
+|{fleet} can automatically generate API keys with limited permissions for each {agent}, which can be individually revoked. Standalone {agent} and {beats} requires you to create and manage credentials, and users often share them across hosts.
 
 |Auto-generate minimal {es} permissions
 |{n}
 |{y}
 |{n}
-|{fleet} can automatically give {agent}s minimal output permissions based on the inputs running. With {beats}, users often give broad permissions due to convenience.
+|{fleet} can automatically give {agent}s minimal output permissions based on the inputs running. With standalone {agent} and {beats}, users often give overly broad permissions because its more convenient.
 
 |Data streams support
 |{n}
@@ -309,13 +309,13 @@ The following table shows the additional capabilities supported by {beats} and t
 |{n}
 |{y} (limited)
 |{y}
-|{agent} offers https://www.elastic.co/guide/en/fleet/current/dynamic-input-configuration.html[variables and input conditions] to dynamically adjust based on the local host environment. The Integrations app allows users to enter variables and we are considering a https://github.com/elastic/kibana/issues/108525[UI to edit conditions]. {beats} only offers static configuration.
+|{agent} offers https://www.elastic.co/guide/en/fleet/current/dynamic-input-configuration.html[variables and input conditions] to dynamically adjust based on the local host environment. Users can configure these directly in YAML for standalone {agent} or using the Fleet API for {fleet}-managed {agent}. The Integrations app allows users to enter variables and we are considering a https://github.com/elastic/kibana/issues/108525[UI to edit conditions]. {beats} only offers static configuration.
 
 |Allow non-superusers to manage assets and agents
 |{y}
 |{n}
 |{y} (it's optional)
-|{fleet}-managed {agent}s require a superuser role to use {fleet} and Integrations. We are considering https://github.com/elastic/kibana/issues/108252[changing] this requirement. These apps are optional for standalone agents. {beats} offers https://www.elastic.co/guide/en/beats/filebeat/current/feature-roles.html[finer grained] roles.
+|We require a superuser role to use the {fleet} and Integrations apps and cooresponding APIs. We are considering https://github.com/elastic/kibana/issues/108252[changing] this requirement. These apps are optional for standalone {agent}. {beats} offers https://www.elastic.co/guide/en/beats/filebeat/current/feature-roles.html[finer grained] roles.
 
 |Air-gapped network support
 |{y}
@@ -333,13 +333,13 @@ The following table shows the additional capabilities supported by {beats} and t
 |{y}
 |{n}
 |{y}
-|{fleet} only supports output to {es} where {fleet} is running so it can generate API keys. We are considering support for https://github.com/elastic/kibana/issues/104980[more outputs]. Standalone {agent} and {beats} can send to mulitple outputs.
+|{fleet}-managed {agent}s only provide a single global output to the same {es} cluster where {fleet} is running. We are considering support for https://github.com/elastic/kibana/issues/104980[more outputs]. Standalone {agent} and {beats} can send to mulitple outputs.
 
 |Separate monitoring cluster 
 |{y}
 |{n}
 |{y}
-|{fleet} only supports output to {es} where {fleet} is running so it can generate API keys. We are considering support for https://github.com/elastic/kibana/issues/104980[remote monitoring clusters]. Standalone {agent} and {beats} can send to a remote monitoring cluster.
+|{fleet}-managed {agent}s only provide a single global output to the same {es} cluster where {fleet} is running. We are considering support for https://github.com/elastic/kibana/issues/104980[remote monitoring clusters]. Standalone {agent} and {beats} can send to a remote monitoring cluster.
 
 |Keystore for secrets
 |{y}
@@ -357,19 +357,19 @@ The following table shows the additional capabilities supported by {beats} and t
 |{y}
 |{n}
 |{y}
-|{fleet} does not have a feature to deploy a policy update progressively but we are considering https://github.com/elastic/kibana/issues/108267[improved support]. With standalone {agent} and {beats} you can deploy configuration files progressively using third party solutions.
+|{fleet} does not have a feature to deploy an {agent} policy update progressively but we are considering https://github.com/elastic/kibana/issues/108267[improved support]. With standalone {agent} and {beats} you can deploy configuration files progressively using third party solutions.
 
 |Version control, change management, rollback, and infrastructure as code
 |{y}
 |{n} (only via API)
 |{y}
-|{fleet} offers support for externally managed policies through it's REST API and we are considering https://github.com/elastic/kibana/issues/108524[improved support]. Both {agent} standalone and {beats} offer a simple text file configuration, so you can more easily implement these processes in third party solutions.
+|{fleet} offers support for externally managed policies through it's REST API and we are considering https://github.com/elastic/kibana/issues/108524[improved support]. Both standalone {agent} and {beats} offer a simple text file configuration, so you can more easily implement these processes in third party solutions.
 
-|Multiple configurations
+|Multiple configurations per host
 |{y}
-|{n}
-|{n}
-|{agent} uses a single agent policy for configuration, and uses https://www.elastic.co/guide/en/fleet/current/dynamic-input-configuration.html[variables and input conditions] to adapt to each host's local environment. {beats} offers support for mulitple configuration files, which offers more flexibility in assigning agent's to multiple groups and controlling access in third party solutions.
+|{n} (uses input conditions instead)
+|{n} (uses input conditions instead)
+|{agent} uses a single {agent} policy for configuration, and uses https://www.elastic.co/guide/en/fleet/current/dynamic-input-configuration.html[variables and input conditions] to adapt on a per-host basis. {beats} supports multiple configuration files per host, enabling third party solutions to deploy files hierarchically or in multiple groups, and enabling finer-grained access control to those files.
 
 |===
 
