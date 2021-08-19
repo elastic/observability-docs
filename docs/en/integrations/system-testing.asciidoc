@@ -1,7 +1,7 @@
 [[system-testing]]
 = System testing
 
-Elastic Packages are comprised of data streams. A system test exercises the end-to-end flow of data for a package's data stream — from ingesting data from the package's integration service all the way to indexing it into an Elasticsearch data stream.
+Elastic Packages comprise of data streams. A system test exercises the end-to-end flow of data for a package's data stream — from ingesting data from the package's integration service all the way to indexing it into an {es} data stream.
 
 [discrete]
 [[system-concepts]]
@@ -9,8 +9,8 @@ Elastic Packages are comprised of data streams. A system test exercises the end-
 
 Conceptually, running a system test involves the following steps:
 
-. Deploy the Elastic Stack, including Elasticsearch, Kibana, and the Elastic Agent. This step takes time so it should typically be done once as a pre-requisite to running system tests on multiple data streams.
-. Enroll the Elastic Agent with Fleet (running in the Kibana instance). This step also can be done once, as a pre-requisite.
+. Deploy the {stack}, including {es}, {kib}, and the {agent}. This step takes time. so you should typically do it once as a pre-requisite to running system tests on multiple data streams.
+. Enroll the {agent} with {fleet} (running in the {kib} instance). This step also can be done once, as a pre-requisite.
 . Depending on the Elastic Package whose data stream is being tested, deploy an instance of the package's integration service.
 . Create a test policy that configures a single data stream for a single package.
 . Assign the test policy to the enrolled Agent.
@@ -27,8 +27,8 @@ Conceptually, running a system test involves the following steps:
 [[system-test-limitations]]
 == Limitations
 
-At the moment system tests have limitations. The salient ones are:
-* There isn't a way to do assert that the indexed data matches data from a file (e.g. golden file testing).
+At the moment, system tests have limitations. The salient ones are:
+* There isn't a way to assert that the indexed data matches data from a file (e.g. golden file testing).
 
 [discrete]
 [[system-test-definition]]
@@ -81,8 +81,8 @@ or the data stream's level:
 [[system-docker-compose]]
 === Docker Compose service deployer
 
-When using the Docker Compose service deployer, the `<service deployer files>` must include a `docker-compose.yml` file.
-The `docker-compose.yml` file defines the integration service(s) for the package. If your package has a logs data stream,
+The `<service deployer files>` must include a `docker-compose.yml` file when using the Docker Compose service deployer.
+The `docker-compose.yml` file defines the integration service for the package. For example, if your package has a logs data stream,
 the log files from your package's integration service must be written to a volume. For example, the `apache` package has
 the following definition in it's integration service's `docker-compose.yml` file.
 
@@ -103,8 +103,8 @@ Here, `SERVICE_LOGS_DIR` is a special keyword. It is something that we will need
 === Terraform service deployer
 
 When using the Terraform service deployer, the `<service deployer files>` must include at least one `*.tf` file.
-The `*.tf` files define the infrastructure using the Terraform syntax. The terraform based service can be handy to boot up
-resources using selected cloud provider and use them for testing (e.g. observe and collect metrics).
+The `*.tf` files define the infrastructure using the Terraform syntax. The terraform-based service can be handy to boot up
+resources using a selected cloud provider and use them for testing (e.g. observe and collect metrics).
 
 Sample `main.tf` definition:
 
@@ -154,7 +154,7 @@ wget -qO-  https://raw.githubusercontent.com/elastic/elastic-package/master/scri
 
 Before executing system tests, the service deployer applies once the deployment of the Elastic Agent to the cluster and links
 the kind cluster with the Elastic stack network - applications running in the kind cluster can reach Elasticsearch and Kibana instances.
-To shorten the total test execution time the Elastic Agent's deployment is not deleted after tests, but it can be reused.
+The {agent}'s deployment is not deleted after tests to shorten the total test execution time, but it can be reused.
 
 See how to execute system tests for the Kubernetes integration (`pod` data stream):
 
@@ -169,7 +169,7 @@ elastic-package test system --data-streams pod -v # start system tests for the "
 [[system-test-case]]
 === Test case definition
 
-Next, we must define at least one configuration for each data stream that we want to system test. There can be multiple test cases defined for the same data stream.
+Next, we must define at least one configuration for each data stream that we want to system test. You can define multiple test cases for the same data stream.
 
 _Hint: if you plan to define only one test case, you can consider the filename `test-default-config.yml`._
 
@@ -196,11 +196,11 @@ data_stream:
       - "{{SERVICE_LOGS_DIR}}/access.log*"
 ----
 
-The top-level `vars` field corresponds to package-level variables defined in the `apache` package's `manifest.yml` file. In the above example we don't override any of these package-level variables, so their default values, as specified in the `apache` package's `manifest.yml` file are used.
+The top-level `vars` field corresponds to package-level variables defined in the `apache` package's `manifest.yml` file. In the above example, we don't override any of these package-level variables, so their default values, are used in the `apache` package's `manifest.yml` file.
 
 The `data_stream.vars` field corresponds to data stream-level variables for the current data stream (`apache/access` in the above example). In the above example we override the `paths` variable. All other variables are populated with their default values, as specified in the `apache/access` data stream's `manifest.yml` file.
 
-Notice the use of the `{{SERVICE_LOGS_DIR}}` placeholder. This corresponds to the `${SERVICE_LOGS_DIR}` variable we saw in the `docker-compose.yml` file earlier. In the above example, the net effect is as if the `/usr/local/apache2/logs/access.log*` files located inside the Apache integration service container become available at the same path from Elastic Agent's perspective.
+Notice the use of the `{{SERVICE_LOGS_DIR}}` placeholder. This corresponds to the `${SERVICE_LOGS_DIR}` variable we saw in the `docker-compose.yml` file earlier. In the above example, the `/usr/local/apache2/logs/access.log*` files located inside the Apache integration service container become available at the same path from {agent}'s perspective.
 
 When a data stream's manifest declares multiple streams with different inputs you can use the `input` option to select the stream to test. The first stream
 whose input type matches the `input` value will be tested. By default, the first stream declared in the manifest will be tested.
@@ -227,7 +227,7 @@ Placeholders used in the `test-<test_name>-config.yml` must be enclosed in `{{` 
 
 Once the two levels of configurations are defined as described in the previous section, you are ready to run system tests for a package's data streams.
 
-First you must deploy the Elastic Stack. This corresponds to steps 1 and 2 as described in the [_Conceptual process_](#Conceptual-process) section.
+First you must deploy the {stack}. This corresponds to steps 1 and 2 as described in the <<pipeline-concepts,Conceptual-process>> section.
 
 [source,terminal]
 ----
@@ -243,7 +243,7 @@ Next, you must set environment variables needed for further `elastic-package` co
 $(elastic-package stack shellinit)
 ----
 
-Next, you must invoke the system tests runner. This corresponds to steps 3 through 7 as described in the [_Conceptual process_](#Conceptual-process) section.
+Next, you must invoke the system tests runner. This corresponds to steps 3 to 7 as described in the <<pipeline-concepts,Conceptual-process>> section.
 
 If you want to run system tests for **all data streams** in a package, navigate to the package's root folder (or any sub-folder under it) and run the following command.
 
@@ -259,7 +259,7 @@ If you want to run system tests for **specific data streams** in a package, navi
 elastic-package test system --data-streams <data stream 1>[,<data stream 2>,...]
 ----
 
-Finally, when you are done running all system tests, bring down the Elastic Stack. This corresponds to step 8 as described in the [_Conceptual process_](#Conceptual_process) section.
+Finally, when you are done running all system tests, bring down the {stack}. This corresponds to step 8 in the <<pipeline-concepts,Conceptual-process>> section.
 
 [source,terminal]
 ----
