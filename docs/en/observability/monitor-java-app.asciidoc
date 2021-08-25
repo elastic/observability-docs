@@ -35,7 +35,7 @@ To create the Java application, you require OpenJDK 14 (or higher) and the https
 web framework. The application will include the main endpoint, an
 artificially long-running endpoint, and an endpoint that needs to poll
 another data source. There will also be a background job
-running. 
+running.
 
 . Set up a Gradle project and create the following `build.gradle` file.
 +
@@ -155,7 +155,7 @@ import io.javalin.Javalin;
 import io.javalin.http.Handler;
 
 public class App {
-    
+
     public static void main(String[] args) {
         Javalin app = Javalin.create().start(7000);
         app.get("/", mainHandler());
@@ -233,7 +233,7 @@ public class AppTests {
 === Step 2: Ingest logs
 
 Logs can be events such as checkout, an exception, or an HTTP request. For this tutorial,
-let's use log4j2 as our logging implementation. 
+let's use log4j2 as our logging implementation.
 
 [discrete]
 ==== Add logging implementation
@@ -446,9 +446,9 @@ following request:
 ----
 POST /_security/api_key
 {
-  "name": "filebeat_javalin-app", 
+  "name": "filebeat_javalin-app",
   "role_descriptors": {
-    "filebeat_writer": { 
+    "filebeat_writer": {
       "cluster": ["monitor", "read_ilm"],
       "index": [
         {
@@ -903,7 +903,7 @@ logging configuration.
 
 The sample added a `JavalinAppLogRolling` appender to our configuration that
 uses the same logging pattern as before, but rolls over if a new day
-starts or if the log file has reached 50 megabytes. 
+starts or if the log file has reached 50 megabytes.
 
 If a new log file is created, older log files are gzipped as well to take less space on disk.
 The size of 50 megabytes refers to the unpacked file size, so
@@ -949,7 +949,7 @@ PUT _ingest/pipeline/javalin_pipeline
     }
   ]
 }
-  
+
 # Test the pipeline
 POST _ingest/pipeline/javalin_pipeline/_simulate
 {
@@ -1032,7 +1032,7 @@ dependencies {
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.2'
 }
 
-// this is needed to ensure JSON logging works as expected when building 
+// this is needed to ensure JSON logging works as expected when building
 // a shadow jar
 shadowJar {
   transform(com.github.jengelman.gradle.plugins.shadow.transformers.Log4j2PluginsCacheFileTransformer)
@@ -1364,7 +1364,7 @@ visualization called `Lens`.
 
 . Log into {kib} and select *Visualize* -> *Create Visualization*.
 +
-. Create a line chart and select `metricbeat-*` as the source. 
+. Create a line chart and select `metricbeat-*` as the source.
 +
 The basic idea is to have a
 {ref}/search-aggregations-metrics-max-aggregation.html[max
@@ -1491,7 +1491,7 @@ visualization than shown, with a peak where you ran the `wrk` command above.
 You will only see data from a single shipper. Still, the moment
 you are running several services and the ability to group this per
 Kubernetes pod or host enables you to spot hosts with elevated
-CPU or memory consumption. 
+CPU or memory consumption.
 +
 . Click *Metrics Explorer*, you can
 start exploring your data for specific hosts or the CPU usage across your
@@ -1661,7 +1661,7 @@ your source code.
 [source,gradle]
 ----
 dependencies {
-  ... 
+  ...
   implementation 'co.elastic.apm:apm-agent-attach:1.17.0'
   ...
 }
@@ -1827,13 +1827,13 @@ image:./images/monitor-java-app-apm-ui-javalin-wttr-2.png[Transaction with span]
 If the `city` parameter if that URL is of high
 cardinality, this will result in a high amount of URLs mentioned instead of
 the generic endpoint. If you would like to prevent this, a possibility would
-be to use `ctx.matchedPath()` to log every call to the weather API as 
+be to use `ctx.matchedPath()` to log every call to the weather API as
 `GET /weather/:city`. This however requires some refactoring by removing the
 `app.before()` handler and replacing it with a `app.after()` handler.
 +
 [source,java]
 ----
-app.after(ctx -> ElasticApm.currentTransaction().setName(ctx.method() 
+app.after(ctx -> ElasticApm.currentTransaction().setName(ctx.method()
   + " " + ctx.endpointHandlerPath()));
 ----
 
@@ -1997,7 +1997,7 @@ and install {heartbeat}, use the commands that work with your system:
 include::{beats-repo-dir}/tab-widgets/install-widget-heartbeat.asciidoc[]
 
 After downloading and unpacking, we have to set up the cloud id and the
-password one more time. 
+password one more time.
 
 . We need to create another `API_KEY` as an elastic admin user in {kib}.
 +
@@ -2073,7 +2073,7 @@ processors:
 
 include::{beats-repo-dir}/tab-widgets/start-widget-heartbeat.asciidoc[]
 
-To view the Uptime app, 
+To view the Uptime app,
 select *Observability* -> *Uptime*. The overview looks
 like this.
 
@@ -2085,7 +2085,7 @@ details for one of those alerts. Click *Javalin Web Application*.
 
 You can see the execution for the last
 scheduled checks, but the duration for each check might be more interesting.
-You can see if the latency for one of your checks is going up. 
+You can see if the latency for one of your checks is going up.
 
 The interesting part is the world map at the top. You can specify in the
 configuration where the check originated, which in this case was in Munich in Europe.
@@ -2110,6 +2110,3 @@ the time.
 
 For more information about using  Elastic
 Observability, see the <<observability-introduction,Observability documentation>>.
-
-// Add Javascript and CSS for tabbed panels
-include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
