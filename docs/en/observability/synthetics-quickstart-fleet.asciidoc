@@ -1,0 +1,88 @@
+:synthetics-image: docker.elastic.co/beats/elastic-agent-complete:{version}
+
+[[synthetics-quickstart-fleet]]
+= Quickstart: Synthetic monitoring via Elastic Agent and Fleet
+
+++++
+<titleabbrev>Quickstart with Elastic Agent and Fleet</titleabbrev>
+++++
+
+[discrete]
+[[synthetics-quickstart-fleet-step-one]]
+== Step 1: Pull the latest Elastic Agent complete docker image
+
+[source,sh,subs="attributes"]
+----
+docker pull {synthetics-image}
+----
+
+[discrete]
+[[synthetics-quickstart-fleet-step-two]]
+== Step 2: Set up Fleet Server
+
+Synthetic monitoring via Elastic Agent and Fleet requires Fleet Server to be set up. See the Fleet https://www.elastic.co/guide/en/fleet/current/fleet-quick-start.html#set-up-fleet[quick start guide] for more information.
+
+[discrete]
+[[synthetics-quickstart-fleet-step-three]]
+== Step 3: Create an agent policy for Elastic Synthetics
+
+You use policies to manage settings across a group of agents. An agent policy may contain any number of integrations for collecting observability data from the various services running on your host. Fleet is automatically configured with a default agent policy, but it is useful to create a separate agent policy to use for synthetics tests. For more information on creating an agent policy, see the https://www.elastic.co/guide/en/fleet/current/agent-policy.html#create-a-policy[agent policy guide].
+
+image::images/synthetics-agent-policy.png[Synthetics integration]
+
+[discrete]
+[[synthetics-quickstart-fleet-step-four]]
+== Step 4: Add an Elastic Agent to Fleet
+
+Elastic Agent is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the Elastic Stack. Behind the scenes, Elastic Agent runs the Beats shippers or Elastic Endpoint required for your configuration. 
+
+NOTE: To run synthetics test, you must use the "complete" elastic-agent Docker container as this contains the dependencies to run synthetic monitors.
+
+To add an Elastic Agent to Fleet, you'll need an enrollment token. You can use the default enrollment token for your policy, or create new enrollment tokens as needed. For more information on enrollment tokens, see the https://www.elastic.co/guide/en/fleet/current/fleet-enrollment-tokens.html[fleet enrollment token guide].
+
+Add a "Complete" Elastic Agent to Fleet by running the Docker command below. Be sure to substitue the correct `FLEET_URL` and `FLEET_ENROLLMENT_TOKEN`
+
+// NOTE: We do NOT use <1> references in the below example, because they create whitespace after the trailing \
+// when copied into a shell, which creates mysterious errors when copy and pasting!
+[source,sh,subs="attributes"]
+----
+docker run \
+  --rm \
+  --name=synthetics \
+  --user=elastic-agent \
+  {synthetics-image} -e \
+  -E FLEET_URL="localhost:9200" \
+  -E FLEET_ENROLLMENT_TOKEN=enrollment-token \
+  -E FLEET_ENROLL=1
+----
+
+[discrete]
+[[synthetics-quickstart-fleet-step-five]]
+== Step 5: Configure an Elastic Synthetics integration policy beta[]
+
+Elastic Synthetics tests can be configured through Fleet with the Elastic Synthetics integration. See the Elastic Synthetics section of the Fleet https://www.elastic.co/guide/en/fleet/current/fleet-quick-start.html#add-synthetics-integration[quick start guide] for more information. 
+
+image::images/synthetics-integration.png[Synthetics integration]
+
+In this example, our library of synthetic tests is downloaded from the
+remote zip endpoint for https://github.com/elastic/synthetics/tree/master/examples/todos[our todos example]. Note that the zip url refers to the endpoint where the test project exists. Folder refers to the relative path where the synthetic journey files are located. {heartbeat} will invoke the synthetics library on this folder. Username and password are blank here, but if provided, will be sent as HTTP Basic Authentication headers to the remote zip endpoint.
+
+NOTE: Be sure to select the your dedicated synthetics agent policy when applying the integration policy to an agent policy.
+
+image::images/synthetics-agent-policy-select.png[Synthetics integration]
+
+[discrete]
+[[synthetics-quickstart-fleet-step-six]]
+== Step 6: View in {kib}
+
+That's it! Elastic synthetics is now sending synthetic monitoring data to the {stack}.
+Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
+set up alerts in case of test failures, and more.
+
+If a test does fail (shown as `down` in the app), you'll be able to view the step script that failed,
+any errors, and a stack trace.
+See <<synthetics-visualize>> for more information.
+
+// WARNING: Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions. Add the `sandbox: true` option to a given browser
+// monitor in {heartbeat} to enable sandboxing. This may require using a https://github.com/elastic/synthetics/blob/master/examples/docker/seccomp_profile.json[custom seccomp policy] with docker, which brings its own additional risks. This is generally safe when run against sites whose content you trust,
+// and with a recent version of Elastic synthetics and chromium.
