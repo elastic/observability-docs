@@ -1,0 +1,32 @@
+[[elastic-agent-input-configuration]]
+[role="xpack"]
+= Configure inputs for standalone {agent}s
+
+++++
+<titleabbrev>Inputs</titleabbrev>
+++++
+
+The `inputs` section of the `elastic-agent.yml` file specifies how {agent}
+locates and processes input data.
+
+By default {agent} collects system metrics, such as cpu, memory, network, and
+filesystem metrics, and sends them to the default output. For example:
+
+[source,yaml]
+-------------------------------------------------------------------------------------
+inputs:
+  - type: system/metrics
+    data_stream.namespace: default
+    use_output: default
+    streams:
+      - metricset: cpu
+        data_stream.dataset: system.cpu
+      - metricset: memory
+        data_stream.dataset: system.memory
+      - metricset: network
+        data_stream.dataset: system.network
+      - metricset: filesystem
+        data_stream.dataset: system.filesystem
+-------------------------------------------------------------------------------------
+
+If `use_output` is not specified, the `default` output is used.

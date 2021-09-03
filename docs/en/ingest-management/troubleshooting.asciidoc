@@ -13,6 +13,9 @@ is not described here, please review the open issues in the following GitHub rep
 Have a question? Read our <<fleet-faq,FAQ>>, or contact us in the
 {forum}[discuss forum]. Your feedback is valuable to us.
 
+//TODO: Improve how content is organized in this section, perhaps by breaking
+//it down into sections like Agent, Fleet Server, etc.
+
 [discrete]
 [[fleet-server-not-in-kibana-cloud]]
 == When using {ecloud}, {fleet-server} is not listed in {kib}
@@ -56,8 +59,8 @@ After running the command:
  .. Copy the Elastic user name to the {kib} configuration file.
  .. Restart {kib}.
  .. Follow the documented steps for setting up a self-managed {fleet-server}.
- 
-// TODO: add link to Fleet server docs
+For more information, refer to <<fleet-server>>.
+
 
 [discrete]
 [[fleet-setup-fails]]
@@ -77,6 +80,41 @@ For this to work, the {kib} server must connect to `https://epr.elastic.co` on p
 +
 One of the requests to the {fleet} API will most likely have returned an error. If the error
 message doesn't give you enough information to fix the problem, please contact us in the {forum}[discuss forum].
+
+[discrete]
+[[agent-enrollment-certs]]
+== {agent} enrollment fails on the host with `x509: certificate signed by unknown authority` message
+
+To ensure that communication with {fleet-server} is encrypted,
+{fleet-server} requires {agent}s to present a signed certificate. In a
+self-managed cluster, if you don't specify certificates when you set up
+{fleet-server}, self-signed certificates are generated automatically.
+
+If you attempt to enroll an {agent} in a {fleet-server} with a self-signed
+certificate, you will encounter the following error:
+
+[source,sh]
+----
+Error: fail to enroll: fail to execute request to fleet-server: x509: certificate signed by unknown authority
+Error: enroll command failed with exit code: 1
+----
+
+To fix this problem, pass the `--insecure` flag along with the `enroll` or
+`install` command. For example:
+
+[source,sh]
+----
+sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
+----
+
+Traffic between {agent}s and {fleet-server} over HTTPS will be encrypted; you're
+simply acknowledging that you understand that the certificate chain cannot be
+verified.
+
+Allowing {fleet-server} to generate self-signed certificates is useful to get
+things running for development, but not recommended in a production environment.
+
+For more information, refer to <<secure-connections>>.
 
 [discrete]
 [[agent-enrollment-timeout]]
@@ -109,7 +147,7 @@ By default, HTTPS protocol and port 8220 is expected by {fleet-server} to commun
 with {es} unless you have explicitly set it otherwise.
 +
 . Check that you specified a valid enrollment key during enrollment. To do this:
-.. In {fleet}, select **Agents** and then click **Enrollment tokens**.
+.. In {fleet}, select **Enrollment tokens**.
 .. To view the secret, click the eyeball icon. The secret should match the string
 that you used to enroll {agent} on your host.
 .. If the secret doesn't match, create a new enrollment token and use this
@@ -119,7 +157,7 @@ token when you run the `elastic-agent enroll` command.
 [[general-fleet-server-triage]]
 == Many {fleet-server} problems can be triaged and fixed with the below tips
 
-IMPORTANT: When logging an SDH or sending a support forum communication, this section
+IMPORTANT: When creating an issue or sending a support forum communication, this section
 can help you identify what is required.
 
 {fleet-server} allows {agent} to connect to {es}, which is the same as the connection
@@ -197,7 +235,7 @@ elastic-agent enroll -f --fleet-server-es=https://<es-url>:443 --fleet-server-se
 ----
 Note: Port `443` is commonly used in {ecloud}. However, with self-managed deployments, your {es} may run on port `9200` or something entirely different.
 
-For information on where to find agent logs, see our <<where-are-the-agent-logs,FAQ>>.
+For information on where to find agent logs, refer to our <<where-are-the-agent-logs,FAQ>>.
 
 [discrete]
 [[agent-healthy-but-no-data-in-es]]
@@ -221,6 +259,15 @@ netstat -nat | grep :8220
 +
 Any response data indicates that the port is in use. This could be correct or not
 if you had intended to uninstall the {fleet-server}. In which case, re-check and continue.
+
+[discrete]
+[[fleet-server-input-missing]]
+== {fleet-server} fails with `assigned policy does not have fleet-server input` log error
+
+//These includes are designed to break in 7.15 so we remember to remove this info when it's stale
+include::release-notes/release-notes-7.14.asciidoc[tag=fleet-server-input-missing-detail]
+
+include::release-notes/release-notes-7.14.asciidoc[tag=fleet-server-input-missing-fix]
 
 [discrete]
 [[secondary-agent-not-connecting]]
@@ -302,7 +349,7 @@ You can unenroll an agent to invalidate all API keys related to the agent and ch
 . Under Agents, choose **Unenroll agent** from the **Actions** menu next to the
 agent you want to unenroll.
 
-. Click **Force unenroll**. 
+. Click **Force unenroll**.
 
 [discrete]
 [[ca-cert-testing]]
@@ -311,7 +358,7 @@ agent you want to unenroll.
 You may see this error message for a number of different reasons. A common reason is when attempting production-like usage and the ca.crt file passed in cannot be found.  To verify if this is the problem, bootstrap {fleet-server} without passing a ca.crt file. This implies you would test any subsequent
 {agent} installs temporarily with {fleet-sever}'s own self-signed cert.
 
-Tip: Ensure to pass in the full path to the ca.crt file. A relative path is not viable.
+TIP: Ensure to pass in the full path to the ca.crt file. A relative path is not viable.
 
 You will know if your {fleet-server} is set up with its testing oriented self-signed certificate usage,
 when you see the following error during {agent} installs:
@@ -329,6 +376,8 @@ command:
 ----
 sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
 ----
+
+For more information, refer to <<agent-enrollment-certs>>.
 
 [discrete]
 [[endpoint-not-uninstalled-with-agent]]
@@ -369,15 +418,12 @@ fixed in an upcoming patch release.
 To remove this message from your logs, you can turn off telemetry for the {endpoint-sec} integration
 until the next patch release is available.
 
-. In {fleet}, click **Integrations**, and then select the **Installed integrations** tab.
+. In {kib}, click **Integrations**, and then select the **Manage** tab.
 
 . Click **{endpoint-sec}**, and then select the **Policies** tab to view all the
-installed integrations. 
+installed integrations.
 
 . Click the integration to edit it.
 
 . Under advanced settings, set `windows.advanced.diagnostic.enabled`
 to `false`, and then save the integration.
-
-// Add Javascript and CSS for tabbed panels
-include::{tab-widgets}/code.asciidoc[]
