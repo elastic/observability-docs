@@ -6,27 +6,35 @@ log messages are the same or very similar, so classifying them can reduce
 millions of log lines into just a few categories.
 
 Within the {logs-app}, the *Categories* page enables you to identify patterns in
-your log events quickly. Instead of manually identifying similar logs, the logs categorization view lists
-log events that have been grouped based on their messages and formats so that you can take action
-quicker.
+your log events quickly. Instead of manually identifying similar logs, the logs 
+categorization view lists log events that have been grouped based on their 
+messages and formats so that you can take action quicker.
 
 [[create-log-categories]]
 == Create log categories
 
-Create a machine learning job to categorize log messages automatically. Machine learning will observe
-the static parts of the message, cluster similar messages, and classify them into message categories.
+Create a {ml} job to categorize log messages automatically. {ml-cap} observes 
+the static parts of the message, cluster similar messages, and classify them 
+into message categories.
 
-1. Select *Categories*, and you'll be prompted to use machine learning, which will carry out the log rate categorizations.
-2. Choose a time range for the machine learning analysis.
-3. Add the Indices that contain the logs you want to analyze.
-4. Click *Create ML job*.
-5. You're now ready to explore your log categories.
+[role="screenshot"]
+image::images/log-create-categorization-job.jpg[Configure log categorization job]
+
+1. Select *Categories*, and you are prompted to use {ml}, which carries out the 
+   log rate categorizations.
+2. Choose a time range for the {ml} analysis. By default, the {ml} job analizes 
+   log messages no lder than four weeks and continues indefinitely.
+3. Add the indices that contain the logs you want to analyze.
+4. Click *Create ML job*. The job is created and it starts run. It takes a few 
+   minutes for the {ml} robots to collect the necessary data. After the job 
+   processed the data, you can view the results.
 
 [[analyze-log-categories]]
 == Analyze log categories
 
-Here we see the *Categories* page, which lists various log categories from
-`elasticsearch.server` logs, along with the maximum anomaly score on the right.
+The *Categories* page lists all the log categories from the selected indices. 
+You can filter the categories by indices. Below, you can view the categories 
+from the `elastic.agent` log along with the maximum anomaly score on the right.
 
 [role="screenshot"]
 image::images/log-categories.png[Log categories]
@@ -50,9 +58,9 @@ Here is an example of a log line in this category:
 collecting in the last [1s]", "cluster.uuid": "jx_Bw17eT_OQshT2IrDuzg", "node.id": "JwIW6wI2T6WsgpoaUB3eaA" }
 ----------------------------------
 
-The anomaly indicates an unexpected slow down of garbage collection runs, which could indicate low
-JVM memory problems impacting {es} performance.
+The anomaly indicates an unexpected slow down of garbage collection runs, which 
+could indicate low JVM memory problems impacting {es} performance.
 
-Suppose you were already alerted about low JVM memory through the monitoring setup. In that case,
-logs categorization makes it easier to find the root cause by indicating the above category
-of `stopped garbage collection`.
+Suppose you were already alerted about low JVM memory through the monitoring 
+setup. In that case, logs categorization makes it easier to find the root cause 
+by indicating the above category of `stopped garbage collection`.
