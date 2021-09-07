@@ -18,12 +18,21 @@ This command allows environment variables to configure all properties, and runs 
 [[agent-in-container-pull]]
 == Pull the image
 
+There are two image for {agent}, *elastic-agent* and *elastic-agent-complete*. The *elastic-agent* image contains all the binaries for running Beats, while the *elastic-agent-complete* image contains these binaries plus additional dependencies to run browser monitors through Elastic Synthetics. See {observability-guide}/synthetics-quickstart-fleet.html[Synthetic monitoring via {agent} and {fleet}] for more information.
+
 Run the `docker pull` command against the Elastic Docker registry:
 
 [source,terminal]
 ----
 docker pull docker.elastic.co/r/beats/elastic-agent:{version}
 ----
+
+If want to run synthetics tests, run the `docker pull` command to fetch the *elastic-agent-complete* image:
+
+[source,terminal]
+---
+docker pull docker.elastic.co/r/beats/elastic-agent-complete:{version}
+---
 
 [discrete]
 [[agent-in-container-command]]
@@ -59,6 +68,8 @@ docker run \
   --rm docker.elastic.co/beats/elastic-agent:{version}
 ----
 
+NOTE: Replace `docker.elastic.co/beats/elastic-agent` with `docker.elastic.co/beats/elastic-agent-complete` to run synthetics tests.
+
 [discrete]
 [[agent-in-container-self]]
 == Self-managed example
@@ -79,6 +90,8 @@ docker run \
 We recommend only having one fleet-server policy.
 If this is the default policy for fleet-server,
 it is picked automatically by fleet-server for enrollment.
+
+NOTE: Replace `docker.elastic.co/beats/elastic-agent` with `docker.elastic.co/beats/elastic-agent-complete` to run synthetics tests.
 
 // [discrete]
 // [[agent-in-container-cloud-debug]]
@@ -117,6 +130,8 @@ Adjust the docker-compose file above by adding these environment variables:
       - FLEET_SERVER_ELASTICSEARCH_HOST={elasticsearch-host}
       - FLEET_SERVER_SERVICE_TOKEN={service-token}
 ----
+
+NOTE: Replace `docker.elastic.co/beats/elastic-agent` with `docker.elastic.co/beats/elastic-agent-complete` to run synthetics tests.
 
 [discrete]
 [[agent-in-container-docker-logs]]
