@@ -1,0 +1,67 @@
+[[asset-testing]]
+= Asset testing
+
+Elastic Packages define assets to be loaded into {es} and {kib}. Asset loading tests exercise install a package to ensure that its assets are loaded into {es} and {kib} as expected.
+
+[discrete]
+[[asset-testing-concepts]]
+== Conceptual process
+
+Conceptually, running an asset load test involves the following steps:
+
+. Build the package.
+. Deploy {es}, {kib}, and the {package-registry} (all of which are part of the {stack}). This step takes time, so you should typically do it once as a pre-requisite to running asset loading tests on multiple packages.
+. Install the package.
+. Use various {kib} and {es} APIs to confirm that the package assets were loaded into {kib} and {es} as expected.
+. Remove the package.
+
+[discrete]
+[[define-asset-test]]
+== Define an asset loading test
+
+As a package developer, there is no work required to define an asset loading test for your package. All the necessary information is contained in the package files.
+
+[discrete]
+[[running-asset-test]]
+== Run an asset loading test
+
+First, you must build your package. This step corresponds to step 1 in the <<asset-testing-concepts,Conceptual process>> section.
+
+Navigate to the root folder of the package, or any sub-folder under it, and run the following command.
+
+[source,terminal]
+----
+elastic-package build
+----
+
+Next, deploy {es}, {kib}, and the {package-registry}. This step corresponds to step 2 in the <<asset-testing-concepts,Conceptual process>> section.
+
+[source,terminal]
+----
+elastic-package stack up -d
+----
+
+To view a list of the available options for this command, run `elastic-package stack up -h` or `elastic-package help stack up`.
+
+Next, set the environment variables that are required for additional `elastic-package` commands.
+
+[source,terminal]
+----
+$(elastic-package stack shellinit)
+----
+
+Next, invoke the asset loading test runner. This step corresponds to steps 3 to 5 in the <<asset-testing-concepts,Conceptual process>> section.
+
+Navigate to the root folder of the package, or any sub-folder under it, and run the following command.
+
+[source,terminal]
+----
+elastic-package test asset
+----
+
+Finally, when all the asset loading tests have completed, bring down the {stack}. This step corresponds to step 4 in the <<asset-testing-concepts,Conceptual process>> section.
+
+[source,terminal]
+----
+elastic-package stack down
+----
