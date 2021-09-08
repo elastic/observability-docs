@@ -3,21 +3,32 @@
 
 == Mapping issues
 
-It is possible for Heartbeat to create an index without the appropriate mappings.
-When this happens, the {uptime-app} will be unable to get the data it requires; in this
-state, the UI cannot function.
+There are situations in which {heartbeat} data can be indexed without the correct mappings applied.
+These situations cannot occur with the {elastic-agent} configured via fleet, only with standalone {heartbeat}.
+This can occur when the underlying `heartbeat-VERSION` ILM alias is deleted manually or when {heartbeat} writes data
+through an intermediary such as {ls} without the `setup` command being run.
 
 To fix this problem, you typically need to remove your Heartbeat indices, and create
 new ones, with the appropriate mappings installed. To achieve this, follow the steps below.
 
 === Step 1: Delete your Heartbeat indices
 
-["source","sh"]
-----
-curl -u {USERNAME}:{PASSWORD} -X DELETE {INDEX_URL}
-----
+Because we need to ensure the mapping is appropriately applied to all {heartbeat} data going forward,
+we must delete all {heartbeat} indicies that match the pattern the {uptime-app} will use.
+
+
 
 === Step 2: Run the Heartbeat setup command
+
+There are multiple ways to achieve this.
+You can read about how to perform this using the {ref}/index-mgmt.html[Index Management UI], or with the {ref}/indices-delete-index.html[Delete index API].
+
+=== Step 3: Perform {heartbeat} setup
+
+The below command will cause {heartbeat} to perform its setup processes.
+
+NOTE: For more information on how to use this command, you can reference the
+{heartbeat-ref}/heartbeat-installation-configuration.html[Heartbeat quickstart guide].
 
 ["source","sh"]
 ----
@@ -29,5 +40,5 @@ mapping going forward.
 
 === Step 3: Run Heartbeat again
 
-Now when you run heartbeat, your data will be indexed with the appropriate mappings. When
-the {uptime-app} attempts to fetch the data, it should be able to render without issues.
+Now, when you run {heartbeat}, your data will be indexed with the appropriate mappings. When
+the {uptime-app} attempts to fetch your data, it should be able to render without issues.
