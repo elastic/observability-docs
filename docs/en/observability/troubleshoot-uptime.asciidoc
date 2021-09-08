@@ -1,0 +1,33 @@
+[[troubleshoot-uptime]]
+= Uptime troubleshooting
+
+== Mapping issues
+
+It is possible for Heartbeat to create an index without the appropriate mappings.
+When this happens, the {uptime-app} will be unable to get the data it requires; in this
+state, the UI cannot function.
+
+To fix this problem, you typically need to remove your Heartbeat indices, and create
+new ones, with the appropriate mappings installed. To achieve this, follow the steps below.
+
+=== Step 1: Delete your Heartbeat indices
+
+["source","sh"]
+----
+curl -u {USERNAME}:{PASSWORD} -X DELETE {INDEX_URL}
+----
+
+=== Step 2: Run the Heartbeat setup command
+
+["source","sh"]
+----
+./heartbeat setup -e 
+----
+
+This will perform the necessary startup tasks and ensure that your indices will have the appropriate
+mapping going forward.
+
+=== Step 3: Run Heartbeat again
+
+Now when you run heartbeat, your data will be indexed with the appropriate mappings. When
+the {uptime-app} attempts to fetch the data, it should be able to render without issues.
