@@ -20,7 +20,7 @@ projects: 513
 * [ ] Other (please describe)
 
 *(We need to have a contact person in the product/development team to provide information about how the item to be documented works)*
-*(This can be omitted in the case that the content is contributed, as the contact person will be the one making the initial contrinution)*
+*(This can be omitted in the case that the content is contributed, as the contact person will be the one making the initial contribution)*
 
 **Contact Person:**
 
