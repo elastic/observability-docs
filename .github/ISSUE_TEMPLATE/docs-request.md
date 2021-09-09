@@ -19,8 +19,15 @@ projects: 513
 * [ ] The docs team will define with product team the structure and location, and the product team will provide the initial content
 * [ ] Other (please describe)
 
+*(We need to have a contact person in the product/development team to provide information about how the item to be documented works)*
+*(This can be omitted in the case that the content is contributed, as the contact person will be the one making the initial contrinution)*
+
+**Contact Person:**
+
 ## Suggested Target Release
 
 *(Let us know if this feature is needed for a specific release.)*
 
 ## Stakeholders
+
+*(Please list any stakeholders for this issue.)*
