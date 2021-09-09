@@ -172,3 +172,44 @@ To drill down and analyze the metric anomaly, select *Actions > Open in Anomaly 
 Inventory page, filtered by the specific metric. 
 ====
 
+[%collapsible]
+.*Osquery*
+====
+
+[IMPORTANT]
+=====
+You must have an active {fleet-guide}/elastic-agent-installation.html[{agent}] with an assigned agent policy
+that includes the {integrations-docs}/osquery_manager.html[Osquery Manager]
+integration and have Osquery {kibana-ref}/kibana-privileges.html[{kib} privileges] as a user.
+=====
+
+[role="screenshot"]
+image::images/osquery-overlay.png[Osquery]
+
+The *Osquery* tab allows you to build SQL statements to query your host data.
+You can create and run live or saved queries against
+the {agent}. Osquery results are stored in {es}
+so that you can use the {stack} to search, analyze, and
+visualize your host metrics.
+
+// TODO: Add the following when the {kib} docs have the Osquery topic. 
+// To learn more on how to create saved queries and how to add scheduled query
+// groups, see {kibana-ref}/TBC.html[Osquery manager].
+
+In the example above, we query for the top 5 memory hogs running on the host.
+Under the *Results* tab, the total virtual memory size (`total_size` renamed to
+`memory_used` to be a little more user friendly) is returned in descending order,
+along with the process ID (`pid`), and the process path (`name`).
+
+To view more information about the query, click the *Status* tab. A query status can result in
+`success`, `error` (along with an error message), or `pending` (if the {agent} is offline).
+
+Other options include:
+
+* View in Discover to search, filter, and view information about the structure of host metric fields. To learn more, see {kibana-ref}/discover.html[Discover].
+* View in Lens to create visualizations based on your host metric fields. To learn more, see {kibana-ref}/lens.html[Lens].
+* View the results in full screen mode.
+* Add, remove, reorder, and resize columns.
+* Sort field names in ascending or descending order.
+====
+
