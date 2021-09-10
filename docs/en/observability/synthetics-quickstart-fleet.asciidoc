@@ -68,8 +68,12 @@ Elastic Synthetics tests can be configured through {fleet} using the Elastic Syn
 image::images/synthetics-integration.png[Synthetics integration]
 
 In the example above, our library of synthetic tests is downloaded from the
-remote zip endpoint for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. The *zip URL* refers to the endpoint where the test project exists. *Folder* refers to the relative path where the synthetic journey files are located. {heartbeat} will invoke the synthetics library on this folder. *zip URL username* and *zip URL password* are blank in this example, but if provided, they will be sent as HTTP Basic Authentication headers to the remote zip endpoint. *Params* refers to dynamic values that always need to be defined for our tests to run. This is often helpful when switching between production and development values. 
-
+remote zip endpoint for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. 
+The fields should be set as follows:
+* *Zip URL*: URL pointing to a zip file containing the test project. 
+* *Folder*: The folder within the zip file containing synthetics tests, this will be the working directory in which the synthetics agent will be run. {heartbeat} will invoke the synthetics library in this folder. 
+* *Zip URL Username* and *Zip URL Password* HTTP Basic Authentication headers for the remote zip endpoint. 
+* *Params* JSON formatted dynamic values that may be required by your specific tests. See <<synthetics-params-secrets>> for more information.
 
 NOTE: When applying the integration policy to an {agent} policy, make sure to select your dedicated synthetics agent policy.
 
@@ -88,6 +92,7 @@ If a test does fail (shown as `down` in the app), you'll be able to view the ste
 any errors, and a stack trace.
 See <<synthetics-visualize>> for more information.
 
-// WARNING: Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions. Add the `sandbox: true` option to a given browser
-// monitor in {heartbeat} to enable sandboxing. This may require using a https://github.com/elastic/synthetics/blob/master/examples/docker/seccomp_profile.json[custom seccomp policy] with docker, which brings its own additional risks. This is generally safe when run against sites whose content you trust,
-// and with a recent version of Elastic synthetics and chromium.
+[[synthetics-quickstart-fleet-step-seven]]
+== Step 7: Note on Sandboxing and Security
+
+Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions. This is generally safe when run against sites whose content you trust when using a recent version of Elastic Synthetics and Chromium. A malicious site could leverage a sandbox escape which could lead to a compromise of the Elastic Agent node running synthetics, and any sensitive data within.
