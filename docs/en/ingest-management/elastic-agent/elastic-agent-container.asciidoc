@@ -93,12 +93,6 @@ it is picked automatically by fleet-server for enrollment.
 
 NOTE: Replace `docker.elastic.co/beats/elastic-agent` with `docker.elastic.co/beats/elastic-agent-complete` to run synthetics tests.
 
-// [discrete]
-// [[agent-in-container-cloud-debug]]
-// == Debugging
-
-// TODO: Mention metrics endpoint
-
 [discrete]
 [[agent-in-container-docker]]
 == Docker compose example
@@ -152,3 +146,224 @@ Each subprocess writes its own logs to the `default` directory inside the logs d
 
 TIP: Running into errors with Fleet Server?
 Check the fleet-server subprocess logs for more information.
+
+[discrete]
+[[agent-in-container-debug]]
+== Debugging
+
+A monitoring endpoint can be enabled to expose resource usage and event processing data.
+The endpoint is compatible with {agent}s running in both {fleet} mode and Standalone mode.
+
+Enable the monitoring endpoint in `elastic-agent.yml` on the host where the {agent} is installed.
+A sample configuration looks like this:
+
+[source,yaml]
+----
+agent.monitoring:
+  enabled: true <1>
+  logs: true <2>
+  metrics: true <3>
+  http:
+      enabled: true <4>
+      host: localhost <5>
+      port: 6791 <6>
+----
+<1> Enable monitoring of running processes.
+<2> Enable log monitoring.
+<3> Enable metrics monitoring.
+<4> Expose {agent} metrics over HTTP. By default, sockets and named pipes are used.
+<5> The hostname, IP address, unix socket, or named pipe that the HTTP endpoint will bind to.
+When using IP addresses, we recommend only using `localhost`.
+<6> The port that the HTTP endpoint will bind to.
+
+The above configuration exposes a monitoring endpoint at `http://localhost:6791/processes`.
+
+// Begin collapsed section
+[%collapsible]
+.`http://localhost:6791/processes` output
+====
+
+[source,json]
+----
+{
+   "processes":[
+      {
+         "id":"metricbeat-default",
+         "pid":"36923",
+         "binary":"metricbeat",
+         "source":{
+            "kind":"configured",
+            "outputs":[
+               "default"
+            ]
+         }
+      },
+      {
+         "id":"filebeat-default-monitoring",
+         "pid":"36924",
+         "binary":"filebeat",
+         "source":{
+            "kind":"internal",
+            "outputs":[
+               "default"
+            ]
+         }
+      },
+      {
+         "id":"metricbeat-default-monitoring",
+         "pid":"36925",
+         "binary":"metricbeat",
+         "source":{
+            "kind":"internal",
+            "outputs":[
+               "default"
+            ]
+         }
+      }
+   ]
+}
+----
+
+====
+
+Each process ID in the `/processes` output can be accessed for more details.
+
+// Begin collapsed section
+[%collapsible]
+.`http://localhost:6791/processes/{process-name}` output
+====
+
+[source,json]
+----
+{
+   "beat":{
+      "cpu":{
+         "system":{
+            "ticks":537,
+            "time":{
+               "ms":537
+            }
+         },
+         "total":{
+            "ticks":795,
+            "time":{
+               "ms":796
+            },
+            "value":795
+         },
+         "user":{
+            "ticks":258,
+            "time":{
+               "ms":259
+            }
+         }
+      },
+      "info":{
+         "ephemeral_id":"eb7e8025-7496-403f-9f9a-42b20439c737",
+         "uptime":{
+            "ms":75332
+         },
+         "version":"7.14.0"
+      },
+      "memstats":{
+         "gc_next":23920624,
+         "memory_alloc":20046048,
+         "memory_sys":76104712,
+         "memory_total":60823368,
+         "rss":83165184
+      },
+      "runtime":{
+         "goroutines":58
+      }
+   },
+   "libbeat":{
+      "config":{
+         "module":{
+            "running":4,
+            "starts":4,
+            "stops":0
+         },
+         "reloads":1,
+         "scans":1
+      },
+      "output":{
+         "events":{
+            "acked":0,
+            "active":0,
+            "batches":0,
+            "dropped":0,
+            "duplicates":0,
+            "failed":0,
+            "toomany":0,
+            "total":0
+         },
+         "read":{
+            "bytes":0,
+            "errors":0
+         },
+         "type":"elasticsearch",
+         "write":{
+            "bytes":0,
+            "errors":0
+         }
+      },
+      "pipeline":{
+         "clients":4,
+         "events":{
+            "active":231,
+            "dropped":0,
+            "failed":0,
+            "filtered":0,
+            "published":231,
+            "retry":112,
+            "total":231
+         },
+         "queue":{
+            "acked":0,
+            "max_events":4096
+         }
+      }
+   },
+   "metricbeat":{
+      "system":{
+         "cpu":{
+            "events":8,
+            "failures":0,
+            "success":8
+         },
+         "filesystem":{
+            "events":80,
+            "failures":0,
+            "success":80
+         },
+         "memory":{
+            "events":8,
+            "failures":0,
+            "success":8
+         },
+         "network":{
+            "events":135,
+            "failures":0,
+            "success":135
+         }
+      }
+   },
+   "system":{
+      "cpu":{
+         "cores":8
+      },
+      "load":{
+         "1":2.5957,
+         "15":5.415,
+         "5":3.5815,
+         "norm":{
+            "1":0.3245,
+            "15":0.6769,
+            "5":0.4477
+         }
+      }
+   }
+}
+----
+
+====
