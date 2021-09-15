@@ -8,14 +8,14 @@
 ++++
 
 [discrete]
-[[synthetics-quickstart-fleet-step-two]]
-== Step 1: Set up Fleet Server
+[[synthetics-quickstart-fleet-setup]]
+== Set up Fleet Server
 
 Synthetic monitoring via {agent} and {fleet} requires {fleet-server} to be set up. If you are using Elastic Cloud fleet server will already be provided and you can skip this step. To learn more, see {fleet-guide}/fleet-quick-start.html#set-up-fleet[{fleet}].
 
 [discrete]
-[[synthetics-quickstart-fleet-step-three]]
-== Step 1: Create an agent policy for Elastic Synthetics
+[[synthetics-quickstart-fleet-agent-policy]]
+== Create an agent policy for Elastic Synthetics
 
 Use a separate fleet policy for Synthetics monitors in most cases. It is generally the case that synthetics monitors should run on nodes dedicated to that purpose. See {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy] for more information on Fleet policies and creating them.
 
@@ -23,19 +23,19 @@ Use a separate fleet policy for Synthetics monitors in most cases. It is general
 image::images/synthetics-agent-policy.png[Synthetics integration]
 
 [discrete]
-[[synthetics-quickstart-fleet-step-four]]
-== Step 4: Add an {agent} to {fleet}, using the special *elastic-agent-complete* container
+[[synthetics-quickstart-fleet-add-container]]
+== Add an {agent} to {fleet}, using the special *elastic-agent-complete* container
 
 {agent} is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}. Behind the scenes, {agent} runs {beats} or {elastic-endpoint} required for your configuration. 
 
-NOTE: To run synthetics tests, you must use the *elastic-agent-complete* Docker container, which contains the dependencies to run synthetic monitors. The standard {agent} will not work.
+To run synthetics tests, you must use the *elastic-agent-complete* Docker container, which contains the dependencies to run synthetic monitors. The standard {agent} will not work.
 
-To add an {agent} to {fleet}, you'll need an enrollment token and the URL of your fleet server. You can use the default enrollment token for your policy or create new enrollment tokens as needed. To learn more, see {fleet-guide}/elastic-agent-container.html[Run Elastic {agent} in a container] for more information. Please note that you must run the docker container as a non-root user.
+To add an {agent} to {fleet}, you'll need an enrollment token and the URL of your fleet server. You can use the default enrollment token for your policy or create new enrollment tokens as needed. To learn more, see {fleet-guide}/elastic-agent-container.html[Run Elastic {agent} in a container] for more information. Please note that you must run the docker container as a non-root user for Browser monitors. See <<synthetics-quickstart-fleet-security>>  for more information on security requirements and compatibility within the container.
 
-NOTE: You may need to set additional environment variables. See the {fleet-guide}/agent-environment-variables.html[{agent} environment variables guide] for more information. See {fleet-guide}/elastic-agent-container.html[Run {agent} in a container] for more information on running {agent} with Docker.
+You may need to set additional environment variables. See the {fleet-guide}/agent-environment-variables.html[{agent} environment variables guide] for more information. See {fleet-guide}/elastic-agent-container.html[Run {agent} in a container] for more information on running {agent} with Docker.
 
-[[synthetics-quickstart-fleet-step-five]]
-== Step 5: Configure an Elastic Synthetics integration policy beta[]
+[[synthetics-quickstart-fleet-configure-policy]]
+== Configure an Elastic Synthetics integration policy beta[]
 
 Elastic Synthetics tests can be configured through {fleet} using the Elastic Synthetics integration. To learn more, see {fleet-guide}/fleet-quick-start.html#add-synthetics-integration[Elastic Synthetics].
 
@@ -50,14 +50,14 @@ The fields should be set as follows:
 * *Zip URL Username* and *Zip URL Password* HTTP Basic Authentication headers for the remote zip endpoint. 
 * *Params* JSON formatted dynamic values that may be required by your specific tests. See <<synthetics-params-secrets>> for more information.
 
-NOTE: When applying the integration policy to an {agent} policy, make sure to select your dedicated synthetics agent policy.
+When applying the integration policy to an {agent} policy, make sure to select your dedicated synthetics agent policy.
 
 [role="screenshot"]
 image::images/synthetics-agent-policy-select.png[Synthetics integration]
 
 [discrete]
-[[synthetics-quickstart-fleet-step-six]]
-== Step 6: View in {kib}
+[[synthetics-quickstart-fleet-view-in-kib]]
+== View in {kib}
 
 That's it! Elastic synthetics is now sending synthetic monitoring data to the {stack}.
 Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
@@ -67,7 +67,9 @@ If a test does fail (shown as `down` in the app), you'll be able to view the ste
 any errors, and a stack trace.
 See <<synthetics-visualize>> for more information.
 
-[[synthetics-quickstart-fleet-step-seven]]
-== Step 7: Note on Sandboxing and Security
+[[synthetics-quickstart-fleet-security]]
+== Note on Sandboxing and Security
 
-Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions. This is generally safe when run against sites whose content you trust when using a recent version of Elastic Synthetics and Chromium. A malicious site could leverage a sandbox escape which could lead to a compromise of the Elastic Agent node running synthetics, and any sensitive data within.
+Synthetics Browser checks can only run as the non-root `elastic-agent` user  in the `elastic-agent` container. Synthetics ICMP checks, on the other hand, require running as the root user. We are currently working to simplify the permissions requirements to work with a single user. This can be tracked in https://github.com/elastic/beats/issues/27920[this github issue].
+
+Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions. This is generally safe when run against sites whose content you trust when using a recent version of Elastic Synthetics and Chromium. A malicious site could leverage a sandbox escape which could lead to a compromise of the Elastic Agent container running synthetics, and any sensitive data within.
