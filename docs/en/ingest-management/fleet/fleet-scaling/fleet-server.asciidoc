@@ -25,7 +25,7 @@ to {es}.
 . When a policy is updated, {fleet-server} retrieves the updated policy from
 {es} and sends it to the connected {agent}s.
 
-image:images/fleet-server-communication.png[Fleet Server handles communication between {agent}, {fleet}, {es}, and {kib}]
+image::fleet/images/fleet-server-communication.png[{fleet-server} handles communication between {agent}, {fleet}, {es}, and {kib}]
 
 {fleet-server} runs as a subprocess inside an {agent}. The agent uses a special
 policy that describes the {fleet-server} configuration. In large scale
@@ -34,157 +34,232 @@ self-managed deployments or on {ess-product}[hosted {ess}] on {ecloud},
 you can optionally use it for data collection on self-managed clusters. For more
 details, refer to <<fleet-server-deployment>>.
 
-== Fleet Server Deployment Models
+[discrete]
+[[deployment-models]]
+== {fleet-server} deployment models
 
-Administrators deploying the Elastic Agent have a few deployment choices
-available to satisfy their organizations’ requirements. Fleet Server can be
+Administrators deploying the {agent} have a few deployment choices
+available to satisfy their organization's requirements. {fleet-server} can be
 deployed:
 
-* On-prem and self-managed, or On Elastic Cloud, as part of our hosted
-* Elasticsearch Service, which is managed by Elastic..
+* On-prem and self-managed, or
+* On {ecloud}, as part of our hosted {ess}, which is managed by Elastic.
 
 
-=== Deployed in Cloud
+[discrete]
+[[deployed-in-cloud]]
+=== Deployed in {ecloud}
 
-To simplify the deployment of Elastic Agent, the {fleet-server} can be provisioned and hosted in the Elastic Cloud. In this case, when the deployment is created, a highly available set of Fleet Servers are automatically deployed.
+To simplify the deployment of {agent}, the {fleet-server} can be
+provisioned and hosted in the {ecloud}. In this case, when the deployment is
+created, a highly available set of {fleet-server}s are automatically deployed.
 
-Administrators can choose the resources allocated to the {fleet-server} and whether they want the {fleet-server} to be deployed in multiple availability zones. (Cloud → Deployments → _deployment name_ → Edit).
+Administrators can choose the resources allocated to the {fleet-server} and
+whether they want the {fleet-server} to be deployed in multiple availability
+zones. (Cloud → Deployments → _deployment name_ → Edit).
 
-* Modify the compute resources available to the server to accommodate higher scale of Elastic Agents
+* Modify the compute resources available to the server to accommodate higher
+scale of {agent}s
 * Modify the availability zones to satisfy fault tolerance requirements
 
-image:images/fleet-server-hosted-container.png[Fleet Server hosted agent]
+[role="screenshot"]
+image::images/fleet-server-hosted-container.png[{fleet-server} hosted agent]
 
-Once deployed on {ecloud} as a service, the full life cycle of the {fleet-server} is managed by Elastic. {fleet-server} is scalable and highly available with traffic ingress load balanced across multiple instances to satisfy the scale requirements.
+Once deployed on {ecloud} as a service, the full life cycle of the
+{fleet-server} is managed by Elastic. {fleet-server} is scalable and highly
+available with traffic ingress load balanced across multiple instances to
+satisfy the scale requirements.
 
-image:images/fleet-server-cloud-deployment.png[Fleet Server Cloud deployment model]
+image::images/fleet-server-cloud-deployment.png[{fleet-server} Cloud deployment model]
 
-
+[discrete]
+[[deployed-on-prem]]
 === Deployed on-prem
 
-{fleet-server} can be deployed on-premises and managed by the user. In this deployment model, the administrator is responsible for {fleet-server} deployment and lifecycle management . This mode of operation is predominantly chosen to satisfy data governance requirements or used in scenarios where the agents only have access to a private segmented network.
+{fleet-server} can be deployed on-premises and managed by the user. In this
+deployment model, the administrator is responsible for {fleet-server} deployment
+and lifecycle management . This mode of operation is predominantly chosen to
+satisfy data governance requirements or used in scenarios where the agents only
+have access to a private segmented network.
 
-It’s recommended that the administrator provision multiple instances of the {fleet-server} and use a load balancer to better scale the deployment.
+It’s recommended that the administrator provision multiple instances of the
+{fleet-server} and use a load balancer to better scale the deployment.
 
-image:images/fleet-server-on-prem-deployment.png[Fleet Server on-prem deployment model]
+image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-prem deployment model]
 
+[discrete]
+[[fleet-server-HA-operations]]
+== {fleet-server} High availability operations
 
+{fleet-server} is stateless. Connections to the {fleet-server} therefore can be
+load balanced as long as the {fleet-server} has capacity to accept more
+connections. As mentioned earlier load balancing is done on a round-robin basis.
 
-== Fleet Server High Availability Operations
+In the {ecloud} deployment model, multiple {fleet-server}s will automatically be
+provisioned to satisfy the instance size chosen (instance sizes are modified to
+satisfy the scale requirement). In addition, if the user choses multiple
+availability zones to address their fault-tolerance requirements, those
+instances will be utilized to balance the load also.
 
+In an on-prem deployment, high-availability, fault-tolerance, and lifecycle
+management of the {fleet-server} are the responsibility of the administrator.
 
-{fleet-server} is stateless. Connections to the {fleet-server} therefore can be load balanced as long as the {fleet-server} has capacity to accept more connections. As mentioned earlier load balancing is done on a round-robin basis.
+[discrete]
+[[fleet-server-scalability]]
+== {fleet-server} scalability
 
-In the Elastic Cloud deployment model, multiple Fleet Servers will automatically be provisioned to satisfy the instance size chosen (instance sizes are modified to satisfy the scale requirement). In addition, if the user choses multiple availability zones to address their fault-tolerance requirements, those instances will be utilized to balance the load also.
+This section summarizes the resource and {fleet-server} configuration
+requirements needed to scale your deployment of {agent}s.
 
-In an on-prem deployment, high-availability, fault-tolerance, and lifecycle management of the {fleet-server} are the responsibility of the administrator.
+The {fleet-server} configuration is applied through an agent policy. To
+modify the policy, navigate to the {ecloud} agent policy and choose *Edit
+Integration* (Fleet → Agent Policies → {ecloud} Agent Policy → Edit
+Integration).
 
-
-
-
-
-
-== Fleet Server Scalability
-
-The following section summarizes the resource and {fleet-server} configuration requirements needed to scale your deployment of Elastic Agents.
-
-The {fleet-server} configuration is applied through an agent policy. In order to modify the policy, navigate to the Elastic Cloud agent Policy and choose “Edit Integration”   (Fleet → Agent Policies → Elastic Cloud Agent Policy → Edit Integration).
-
-image:images/elastic-cloud-agent-policy.png[Elastic Cloud policy]
-
-
-Under the {fleet-server} advanced options, modify specific {fleet-server} parameters including “Max Connections”:
-
-image:images/fleet-server-configuration.png[Fleet Server configuration]
-
-
-=== Fleet Server Configuration Definitions
-
-
-Max Connections +
-Cache: +
-	+Num_counters:+  +
-_Defines the size of the hash table. Best practice is to have this set to 10x max connections_
-
-	+Max_cost:+ +
-	_Total size of the cache_ +
-----
-Server.Limits:
-Policy_throttle:
-----
-_Defines how often a new policy is rolled out to the agents._
-
-+Checkin_limit.max:+ +
-_Defines maximum number of agents._
-
-+Checkin_limit.interval:+ +
-_Limits how fast the agents can check-in to the fleet-server._
-
-+Checkin_limit.burst:+ +
-Defines a burst that is allowed and then fallback to the “interval” rate.
-
-	+Artifact_limit.max:+ +
-	_Limits the number of agents that can call the artifact API concurrently. It allows the user to avoid overloading the fleet-server from artifact API calls._
-
-+Artifact_limit.interval:+ +
-_Defines how often artifacts are rolled out. Default of 100ms allows 10 artifacts to be rolled out per second._
-
-+Artifact_limit.burst:+ +
-_Number of transactions allowed for a burst, controlling oversubscription on outbound buffer._
+[role="screenshot"]
+image::images/elastic-cloud-agent-policy.png[{ecloud} policy]
 
 
-	+Ack_limit.max:+ +
-_Limits the number of agents that can call the Ack API concurrently. It allows the user to avoid overloading the fleet-server from Ack API calls._
+Under the {fleet-server} advanced options, modify specific {fleet-server}
+parameters including *Max Connections*:
 
-	+Ack_limit.interval:+ +
-_Defines how often an Acknowledgment is sent. Default value of 10ms enables 100 ACKs per second to be sent. _
+[role="screenshot"]
+image::images/fleet-server-configuration.png[{fleet-server} configuration]
 
-	+Ack_limit.burst:+ +
-_Defines the burst of ACks to accommodate (default of 20) and then fall back to the rate defined in “interval”_
+[discrete]
+[[fleet-server-configuration]]
+=== {fleet-server} configuration definitions
 
-	+Enroll_limit.max:+ +
-_Limits the number of agents that can call the Enroll API concurrently. It allows the user to avoid overloading the fleet-server from Enrollment API calls. _
+//Nima: Did you mean to make this a sentence? heading?
 
+Max Connections
 
+//TODO: We need to discuss the best way to format config settings. I'm using
+//mostly tables in other sections of the docs for improved scanning, but that is
+//controversial.
 
-	+Enroll_limit.interval:+ +
-_Limits the interval between each enrollment request processing. Enrollment is both CPU and RAM intensive so the number of requests to enroll would need to be limited for overall system health. Default is limited to 10 per second._
+//Nima: I tried removed repetitive words and tried clarify the descriptions here,
+//but there were some inconsistencies. You'll want to check this carefully.
 
-	+Enroll_limit.burst:+ +
-_Defines the burst of enrollments to accept and then fallback to the rate defined by interval._
+`cache:`::
 
-<insert scaling table here>
+`num_counters:`:::
+Size of the hash table. Best practice is to have this set to 10x max
+connections.
 
+`max_cost:`:::
+Total size of the cache.
 
-<insert configuration table>
+`server.limits:`::
+`policy_throttle:`:::
+How often a new policy is rolled out to the agents.
 
+`checkin_limit.interval:`:::
+How fast the agents can check in to the {fleet-server}.
 
-== Fleet Server Monitoring
+`checkin_limit.burst:`:::
+Burst of check-ins allowed before falling back to the rate defined by
+`interval`.
 
-Suggestion: Talk about the metrics and logs that {fleet-server} provides, how users can enable and see them, how to use them to determine when to scale up {fleet-server}.
+`checkin_limit.max:`:::
+Maximum number of agents.
 
-Monitoring {fleet-server} is  key since the operation of the {fleet-server} is paramount to the health of the deployed agents and the services they offer. When {fleet-server} is not operating correctly, it may lead to delayed check-ins, status information, and updates for the agents it manages. The monitoring data will tell you when to add capacity for {fleet-server}, and provide error logs and information to troubleshoot other issues.
+`artifact_limit.max:`:::
+Maximum number of agents that can call the artifact API concurrently. It allows
+the user to avoid overloading the {fleet-server} from artifact API calls.
 
-To enable monitoring for {fleet-server}, you must enable agent monitoring in the agent policy. It is enabled by default when you create a new agent policy and in the Default {fleet-server} agent policy in self-managed clusters. However, it is disabled by default in Elastic Cloud agent policy because enabling monitoring will require additional RAM.
+`artifact_limit.interval:`:::
+How often artifacts are rolled out. Default of 100ms allows 10 artifacts to be
+rolled out per second.
 
-In order to modify Elastic Cloud agent policy, navigate to the _Elastic Cloud agent Policy_*_ (_*_Fleet → Agent Policies → Elastic Cloud Agent Policy_).
+`artifact_limit.burst:`:::
+Number of transactions allowed for a burst, controlling oversubscription on
+outbound buffer.
 
+`ack_limit.max:`:::
+Maximum number of agents that can call the Ack API concurrently. It allows the
+user to avoid overloading the {fleet-server} from Ack API calls.
 
-image:images/fleet-policy-page.png[Fleet Policy Page]
+`ack_limit.interval:`:::
+How often an acknowledgment (ACK) is sent. Default value of 10ms enables 100
+ACKs per second to be sent.
 
-Choose the “*Settings*” tab for the _Elastic Cloud agent policy_. Agent Monitoring is disabled by default. Once enabled the agent will be able to collect logs and metrics from the {fleet-server}.  +
-*Note*: that the {fleet-server} is deployed as yet another agent in the system.
+`ack_limit.burst:`:::
+Burst of ACKs to accommodate (default of 20) before falling back to the rate
+defined in `interval`.
 
+`enroll_limit.max:`:::
+Maximum number of agents that can call the Enroll API concurrently. This setting
+allows the user to avoid overloading the {fleet-server} from Enrollment API
+calls.
 
-image:images/elastic-cloud-agent-policy-page.png[Elastic Cloud Policy Page]
+`enroll_limit.interval`:::
+Interval between processing enrollment request. Enrollment is both CPU and RAM
+intensive, so the number of enrollment requests needs to be limited for overall
+system health. Default value of 100ms allows 10 enrollments per second.
 
-In many scenarios it’s desirable to segregate the {fleet-server} monitoring data from other agents’ data. To do this the user has the ability to define a *Default namespace* to make it easier to search and visualize the monitoring data. By default the monitoring data will be sent to the *default* namespace. In the example below fleetserver was configured as the namespace and you can see the metrics collected:
+`enroll_limit.burst:`:::
+Burst of enrollments to accept before falling back to the rate defined by
+`interval`.
 
-image:images/dashboard-with-namespace-showing.png[Namespace]
+//TODO: <insert scaling table here>
 
-image:images/datastream-namespace.png[Datastream]
+//TODO: <insert configuration table>
 
+[discrete]
+[[fleet-server-monitoring]]
+== {fleet-server} monitoring
 
-“_[Elastic Agent] Agent metrics_”, a predefined dashboard will be loaded into Kibana. Choose this dashboard and query based on the namespace defined for the {fleet-server}. In the case below query was done on “_data_stream.namespace: “fleetserver_” “. In this case you can observe CPU and Memory usage as a metric and act accordingly to resize the {fleet-server}.
+//Suggestion: Talk about the metrics and logs that {fleet-server} provides, how
+//users can enable and see them, how to use them to determine when to scale up
+//{fleet-server}.
 
-image:images/dashboard-datastream.png[Dashboard Datastream]
+Monitoring {fleet-server} is key since the operation of the {fleet-server} is
+paramount to the health of the deployed agents and the services they offer. When
+{fleet-server} is not operating correctly, it may lead to delayed check-ins,
+status information, and updates for the agents it manages. The monitoring data
+will tell you when to add capacity for {fleet-server}, and provide error logs
+and information to troubleshoot other issues.
+
+To enable monitoring for {fleet-server}, you must enable agent monitoring in the
+agent policy. It is enabled by default when you create a new agent policy and in
+the Default {fleet-server} agent policy in self-managed clusters. However, it is
+disabled by default in {ecloud} agent policy because enabling monitoring will
+require additional RAM.
+
+To modify {ecloud} agent policy, navigate to the _{ecloud} agent Policy_*_
+(_*_Fleet → Agent Policies → {ecloud} Agent Policy_).
+
+[role="screenshot"]
+image::images/fleet-policy-page.png[Fleet Policy Page]
+
+Choose the *Settings* tab for the _{ecloud} agent policy_. Agent Monitoring is
+disabled by default. Once enabled the agent will be able to collect logs and
+metrics from the {fleet-server}.
+
+NOTE: The {fleet-server} is deployed as yet another agent in the system.
+
+[role="screenshot"]
+image::images/elastic-cloud-agent-policy-page.png[{ecloud} Policy Page]
+
+In many scenarios it’s desirable to segregate the {fleet-server} monitoring data
+from other agents’ data. To do this the user has the ability to define a
+*Default namespace* to make it easier to search and visualize the monitoring
+data. By default the monitoring data is sent to the *default* namespace. In
+the following example, {fleet-server} was configured as the namespace, and you
+can see the metrics collected:
+
+[role="screenshot"]
+image::images/dashboard-with-namespace-showing.png[Namespace]
+
+[role="screenshot"]
+image::images/datastream-namespace.png[Datastream]
+
+A predefined dashboard called *[{agent}] Agent metrics* is loaded into {kib}.
+Choose this dashboard and query based on the namespace defined for the
+{fleet-server}. The following dashboard shows data for the query
+`_data_stream.namespace: "fleetserver_"`. In this example, you can observe CPU
+and memory usage as a metric and act accordingly to resize the {fleet-server}.
+
+[role="screenshot"]
+image::images/dashboard-datastream.png[Dashboard Datastream]
