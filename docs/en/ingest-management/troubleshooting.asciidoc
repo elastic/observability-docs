@@ -333,6 +333,49 @@ icon and select *Run As Administrator*).
 d:\tools\psexec.exe -sid "C:\Program Files\Elastic-Agent\elastic-agent.exe" run
 ----
 
+
+[discrete]
+[[upgrading-integration-too-many-conflicts]]
+== Integration policy upgrade has too many conflicts
+
+If you try to upgrade an integration policy that is several versions old, there
+may be substantial conflicts or configuration issues. Rather than trying to fix
+these problems, it might be faster to create a new policy, test it, and roll
+out the integration update to additional hosts.
+
+After <<update-integration,updating the integration>>: 
+
+. <<create-a-policy,Create a new policy>>.
+
+. <<add-integration,Add the integration to the policy>>.
+The newer version is automatically used.
+
+. <<apply-a-policy,Apply the policy>> to an {agent}.
++
+TIP: In larger deployments, you should test integration updates on a sample {agent}
+before rolling out a larger upgrade initiative.
+Only after a small trial is deemed successful should the updated policy be
+rolled out all hosts.
+
+. Roll out the integration update to additional hosts:
+
+.. In {fleet}, click *Agent policies*.
+Click on the name of the policy you want to edit.
+
+.. Search or scroll to a specific integration.
+Open the *Actions* menu and select *Delete integration*.
+
+.. Click *Add integration* and re-add the freshly deleted integration.
+The updated version will be used and applied to all {agent}s.
+
+.. Repeat this process for each policy with the out-of-date integration.
++
+NOTE: In some instances, for example, when there are hundreds or thousands of different {agent}s and
+policies that need to be updated, this upgrade path is not feasible.
+In this case, update one policy and use the <<copy-policy>> action to apply the updated policy versions to additional policies.
+This method's downside is losing
+the granularity of assessing the individual Integration version changes individually across policies.
+
 [discrete]
 [[agent-hangs-while-unenrolling]]
 == {agent} hangs while unenrolling

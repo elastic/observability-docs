@@ -21,8 +21,7 @@ projects: 513
 
 **Contact Person:**
 
-*(We need to have a contact person in the product/development team to provide information about how the item to be documented works.)*
-*(This can be omitted in the case that the content is provided, as the contact person will be the one making the initial contribution.)*
+*(We need to have a contact person in the product/development team to provide information about how the item to be documented works - this can be omitted when the product/development team is providing the initial content, as the contact person will be the one making the initial contribution.)*
 
 ## Suggested Target Release
 
