@@ -43,8 +43,10 @@ Administrators deploying the {agent} have a few deployment choices
 available to satisfy their organization's requirements. {fleet-server} can be
 deployed:
 
-* On-prem and self-managed, or
-* On {ecloud}, as part of our hosted {ess}, which is managed by Elastic.
+//Nima: Should we say something about hosting on ECE here?
+
+* On {ecloud}, as part of our hosted {ess}, which is managed by Elastic, or
+* On-prem and self-managed
 
 
 [discrete]
@@ -57,14 +59,11 @@ created, a highly available set of {fleet-server}s are automatically deployed.
 
 Administrators can choose the resources allocated to the {fleet-server} and
 whether they want the {fleet-server} to be deployed in multiple availability
-zones. (Cloud → Deployments → _deployment name_ → Edit).
+zones.
 
-* Modify the compute resources available to the server to accommodate higher
-scale of {agent}s
-* Modify the availability zones to satisfy fault tolerance requirements
-
-[role="screenshot"]
-image::images/fleet-server-hosted-container.png[{fleet-server} hosted agent]
+//Nima: I've moved the detailed info about allocating resources and setting
+//availability zones to the section about scaling because I want to make sure
+//skim readers don't miss this step.
 
 Once deployed on {ecloud} as a service, the full life cycle of the
 {fleet-server} is managed by Elastic. {fleet-server} is scalable and highly
@@ -75,16 +74,19 @@ image::images/fleet-server-cloud-deployment.png[{fleet-server} Cloud deployment 
 
 [discrete]
 [[deployed-on-prem]]
-=== Deployed on-prem
+=== Deployed on-prem and self-managed
 
 {fleet-server} can be deployed on-premises and managed by the user. In this
 deployment model, the administrator is responsible for {fleet-server} deployment
-and lifecycle management . This mode of operation is predominantly chosen to
+and lifecycle management. This mode of operation is predominantly chosen to
 satisfy data governance requirements or used in scenarios where the agents only
 have access to a private segmented network.
 
 It’s recommended that the administrator provision multiple instances of the
 {fleet-server} and use a load balancer to better scale the deployment.
+
+//Nima: These images have a gray background. I think they would look better with
+//a white background, but maybe this is good enough for the initial release?
 
 image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-prem deployment model]
 
@@ -94,13 +96,13 @@ image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-prem deploym
 
 {fleet-server} is stateless. Connections to the {fleet-server} therefore can be
 load balanced as long as the {fleet-server} has capacity to accept more
-connections. As mentioned earlier load balancing is done on a round-robin basis.
+connections. Load balancing is done on a round-robin basis.
 
-In the {ecloud} deployment model, multiple {fleet-server}s will automatically be
+In the {ecloud} deployment model, multiple {fleet-server}s are automatically
 provisioned to satisfy the instance size chosen (instance sizes are modified to
-satisfy the scale requirement). In addition, if the user choses multiple
-availability zones to address their fault-tolerance requirements, those
-instances will be utilized to balance the load also.
+satisfy the scale requirement). In addition, if you choose multiple
+availability zones to address your fault-tolerance requirements, those
+instances are also utilized to balance the load.
 
 In an on-prem deployment, high-availability, fault-tolerance, and lifecycle
 management of the {fleet-server} are the responsibility of the administrator.
