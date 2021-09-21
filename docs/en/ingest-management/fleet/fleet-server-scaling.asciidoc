@@ -50,13 +50,6 @@ image::images/fleet-server-configuration.png[{fleet-server} configuration]
 The following advanced settings are available to fine tune your {fleet-server}
 deployment.
 
-//TODO: We need to discuss the best way to format config settings. I'm using
-//mostly tables in other sections of the docs for improved scanning, but that is
-//controversial.
-
-//Nima: I tried removed repetitive words and tried clarify the descriptions here,
-//but there were some inconsistencies. You'll want to check this carefully.
-
 `cache`::
 
 `num_counters`:::
@@ -120,23 +113,16 @@ Burst of enrollments to accept before falling back to the rate defined by
 
 [discrete]
 [[scaling-recommendations]]
-=== Scaling recommendations
+=== Scaling recommendations ({ecloud})
 
 The following tables provide resource requirements and scaling guidelines based
 on the number of agents required by your deployment:
 
 * <<resource-requirements-by-number-agents>>
-* <<recommend-settings-scaling-agents-a>>
-* <<recommend-settings-scaling-agents-b>>
+* <<recommend-settings-scaling-agents>>
 
-// Nima: Are these guidelines all cloud-specific? What about on prem/self-managed?
-
-// Note: I don't like how the spanned rows under vCPU look. Do you think it's OK
-// or should I just repeat the values?
-
-// Nima: I'm looking at  elastic cloud, and the drop-down list of options that
-// I see does not match these settings. Does this table need to be updated to
-// show the new values?
+// TODO: Confirm that these recommendations are current. The values don't match
+// the drop-down lists in the latest version of Elastic Cloud. 
 
 [discrete]
 [[resource-requirements-by-number-agents]]
@@ -144,19 +130,58 @@ on the number of agents required by your deployment:
 |===
 | Number of Agents | Memory      | vCPU           | {es} Cluster size
 
-| 50               | 512MB    .5+| Up to 2.5 vCPU | 480GB disk \| 16GB RAM \| up to 5 vCPU
-| 5,000            | 1GB                          | 960GB disk \| 32GB RAM \| 5 vCPU
-| 7,500            | 2GB                          | 1.88TB disk \| 64GB RAM \| 9.8 vCPU
-| 10,000           | 4GB                          | 3.75TB disk \| 128GB RAM \| 19.8 vCPU
-| 12,500           | 8G                           | 7.5TB disk \| 256GB RAM \| 39.4 vCPU
-| 30,000           | 16GB     .2+| 2.5 vCPU       | 7.5TB disk \| 256GB RAM \| 39.4 vCPU
-| 50,000           | 32GB                         | 11.25TB disk \| 384GB RAM \|59.2 vCPU
+| 50               | 512MB       | Up to 2.5 vCPU | 480GB disk \| 16GB RAM \| up to 5 vCPU
+| 5,000            | 1GB         | Up to 2.5 vCPU | 960GB disk \| 32GB RAM \| 5 vCPU
+| 7,500            | 2GB         | Up to 2.5 vCPU | 1.88TB disk \| 64GB RAM \| 9.8 vCPU
+| 10,000           | 4GB         | Up to 2.5 vCPU | 3.75TB disk \| 128GB RAM \| 19.8 vCPU
+| 12,500           | 8G          | Up to 2.5 vCPU | 7.5TB disk \| 256GB RAM \| 39.4 vCPU
+| 30,000           | 16GB        | 2.5 vCPU       | 7.5TB disk \| 256GB RAM \| 39.4 vCPU
+| 50,000           | 32GB        | 2.5 vCPU       | 11.25TB disk \| 384GB RAM \|59.2 vCPU
 |===
 
-// Nima: I tried multiple iterations of this table (and the next) and none were
-// great. Having one table with all these values was too much because it created
-// a scroll bar at the bottom, and users could not see all of the columns at
-// the top without scrolling. Figured two tables was better, but let's discuss.
+
+
+[discrete]
+[[recommend-settings-scaling-agents]]
+
+==== Recommended settings by number of deployed {agent}s
+
+TIP: You might need to scroll to the right to see all the table columns.
+
+|===
+|                      | *50*    | *5,000*  | *7,500*  | *10,000* | *12,500*  | *30,000*   | *50,000*
+| *Max Connections*    | 100     | 7,000    | 10,000   | 20,000   | 32,000    | 32,000     | 32,000
+8+s| Cache settings
+| `num_counters`       | 2000    | 20000    | 40000    | 80000     | 160000    | 160000    | 320000
+| `max_cost`           | 2097152 | 20971520 | 50971520 | 104857600 | 209715200 | 209715200 | 209715200
+8+s| Server limits
+| `policy_throttle`    | 200ms   | 50ms     | 10ms     | 5ms       | 5ms       | 2ms       | 5ms
+8+| `checkin_limit:`
+>| `interval`          | 50ms    | 5ms      | 2ms      | 1ms       | 500us     | 500us     | 500us
+>| `burst`             | 25      | 500      | 1000     | 2000      | 4000      | 4000      | 4000
+>| `max`               | 100     | 5001     | 7501     | 10001     | 12501     | 15001     | 25001
+8+|`artifact_limit:`
+>| `interval`          | 100ms   | 5ms      | 2ms      | 1ms       | 500us     | 500us     | 500us
+>| `burst`             | 10      | 500      | 1000     | 2000      | 4000      | 4000      | 4000
+>| `max`               | 10      | 1000     | 2000     | 4000      | 8000      | 8000      | 8000
+8+| `ack_limit:`
+>| `interval`          | 10ms    | 4ms      | 2ms      | 1ms       | 500us     | 500us     | 500us
+>| `burst`             | 20      | 500      | 1000     | 2000      | 4000      | 4000      | 4000
+>| `max`               | 20      | 1000     | 2000     | 4000      | 8000      | 8000      | 8000
+8+| `enroll_limit:`
+>| `interval`          | 100ms   | 20ms     | 10ms     | 10ms      | 10ms      | 10ms      | 10ms
+>| `burst`             | 5       | 50       | 100      | 100       | 100       | 100       | 100
+>| `max`               | 10      | 100      | 200      | 200       | 200       | 200       | 200
+8+s| Server runtime settings
+| `gc_percent`         | 20      | 20       | 20       | 20        | 20        | 20        | 20
+|===
+
+
+// TODO: Remove the commented out tables below if we decide that the one-table
+// layout is OK.
+
+////
+// Begin obsolete tables
 
 [discrete]
 [[recommend-settings-scaling-agents-a]]
@@ -221,13 +246,12 @@ on the number of agents required by your deployment:
 | `gc_percent`         | 20        | 20        | 20
 |===
 
+//End obsolete tables
+////
+
 [discrete]
 [[fleet-server-monitoring]]
 == {fleet-server} monitoring
-
-//Suggestion: Talk about the metrics and logs that {fleet-server} provides, how
-//users can enable and see them, how to use them to determine when to scale up
-//{fleet-server}.
 
 Monitoring {fleet-server} is key since the operation of the {fleet-server} is
 paramount to the health of the deployed agents and the services they offer. When
@@ -295,6 +319,6 @@ metric and then resize the {fleet-server}, if necessary.
 [role="screenshot"]
 image::images/dashboard-datastream.png[Dashboard Datastream]
 
-// Nima: These steps work, but I wonder how this is different from what you see
-//in the [Elastic Agent] Agent metrics dashboard just by hiding all the metric
-//except fleet_server.
+Note that as an alternative to running the query, you can hide all metrics
+except `fleet_server` in the dashboard.
+
