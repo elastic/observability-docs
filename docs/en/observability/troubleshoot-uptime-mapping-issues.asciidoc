@@ -7,30 +7,31 @@
 == Mapping issues
 
 There are situations in which {heartbeat} data can be indexed without the correct mappings applied.
-These situations cannot occur with the {elastic-agent} configured via {fleet}, only with standalone {heartbeat}.
+These situations cannot occur with the {elastic-agent} configured via {fleet}, only with standalone {heartbeat} or {elastic-agent} running in standalone mode.
 This can occur when the underlying `heartbeat-VERSION` ILM alias is deleted manually or when {heartbeat} writes data
-through an intermediary such as {ls} without the `setup` command being run.
+through an intermediary such as {ls} without the `setup` command being run. 
+When running {elastic-agent} in standalone mode this can happen if manually setup datastreams have incorrect mappings.
 
-To fix this problem, you typically need to remove your {heartbeat} indices and create
-new ones with the appropriate mappings installed. To achieve this, follow the steps below.
+To fix this problem, you typically need to remove your {heartbeat} indices and datastreams. 
+Then you must create new ones with the appropriate mappings installed. To achieve this, follow the steps below.
 
-=== Step 1: Stop your {heartbeat} instances
+=== Stop your {heartbeat}/{elastic-agent} instances
 
-It is necessary to stop all {heartbeat} instances that are targeting the cluster, so they will not write to or re-create indices prematurely.
+It is necessary to stop all {heartbeat}/{elastic-agent} instances that are targeting the cluster, so they will not write to or re-create indices prematurely.
 
-=== Step 2: Delete your {heartbeat} indices
+=== Delete your {heartbeat} indices / {elastic-agent} datastreams
 
 To ensure the mapping is applied to all {heartbeat} data going forward,
 delete all the {heartbeat} indicies that match the pattern the {uptime-app} will use.
 
-=== Step 3: Run the {heartbeat} setup command
-
 There are multiple ways to achieve this.
 You can read about performing this using the {ref}/index-mgmt.html[Index Management UI] or with the {ref}/indices-delete-index.html[Delete index API].
 
-=== Step 4: Perform {heartbeat} setup
+If using {elastic-agent} you will want to fix any issues with custom datastream mappings. We encourage the use of fleet to eliminate this issue.
 
-The below command will cause {heartbeat} to perform its setup processes.
+=== If using {heartbeat}, perform {heartbeat} setup
+
+The below command will cause {heartbeat} to perform its setup processes and recreate the index template properly.
 
 NOTE: For more information on how to use this command, you can reference the
 {heartbeat-ref}/heartbeat-installation-configuration.html[Heartbeat quickstart guide].
@@ -41,9 +42,9 @@ include::{beats-repo-dir}/tab-widgets/setup-widget.asciidoc[]
 
 This command performs the necessary startup tasks and ensures that your indicies have the appropriate mapping going forward.
 
-=== Step 5: Run {heartbeat} again
+=== Step 5: Run {heartbeat}/{elastic-agent} again
 
-Now, when you run {heartbeat}, your data will be indexed with the appropriate mappings. When
+Now, when you run {heartbeat}/{elastic-agent}, your data will be indexed with the appropriate mappings. When
 the {uptime-app} attempts to fetch your data, it should be able to render without issues.
 
 :!beatname_lc:
