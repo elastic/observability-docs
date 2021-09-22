@@ -3,21 +3,159 @@
 
 Here are the highlights of what's new and improved in {minor-version}.
 
-coming[7.13.0]
+Other versions:
+{observability-guide-all}/7.14/whats-new.html[7.14] |
+{observability-guide-all}/7.13/whats-new.html[7.13] |
+{observability-guide-all}/7.12/whats-new.html[7.12] |
+{observability-guide-all}/7.11/whats-new.html[7.11] |
+{observability-guide-all}/7.10/whats-new.html[7.10] |
+https://www.elastic.co/blog/whats-new-elastic-observability-7-9-0-unified-agent-kpi-overview-dashboard[7.9] |
+https://www.elastic.co/blog/elastic-observability-7-8-0-released[7.8] |
+https://www.elastic.co/blog/elastic-observability-7-7-0-released[7.7] |
+https://www.elastic.co/blog/elastic-observability-7-6-0-released[7.6] |
+https://www.elastic.co/blog/elastic-observability-7-5-0-released[7.5] |
+https://www.elastic.co/blog/elastic-observability-update-7-4-0[7.4]
 
-// Other versions:
-// {observability-guide-all}/7.12/whats-new.html[7.12] |
-// {observability-guide-all}/7.11/whats-new.html[7.11] |
-// {observability-guide-all}/7.10/whats-new.html[7.10] |
-// https://www.elastic.co/blog/whats-new-elastic-observability-7-9-0-unified-agent-kpi-overview-dashboard[7.9] |
-// https://www.elastic.co/blog/elastic-observability-7-8-0-released[7.8] |
-// https://www.elastic.co/blog/elastic-observability-7-7-0-released[7.7] |
-// https://www.elastic.co/blog/elastic-observability-7-6-0-released[7.6] |
-// https://www.elastic.co/blog/elastic-observability-7-5-0-released[7.5] |
-// https://www.elastic.co/blog/elastic-observability-update-7-4-0[7.4]
+[discrete]
+== Give {minor-version} a try
+
+Try {minor-version} now by deploying {es} and {kib} on
+{ess-product}[Elastic Cloud] or
+by https://www.elastic.co/start[downloading them].
 
 // tag::whats-new[]
+[discrete]
+== Agentless ingestion of logs from Google Cloud Platform (GCP)
 
-// What's new content goes in here. Don't uncomment or remove the tags surrounding this content :)
+Our new GCP Dataflow integration in 7.15 drives efficiency with frictionless ingestion of log data directly from the GCP console.
+The *Pub/Sub to Elastic* template provides an easy __agentless__ way to eliminate the cost and hassle of managing and maintaining {agent}s,
+and extends monitoring to native GCP services.
+
+[role="screenshot"]
+image::images/7-15-gcp.png[GCP ingestion logs]
+
+[discrete]
+== Azure Spring Cloud logs integration (Beta)
+
+Get started in minutes with our new turnkey {agent} integration, and continuously monitor and debug issues encountered in
+Spring Boot applications running on Azure.
+
+[role="screenshot"]
+image::images/7-15-azure.png[Azure Spring Cloud logs integration]
+
+[discrete]
+== JVM metrics support for JRuby
+
+Troubleshoot JRuby based applications faster in 7.15 with resource metrics automatically collected and integrated into APM workflows.
+
+[role="screenshot"]
+image::images/7-15-jruby.png[JRuby metrics]
+
+[discrete]
+== Self-managed {package-registry} (Experimental)
+
+{stack} needs to understand the external data sources and available data formats to integrate, collect, and visualize
+data using {agent}s. Today, {kib} receives this information as packages from the {package-registry} (EPR) endpoint.
+
+If you host your {stack} in an air-gapped environment and want to take advantage of {fleet} and {agent}, we have good
+news for you. EPR is now available as a Docker image that you can run and host in any infrastructure setting of your choice.
+It will enable {kib} to understand all available integrations and provide you with the out-of-box assets and
+documentation for all the desired {integrations}.
+
+This EPR Docker image is an experimental standalone server that will grow and evolve further in the future. To learn more,
+see https://www.elastic.co/guide/en/integrations-developer/current/air-gapped.html[Air-gapped environments].
+
+[discrete]
+== Upgrade integration policies
+
+In previous versions of {integrations} and {fleet}, when you upgraded an integration to a newer version you could not
+easily upgrade its integration policy. Instead, you had to delete the old integration policy and
+add a new one.
+
+In 7.15 we've added the ability to upgrade the version of an integration used by an integration policy. You can do this
+from the Policies page for the integration. If it’s eligible for an upgrade, you’ll see a blue Upgrade button that you
+can click to trigger the upgrade.
+
+[role="screenshot"]
+image::images/7-15-upgrade-integrations-1.png[Upgrade integrations]
+
+We’ll attempt to automatically upgrade the integration policy and will show a green success message if all goes well. Most
+{integrations} should automatically upgrade. However, if there is a conflict, we’ll show a yellow notification and you must
+manually create a new integration policy for the latest version.
+
+[role="screenshot"]
+image::images/7-15-upgrade-integrations-2.png[Upgrade integrations success]
+
+[discrete]
+== Improved {agent} monitoring
+
+We now provide a new and improved dashboard in 7.15 for monitoring {agent}s. We have added visualizations for containers with cgroup
+metrics, including CPU and memory usage. We have also added visualizations for things like event rate, throughput, and errors.
+
+[role="screenshot"]
+image::images/7-15-agent-monitoring.png[Agent monitoring]
+
+[discrete]
+== APM dependencies view
+
+In 7.15 we introduce a dedicated experience to monitor the performance and impact of uninstrumented 3rd party backend services for faster
+root cause analysis. This includes any databases, queues, caches, cloud services, and services you haven’t yet instrumented with APM agents.
+
+You can now easily understand backend services performance, compare it to historical trends, and assess any backend impact on upstream services.
+
+[role="screenshot"]
+image::images/7-15-apm-dependencies.png[APM dependencies view]
+
+[discrete]
+== APM service logs view
+
+We continue bringing application logs closer to you by integrating contextual logs across the APM UI.
+The 7.15 release brings the Logs view to the APM service overview, which is incredibly useful for ephemeral environments like containers or cloud.
+
+Having one place to view logs across all instances enables you to focus on finding a root cause instead of jumping around multiple screens or tools.
+
+[role="screenshot"]
+image::images/7-15-apm-service-logs.png[APM service logs view]
+
+Logs have been integrated into various contextual experiences in previous releases:
+
+* {observability-guide-all}/7.13/whats-new.html[7.13]: APM service instances allow direct links to the logs per container, pod or host instance.
+* {observability-guide-all}/7.12/whats-new.html[7.12]: The ability to add logs viewer to any {kib} dashboard.
+* {observability-guide-all}/7.11/whats-new.html[7.11]: With the release of ECS logging libraries, APM introduced logs as part of a distributed end-to-end trace view.
+* {observability-guide-all}/7.11/whats-new.html[7.11]: Introduced an enhanced host view to help diagnose any problem occurring on the visual or physical hosts.
+
+[discrete]
+== Interactive host inventory asset queries via osquery
+
+Using interactive queries powered by https://osquery.io/[osquery], you can discover more details on hosts, such as active processes, installed software packages,
+or running versions.
+
+Centrally managed and interactive osquery search at scale, powered by {agent}, is democratizing asset monitoring for everyone.
+To learn more, see our https://www.elastic.co/blog/whats-new-elastic-security-7-13-0[7.13 blog].
+
+[role="screenshot"]
+image::images/7-15-osquery.png[Osquery]
+
+[discrete]
+== APM latency correlations (GA)
+
+Accelerate root cause analysis of transaction performance issues with APM correlations. Now in GA, this version
+brings an improved workflow, user experience, and better performance.
+
+[role="screenshot"]
+image::images/7-15-apm-correlations.png[APM latency correlations]
+
+[discrete]
+== APM failed transactions correlations (Beta)
+
+In 7.14 the latency correlations in APM were updated with new distribution charts and improved calculations,
+which help you find the biggest influencers on slow transactions.
+
+In 7.15 the failed transaction correlations are enhanced to help you find attributes that occur more frequently
+in failed transactions than in successful transactions. Both features have also been moved from the Services page to the
+Transactions detail page. To learn more, see {kibana-ref}/correlations.html[Correlations].
+
+[role="screenshot"]
+image::images/7-15-apm-failed-correlations.png[APM failed transactions correlations]
 
 // end::whats-new[]
