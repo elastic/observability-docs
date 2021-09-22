@@ -21,15 +21,20 @@ APM & {fleet} node. This node is required to use {fleet-server}.
 image::images/fleet-server-hosted-container.png[{fleet-server} hosted agent]
 ====
 
+NOTE: When using our hosted {ess}, it's recommended that you use our hosted
+version of {fleet-server}. However, you can choose to deploy and self-manage
+{fleet-server}s.
+
 // end::ess[]
 
 // tag::self-managed[]
 
-To deploy {fleet-server} on a self-managed cluster, install an {agent} and
-enroll it in the default {fleet-server} policy. The policy is created
-automatically when you run {fleet} for the first time.
+//QUESTION: Is it still recommended that users configure the Fleet Settings up
+//front, or does the Fleet Server host setting in the in-product steps make
+//that unnecessary?
 
-To add {fleet-server}:
+To deploy a self-managed {fleet-server}, install an {agent} and enroll it in a
+{fleet-server} policy.
 
 . Log in to {kib} and go to *Management > {fleet}*. The first time you visit
 this page, it might take a minute to load.
@@ -52,20 +57,65 @@ For more information about these settings, see <<fleet-settings>>.
 [role="screenshot"]
 image::images/add-fleet-server.png[In-product instructions for adding a {fleet-server}]
 
+//QUESTION: Why does the Fleet Server install command include the --url flag
+//when Production mode is selected)? It's not there in Quick Start mode.
+//I thought --url was only required when you are enrolling subsequent agents in
+// Fleet Server.
+
+//QUESTION: How do cloud users handle the problem with certs if they select
+//Production mode? 
+
 *Notes:*
 
 * Make sure you download an x64 architecture installation package.
+
+* For the agent policy, choose a {fleet-server} policy. If one doesn't exist,
+create it.
++
+.What is a {fleet-server} policy?
+****
+It is an agent policy that configures {agent} to run as a {fleet-server}. In
+self-managed clusters, a default {fleet-server} policy is created
+automatically when you run {fleet} for the first time. If you are deploying a
+self-managed {fleet-server} to work with our hosted {ess}, you
+must explicitly <<create-a-policy,create a new agent policy>> that includes a
+{fleet-server} integration.
+****
+
+* If you choose *Production* deployment mode, read <<secure-connections>> to
+learn how to generate certs.
+
 * After generating the service token, save it to a secure location. You might
 want to use this token later to scale your deployment by adding {fleet-server}s.
 For other ways to generate service tokens, see
 {ref}/service-tokens-command.html[`elasticsearch-service-tokens`].
+
 * The `install` command installs the {agent} as a managed service and enrolls it
-in a {fleet-server} policy:
+in a {fleet-server} policy. For example, the following command installs
+a {fleet-server} and uses self-signed certs:
 +
 [source,yaml]
 ----
-sudo ./elastic-agent install -f --fleet-server-es=http://localhost:9200 \
---fleet-server-service-token=AAEAAWVsYXN0aWMvZmxlZXQtc2VydmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg6dzEta0JDTmZUZGlDTjlwRmNVTjNVQQ
+sudo ./elastic-agent install  -f \
+  --fleet-server-es=http://localhost:9200 \
+  --fleet-server-service-token=AAEbAWVsYXN0aWMvZmxlaXQtc2VydmVzL3Rva2VuLTE2MeIzNTY1NTQ3Mji6dERXeE9XbW5RRTZqNlJMWEdIRzAtZw \
+  --fleet-server-policy=27467ed1-1bfd-11ec-9b88-a7c3d83e2897
+----
++
+The following command installs a {fleet-server} and uses certificates you
+provide. Make sure you replace the values in angle brackets.
++
+[source,yaml]
+----
+sudo ./elastic-agent install --url=https://192.0.2.1:8220 \
+ -f \
+ --fleet-server-es=https://192.0.2.0:9200 \
+ --fleet-server-service-token=AAEAaWVsYXN0aWcvZmxlZXQtc2VydmVyL3rva2VuLTE2MzIzNTYcNTQ3MjI6dER1eE9XbW5RRTZqNlJMWEdIRzAtZw \
+  --fleet-server-policy=27467ed1-1bfd-11ec-9b88-a7c3d83e2897 \
+  --certificate-authorities=<PATH_TO_CA> \
+  --fleet-server-es-ca=<PATH_TO_ES_CERT> \
+  --fleet-server-cert=<PATH_TO_FLEET_SERVER_CERT> \
+  --fleet-server-cert-key=<PATH_TO_FLEET_SERVER_CERT_KEY>
 ----
 +
 For more {fleet-server} commands, see <<elastic-agent-cmd-options>>.
