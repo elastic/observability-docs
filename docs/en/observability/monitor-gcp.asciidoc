@@ -53,7 +53,7 @@ image::monitor-gcp-service-account-name.png[Service account name]
 Make sure to select the correct roles.
 ====
 
-To monitor {gcp} services, you need to add two main roles to the
+To monitor {gcp} services, you need to add three main roles to the
 service account:
 
 *Compute Viewer*:
@@ -64,6 +64,10 @@ image::monitor-gcp-service-account-roles-compute-viewer.png[Service account role
 
 image::monitor-gcp-service-account-roles-monitoring-viewer.png[Service account roles monitoring viewer]
 
+*Pub/Sub Subscriber*:
+
+image::monitor-gcp-service-account-roles-pubsub-subscriber.png[Service account roles pub/sub subscriber]
+
 The final result should be the following:
 
 image::monitor-gcp-service-account-roles-final.png[Service account roles result]
@@ -71,13 +75,16 @@ image::monitor-gcp-service-account-roles-final.png[Service account roles result]
 Click *Continue*, then skip granting users access to this service. Finally,
 click *Done*. The service account is now ready to be used.
 
-Next, to use the service account, click *Create keys* and create the
-JSON key type.
+Next, to use the service account, click *Manage keys*.
+
+image::monitor-gcp-service-account-manage-keys.png[Service account manage keys]
+
+Then, add a new JSON key type by selecting *Create new key*.
 
 image::monitor-gcp-service-account-create-key.png[Service account create key]
 
-After clicking *Create key*, the credential file is downloaded. Keep this file
-in an accessible place to use later.
+After that, the credential file is downloaded.
+Keep this file in an accessible place to use later.
 
 [discrete]
 === Step 2: Install and configure {metricbeat}
@@ -176,11 +183,6 @@ image:monitor-gcp-compute-overview-dashboard.png[{metricbeat} compute overview d
 
 Now that {metricbeat} is up and running, configure {filebeat} to
 collect Google Cloud logs.
-
-[discrete]
-==== Install {filebeat}
-
-On a new terminal window, connected to the GCP instance, complete the following steps.
 
 :leveloffset: +3
 include::{shared}/install-configure-filebeat.asciidoc[]
