@@ -33,7 +33,7 @@ The second method uses the `zip_url` source type, which points to a remote endpo
 For test suites {heartbeat} will attempt to run all files in that directory with the extension `.journey.ts` or `.journey.js`.
 See <<synthetics-syntax>> for more information.
 
-To start, download or clone a local copy of https://github.com/elastic/synthetics/tree/master/examples/todos[our todos example suite] from our synthetics repo to your
+To start, download or clone a local copy of our https://github.com/elastic/synthetics-demo[synthetics-demo] repository 
 local machine, and navigate to the `examples/todos` folder. We'll work inside that folder going forward.
 
 [source,yml]
@@ -56,22 +56,25 @@ heartbeat.monitors:
   id: todos
   type: browser
   schedule: "@every 1m"
+  params:
+    url: "https://elastic.github.io/synthetics-demo/" <3>
   source:
-    zip_url: <3>
-      url: "https://github.com/elastic/synthetics/archive/refs/heads/master.zip" <4>
-      folder: "examples/todos" <5>
-      username: "" <6>
+    zip_url: <4>
+      url: "https://github.com/elastic/synthetics-demo/archive/refs/heads/main.zip" <5>
+      folder: ""todos/synthetics-tests" <6>
+      username: "" <7>
       password: "" 
 ----
 <1> Each `monitor` gets its own ID in the {uptime-app} and, therefore its own schedule entry.
 This allows tests to be run in parallel and analyzed separately.
 <2> In this example, a synthetic test is defined inline. This is a two-step script that first loads
 a homepage and then hovers over a product menu. See <<synthetics-syntax>> for more information.
-<3> In this example, our library of synthetic tests is downloaded from the
+<3> The params section lets you define custom parameters to use in your script. In this example the 'url' parameter is used by the test suite to determine which site to test.
+<4> In this example, our library of synthetic tests is downloaded from the
 remote zip endpoint for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. 
-<4> Note that the url refers to the endpoint where the test project exists.
-<5> Folder refers to the relative path where the synthetic journey files are located. {heartbeat} will invoke the synthetics library on this folder.
-<6> Username and password are blank here, but if provided, will be sent as HTTP Basic Authentication headers to the remote zip endpoint.
+<5> Note that the url refers to the endpoint where the test project exists.
+<6> Folder refers to the relative path where the synthetic journey files are located. {heartbeat} will invoke the synthetics library on this folder.
+<7> Username and password are blank here, but if provided, will be sent as HTTP Basic Authentication headers to the remote zip endpoint.
 
 [discrete]
 [[synthetics-quickstart-step-three]]
@@ -80,7 +83,7 @@ remote zip endpoint for https://github.com/elastic/synthetics-demo/tree/main/tod
 Before we proceed, you'll need to retrieve your Elasticsearch credentials for either an {heartbeat-ref}/configure-cloud-id.html[Elastic Cloud ID] or another {heartbeat-ref}/elasticsearch-output.html[Elasticsearch Cluster].
 
 WARNING: Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions. Add the `sandbox: true` option to a given browser
-monitor in {heartbeat} to enable sandboxing. This may require using a https://github.com/elastic/synthetics/blob/master/examples/docker/seccomp_profile.json[custom seccomp policy] with docker, which brings its own additional risks. This is generally safe when run against sites whose content you trust,
+monitor in {heartbeat} to enable sandboxing. This may require using a custom seccomp policy with docker, which brings its own additional risks. This is generally safe when run against sites whose content you trust,
 and with a recent version of Elastic synthetics and chromium.
 
 The example below, run from the `examples/todos` directory shows how to run synthetics tests indexing data into Elasticsearch.
