@@ -53,14 +53,6 @@ For more information about these settings, see <<fleet-settings>>.
 [role="screenshot"]
 image::images/add-fleet-server.png[In-product instructions for adding a {fleet-server}]
 
-//QUESTION: Why does the Fleet Server install command include the --url flag
-//when Production mode is selected)? It's not there in Quick Start mode.
-//I thought --url was only required when you are enrolling subsequent agents in
-// Fleet Server.
-
-//QUESTION: How do cloud users handle the problem with certs if they select
-//Production mode? 
-
 *Notes:*
 
 * Make sure you download an x64 architecture installation package.
@@ -81,9 +73,8 @@ must explicitly <<create-a-policy,create a new agent policy>> that includes a
 * If you choose *Production* deployment mode, read <<secure-connections>> to
 learn how to generate certs.
 
-* After generating the service token, save it to a secure location. You might
-want to use this token later to scale your deployment by adding {fleet-server}s.
-For other ways to generate service tokens, see
+* It's recommended you generate a unique service token for each
+{fleet-server}. For other ways to generate service tokens, see
 {ref}/service-tokens-command.html[`elasticsearch-service-tokens`].
 
 * The `install` command installs the {agent} as a managed service and enrolls it
@@ -103,7 +94,7 @@ provide. Make sure you replace the values in angle brackets.
 +
 [source,yaml]
 ----
-sudo ./elastic-agent install --url=https://192.0.2.1:8220 \
+sudo ./elastic-agent install --url=https://192.0.2.1:8220 \ <1>
  -f \
  --fleet-server-es=https://192.0.2.0:9200 \
  --fleet-server-service-token=AAEAaWVsYXN0aWcvZmxlZXQtc2VydmVyL3rva2VuLTE2MzIzNTYcNTQ3MjI6dER1eE9XbW5RRTZqNlJMWEdIRzAtZw \
@@ -113,6 +104,8 @@ sudo ./elastic-agent install --url=https://192.0.2.1:8220 \
   --fleet-server-cert=<PATH_TO_FLEET_SERVER_CERT> \
   --fleet-server-cert-key=<PATH_TO_FLEET_SERVER_CERT_KEY>
 ----
+<1> The URL must match the DNS name used to generate the certificate specified
+by `--fleet-server-cert`.
 +
 For more {fleet-server} commands, see <<elastic-agent-cmd-options>>.
 +
