@@ -123,6 +123,19 @@ things running for development, but not recommended in a production environment.
 For more information, refer to <<secure-connections>>.
 
 [discrete]
+[[agent-enrollment-certs]]
+== {agent} enrollment fails on the host with `x509: cannot validate certificate for x.x.x.x because it doesn't contain any IP SANs` message
+
+To ensure that communication with {es} is encrypted,
+{fleet-server} requires {es} to present a signed certificate. 
+
+This error occurs when you use self-signed certificates with {es} using IP as a Common Name. 
+With IP as a CN {fleet-server} looks into alternative names which is empty. To work around this situation
+you need to use `--fleet-server-es-insecure` flag which disables certificate verification.
+
+You will also need to set `ssl.verification_mode: none` in the Output settings in {fleet} and {integrations} UI.
+
+[discrete]
 [[agent-enrollment-timeout]]
 == {agent} enrollment fails on the host with `Client.Timeout exceeded` message
 
