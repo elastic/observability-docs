@@ -7,6 +7,14 @@
 In this tutorial, you'll learn how to monitor your Google Cloud Platform ({gcp})
 deployments using Elastic Observability: Logs and Metrics.
 
+[NOTE]
+====
+If you don't want to provision VM and install data shippers due to process and
+management overhead, you can skip this step and ingest logs directly from
+Pub/Sub in the Google Cloud Console to Elastic with
+link:gcp-dataflow.html[GCP Dataflow Templates].
+====
+
 [discrete]
 === What you'll learn
 
@@ -18,7 +26,6 @@ Google Cloud Platform module] and view those metrics in {kib}.
 - Export GCP audit logs through Pub/Sub topics.
 - Ingest logs using the {filebeat-ref}/filebeat-module-gcp.html[{filebeat}
 Google Cloud module] and view those logs in {kib}.
-- Ingest logs using Google Dataflow and view those logs in {kib}.
 
 [discrete]
 === Before you begin
@@ -197,25 +204,8 @@ Now that the output is working, you are going to set up the input ({gcp}).
 To collect logs from Google Cloud Platform, use the
 {filebeat-ref}/filebeat-module-gcp.html[Google Cloud Platform]
 module. This module periodically fetches logs that have been exported from
-Stackdriver to a Google Pub/Sub topic sink. There are three available filesets:
-`audit`, `vpcflow`, `firewall`. This tutorial covers the `audit` fileset.
-
-. Go to the *Logs Router* page to configure {gcp} to export logs to a Pub/Sub
-topic. Use the search bar to find the page:
-+
-image::monitor-gcp-navigate-logs-router.png[Navigate to Logs Router page]
-+
-To set up the logs routing sink, click  *Create sink*.
-Set *sink name* as `monitor-gcp-audit-sink`. Select the *Cloud Pub/Sub topic* as the
-*sink service* and *Create new Cloud Pub/Sub topic* named `monitor-gcp-audit`:
-+
-image::monitor-gcp-create-pubsub-topic.png[Create Pub/Sub topic]
-+
-Finally, under *Choose logs to include in sink*, add
-`logName:"cloudaudit.googleapis.com"` (it includes all audit logs).
-Click *create sink*.  It will look something like the following:
-+
-image::monitor-gcp-create-sink.png[Create logs routing sink]
+Stackdriver to a Google Pub/Sub topic sink.
+include::gcp-topic.asciidoc[]
 
 . Now that GCP is configured to export audit logs, enable {filebeat} Google Cloud module.
 +
@@ -262,74 +252,4 @@ dashboard.
 +
 image::monitor-gcp-audit-overview-dashboard.png[{filebeat} audit overview dashboard]
 
-[discrete]
-=== Google Dataflow 
-
-If you don't want to provision VM and install data shippers due to process and
-management overhead, you can skip this step and ingest data directly from
-Pub/Sub to Elastic with https://cloud.google.com/dataflow[Google Dataflow].
-In this section you will learn how to ship logs directly from the Google Cloud
-Console with the Dataflow template for analyzing GCP Audit Logs in the Elastic
-Stack.
-
-First, access *Integrations* in {kib} and search for `gcp`.
-
-image::monitor-gcp-kibana-integrations.png[{kib} integrations]
-
-Next, access the Elastic GCP integration and click
-*Add Google Cloud Platform (GCP)*.
-
-image::monitor-gcp-integration.png[GCP integration]
-
-Then, click *Save integration* to include prebuilt dashboards,
-ingest node configurations, and other assets that help you get the most of the
-GCP logs you ingest.
-
-Before configuring the Dataflow template, you need to create a Pub/Sub topic
-and subscription from your Google Cloud Console, as demonstrated in the
-previous section.
-
-Now, go to the *Dataflow Jobs* page to configure your template.
-Use the search bar to find the page:
-
-image::monitor-gcp-dataflow-jobs.png[GCP Dataflow Jobs]
-
-To create a job, click *Create Job From Template*.
-Set *Job name* as `auditlogs-stream` and select `Pub/Sub to Elasticsearch` from
-the *Dataflow template* dropdown menu:
-
-image::monitor-gcp-dataflow-pub-sub-elasticsearch.png[GCP Dataflow Pub/Sub to Elasticsearch]
-
-Before running the job, you will need to fill in required parameters:
-
-image::monitor-gcp-dataflow-required-parameters.png[GCP Dataflow Required Parameters]
-
-  - The Cloud *Pub/Sub subscription* to consume from. You can find it in the
-https://console.cloud.google.com/cloudpubsub/subscription[Pub/Sub Subscriptions] page of your GCP account.
-  - The Cloud ID of the https://cloud.elastic.co/deployments[deployment] you
-created at the beginning of this tutorial. You can find it at *Overview* page.
-  - The error output topic for failed inserts. You can find it or create one
-at the https://console.cloud.google.com/cloudpubsub/topic[Pub/Sub] page of your GCP account.
-  - The base64 encoded API key to authenticate on your deployment.
-You can create one through {kibana-ref}/api-keys.html[{kib}].
-
-After filling the required parameters, click *Show Optinal Parameters* and add
-`audit` as the log type parameter.
-
-image::monitor-gcp-dataflow-optional-parameters.png[GCP Dataflow Optional Parameters]
-
-When you are all set, click *Run Job* and wait Dataflow to execute the
-template, which takes about few minutes.
-
-Finally, navigate to {kib} to see your logs parsed and visualized in the
-*[Logs GCP] Audit* dashboard.
-
-image::monitor-gcp-dataflow-audit-dashboard.png[GCP audit overview dashboard]
-
-Besides collecting audit logs from your Google Cloud Platform, you can also use
-Dataflow integrations to ingest data directly into Elastic from
-https://www.elastic.co/blog/ingest-data-directly-from-google-bigquery-into-elastic-using-google-dataflow[Google BigQuery]
-and
-https://www.elastic.co/blog/ingest-data-directly-from-google-cloud-storage-into-elastic-using-google-dataflow[Google Cloud Storage].
-
-
+include::gcp-dataflow.asciidoc[]
