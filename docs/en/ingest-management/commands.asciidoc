@@ -131,6 +131,7 @@ elastic-agent enroll --fleet-server-es <string>
                      [--force]
                      [--help]
                      [--url <string>] <2>
+                     [--fleet-server-es-insecure ] <3>
                      [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
@@ -140,6 +141,7 @@ the `--insecure` flag.
 <2> Required when enrolling in a {fleet-server} with custom certificates. The
 URL must match the DNS name used to generate the certificate specified by
 `--fleet-server-cert`.
+<3> Required when using self-signed certificate on {es} side. 
 
 For more information about custom certificates, refer to <<secure-connections>>.
 
@@ -172,6 +174,18 @@ specified {es} URL.
 
 `--fleet-server-es-ca <string>`::
 Path to certificate authority to use to communicate with {es}.
+
+`--fleet-server-es-insecure`::
+Allows fleet server to connect to {es} in the following situations:
++
+--
+* When connecting to an HTTP server.
+* When connecting to an HTTPs server and the certificate chain cannot be
+verified. The content is encrypted, but the certificate is not verified.
+* When using self-signed certificates.
+--
++
+When this flag is used the certificate verification is disabled.
 
 `--fleet-server-host <string>`::
 {fleet-server} HTTP binding host (overrides the policy).
@@ -421,6 +435,7 @@ elastic-agent install --fleet-server-es <string>
                       [--force]
                       [--help]
                       [--url <string>] <2>
+                      [--fleet-server-es-insecure ] <3>
                       [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
@@ -430,6 +445,7 @@ the `--insecure` flag.
 <2> Required when enrolling in a {fleet-server} with custom certificates. The
 URL must match the DNS name used to generate the certificate specified by
 `--fleet-server-cert`.
+<3> Required when using self-signed certificate on {es} side. 
 
 For more information about custom certificates, refer to <<secure-connections>>.
 
