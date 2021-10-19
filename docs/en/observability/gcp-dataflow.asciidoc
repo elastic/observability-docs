@@ -23,7 +23,47 @@ and {kib} for visualizing and managing your data.
 For more information, see <<spin-up-stack,Spin up the Elastic Stack>>.
 
 [discrete]
-==== Step 1: Create a Pub/Sub topic and subscription
+==== Step 1: Install the GCP Integration 
+
+You’ll start with installing the Elastic GCP integration to include prebuilt
+dashboards, ingest node configurations, and other assets that help you get
+the most of the GCP logs you ingest.
+
+First, access *Integrations* in {kib} and search for `gcp`.
+
+image::monitor-gcp-kibana-integrations.png[{kib} integrations]
+
+Next, access the Elastic GCP integration and click
+*Add Google Cloud Platform (GCP)*.
+
+image::monitor-gcp-integration.png[GCP integration]
+
+Then, click *Save integration*.
+
+[NOTE]
+====
+This tutorial assumes the Elastic cluster is already running.
+See below how to get your *Cloud ID* and generate an *API Key* that you'll
+need in the next steps. 
+====
+
+You can find the Cloud ID of your https://cloud.elastic.co/deployments[deployment]
+at its *Overview* page.
+
+image:monitor-gcp-cloud-id.png[Cloud ID]
+
+And you can use {kibana-ref}/api-keys.html#create-api-key[{kib}] to create a
+Base64-encoded API key to authenticate on your deployment.
+
+[IMPORTANT]
+====
+You can optionally restrict the privileges of your API Key, otherwise they'll
+be a point in time snapshot of permissions of the authenticated user.
+For this tutorial the data is written to the `logs-gcp.audit-default` data streams.
+====
+
+[discrete]
+==== Step 2: Create a Pub/Sub topic and subscription
 
 Before configuring the Dataflow template, you will have to create a Pub/Sub
 topic and subscription from your Google Cloud Console where you can send your
@@ -48,28 +88,10 @@ image::monitor-gcp-pub-sub-subscription-id.png[GCP Pub/Sub Subscription ID]
 Finally, scroll down and click *Create*.
 
 [discrete]
-==== Step 2: Install the GCP Integration 
-
-Now that GCP is configured to export audit logs, install the GCP integration.
-
-First, access *Integrations* in {kib} and search for `gcp`.
-
-image::monitor-gcp-kibana-integrations.png[{kib} integrations]
-
-Next, access the Elastic GCP integration and click
-*Add Google Cloud Platform (GCP)*.
-
-image::monitor-gcp-integration.png[GCP integration]
-
-Then, click *Save integration* to include prebuilt dashboards,
-ingest node configurations, and other assets that help you get the most of the
-GCP logs you ingest.
-
-[discrete]
 ==== Step 3: Configure the Google Dataflow Template
 
-After installing the GCP integration, go to the *Dataflow Jobs* page to
-configure your template. Use the search bar to find the page:
+After creating a Pub/Sub topic and subscription, go to the *Dataflow Jobs* page
+and configure your template to use them. Use the search bar to find the page:
 
 image::monitor-gcp-dataflow-jobs.png[GCP Dataflow Jobs]
 
@@ -83,14 +105,13 @@ Before running the job, you will need to fill in required parameters:
 
 image::monitor-gcp-dataflow-required-parameters.png[GCP Dataflow Required Parameters]
 
-  - The Cloud *Pub/Sub subscription* to consume from. You can find it in the
-https://console.cloud.google.com/cloudpubsub/subscription[Pub/Sub Subscriptions] page of your GCP account.
-  - The Cloud ID of the https://cloud.elastic.co/deployments[deployment] you
-created at the beginning of this tutorial. You can find it at *Overview* page.
-  - The error output topic for failed inserts. You can find it or create one
-at the https://console.cloud.google.com/cloudpubsub/topic[Pub/Sub] page of your GCP account.
-  - The base64 encoded API key to authenticate on your deployment.
-You can create one through {kibana-ref}/api-keys.html[{kib}].
+[NOTE]
+====
+The *Cloud Pub/Sub subscription* is the same you created in the previous step.
+The *Cloud ID* and *Base64-encoded API Key* are the same from first step.
+If you don't have an *Error output topic*, you can created one like in the
+previous step.
+====
 
 After filling the required parameters, click *Show Optinal Parameters* and add
 `audit` as the log type parameter.
