@@ -31,7 +31,11 @@ run these commands.
 
 Gather diagnostics information from the {agent} and applications it's running.
 
-This command displays version numbers and application metadata.
+If no options are specified, this command displays version numbers and application metadata.
+
+If `collect` is specified, it produces an archive containing application metadata, configuration information, the policy, and any local logs.
+
+Note that *credentials are not redacted* in the archive; they may appear in plain text in the configuration or policy files inside the archive.
 
 [discrete]
 === Synopsis
@@ -39,13 +43,22 @@ This command displays version numbers and application metadata.
 [source,shell]
 ----
 elastic-agent diagnostics [--help] [--output <string>] [global-flags]
+elastic-agent diagnostics collect [--output <string>]
+                                  [--file <string>]
+                                  [--help]
+                                  [global-flags]
 ----
 
 [discrete]
 === Options
 
 `--output <string>`::
-Output format. Specify `human`, `json`, or `yaml`. The default is `human`.
+Output format. If using `collect`, specify `json` or `yaml` (the default).
+Otherwise specify `json`, `yaml`, or `human` (the default).
+
+`--file`::
+Output archive name for the `collect` option.
+Defaults to `elastic-agent-diagnostics-<timestamp>.zip` where the timestamp is the current time in UTC.
 
 `--help`::
 Show help for the `diagnostics` command.
