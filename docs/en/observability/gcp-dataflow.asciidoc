@@ -1,5 +1,5 @@
 [[gcp-dataflow]]
-=== GCP Dataflow Templates 
+=== GCP Dataflow templates 
 
 In this tutorial, you'll learn how to ship logs directly from the Google Cloud
 Console with the Dataflow template for analyzing GCP Audit Logs in the Elastic
@@ -23,49 +23,46 @@ and {kib} for visualizing and managing your data.
 For more information, see <<spin-up-stack,Spin up the Elastic Stack>>.
 
 [discrete]
-==== Step 1: Install the GCP Integration 
+==== Step 1: Install the GCP integration 
 
-You’ll start with installing the Elastic GCP integration to include prebuilt
+You’ll start with installing the Elastic GCP integration to add prebuilt
 dashboards, ingest node configurations, and other assets that help you get
 the most of the GCP logs you ingest.
 
-First, access *Integrations* in {kib} and search for `gcp`.
-
+. Go to *Integrations* in {kib} and search for `gcp`.
++
 image::monitor-gcp-kibana-integrations.png[{kib} integrations]
 
-Next, access the Elastic GCP integration and click
+. Click the Elastic Google Cloud Platform (GCP) integration to see more details about it, then click
 *Add Google Cloud Platform (GCP)*.
-
++
 image::monitor-gcp-integration.png[GCP integration]
 
-Then, click *Save integration*.
+. Click *Save integration*.
 
-[NOTE]
-====
-This tutorial assumes the Elastic cluster is already running.
-See below how to get your *Cloud ID* and generate an *API Key* that you'll
-need in the next steps. 
-====
+****
+This tutorial assumes the Elastic cluster is already running. To continue, you'll need
+your *Cloud ID* and an *API Key*.
 
-You can find the Cloud ID of your https://cloud.elastic.co/deployments[deployment]
-at its *Overview* page.
+To find the Cloud ID of your https://cloud.elastic.co/deployments[deployment],
+go to the deployment's *Overview* page.
 
 image:monitor-gcp-cloud-id.png[Cloud ID]
 
-And you can use {kibana-ref}/api-keys.html#create-api-key[{kib}] to create a
+Use {kibana-ref}/api-keys.html#create-api-key[{kib}] to create a
 Base64-encoded API key to authenticate on your deployment.
 
 [IMPORTANT]
 ====
-You can optionally restrict the privileges of your API Key, otherwise they'll
+You can optionally restrict the privileges of your API Key; otherwise they'll
 be a point in time snapshot of permissions of the authenticated user.
 For this tutorial the data is written to the `logs-gcp.audit-default` data streams.
 ====
-
+****
 [discrete]
 ==== Step 2: Create a Pub/Sub topic and subscription
 
-Before configuring the Dataflow template, you will have to create a Pub/Sub
+Before configuring the Dataflow template, create a Pub/Sub
 topic and subscription from your Google Cloud Console where you can send your
 logs from Google Operations Suite.
 include::gcp-topic.asciidoc[]
@@ -88,7 +85,7 @@ image::monitor-gcp-pub-sub-subscription-id.png[GCP Pub/Sub Subscription ID]
 Finally, scroll down and click *Create*.
 
 [discrete]
-==== Step 3: Configure the Google Dataflow Template
+==== Step 3: Configure the Google Dataflow template
 
 After creating a Pub/Sub topic and subscription, go to the *Dataflow Jobs* page
 and configure your template to use them. Use the search bar to find the page:
@@ -101,16 +98,16 @@ the *Dataflow template* dropdown menu:
 
 image::monitor-gcp-dataflow-pub-sub-elasticsearch.png[GCP Dataflow Pub/Sub to Elasticsearch]
 
-Before running the job, you will need to fill in required parameters:
+Before running the job, fill in required parameters:
 
 image::monitor-gcp-dataflow-required-parameters.png[GCP Dataflow Required Parameters]
 
 [NOTE]
 ====
-The *Cloud Pub/Sub subscription* is the same you created in the previous step.
-The *Cloud ID* and *Base64-encoded API Key* are the same from first step.
-If you don't have an *Error output topic*, you can created one like in the
-previous step.
+For *Cloud Pub/Sub subscription*, use the subscription you created in the previous step.
+For *Cloud ID* and *Base64-encoded API Key*, use the values you got earlier.
+If you don't have an *Error output topic*, create one like you did
+in the previous step.
 ====
 
 After filling the required parameters, click *Show Optinal Parameters* and add
@@ -118,8 +115,8 @@ After filling the required parameters, click *Show Optinal Parameters* and add
 
 image::monitor-gcp-dataflow-optional-parameters.png[GCP Dataflow Optional Parameters]
 
-When you are all set, click *Run Job* and wait Dataflow to execute the
-template, which takes about few minutes.
+When you are all set, click *Run Job* and wait for Dataflow to execute the
+template, which takes a few minutes.
 
 Finally, navigate to {kib} to see your logs parsed and visualized in the
 *[Logs GCP] Audit* dashboard.
