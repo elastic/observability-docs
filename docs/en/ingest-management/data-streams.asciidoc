@@ -111,3 +111,107 @@ go to **Stack Management** > **Index Lifecycle Policies**. Click **Create policy
 Define data tiers for your data, and any associated actions,
 like a rollover, freeze, or shrink.
 See {ref}/set-up-lifecycle-policy.html[configure a lifecycle policy] for more information.
+
+[discrete]
+[[data-streams-ilm-tutorial]]
+=== Tutorial: Customize data retention for integrations
+
+Each integration may have one or many associated data streams, each with an associated ILM policy.
+By default, these data streams use an ILM policy that matches their data type, for example,
+`metrics-system.logs-*` data streams use the metrics ILM policy as defined in the `metrics-system.logs` index template.
+This tutorial shows you how to override this default config and apply your own ILM policy to an integrations’ data stream.
+
+Scenario
+
+You have {agent}s collecting metrics in 2 environments, for which you use the namespaces "development" and "production". In the production namespace you want to apply the in-built 90-days-default ILM policy to the `system.network` data stream, so that it is deleted after 90 days.
+
+Prerequisites
+
+To complete this tutorial, you'll need:
+An {es} cluster set up for the ILM policy you wish to use
+A host with Elastic Agent installed and configured to send logs to your {es} cluster.
+
+[discrete]
+[[data-streams-ilm-one]]
+==== Step 1: View data streams
+
+First you may wish to view the associated data streams and index templates with a given integration.
+
+First you can use the filters in the data streams view in Fleet to see which data streams the system package uses in production.
+// ss
+
+You can see the `system.network` data stream.
+To view further information about this data stream you can go to **Stack Management** > **Index Management** > **Data Streams** tab and search for the data stream,
+note that the data stream uses the data stream naming scheme and starts with it's type, `metrics-` in this case.
+// ss
+
+Clicking the data stream allows you to see the index template used by the data stream `metrics-system.network-production`,
+click the index template to view the template details.
+// ss
+
+[discrete]
+[[data-streams-ilm-two]]
+==== Step 2: Create a component template
+
+In order for your changes to continue to be applied in future versions,
+you must put any custom index settings you wish to apply into a component template.
+The component template must follow the data stream naming scheme,
+as well as starting with “.” and end with `@custom: .<type>-<dataset>-<namespace>@custom>`.
+For example, if you are setting custom index settings for `system.network` in production,
+the component template name would be ``.metrics-system.network-production@custom`.
+
+. Navigate to **Stack Management** > **Index Management** > **Component Templates**
+. Create a component template
+.. Set the name as described above
+.. Set the ILM policy name under index setting `lifecycle.name` key `("lifecycle" : { "name" : "90-days-default"})`
+.. Create the template
+// ss
+
+[discrete]
+[[data-streams-ilm-three]]
+==== Step 3: Clone and modify the existing template
+
+Now that you have created a component template,
+we can create an index template to apply the settings to the data stream in the desired namespace.
+The easiest way of doing this is to duplicate the existing index template which the integration uses across all namespaces.
+
+. Navigate to **Stack Management** > **Index Management** > **Index Templates** (tab)
+. Find the index template you wish to clone,
+this will have the type and dataset in the name but not the namespace, `metrics-system.network` in this case.
+. In order to set a custom ILM policy for the production namespace,
+we must clone the index template and use an index pattern which includes the namespace,
+to clone the index template click **manage** > **clone**
+// ss
+
+WARNING: When duplicating the template it's important to keep the managed properties or you may have problems upgrading in the future.
+
+. We must now change some settings for our new index template
+.. set the name to `metrics-system.network-production`
+.. set the index pattern to `metrics-system.network-production*``
+.. set the priority to 250
+.. Under component templates, specify add the component template you created earlier.
+To ensure your namespace specific settings are applied over other custom settings,
+the template should be added below the existing `@custom` template.
+// ss
+
+. Create the index template
+
+[discrete]
+[[data-streams-ilm-four]]
+==== Step 4: Rollover the data stream (optional)
+
+We can now see that the data stream is using our new index template and ilm_policy by showing it in dev tools
+
+[source,bash]
+----
+GET /_data_stream/metrics-system.network-production
+----
+
+The ILM policy will only take effect for new indices,
+therefore we must either wait for a rollover (after 30 days or once the index size reaches 50GB usually by default)
+or force a rollover using the rollover API
+
+[source,bash]
+----
+POST /metrics-system.network-production/_rollover/
+----
