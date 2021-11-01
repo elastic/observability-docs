@@ -402,15 +402,95 @@ inputs:
 [[kubernetes-provider]]
 ==== Kubernetes Provider
 
-Provides inventory information from Kubernetes. The available keys are:
+Provides inventory information from Kubernetes.
 
+
+[discrete]
+===== Provider configuration
+
+[source,yaml]
+----
+providers.kubernetes:
+  node: ${NODE_NAME}
+  scope: node
+  #kube_config: /Users/elastic-agent/.kube/config
+  #sync_period: 600s
+  #cleanup_timeout: 60s
+  resources:
+    pod:
+      enabled: true
+----
+
+`node`:: (Optional) Specify the node to scope {agent} to in case it
+cannot be accurately detected when running {agent} in host network
+mode.
+`cleanup_timeout`:: (Optional) Specify the time of inactivity before stopping the
+running configuration for a container. This is `60s` by default.
+`sync_period`:: (Optional) Specify the timeout for listing historical resources.
+`kube_config`:: (Optional) Use the given config file as configuration for Kubernetes
+client. If kube_config is not set, the KUBECONFIG environment variable will be
+checked and will fall back to InCluster if not present.
+`scope`:: (Optional) Specify the level for autodiscover. `scope` can
+either take `node` or `cluster` as values. `node` scope allows discovery of resources in
+the specified node. `cluster` scope allows cluster wide discovery. Only `pod` and `node` resources
+can be discovered at node scope.
+`resources`:: (Optional) Specify the resources that want to start the autodiscovery for. One
+of `pod`, `node`, `service`. By default `node` and `pod` are being enabled. `service` resource
+requires the `scope` to be set at `cluster`.
+`namespace`:: (Optional) Select the namespace from which to collect the
+metadata. If it is not set, the processor collects metadata from all namespaces.
+It is unset by default.
+`include_annotations`:: (Optional) If added to the provider config, then the list of annotations present in the config
+are added to the event.
+`include_labels`:: (Optional) If added to the provider config, then the list of labels present in the config
+will be added to the event.
+`exclude_labels`:: (Optional) If added to the provider config, then the list of labels present in the config
+will be excluded from the event.
+`labels.dedot`:: (Optional) If set to be `true` in the provider config, then `.` in labels will be replaced with `_`.
+By default it is `true`.
+`annotations.dedot`:: (Optional) If set to be `true` in the provider config, then `.` in annotations will be replaced
+with `_`. By default it is `true`.
+`add_resource_metadata`:: (Optional) Specify labels and annotations filters for the extra metadata coming from node and namespace.
+ `add_resource_metadata` can be done for `node` or `namespace`. By default all labels are included
+while annotations are not. These settings are useful when storing labels and annotations
+that require special handling to avoid overloading the storage output. The enrichment of `node` or `namespace` metadata
+can be individually disabled by setting `enabled: false`.
+Example:
+
+["source","yaml",subs="attributes"]
+-------------------------------------------------------------------------------------
+      add_resource_metadata:
+        namespace:
+          include_labels: ["namespacelabel1"]
+        node:
+          include_labels: ["nodelabel2"]
+          include_annotations: ["nodeannotation1"]
+-------------------------------------------------------------------------------------
+
+
+[discrete]
+===== Provider for Pod resources
+
+The available keys are:
 
 |===
 |Key |Type |Description
 
-|`kubernetes.namespace`
+|`kubernetes.namespace.name`
 |`string`
 |Namespace of the Pod
+
+|`kubernetes.namespace.uuid`
+|`string`
+|UUID of the Namespace of the Pod
+
+|`kubernetes.namespace.labels.*`
+|`string`
+|Labels of the Namespace of the Pod
+
+|`kubernetes.namespace.annotations.*`
+|`string`
+|Annotations of the Namespace of the Pod
 
 |`kubernetes.pod.name`
 |`string`
@@ -424,7 +504,11 @@ Provides inventory information from Kubernetes. The available keys are:
 |`string`
 |IP of the Pod
 
-|`kubernetes.pod.labels`
+|`kubernetes.labels.*`
+|`object`
+|Object of labels of the Pod
+
+|`kubernetes.annotations.*`
 |`object`
 |Object of labels of the Pod
 
@@ -443,7 +527,52 @@ Provides inventory information from Kubernetes. The available keys are:
 |`kubernetes.container.image`
 |`string`
 |Image of the container
+
+|`kubernetes.container.port`
+|`string`
+|Port of the container (if defined)
+
+|`kubernetes.container.port_name`
+|`string`
+|Port's name for the container (if defined)
+
+|`kubernetes.node.name`
+|`string`
+|Name of the Node
+
+|`kubernetes.node.uid`
+|`string`
+|UID of the Node
+
+|`kubernetes.node.hostname`
+|`string`
+|Hostname of the Node
+
+|`kubernetes.node.labels.*`
+|`string`
+|Labels of the Node
+
+|`kubernetes.node.annotations.*`
+|`string`
+|Annotations of the Node
+
+|`kubernetes.deployment.name.*`
+|`string`
+|Deployment name of the Pod (if exists)
+
+|`kubernetes.statefulset.name.*`
+|`string`
+|Statefulset name of the Pod (if exists)
+
+|`kubernetes.replicaset.name.*`
+|`string`
+|Replicaset name of the Pod (if exists)
 |===
+
+
+These are the fields available within config templating. The `kubernetes.*` fields will be available on each emitted event.
+Note that not all of these fields are available by default and special configuration options
+are needed in order to include them.
 
 Fox example, if the Kubernetes provider provides the following inventory:
 
@@ -453,8 +582,7 @@ Fox example, if the Kubernetes provider provides the following inventory:
     {
        "id": "1",
        "mapping:": {"namespace": "kube-system", "pod": {"name": "kube-controllermanger"}},
-       "processors": {"add_fields": {"container.name": "my-container"}}
-    },
+       "processors": {"add_fields": {"kuberentes.namespace": "kube-system", "kubernetes.pod": {"name": "kube-controllermanger"}}
     {
         "id": "2",
         "mapping:": {"namespace": "kube-system", "pod": {"name": "kube-scheduler"}},
@@ -474,32 +602,8 @@ Fox example, if the Kubernetes provider provides the following inventory:
 ]
 ----
 
-[discrete]
-===== Provider configuration
+In addition, the Kubernetes metadata are being added to each event by default.
 
-[source,yaml]
-----
-providers.kubernetes:
-  node: ${NODE_NAME}
-  scope: node
-  #kube_config: /Users/elastic-agent/.kube/config
-  #sync_period: 600
-  #cleanup_timeout: 60
-----
-
-`node`:: (Optional) Specify the node to scope {agent} to in case it
-cannot be accurately detected when running {agent} in host network
-mode.
-`cleanup_timeout`:: (Optional) Specify the time of inactivity before stopping the
-running configuration for a container. This is `60s` by default.
-`sync_period`:: (Optional) Specify the timeout for listing historical resources.
-`kube_config`:: (Optional) Use the given config file as configuration for Kubernetes
-client. If kube_config is not set, the KUBECONFIG environment variable will be
-checked and will fall back to InCluster if not present.
-`scope`:: (Optional) Specify the level for autodiscover. `scope` can
-either take `node` or `cluster` as values. `node` scope allows discovery of resources in
-the specified node. `cluster` scope allows cluster wide discovery. Only `pod` and `node` resources
-can be discovered at node scope.
 
 [discrete]
 ===== Autodiscover target Pods
@@ -517,7 +621,7 @@ To set the target host dynamically only for a targeted Pod based on its labels, 
   hosts:
     - '${kubernetes.pod.ip}:10251'
   period: 10s
-  condition: ${kubernetes.pod.labels.component} == 'kube-scheduler'
+  condition: ${kubernetes.labels.component} == 'kube-scheduler'
 ----
 
 The policy generated by this configuration looks like:
@@ -534,11 +638,11 @@ The policy generated by this configuration looks like:
   - add_fields:
     fields:
       namespace: kube-system
+      labels:
+        component: kube-scheduler
+        tier: control-plane
       pod:
         ip: 172.18.0.4
-        labels:
-          component: kube-scheduler
-          tier: control-plane
         name: kube-scheduler-kind-control-plane
         uid: 6da04645-04b4-4cb2-b203-2ad58abc6cdf
     target: kubernetes
@@ -564,21 +668,150 @@ The policy generated by this configuration looks like:
 - paths:
   - /var/log/containers/*c957652eca53594ce496c7b237d19f05be339ebfe281b99ce1c0a0401e48ce3a.log
   processors:
-  - add_fields:
-    fields:
-      container:
-        id: c957652eca53594ce496c7b237d19f05be339ebfe281b99ce1c0a0401e48ce3a
-        image: k8s.gcr.io/kube-apiserver:v1.18.2
-        name: kube-apiserver
-        runtime: containerd
-      namespace: kube-system
-      pod:
-        ip: 172.18.0.4
-        labels:
-          component: kube-apiserver
-          tier: control-plane
-        name: kube-apiserver-kind-control-plane
-        uid: f8743f90-50a4-4ef8-9fe9-78c245eb8bf3
-    target: kubernetes
-  symlinks: true
+    - add_fields:
+        fields:
+          container:
+            name: kube-scheduler
+          labels:
+            component: kube-scheduler
+            tier: control-plane
+          namespace:
+            labels:
+              kubernetes_io/metadata_name: kube-system
+            name: kube-system
+            uid: 436369c1-cc50-4fdd-8212-d0215bf66ffa
+          node:
+            hostname: kind-control-plane
+            labels:
+              beta_kubernetes_io/arch: amd64
+              beta_kubernetes_io/os: linux
+              kubernetes_io/arch: amd64
+              kubernetes_io/hostname: kind-control-plane
+              kubernetes_io/os: linux
+              node-role_kubernetes_io/control-plane: ""
+              node-role_kubernetes_io/master: ""
+              node_kubernetes_io/exclude-from-external-load-balancers: ""
+            name: kind-control-plane
+            uid: d93dc62a-b103-4b81-b7cd-9eaf7957d6d2
+          pod:
+            ip: 172.18.0.2
+            name: kube-scheduler-kind-control-plane
+            uid: c052b569-c772-43e8-89cc-149ed6f5c69a
+        target: kubernetes
+    - add_fields:
+        fields:
+          id: 7b9754b983ec4e8b9bda39dfbe949a1b6b06c0316dc599031381707bb4ce23b6
+          image:
+            name: k8s.gcr.io/kube-scheduler:v1.21.1
+          runtime: containerd
+        target: container
+    - add_fields:
+        fields:
+          cluster:
+            name: kind-kind
+            url: https://127.0.0.1:52500
+        target: orchestrator
 ----
+
+[discrete]
+===== Provider for Node resources
+
+[source,yaml]
+----
+providers.kubernetes:
+  node: ${NODE_NAME}
+  scope: node
+  #kube_config: /Users/elastic-agent/.kube/config
+  #sync_period: 600s
+  #cleanup_timeout: 60s
+  resources:
+    node:
+      enabled: true
+----
+
+This resource is enabled by default but in this example we define it explicitly
+for clarity.
+
+The available keys are:
+
+|===
+|Key |Type |Description
+
+|`kubernetes.labels.*`
+|`object`
+|Object of labels of the Node
+
+|`kubernetes.annotations.*`
+|`object`
+|Object of labels of the Node
+
+|`kubernetes.node.name`
+|`string`
+|Name of the Node
+
+|`kubernetes.node.uid`
+|`string`
+|UID of the Node
+
+|`kubernetes.node.hostname`
+|`string`
+|Hostname of the Node
+|===
+
+[discrete]
+===== Provider for Service resources
+
+[source,yaml]
+----
+providers.kubernetes:
+  node: ${NODE_NAME}
+  scope: cluster
+  #kube_config: /Users/elastic-agent/.kube/config
+  #sync_period: 600s
+  #cleanup_timeout: 60s
+  resources:
+    service:
+      enabled: true
+----
+
+The available keys are:
+
+|===
+|Key |Type |Description
+
+|`kubernetes.namespace.name`
+|`string`
+|Namespace of the Service
+
+|`kubernetes.namespace.uuid`
+|`string`
+|UUID of the Namespace of the Service
+
+|`kubernetes.namespace.labels.*`
+|`string`
+|Labels of the Namespace of the Service
+
+|`kubernetes.namespace.annotations.*`
+|`string`
+|Annotations of the Namespace of the Service
+
+|`kubernetes.labels.*`
+|`object`
+|Object of labels of the Service
+
+|`kubernetes.annotations.*`
+|`object`
+|Object of labels of the Service
+
+|`kubernetes.service.name`
+|`string`
+|Name of the Service
+
+|`kubernetes.service.uid`
+|`string`
+|UID of the Service
+
+|`kubernetes.selectors.*`
+|`string`
+|Kubernetes selectors
+|===
