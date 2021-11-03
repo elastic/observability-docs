@@ -127,9 +127,9 @@ For more information, refer to <<secure-connections>>.
 == {agent} enrollment fails on the host with `x509: cannot validate certificate for x.x.x.x because it doesn't contain any IP SANs` message
 
 To ensure that communication with {es} is encrypted,
-{fleet-server} requires {es} to present a signed certificate. 
+{fleet-server} requires {es} to present a signed certificate.
 
-This error occurs when you use self-signed certificates with {es} using IP as a Common Name (CN). 
+This error occurs when you use self-signed certificates with {es} using IP as a Common Name (CN).
 With IP as a CN, {fleet-server} looks into subject alternative names (SANs), which is empty. To work
 around this situation, use the `--fleet-server-es-insecure` flag to disable certificate verification.
 
@@ -233,6 +233,26 @@ does not include the collection of logs of metrics.
 
 You can collect other files to assess and pass to the Elastic team for review for some more advanced debugging cases.
 These files should all be in the {agent} directory on disk: `state.yml`, `fleet.yml` and `elastic-agent.yml`.
+
+[discrete]
+=== Collect {agent} diagnostics bundle
+
+Run the following command to generate a a zip archive containing diagnostics information that can be usable by the Elastic team for debugging cases.
+
+[source,shell]
+----
+elastic-agent diagnostics collect
+----
+
+This archive collects the following information:
+
+. {agent} versions numbers
+. beats (and other process) version numbers and process meta-data.
+. local configuration, elastic-agent policy, and config that is rendered and passed to beats and other processes.
+. {agent}'s local log files.
+
+IMPORTANT: The configration files in the archive may have credentials in *plain text*.
+These will need to be manually redacted before the archive is shared.
 
 [discrete]
 [[not-installing-no-logs-in-terminal]]
@@ -362,7 +382,7 @@ may be substantial conflicts or configuration issues. Rather than trying to fix
 these problems, it might be faster to create a new policy, test it, and roll
 out the integration update to additional hosts.
 
-After <<update-integration,updating the integration>>: 
+After <<update-integration,updating the integration>>:
 
 . <<create-a-policy,Create a new policy>>.
 
