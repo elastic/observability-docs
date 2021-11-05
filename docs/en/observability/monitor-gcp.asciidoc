@@ -7,6 +7,14 @@
 In this tutorial, you'll learn how to monitor your Google Cloud Platform ({gcp})
 deployments using Elastic Observability: Logs and Metrics.
 
+[NOTE]
+====
+If you don't want to provision VM and install data shippers due to process and
+management overhead, you can skip this step and ingest logs directly from
+Pub/Sub in the Google Cloud Console to Elastic with
+link:gcp-dataflow.html[GCP Dataflow Templates].
+====
+
 [discrete]
 === What you'll learn
 
@@ -196,25 +204,8 @@ Now that the output is working, you are going to set up the input ({gcp}).
 To collect logs from Google Cloud Platform, use the
 {filebeat-ref}/filebeat-module-gcp.html[Google Cloud Platform]
 module. This module periodically fetches logs that have been exported from
-Stackdriver to a Google Pub/Sub topic sink. There are three available filesets:
-`audit`, `vpcflow`, `firewall`. This tutorial covers the `audit` fileset.
-
-. Go to the *Logs Router* page to configure {gcp} to export logs to a Pub/Sub
-topic. Use the search bar to find the page:
-+
-image::monitor-gcp-navigate-logs-router.png[Navigate to Logs Router page]
-+
-To set up the logs routing sink, click  *Create sink*.
-Set *sink name* as `monitor-gcp-audit-sink`. Select the *Cloud Pub/Sub topic* as the
-*sink service* and *Create new Cloud Pub/Sub topic* named `monitor-gcp-audit`:
-+
-image::monitor-gcp-create-pubsub-topic.png[Create Pub/Sub topic]
-+
-Finally, under *Choose logs to include in sink*, add
-`logName:"cloudaudit.googleapis.com"` (it includes all audit logs).
-Click *create sink*.  It will look something like the following:
-+
-image::monitor-gcp-create-sink.png[Create logs routing sink]
+Stackdriver to a Google Pub/Sub topic sink.
+include::gcp-topic.asciidoc[]
 
 . Now that GCP is configured to export audit logs, enable {filebeat} Google Cloud module.
 +
@@ -260,3 +251,5 @@ the file if it does not exist and to use the correct full path).
 dashboard.
 +
 image::monitor-gcp-audit-overview-dashboard.png[{filebeat} audit overview dashboard]
+
+include::gcp-dataflow.asciidoc[]
