@@ -1,0 +1,259 @@
+[[fleet-agent-proxy-support]]
+= Use a proxy server with {agent} and {fleet}
+
+Your organization’s security strategy and other considerations may require you
+to use a proxy server between some components in your deployment. Support is
+available in {agent} and {fleet} for connections through HTTP Connect (HTTP 1
+only) and Socks5 proxy servers.
+
+//QUESTION: Do we want to add more context around when users might want to
+//use a proxy server? Here's a rough start, but I'm not sure all points are
+//relevant or even necessary.
+
+//Proxy servers are often used to provide:
+
+//* Extra layer of security between internal servers and outside traffic
+//* User anonymity
+//* Single access point for load balancing
+//* Access control and audit trail for network devices
+//* Traffic compression and file caching
+
+//QUESTION: Do we want to provide a list of popular proxy servers that will work?
+
+This guide describes where a proxy server is allowed in your deployment and how
+to configure proxy settings for {agent} and {fleet}. The steps for deploying the
+proxy server itself are beyond the scope of this article.
+
+NOTE: Some environments require users to authenticate with the proxy. There are
+no explicit settings for proxy authentication in {agent} or {fleet}, except the
+ability to pass credentials in the URL or as keys/tokens in headers, as
+described later.
+
+[discrete]
+[[elastic-agent-proxy-config]]
+== Configure {agent} proxy settings
+
+Configure proxy settings for {agent} when it must connect through a proxy server
+to:
+
+* Download artifacts from `artifacts.elastic.co` for subprocesses or binary
+upgrades
+* Send data to {es}
+* Retrieve agent policies from {fleet-server}
+* Retrieve agent policies from {es} (when running as a {fleet-server})
+* Monitor services (not shown)
+
+image::images/agent-proxy-server.png[Image showing connections between {agent}, {fleet-server}, and {es}]
+
+You can configure {agent} proxy settings in:
+
+* <<host-proxy-env-vars>>
+* <<es-output-proxy-settings>>
+* <<cli-proxy-settings>>
+
+[discrete]
+[[host-proxy-env-vars]]
+=== Host environment variables
+
+//QUESTION: Do these only work on Linux and Unix? What about Windows?
+
+Set environment variables on the host to configure default proxy settings.
+The {agent} uses host environment settings by default if no proxy settings are
+specified elsewhere. You can override host proxy settings later when you
+configure the {agent} and {fleet} settings. The following environment variables
+are available on the host:
+
+|===
+|Variable |Description
+
+|`HTTP_PROXY`
+|URL of the proxy server for HTTP traffic. 
+
+|`HTTPS_PROXY`
+|URL of the proxy server for HTTPS traffic. `HTTPS_PROXY` takes precedence over
+`HTTP_PROXY` for https requests.
+
+|`NO_PROXY`
+|IP addresses or domain names that should not use the proxy. Supports patterns.
+|===
+
+The proxy URL can be a complete URL or `host[:port]`, in which case the `http`
+scheme is assumed. An error is returned if the value is a different form.
+
+Keep in mind that proxy environment settings may affect other components on the
+host that send HTTP requests.
+
+[discrete]
+[[es-output-proxy-settings]]
+=== Proxy settings in the {agent} policy
+
+Configure proxy settings in the {agent} policy to override proxy settings
+specified by environment variables. For example, you can configure proxy
+settings in the {es} output to override host environment settings.
+
+//QUESTION: Is there a way to set the proxy URL for an input?
+
+The following proxy settings are valid in the {agent} policy:
+
+//QUESTION: Where are these proxy settings valid for Elastic Agent? Just under
+//output? What about input (for services behind a proxy)? I'm not sure how you
+//would configure that if you're not using standalone.
+
+|===
+|Setting | Description
+
+|`proxy_url`
+| (string) URL of the proxy server. If set, the configured URL is used as a
+proxy for all connection attempts by the component. The value may be either a
+complete URL or a `host[:port]`, in which case the `http` scheme is assumed. If
+a value is not specified through the configuration, then proxy environment
+variables are used. The URL accepts optional `username` and `password` settings
+for authenticating with the proxy. For example:
+`http://<username>:<password>@<proxy host>/`.
+
+|`proxy_headers`
+| (string) Additional headers to send to the proxy during CONNECT requests. You
+can use this setting to pass keys/tokens required for authenticating with the
+proxy.
+
+|`proxy_disable`
+| (boolean) If set to `true`, all proxy settings, including the `HTTP_PROXY` and
+`HTTPS_PROXY` environment variables, are ignored.
+
+|===
+
+For {fleet}-managed agents, specify proxy settings in the {kib} UI:
+
+. Log in to {kib} and go to *Management > {fleet}*.
+
+. Click *{fleet} settings*.
+
+. Under *Elasticsearch output configuration (YAML)*, specify proxy settings for
+connecting to {es}. The proxy settings you specify here are applied to all
+{agent}s enrolled in {fleet}.
++
+ADD SCREEN CAPTURE. NEED A REALISTIC EXAMPLE TO PROVIDE HERE.
+
+For standalone agents, specify proxy settings the `elastic-agent.yml` file. For
+example:
+
+[source,yaml]
+----
+outputs:
+  default:
+    type: elasticsearch
+    hosts:
+      - 'http://localhost:9200'
+    proxy_url: 'https://192.0.2.0:8080'
+----
+
+//QUESTION: What should this config actually look like ^^.
+
+For more information, refer to <<elastic-agent-configuration>>.
+
+[discrete]
+[[cli-proxy-settings]]
+=== Command-line flags when enrolling in {fleet}
+
+//QUESTION: It sounds like the user need to visit Fleet to load policies before
+//running the command? Or can we just assume users will do that first before
+//getting to this step?
+
+Specify proxy settings on the command line when you are enrolling in {fleet} and
+the proxy configuration is not yet available. During enrollment, the proxy
+settings specified at the command line are copied to internal configuration
+files.
+
+//QUESTION: What does it mean for these settings to be copied to the internal
+//config? Will they be persisted and used after enrollment?
+
+The `enroll` and `install` commands accept the following flags:
+
+|===
+| CLI flag | Description
+
+|`--proxy-url <url>`
+|URL of the proxy server. The value may be either a complete URL or a
+`host[:port]`, in which case the http scheme is assumed.  The URL accepts optional
+username and password settings for authenticating with the proxy. For example:
+`http://<username>:<password>@<proxy host>/`.
+
+|`--proxy-disabled`
+|If specified, all proxy settings, including the `HTTP_PROXY` and `HTTPS_PROXY`
+environment variables, are ignored.
+
+|`--proxy-header <header name>=<value>`
+|Additional header to send to the proxy during CONNECT requests. Use the
+`--proxy-header` flag multiple times to add additional headers. You can use
+this setting to pass keys/tokens required for authenticating with the proxy.
+
+|===
+
+For example:
+
+[source,sh]
+----
+ADD EXAMPLE HERE
+----
+
+[discrete]
+[[fleet-proxy-configuration]]
+== Configure {fleet} proxy settings
+
+Configure proxy settings for {fleet} when it must connect through a proxy server
+to:
+
+* Access the Elastic Package Registry
+* Communicate with {es}
+
+image::images/fleet-proxy-server.png[Image showing connections between {fleet}, {es}, and the Elastic Package Registry]
+
+TIP: If you're using our hosted {ess} on {ecloud}, you don't have to configure
+{fleet} proxy settings because they are handled by {ecloud}.
+
+[discrete]
+[[epr-proxy-setting]]
+=== Access the Elastic Package Registry through a proxy
+
+{fleet} might be unable to access the Elastic Package Registry because {kib} is
+behind a proxy server.
+
+Also your organization might have network traffic restrictions that prevent {kib}
+from reaching the public Elastic Package Registry endpoints, like
+https://epr.elastic.co/[epr.elastic.co], to download package metadata and
+content. You can route traffic to the public endpoint of EPR through a network
+gateway, then configure proxy settings in the {kib} configuration file,
+`kibana.yml`. For example:
+
+[source,yaml]
+----
+xpack.fleet.registryProxyUrl: your-nat-gateway.corp.net
+----
+
+[discrete]
+[[es-proxy-setting]]
+=== Access {es} through a proxy
+
+When {fleet} is behind a proxy server, configure {fleet} settings to
+specify the URL for the proxy server:
+
+//QUESTION: Is correct? There does not appear to be a Proxy URL setting under
+//Fleet settings. Can you provide a screen captures showing realistic values?
+
+. Log in to {kib} and go to *Management > {fleet}*.
+
+. Click *{fleet} Settings*.
+
+. Add the proxy URL to the following fields:
++
+--
+* *{es} hosts*
+
+* *{fleet-server} hosts*
+--
++
+NEED A SCREEN SHOWING VALID SETTINGS IN THIS DIALOG.
+
+
+//QUESTION: Unrelated to this section, but do we need to say anything about
+//certs here?
