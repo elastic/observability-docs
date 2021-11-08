@@ -1,25 +1,31 @@
 [[monitor-uptime]]
-= Uptime monitoring
-
-[NOTE]
-=====
-If you haven't already, you need to install and configure {heartbeat} to populate
-the {uptime-app} with data. For more information, see <<ingest-uptime,Ingest uptime data>>.
-=====
-
-The {uptime-app} in {kib} enables you to monitor the availability and response times
-of applications and services in real time, and detect problems before they affect users.
-You can monitor the status of network endpoints via HTTP/S, TCP, and ICMP, explore
-endpoint status over time, drill down into specific monitors, and view a high-level
-snapshot of your environment at any point in time.
-
-The {uptime-app} uses {heartbeat} to check the status of your services
-and applications periodically. So that you can monitor services for their availability with active
-probing, you can deploy {heartbeat} as part of a monitoring service that runs on
-a separate machine, and outside of the network where the services that you want
-to monitor are running.
-
-To view the {uptime-app}, go to *Observability > Uptime*.
+= Lightweight synthetic monitoring
 
 [role="screenshot"]
 image::images/uptime-app.png[Uptime app in Kibana]
+
+The {uptime-app} uses {agent} to check the status of your services and applications periodically.
+By adding the Elastic Synthetics integration to the policy used by your agent, you can monitor the
+availability of network endpoints and services using the following Uptime monitors:
+
+|===
+
+| *ICMP monitor* | Check the availability of your hosts. The ICMP monitor uses ICMP (v4 and v6) Echo
+Requests to check the network reachability of the hosts you are pinging. This will tell you whether the
+host is available and connected to the network. However, it doesn't tell you if a service on the host is running or
+not.
+
+| *TCP monitor* | Monitor the services running on your hosts. The TCP monitor checks individual ports
+to ensure the service is accessible and running.
+
+| *HTTP monitor* | Monitor your website. The HTTP monitor checks to ensure specific endpoints return the correct
+status code and display the correct text.
+
+| *Browser monitor* | Using the synthetics agent, run automated synthetic monitoring test suites on a real Chromium
+browser. For more details, refer to <<synthetic-monitoring,Real browser synthetic monitoring>>. 
+
+|===
+
+Along with getting notified when your <<tls-certificate-alert,TLS certificates>> are set to expire, you can also
+create an <<duration-anomaly-alert,Uptime duration anomaly >> rule to receive notifications based on the response durations for all of the
+geographic locations of each monitor.
