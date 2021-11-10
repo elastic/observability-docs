@@ -28,7 +28,13 @@ running configuration for a container. This is `60s` by default.
 `sync_period`:: (Optional) Specify the timeout for listing historical resources.
 `kube_config`:: (Optional) Use the given config file as configuration for Kubernetes
 client. If kube_config is not set, the KUBECONFIG environment variable will be
-checked and will fall back to InCluster if not present.
+checked and will fall back to InCluster if not present. InCluster mode means that if
+{agent} runs as a Pod it will try to initialise the client using the token and certificate
+that are mounted in the Pod by default:
+ * `/var/run/secrets/kubernetes.io/serviceaccount/token`
+ * `/var/run/secrets/kubernetes.io/serviceaccount/ca.crt`
+as well as using the environment variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT`
+to reach the API Server.
 `kube_client_options`:: (Optional) Additional options can be configured for Kubernetes
 client. Currently client QPS and burst are supported, if not set Kubernetes client's
   https://pkg.go.dev/k8s.io/client-go/rest#pkg-constants[default QPS and burst] will be used.
@@ -94,11 +100,11 @@ The available keys are:
 |UUID of the Namespace of the Pod
 
 |`kubernetes.namespace.labels.*`
-|`string`
+|`object`
 |Labels of the Namespace of the Pod
 
 |`kubernetes.namespace.annotations.*`
-|`string`
+|`object`
 |Annotations of the Namespace of the Pod
 
 |`kubernetes.pod.name`
@@ -400,11 +406,11 @@ The available keys are:
 |UUID of the Namespace of the Service
 
 |`kubernetes.namespace.labels.*`
-|`string`
+|`object`
 |Labels of the Namespace of the Service
 
 |`kubernetes.namespace.annotations.*`
-|`string`
+|`object`
 |Annotations of the Namespace of the Service
 
 |`kubernetes.labels.*`
