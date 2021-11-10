@@ -1,0 +1,102 @@
+[[providers]]
+= Providers
+
+Providers supply the key-value pairs that are used for variable substitution
+and conditionals. Each provider's keys are automatically prefixed with the name
+of the provider in the context of the {agent}.
+
+For example, a provider named `foo` provides
+`{"key1": "value1", "key2": "value2"}`, the key-value pairs are placed in
+`{"foo" : {"key1": "value1", "key2": "value2"}}`. To reference the keys, use `{{foo.key1}}` and `{{foo.key2}}`.
+
+[discrete]
+== Provider configuration
+
+The provider configuration is specified under the top-level `providers`
+key in the `elastic-agent.yml` configuration. All registered
+providers are enabled by default. If a provider cannot connect, no mappings are produced.
+
+The following example shows two providers (`local` and `local_dynamic`) that
+supply custom keys:
+
+[source,yaml]
+----
+providers:
+  local:
+    vars:
+      foo: bar
+  local_dynamic:
+    vars:
+      - item: key1
+      - item: key2
+----
+
+Explicitly disable a provider by setting `enabled: false`. All providers
+are prefixed without name collisions. The name of the provider is in the key in the configuration.
+
+[source,yaml]
+----
+providers:
+  docker:
+    enabled: false
+----
+
+{agent} supports two broad types of providers: <<context-providers,context>> and
+<<dynamic-providers,dynamic>>.
+
+[discrete]
+[[context-providers]]
+=== Context providers
+
+Context providers give the current context of the running {agent}, for
+example, agent information (ID, version), host information (hostname, IP
+addresses), and environment information (environment variables).
+
+They can only provide a single key-value mapping. Think of them as singletons;
+an update of a key-value mapping results in a re-evaluation of the entire
+configuration. These providers are normally very static, but not
+required. A value can change which results in re-evaluation. 
+
+Context providers use the Elastic Common Schema (ECS) naming to ensure consistency and understanding throughout documentation and projects. 
+
+{agent} supports the following context providers:
+
+* <<local-provider,Local>>
+* <<agent-provider,Agent Provider>>
+* <<host-provider,Host Provider>>
+* <<env-provider,Env Provider>>
+* <<kubernetes_secrets-provider,Kubernetes Secrets Provider>>
+* <<kubernetes_leaderelection-provider,Kubernetes Leader Election Provider>>
+
+[discrete]
+[[dynamic-providers]]
+=== Dynamic Providers
+
+Dynamic providers give an array of multiple key-value mappings. Each
+key-value mapping is combined with the previous context provider's key and value
+mapping which provides a new unique mapping that is used to generate a
+configuration.
+
+{agent} supports the following context providers:
+
+* <<local-dynamic-provider,Local Dynamic Provider>>
+* <<docker-provider,Docker Provider>>
+* <<kubernetes-provider,Kubernetes Provider>>
+
+include::local-provider.asciidoc[leveloffset=+1]
+
+include::agent-provider.asciidoc[leveloffset=+1]
+
+include::host-provider.asciidoc[leveloffset=+1]
+
+include::env-provider.asciidoc[leveloffset=+1]
+
+include::kubernetes_secrets-provider.asciidoc[leveloffset=+1]
+
+include::kubernetes_leaderelection-provider.asciidoc[leveloffset=+1]
+
+include::local-dynamic-provider.asciidoc[leveloffset=+1]
+
+include::docker-provider.asciidoc[leveloffset=+1]
+
+include::kubernetes-provider.asciidoc[leveloffset=+1]

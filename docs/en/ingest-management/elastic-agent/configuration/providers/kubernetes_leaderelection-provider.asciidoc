@@ -1,0 +1,55 @@
+[[kubernetes_leaderelection-provider]]
+= Kubernetes LeaderElection Provider
+
+Provides the option to enable leaderelection between a set of {agent}s
+running on Kubernetes. Only one {agent} at a time will be the holder of the leader
+lock and based on this, configurations can be enabled with the condition
+that the {agent} holds the leadership. This is useful in cases where the {agent} between a set of {agent}s collects cluster wide metrics for the Kubernetes cluster, such as the `kube-state-metrics` endpoint.
+
+Provider needs a `kubeconfig` file to establish a connection to Kubernetes API.
+It can automatically reach the API if it's running in an inCluster environment ({agent} runs as Pod).
+
+[source,yaml]
+----
+providers.kubernetes_leaderelection:
+  #kube_config: /Users/elastic-agent/.kube/config
+  #leader_lease: agent-k8s-leader-lock
+----
+
+`kube_config`:: (Optional) Use the given config file as configuration for the Kubernetes
+client. If kube_config is not set, KUBECONFIG environment variable will be
+checked and will fall back to InCluster if it's not present.
+`leader_lease`:: (Optional) Specify the name of the leader lease.
+This is set to `elastic-agent-cluster-leader` by default.
+
+The available key is:
+
+|===
+|Key |Type |Description
+
+|`kubernetes_leaderelection.leader`
+|`bool`
+|The value of the leadership flag. This is set to `true` when the {agent} is the current leader, and is set to `false` otherwise.
+
+|===
+
+[discrete]
+== Enabling confgiurations only when on leadership
+
+Use conditions based on the `kubernetes_leaderelection.leader` key to leverage the leaderelection provider and enable specific inputs only when the {agent} holds the leadership lock.
+The below example enables the `state_container`
+metricset only when the leadership lock is acquired:
+
+[source,yaml]
+----
+- data_stream:
+    dataset: kubernetes.state_container
+    type: metrics
+  metricsets:
+    - state_container
+  add_metadata: true
+  hosts:
+    - 'kube-state-metrics:8080'
+  period: 10s
+  condition: ${kubernetes_leaderelection.leader} == true
+----
