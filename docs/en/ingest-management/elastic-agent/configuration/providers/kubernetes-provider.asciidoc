@@ -21,8 +21,10 @@ providers.kubernetes:
 ----
 
 `node`:: (Optional) Specify the node to scope {agent} to in case it
-cannot be accurately detected when running {agent} in host network
-mode.
+cannot be accurately detected by the default discovery approach:
+1. If {agent} is deployed in Kubernetes cluster as Pod, use hostname of pod as the pod name to query pod metadata for node name.
+2. If step 1 fails or {agent} is deployed outside of the Kubernetes cluster, use machine-id to match against Kubernetes nodes for node name.
+3. If node cannot be discovered with step 1 or 2 fallback to NODE_NAME env var as default value. In case it is not set return error.
 `cleanup_timeout`:: (Optional) Specify the time of inactivity before stopping the
 running configuration for a container. This is `60s` by default.
 `sync_period`:: (Optional) Specify the timeout for listing historical resources.
@@ -33,6 +35,7 @@ checked and will fall back to InCluster if not present. InCluster mode means tha
 that are mounted in the Pod by default:
  * `/var/run/secrets/kubernetes.io/serviceaccount/token`
  * `/var/run/secrets/kubernetes.io/serviceaccount/ca.crt`
+
 as well as using the environment variables `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT`
 to reach the API Server.
 `kube_client_options`:: (Optional) Additional options can be configured for Kubernetes
