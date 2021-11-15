@@ -88,13 +88,18 @@ elastic-agent enroll --fleet-server-es <string>
                      [--fleet-server-port <uint16>]
                      [--force]
                      [--help]
-                     [--insecure ]
+                     [--url <string>] <2>
                      [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
 self-signed certificate with the hostname of the machine. Remote {agent}s
 enrolling into a {fleet-server} with self-signed certificates must specify
 the `insecure` flag.
+<2> Required when enrolling in a {fleet-server} with custom certificates. The
+URL must match the DNS name used to generate the certificate specified by
+`--fleet-server-cert`.
+
+For more information about custom certificates, refer to <<secure-connections>>.
 
 [discrete]
 === Options
@@ -202,7 +207,8 @@ assumes you've generated the certificates with the following names:
 ----
 elastic-agent enroll -f --fleet-server-es=https://elasticsearch:9200 \
   --fleet-server-es-ca=ca.crt --fleet-server-service-token=AbEAAdesYXN1abMvZmxlZXQtc2VldmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg7dzEta0JDTmZUcGlDTjlwRmNVTjNVQQ \
-  --fleet-server-cert fleet-server.crt --fleet-server-cert-key fleet-server.key
+  --fleet-server-cert fleet-server.crt --fleet-server-cert-key fleet-server.key \
+  --url=https://fleet-server-host:8220
 ----
 
 Then enroll another {agent} into the {fleet-server} started in the previous
@@ -352,7 +358,7 @@ a `fleet-server` process alongside the `elastic-agent` service:
 ----
 elastic-agent install [--ca-sha256 <string>]
                      [--certificate-authorities <string>]
-                     [--fleet-server-cert <string>]
+                     [--fleet-server-cert <string>] <1>
                      [--fleet-server-cert-key <string>]
                      [--fleet-server-es <string>]
                      [--fleet-server-es-ca <string>]
@@ -363,10 +369,18 @@ elastic-agent install [--ca-sha256 <string>]
                      [--fleet-server-service-token <string>]
                      [--force]
                      [--help]
-                     [--insecure ]
+                     [--url <string>] <2>
                      [global-flags]
 ----
+<1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
+self-signed certificate with the hostname of the machine. Remote {agent}s
+enrolling into a {fleet-server} with self-signed certificates must specify
+the `--insecure` flag.
+<2> Required when enrolling in a {fleet-server} with custom certificates. The
+URL must match the DNS name used to generate the certificate specified by
+`--fleet-server-cert`.
 
+For more information about custom certificates, refer to <<secure-connections>>.
 
 [discrete]
 === Options
@@ -408,7 +422,8 @@ assumes you've generated the certificates with the following names:
 ----
 elastic-agent install -f --fleet-server-es=https://elasticsearch:9200 \
   --fleet-server-es-ca=ca.crt --fleet-server-service-token=AbEAAdesYXN1abMvZmxlZXQtc2VldmVyL3Rva2VuLTE2MTkxMzg3MzIzMTg7dzEta0JDTmZUcGlDTjlwRmNVTjNVQQ \
-  --fleet-server-cert fleet-server.crt --fleet-server-cert-key fleet-server.key
+  --fleet-server-cert fleet-server.crt --fleet-server-cert-key fleet-server.key \
+  --url=https://fleet-server-host:8220
 ----
 
 Then install another {agent} and enroll it into the {fleet-server} started in
