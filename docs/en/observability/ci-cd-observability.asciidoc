@@ -99,7 +99,7 @@ their reliability while chasing for faster pipelines. There are requirements to 
 with trace visualizations to show what’s happening and improve performance and reliability
 (flaky tests and pipelines).
 
-Integrating with many popular CIDevOps tools like Maven or Ansible using OpenTelemetry, Elastic Observability
+Integrating with many popular CICD/DevOps tools like Maven or Ansible using OpenTelemetry, Elastic Observability
 solves these problems by providing deep insights into the execution of CI/CD pipelines.
 
 [discrete]
@@ -139,7 +139,7 @@ image::images/jenkins-pipeline-overview.png[Jenkins pipeline overview]
 
 The pipelines and traditional jobs are instrumented automatically. If you spot a slow or failing
 build and need to understand what’s happening, you can drill into the trace view of the build to look
-for the high duration or errorful jobs. You can then drill into the details to understand the
+for the high duration or errorful jobs. You can then dig into the details to understand the
 source of the error.
 
 [role="screenshot"]
@@ -150,7 +150,7 @@ View the details of the build captured as labels of the distributed trace.
 
 [role="screenshot"]
 .Contextual attributes of a Jenkins pipeline execution in Elastic Observability
-image::images/jenkins-pipeline-trace.png[Attributes of a Jenkins pipeline execution]
+image::images/jenkins-pipeline-context.png[Attributes of a Jenkins pipeline execution]
 
 [discrete]
 [[ci-cd-instrumentation]]
@@ -228,8 +228,8 @@ can https://github.com/jenkinsci/opentelemetry-plugin/tree/master/docs/dashboard
 that are compatible with version 7.12 or higher.
 
 [discrete]
-[[ci-cd-mavin]]
-=== Mavin
+[[ci-cd-maven]]
+=== Maven
 
 The Maven OpenTelemetry plugin integration provides comprehensive visibility into all of your Maven builds.
 The plugin generates traces for each build and performance metrics to help you understand which maven goals
@@ -285,8 +285,8 @@ pipeline execution in Elastic Observability, including the detailed steps of you
 pipeline and the Maven build.
 
 When invoking Maven builds with Jenkins, it’s unnecessary to use environment variables
-to configure the Maven build (`OTEL_EXPORTER_OTLP_ENDPOINT…`), to rely on Jenkins’ capability
-to inject OpenTelemetry configuration as environment variables (see here).
+to configure the Maven build (`OTEL_EXPORTER_OTLP_ENDPOINT…`) to rely on the Jenkins capability
+to inject OpenTelemetry configuration as environment variables. For more details, refer to <<ci-cd-install-jenkins>>.
 
 [role="screenshot"]
 .A Jenkins pipeline executing Maven builds
@@ -336,14 +336,24 @@ IMG    := ${NAME}:${TAG}
 LATEST := ${NAME}:latest
  
 build:
-  @otel-cli exec --name 'docker build' docker build -t ${IMG} .
-  @otel-cli exec --name 'docker tag' docker tag ${IMG} ${LATEST}
+  @otel-cli exec \
+    --name 'docker build' \
+    docker build -t ${IMG} .
+  @otel-cli exec \
+    --name 'docker tag' \
+    docker tag ${IMG} ${LATEST}
  
 push:
-  @otel-cli exec --name 'docker push' --attrs "http.url=https://docker.elastic.dev" docker push ${NAME}
+  @otel-cli exec \
+    --name 'docker push' \
+    --attrs "http.url=https://docker.elastic.dev" \
+    docker push ${NAME}
  
 login:
-  @otel-cli exec --name 'docker login' --attrs 'rpc.system=grpc' docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
+  @otel-cli exec \
+    --name 'docker login' \
+    --attrs 'rpc.system=grpc' \
+    docker login -u ${DOCKER_USER} -p ${DOCKER_PASS}
 ----
 
 To invoke shell scripts that use otel-cli for tracing:
