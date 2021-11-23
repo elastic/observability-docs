@@ -1,8 +1,7 @@
-[discrete]
 [[fleet-server-scalability]]
-== {fleet-server} scalability
+= {fleet-server} scalability
 
-This section summarizes the resource and {fleet-server} configuration
+This page summarizes the resource and {fleet-server} configuration
 requirements needed to scale your deployment of {agent}s. To scale
 {fleet-server}, you need to modify settings in your deployment and the
 {fleet-server} agent policy.
@@ -45,7 +44,7 @@ image::images/fleet-server-configuration.png[{fleet-server} configuration]
 
 [discrete]
 [[fleet-server-configuration]]
-=== Advanced {fleet-server} options
+== Advanced {fleet-server} options
 
 The following advanced settings are available to fine tune your {fleet-server}
 deployment.
@@ -113,7 +112,7 @@ Burst of enrollments to accept before falling back to the rate defined by
 
 [discrete]
 [[scaling-recommendations]]
-=== Scaling recommendations ({ecloud})
+== Scaling recommendations ({ecloud})
 
 The following tables provide resource requirements and scaling guidelines based
 on the number of agents required by your deployment:
@@ -126,7 +125,7 @@ on the number of agents required by your deployment:
 
 [discrete]
 [[resource-requirements-by-number-agents]]
-==== Resource requirements by number of agents
+=== Resource requirements by number of agents
 |===
 | Number of Agents | Memory      | vCPU           | {es} Cluster size
 
@@ -143,7 +142,7 @@ on the number of agents required by your deployment:
 [discrete]
 [[recommend-settings-scaling-agents]]
 
-==== Recommended settings by number of deployed {agent}s
+=== Recommended settings by number of deployed {agent}s
 
 TIP: You might need to scroll to the right to see all the table columns.
 
@@ -174,78 +173,3 @@ TIP: You might need to scroll to the right to see all the table columns.
 8+s| Server runtime settings
 | `gc_percent`         | 20      | 20       | 20       | 20        | 20        | 20        | 20
 |===
-
-
-[discrete]
-[[fleet-server-monitoring]]
-== {fleet-server} monitoring
-
-Monitoring {fleet-server} is key since the operation of the {fleet-server} is
-paramount to the health of the deployed agents and the services they offer. When
-{fleet-server} is not operating correctly, it may lead to delayed check-ins,
-status information, and updates for the agents it manages. The monitoring data
-will tell you when to add capacity for {fleet-server}, and provide error logs
-and information to troubleshoot other issues.
-
-To enable monitoring for {fleet-server}, turn on agent monitoring in the agent
-policy. For self-managed clusters, monitoring is on by default when you create a
-new agent policy or use the existing Default {fleet-server} agent policy.
-However, it is off by default in the {ecloud} agent policy because monitoring
-requires additional RAM.
-
-To turn on {fleet-server} monitoring in the agent policy:
-
-. In {fleet}, go to *Agent Policies* and click on the *{ecloud} agent policy*.
-+
-[role="screenshot"]
-image::images/fleet-policy-page.png[Fleet Policy Page]
-
-. Click the *Settings* tab and notice that Agent monitoring is
-off by default.
-
-. Under *Agent monitoring*, select *Collect agent logs* and
-*Collect agent metrics*.
-+
---
-[role="screenshot"]
-image::images/elastic-cloud-agent-policy-page.png[{ecloud} Policy Page]
-
-The agent will now be able to collect logs and metrics from the {fleet-server}.
-
-NOTE: The {fleet-server} is deployed as yet another agent in the system.
---
-
-. Next, set the *Default namespace*.
-+
-Setting the default namespace lets you segregate {fleet-server} monitoring data
-from other collected data. This makes it easier to search and visualize the
-monitoring data. By default the monitoring data is sent to the *default*
-namespace.
-
-. To confirm your change, click *Save changes*.
-
-To see the metrics collected for {fleet-server}, go to *Analytics > Discover*.
-
-In the following example, `fleetserver` was configured as the namespace, and
-you can see the metrics collected:
-
-[role="screenshot"]
-image::images/dashboard-with-namespace-showing.png[Namespace]
-
-[role="screenshot"]
-image::images/datastream-namespace.png[Datastream]
-
-In {kib}, go to *Analytics > Dashboard* and search for the predefined dashboard
-called *[Elastic Agent] Agent metrics*. Choose this dashboard, and run a query
-based on the `fleetserver` namespace.
-
-The following dashboard shows data for the query `data_stream.namespace:
-"fleetserver"`. In this example, you can observe CPU and memory usage as a
-metric and then resize the {fleet-server}, if necessary.
-
-[role="screenshot"]
-image::images/dashboard-datastream.png[Dashboard Datastream]
-
-Note that as an alternative to running the query, you can hide all metrics
-except `fleet_server` in the dashboard.
-
