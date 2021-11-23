@@ -312,6 +312,13 @@ everything that happens in the CI is also shown in the traces.
 .Visibility into your Ansible playbooks
 image::images/jenkins-ansible-pipeline.png[Ansible playbooks in Jenkins]
 
+This integration feeds, out of the box, the Service Map with all the services that are connected to the Ansible Playbook.
+All of these features can help you quickly and visually assess your services used in your provisioning and Continuous Deployment.
+
+[role="screenshot"]
+.ServiceMap view of a Jenkins pipeline execution instrumented with the Ansible plugin
+image::images/ansible-service-map.png[Ansible service map view]
+
 [discrete]
 [[ci-cd-otel-cli]]
 === Otel cli
@@ -332,7 +339,7 @@ NAME   := acmecorp/foo
 TAG    := $$(git log -1 --pretty=%!H(MISSING))
 IMG    := ${NAME}:${TAG}
 LATEST := ${NAME}:latest
- 
+
 build:
   @otel-cli exec \
     --name 'docker build' \
@@ -340,13 +347,13 @@ build:
   @otel-cli exec \
     --name 'docker tag' \
     docker tag ${IMG} ${LATEST}
- 
+
 push:
   @otel-cli exec \
     --name 'docker push' \
     --attrs "http.url=https://docker.elastic.dev" \
     docker push ${NAME}
- 
+
 login:
   @otel-cli exec \
     --name 'docker login' \
