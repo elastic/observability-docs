@@ -2,11 +2,13 @@
 = Use a proxy server with {agent} and {fleet}
 
 Your organization’s security strategy and other considerations may require you
-to use a proxy server between some components in your deployment. Support is
-available in {agent} and {fleet} for connections through HTTP Connect (HTTP 1
-only) and Socks5 proxy servers.
+to use a proxy server between some components in your deployment. For example,
+you may have a firewall rule that prevents endpoints from connecting directly to
+{es}. In this scenario, you can set up the {agent} to connect to a proxy, then
+the proxy can connect to {es} through the firewall.
 
-//QUESTION: Do we want to provide a list of popular proxy servers that will work?
+Support is available in {agent} and {fleet} for connections through HTTP Connect
+(HTTP 1 only) and Socks5 proxy servers.
 
 This guide describes where a proxy server is allowed in your deployment and how
 to configure proxy settings for {agent} and {fleet}. The steps for deploying the
@@ -56,8 +58,7 @@ are available on the host:
 |URL of the proxy server for HTTP traffic. 
 
 |`HTTPS_PROXY`
-|URL of the proxy server for HTTPS traffic. `HTTPS_PROXY` takes precedence over
-`HTTP_PROXY` for https requests.
+|URL of the proxy server for HTTPS traffic.
 
 |`NO_PROXY`
 |IP addresses or domain names that should not use the proxy. Supports patterns.
@@ -133,25 +134,17 @@ outputs:
     proxy_url: 'https://192.0.2.0:8080'
 ----
 
-//QUESTION: What should this config actually look like ^^.
-
 For more information, refer to <<elastic-agent-configuration>>.
 
 [discrete]
 [[cli-proxy-settings]]
 === Command-line flags when enrolling in {fleet}
 
-//QUESTION: It sounds like the user need to visit Fleet to load policies before
-//running the command? Or can we just assume users will do that first before
-//getting to this step?
-
 Specify proxy settings on the command line when you are enrolling in {fleet} and
-the proxy configuration is not yet available. During enrollment, the proxy
-settings specified at the command line are copied to internal configuration
-files.
-
-//QUESTION: What does it mean for these settings to be copied to the internal
-//config? Will they be persisted and used after enrollment?
+the proxy configuration is not yet available. The proxy settings specified at
+the command line are used for enrollment; you'll still need to configure proxy
+settings for {fleet} to access the package registry and to communicate with
+{es}.
 
 The `enroll` and `install` commands accept the following flags:
 
