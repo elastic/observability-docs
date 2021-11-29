@@ -302,6 +302,23 @@ Any response data indicates that the port is in use. This could be correct or no
 if you had intended to uninstall the {fleet-server}. In which case, re-check and continue.
 
 [discrete]
+[[fleet-agent-stuck-on-updating]]
+==  The {agent} is stuck in status `updating`
+
+The {agengt} can hung up in some rare situations in the `updating` status. This can be cleaned as authenticated `superuser`.
+After this the {agent} will return the real status again.
+
+[source,shell]
+----
+curl 'https://{YOUR_KIBANA}/api/fleet/agents/{AGENT_ID}/unenroll' \
+  -H 'kbn-xsrf: xx' \
+  -H 'Content-type: application/json' \
+  --data-raw '{"force":true,"revoke":true}' \
+  --compressed
+----
+
+
+[discrete]
 [[fleet-server-input-missing]]
 == {fleet-server} fails with `assigned policy does not have fleet-server input` log error
 
@@ -309,6 +326,7 @@ if you had intended to uninstall the {fleet-server}. In which case, re-check and
 include::{fleet-repo-dir}/release-notes/release-notes-7.14.asciidoc[tag=fleet-server-input-missing-detail]
 
 include::{fleet-repo-dir}/release-notes/release-notes-7.14.asciidoc[tag=fleet-server-input-missing-fix]
+
 
 [discrete]
 [[secondary-agent-not-connecting]]
