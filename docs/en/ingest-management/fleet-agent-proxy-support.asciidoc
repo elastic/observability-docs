@@ -30,15 +30,15 @@ to:
 upgrades
 * Send data to {es}
 * Retrieve agent policies from {fleet-server}
-* Retrieve agent policies from {es} (when running as a {fleet-server})
+* Retrieve agent policies from {es} (only needed for agents running {fleet-server})
 * Monitor services (not shown)
 
 image::images/agent-proxy-server.png[Image showing connections between {agent}, {fleet-server}, and {es}]
 
-You can configure {agent} proxy settings in:
+You can configure {agent} proxy settings by specifying:
 
 * <<host-proxy-env-vars>>
-* <<es-output-proxy-settings>>
+* <<proxy-settings-in-agent-policy>>
 * <<cli-proxy-settings>>
 
 [discrete]
@@ -70,21 +70,15 @@ scheme is assumed. An error is returned if the value is a different form.
 Keep in mind that proxy environment settings may affect other components on the
 host that send HTTP requests.
 
+//TODO: Add examples of how/where to set env vars on various platforms.
+
 [discrete]
-[[es-output-proxy-settings]]
+[[proxy-settings-in-agent-policy]]
 === Proxy settings in the {agent} policy
 
-Configure proxy settings in the {agent} policy to override proxy settings
-specified by environment variables. For example, you can configure proxy
-settings in the {es} output to override host environment settings.
-
-//QUESTION: Is there a way to set the proxy URL for an input?
-
-The following proxy settings are valid in the {agent} policy:
-
-//QUESTION: Where are these proxy settings valid for Elastic Agent? Just under
-//output? What about input (for services behind a proxy)? I'm not sure how you
-//would configure that if you're not using standalone.
+Proxy settings in the {agent} policy override proxy settings specified by
+environment variables. The following proxy settings are valid in the agent
+policy:
 
 |===
 |Setting | Description
@@ -109,6 +103,21 @@ proxy.
 
 |===
 
+Proxy settings are valid in the {agent} policy under the following sections:
+
+* `outputs` - set the proxy server for communicating with {es}.
+
+* `fleet` - set the proxy server for retrieving agent policies from
+{fleet}.
+
+* `agent.download` - set the proxy server for retrieving artifacts or binary
+upgrades from `artifacts.elastic.co`.
+
+//TODO: Clarify where to add these settings ^^. For Fleet-managed agents, it
+//sounds like you need to set these in both the UI and fleet.yml, but it seems
+//odd to ask users to configure a file on the host when the policy is managed
+//by Fleet. 
+
 For {fleet}-managed agents, specify proxy settings in the {kib} UI:
 
 . Log in to {kib} and go to *Management > {fleet}*.
@@ -119,7 +128,7 @@ For {fleet}-managed agents, specify proxy settings in the {kib} UI:
 connecting to {es}. The proxy settings you specify here are applied to all
 {agent}s enrolled in {fleet}.
 +
-ADD SCREEN CAPTURE. NEED A REALISTIC EXAMPLE TO PROVIDE HERE.
+//TODO: Add a realistic example here.
 
 For standalone agents, specify proxy settings the `elastic-agent.yml` file. For
 example:
@@ -140,11 +149,11 @@ For more information, refer to <<elastic-agent-configuration>>.
 [[cli-proxy-settings]]
 === Command-line flags when enrolling in {fleet}
 
-Specify proxy settings on the command line when you are enrolling in {fleet} and
-the proxy configuration is not yet available. The proxy settings specified at
-the command line are used for enrollment; you'll still need to configure proxy
-settings for {fleet} to access the package registry and to communicate with
-{es}.
+Specify proxy settings on the command line if you are enrolling in {fleet} and
+the proxy configuration is not yet available. These settings are added to the
+`fleet.yml` file; you'll still need to
+<<fleet-proxy-configuration,configure {fleet} proxy settings>> for {fleet} to
+access the package registry and to communicate with {es}.
 
 The `enroll` and `install` commands accept the following flags:
 
@@ -172,7 +181,7 @@ For example:
 
 [source,sh]
 ----
-ADD EXAMPLE HERE
+//TODO: Add an example here
 ----
 
 NOTE: These commands require default policies to be loaded in {fleet}. Default
@@ -236,7 +245,7 @@ specify the URL for the proxy server:
 * *{fleet-server} hosts*
 --
 +
-NEED A SCREEN SHOWING VALID SETTINGS IN THIS DIALOG.
+//TODO: Add screen capture that shows valid settings in this dialog.
 
 
 //QUESTION: Unrelated to this section, but do we need to say anything about
