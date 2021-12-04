@@ -67,10 +67,68 @@ are available on the host:
 The proxy URL can be a complete URL or `host[:port]`, in which case the `http`
 scheme is assumed. An error is returned if the value is a different form.
 
-Keep in mind that proxy environment settings may affect other components on the
-host that send HTTP requests.
+[discrete]
+[[where-to-set-proxy-env-vars]]
+==== Where to set proxy environment variables
 
-//TODO: Add examples of how/where to set env vars on various platforms.
+The location where you set these environment variables is platform-specific and
+based on the system manager you're using. Here are some examples to get you
+started. For more information about setting environment variables, refer to the
+documentation for your operating system.
+
+* For Windows services, set environment variables for the service in
+the Windows registry.
++
+This PowerShell command sets the
+`HKLM\SYSTEM\CurrentControlSet\Services\Elastic Agent\Environment` registry
+key, then restarts {agent}:
++
+[source,shell]
+----
+$environment = [string[]]@(
+  "HTTPS_PROXY=https://proxy-hostname:proxy-port",
+  "HTTP_PROXY=http://proxy-hostname:proxy-port"
+  )
+
+Set-ItemProperty "HKLM:SYSTEM\CurrentControlSet\Services\Elastic Agent" -Name Environment -Value $environment
+
+Restart-Service "Elastic Agent"
+----
+
+* For Linux services, the location depends on the distribution you're using.
+For example, you can set environment variables in:
+
+** `/etc/sysconfig/elastic-agent` for Red Hat-like distributions
+
+** `/etc/default/elastic-agent` for Debian and Ubuntu distributions
++
+For example:
++
+[source,shell]
+----
+HTTPS_PROXY=https://my.proxy:8443
+HTTP_PROXY=http://my.proxy:8080
+----
+
+** `/etc/systemd/system/elastic-agent.service` for systems that use `systemd` to
+manage the service. To edit the file, run:
++
+[source,shell]
+----
+sudo systemctl edit --full elastic-agent.service
+----
++
+Then add the environment variables under `[Service]`
++
+[source,shell]
+----
+[Service]
+
+Environment="HTTPS_PROXY=https://my.proxy:8443"
+Environment="HTTP_PROXY=http://my.proxy:8080"
+----
+
+After adding environment variables, restart the service.
 
 [discrete]
 [[proxy-settings-in-agent-policy]]
@@ -153,7 +211,7 @@ Specify proxy settings on the command line if you are enrolling in {fleet} and
 the proxy configuration is not yet available. These settings are added to the
 `fleet.yml` file; you'll still need to
 <<fleet-proxy-configuration,configure {fleet} proxy settings>> for {fleet} to
-access the package registry and to communicate with {es}.
+  access the package registry and to communicate with {es}.
 
 The `enroll` and `install` commands accept the following flags:
 
