@@ -48,108 +48,15 @@ You can create a service token by either using the {fleet} UI or the {es} API.
 For more information, refer to <<add-fleet-server>>.
 
 [discrete]
-[[deployment-models]]
-== {fleet-server} deployment models
+== Learn more
 
-Administrators deploying the {agent} have a few deployment choices
-available to satisfy their organization's requirements. {fleet-server} can be
-deployed:
+To learn more about adding and scaling {fleet-server}, refer to:
 
-* On {ecloud}, as part of our hosted {ess}, which is managed by Elastic, or
-* On-prem and self-managed
-
-
-[discrete]
-[[deployed-in-cloud]]
-=== Deployed in {ecloud}
-
-To simplify the deployment of {agent}, the {fleet-server} can be
-provisioned and hosted in the {ecloud}. In this case, when the deployment is
-created, a highly available set of {fleet-server}s are automatically deployed.
-
-Administrators can choose the resources allocated to the {fleet-server} and
-whether they want the {fleet-server} to be deployed in multiple availability
-zones.
-
-Once deployed on {ecloud} as a service, the full life cycle of the
-{fleet-server} is managed by Elastic. {fleet-server} is scalable and highly
-available with traffic ingress load balanced across multiple instances to
-satisfy the scale requirements.
-
-image::images/fleet-server-cloud-deployment.png[{fleet-server} Cloud deployment model]
-
-[discrete]
-[[deployed-on-prem]]
-=== Deployed on-prem and self-managed
-
-{fleet-server} can be deployed on-premises and managed by the user. In this
-deployment model, the administrator is responsible for {fleet-server} deployment
-and lifecycle management. This mode of operation is predominantly chosen to
-satisfy data governance requirements or used in scenarios where the agents only
-have access to a private segmented network.
-
-It’s recommended that the administrator provision multiple instances of the
-{fleet-server} and use a load balancer to better scale the deployment.
-
-//TODO: Replace with clean images when they are available.
-
-image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-prem deployment model]
-
-[discrete]
-[[fleet-server-HA-operations]]
-== {fleet-server} High availability operations
-
-{fleet-server} is stateless. Connections to the {fleet-server} therefore can be
-load balanced as long as the {fleet-server} has capacity to accept more
-connections. Load balancing is done on a round-robin basis.
-
-In the {ecloud} deployment model, multiple {fleet-server}s are automatically
-provisioned to satisfy the instance size chosen (instance sizes are modified to
-satisfy the scale requirement). In addition, if you choose multiple
-availability zones to address your fault-tolerance requirements, those
-instances are also utilized to balance the load.
-
-In an on-prem deployment, high-availability, fault-tolerance, and lifecycle
-management of the {fleet-server} are the responsibility of the administrator.
-
-[discrete]
-[[fleet-server-compatibility]]
-== Compatibility and prerequisites
-
-{fleet-server} is compatible with the following Elastic products:
-
-* {stack} 7.13 or later ({ess-product}[hosted {ess}] on {ecloud}, or
-a self-managed cluster).
-** For version compatibility: {es} >= {fleet-server} >= {agent} (except for
-bugfix releases)
-** {kib} should be on the same minor version as {es}.
-
-* {ece} 2.9--requires you to self-manage the {fleet-server}.
-* {ece} 2.10 or later--allows you to use a hosted {fleet-server} on {ecloud}.
-+
---
-** Requires additional wildcard domains and certificates (which normally only
-cover `*.cname`, not `*.*.cname`). This enables us to provide the URL for
-{fleet-server} of `https://.fleet.`.
-** The deployment template must contain an APM & Fleet node.
---
-+
-For more information about hosting {fleet-server} on {ece}, refer to
-{ece-ref}/ece-manage-apm-and-fleet.html[Manage your APM & {fleet-server}].
-
-[discrete]
 [[add-fleet-server]]
-== Add a {fleet-server}
+* <<add-a-fleet-server>>
 
-Before using {fleet} for central management, {fleet-server} must be running. The
-steps for running {fleet-server} on our {ess-product}[hosted {ess}] on {ecloud}
-are different from the steps for running it as self-managed.
+* <<deployment-models>>
 
-include::{tab-widgets}/add-fleet-server/widget.asciidoc[]
+* <<fleet-server-scalability>>
 
-
-Now you're ready to add {agent}s to your host systems. To learn how, see
-<<install-fleet-managed-elastic-agent>>.
-
-include::fleet-server-scaling.asciidoc[]
-
+* <<fleet-server-monitoring>>
