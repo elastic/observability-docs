@@ -21,7 +21,7 @@ described later.
 
 [discrete]
 [[elastic-agent-proxy-config]]
-== Configure {agent} proxy settings
+== When to configure proxy settings
 
 Configure proxy settings for {agent} when it must connect through a proxy server
 to:
@@ -31,19 +31,18 @@ upgrades
 * Send data to {es}
 * Retrieve agent policies from {fleet-server}
 * Retrieve agent policies from {es} (only needed for agents running {fleet-server})
-* Monitor services (not shown)
 
 image::images/agent-proxy-server.png[Image showing connections between {agent}, {fleet-server}, and {es}]
 
-You can configure {agent} proxy settings by specifying:
+If {fleet} is unable to access the Elastic Package Registry because {kib} is
+behind a proxy server, you may also need to set the registry proxy URL
+in the {kib} configuration.
 
-* <<host-proxy-env-vars>>
-* <<proxy-settings-in-agent-policy>>
-* <<cli-proxy-settings>>
+image::images/fleet-epr-proxy.png[Image showing connections between {fleet} and the Elastic Package Registry]
 
 [discrete]
 [[host-proxy-env-vars]]
-=== Host environment variables
+== Set default proxy settings in host environment variables
 
 Set environment variables on the host to configure default proxy settings.
 The {agent} uses host environment settings by default if no proxy settings are
@@ -69,7 +68,7 @@ scheme is assumed. An error is returned if the value is a different form.
 
 [discrete]
 [[where-to-set-proxy-env-vars]]
-==== Where to set proxy environment variables
+=== Where to set proxy environment variables
 
 The location where you set these environment variables is platform-specific and
 based on the system manager you're using. Here are some examples to get you
@@ -83,7 +82,7 @@ This PowerShell command sets the
 `HKLM\SYSTEM\CurrentControlSet\Services\Elastic Agent\Environment` registry
 key, then restarts {agent}:
 +
-[source,shell]
+[source,yaml]
 ----
 $environment = [string[]]@(
   "HTTPS_PROXY=https://proxy-hostname:proxy-port",
@@ -97,18 +96,6 @@ Restart-Service "Elastic Agent"
 
 * For Linux services, the location depends on the distribution you're using.
 For example, you can set environment variables in:
-
-** `/etc/sysconfig/elastic-agent` for Red Hat-like distributions
-
-** `/etc/default/elastic-agent` for Debian and Ubuntu distributions
-+
-For example:
-+
-[source,shell]
-----
-HTTPS_PROXY=https://my.proxy:8443
-HTTP_PROXY=http://my.proxy:8080
-----
 
 ** `/etc/systemd/system/elastic-agent.service` for systems that use `systemd` to
 manage the service. To edit the file, run:
@@ -128,15 +115,30 @@ Environment="HTTPS_PROXY=https://my.proxy:8443"
 Environment="HTTP_PROXY=http://my.proxy:8080"
 ----
 
+** `/etc/sysconfig/elastic-agent` for Red Hat-like distributions that don't use
+`systemd`.
+
+** `/etc/default/elastic-agent` for Debian and Ubuntu distributions that don't
+use `systemd`.
++
+For example:
++
+[source,shell]
+----
+HTTPS_PROXY=https://my.proxy:8443
+HTTP_PROXY=http://my.proxy:8080
+----
+
 After adding environment variables, restart the service.
 
 [discrete]
 [[proxy-settings-in-agent-policy]]
-=== Proxy settings in the {agent} policy
+== Set {agent} proxy settings in the agent policy
 
 Proxy settings in the {agent} policy override proxy settings specified by
-environment variables. The following proxy settings are valid in the agent
-policy:
+environment variables. This means you can specify proxy settings for {agent}
+that are different from host or system-level environment settings. The following
+proxy settings are valid in the agent policy:
 
 |===
 |Setting | Description
@@ -161,23 +163,16 @@ proxy.
 
 |===
 
-Proxy settings are valid in the {agent} policy under the following sections:
+[discrete]
+=== Set the proxy for communicating with {es}
 
-* `outputs` - set the proxy server for communicating with {es}.
+To set the proxy for communicating with {es}, specify proxy settings under
+`outputs` in the agent policy. The procedure for doing this depends on
+whether you're running {fleet}-managed or standalone agents:
 
-* `fleet` - set the proxy server for retrieving agent policies from
-{fleet}.
-
-* `agent.download` - set the proxy server for retrieving artifacts or binary
-upgrades from `artifacts.elastic.co`.
-
-//TODO: Clarify where to add these settings ^^. For Fleet-managed agents, it
-//sounds like you need to set these in both the UI and fleet.yml, but it seems
-//odd to ask users to configure a file on the host when the policy is managed
-//by Fleet. 
-
-For {fleet}-managed agents, specify proxy settings in the {kib} UI:
-
+* For {fleet}-managed agents, specify proxy settings in the {kib} UI:
++
+--
 . Log in to {kib} and go to *Management > {fleet}*.
 
 . Click *{fleet} settings*.
@@ -186,32 +181,59 @@ For {fleet}-managed agents, specify proxy settings in the {kib} UI:
 connecting to {es}. The proxy settings you specify here are applied to all
 {agent}s enrolled in {fleet}.
 +
-//TODO: Add a realistic example here.
+[role="screenshot"]
+image::images/fleet-proxy-settings-ui.png[Screen capture of Fleet settings UI showing proxy_url setting]
+--
 
-For standalone agents, specify proxy settings the `elastic-agent.yml` file. For
+* For standalone agents, specify proxy settings the `elastic-agent.yml` file. For
 example:
-
++
 [source,yaml]
 ----
 outputs:
   default:
-    type: elasticsearch
+    api_key: API-KEY
     hosts:
-      - 'http://localhost:9200'
-    proxy_url: 'https://192.0.2.0:8080'
+    - https://10.0.1.2:9200
+    proxy_url: http://10.0.1.7:3128
+    type: elasticsearch
 ----
 
 For more information, refer to <<elastic-agent-configuration>>.
 
 [discrete]
-[[cli-proxy-settings]]
-=== Command-line flags when enrolling in {fleet}
+=== Set the proxy for downloading artifacts
 
-Specify proxy settings on the command line if you are enrolling in {fleet} and
-the proxy configuration is not yet available. These settings are added to the
-`fleet.yml` file; you'll still need to
-<<fleet-proxy-configuration,configure {fleet} proxy settings>> for {fleet} to
-  access the package registry and to communicate with {es}.
+To set the proxy for downloading artifacts or binary upgrades from
+`artifacts.elastic.co`, add proxy settings under `agent.download` in the
+either the `fleet.yml` file for {fleet}-managed agents, or
+the `elastic-agent.yml` file for standalone agents.
+
+For example:
+
+[source,yaml]
+----
+agent:
+  id: fe277816-8736-4871-9de0-4850d0af21e5
+  download.proxy_url: http://10.0.1.3:3128
+  logging.level: info
+----
+
+IMPORTANT: There is currently no way to configure the `agent.download.proxy_url`
+setting through a command-line flag or the {fleet} UI. If this capability is
+added in the future, the setting you specify here will be overridden.
+
+[discrete]
+[[cli-proxy-settings]]
+== Set the proxy for retrieving agent policies from {fleet}
+
+If there is a proxy between {agent} and {fleet}, specify proxy settings on the
+command line when you install {agent} and enroll in {fleet}. The settings you
+specify at the command line are added to the `fleet.yml` file installed on the
+system where the {agent} is running.
+
+NOTE: If {kib} is behind a proxy server, you'll still need to
+<<epr-proxy-setting,configure {kib} settings>> to access the package registry.
 
 The `enroll` and `install` commands accept the following flags:
 
@@ -239,32 +261,41 @@ For example:
 
 [source,sh]
 ----
-//TODO: Add an example here
+elastic-agent install -f --url="https://10.0.1.6:8220" --enrollment-token=TOKEN --proxy-url="http://10.0.1.7:3128" --fleet-server-es-ca="/usr/local/share/ca-certificates/es-ca.crt" --certificate-authorities="/usr/local/share/ca-certificates/fleet-ca.crt"
 ----
 
-NOTE: These commands require default policies to be loaded in {fleet}. Default
+NOTE: This command requires default policies to be loaded in {fleet}. Default
 policies are loaded automatically when you visit {fleet} for the first time. If
 you're not sure whether default policies are loaded, log in to {kib} and go to
 *Management > {fleet}*.
 
-[discrete]
-[[fleet-proxy-configuration]]
-== Configure {fleet} proxy settings
+The command in the previous example adds the following settings to the
+`fleet.yml` policy on the host where {agent} is installed:
 
-Configure proxy settings for {fleet} when it must connect through a proxy server
-to:
-
-* Access the Elastic Package Registry
-* Communicate with {es}
-
-image::images/fleet-proxy-server.png[Image showing connections between {fleet}, {es}, and the Elastic Package Registry]
-
-TIP: If you're using our hosted {ess} on {ecloud}, you don't have to configure
-{fleet} proxy settings because they are handled by {ecloud}.
+[source,yaml]
+----
+fleet:
+  enabled: true
+  access_api_key: API-KEY
+  hosts:
+  - https://10.0.1.6:8220
+  ssl:
+    verification_mode: ""
+    certificate_authorities:
+    - /usr/local/share/ca-certificates/es-ca.crt
+    renegotiation: never
+  timeout: 10m0s
+  proxy_url: http://10.0.1.7:3128
+  reporting:
+    threshold: 10000
+    check_frequency_sec: 30
+  agent:
+    id: ""
+----
 
 [discrete]
 [[epr-proxy-setting]]
-=== Access the Elastic Package Registry through a proxy
+== Set the proxy URL of the Elastic Package Registry
 
 {fleet} might be unable to access the Elastic Package Registry because {kib} is
 behind a proxy server.
@@ -281,30 +312,3 @@ gateway, then configure proxy settings in the {kib} configuration file,
 xpack.fleet.registryProxyUrl: your-nat-gateway.corp.net
 ----
 
-[discrete]
-[[es-proxy-setting]]
-=== Access {es} through a proxy
-
-When {fleet} is behind a proxy server, configure {fleet} settings to
-specify the URL for the proxy server:
-
-//QUESTION: Is correct? There does not appear to be a Proxy URL setting under
-//Fleet settings. Can you provide a screen captures showing realistic values?
-
-. Log in to {kib} and go to *Management > {fleet}*.
-
-. Click *{fleet} Settings*.
-
-. Add the proxy URL to the following fields:
-+
---
-* *{es} hosts*
-
-* *{fleet-server} hosts*
---
-+
-//TODO: Add screen capture that shows valid settings in this dialog.
-
-
-//QUESTION: Unrelated to this section, but do we need to say anything about
-//certs here?
