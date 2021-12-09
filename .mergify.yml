@@ -19,7 +19,7 @@ pull_request_rules:
     conditions:
       - merged
       - base=main
-      - label=v8.0.0
+      - label=backport-8.0
     actions:
       backport:
         assignees:
@@ -33,7 +33,7 @@ pull_request_rules:
     conditions:
       - merged
       - base=main
-      - label=v7.16.0
+      - label=backport-7.16
     actions:
       backport:
         assignees:
@@ -47,7 +47,7 @@ pull_request_rules:
     conditions:
       - merged
       - base=main
-      - label=v7.15.0
+      - label=backport-7.15
     actions:
       backport:
         assignees:
@@ -59,7 +59,7 @@ pull_request_rules:
           - backport
   - name: notify the backport policy
     conditions:
-      - -label~=(^v\d|backport-skip)
+      - -label~=^backport
       - base=main
     actions:
       comment:
@@ -67,14 +67,16 @@ pull_request_rules:
           This pull request does not have a backport label. Could you fix it @{{author}}? 🙏
           To fixup this pull request, you need to add the backport labels for the needed
           branches, such as:
-          * `v7./d./d` is the label to automatically backport to the `7./d` branch. `/d` is the digit
+          * `backport-/d./d` is the label to automatically backport to the `/d./d` branch. `/d` is the digit
           **NOTE**: `backport-skip` has been added to this pull request.
       label:
         add:
           - backport-skip
   - name: remove backport-skip label
     conditions:
-      - label~=^v\d
+      - label~=^backport-\d
+      - -merged
+      - -closed
     actions:
       label:
         remove:
