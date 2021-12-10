@@ -5,26 +5,119 @@
 [[elastic-agent]]
 == {agent}
 
-{agent} is a single, unified way to add monitoring for logs, metrics, and
-other types of data to each host. A single agent makes it easier and faster
-to deploy monitoring across your infrastructure. The agent's single, unified
-policy makes it easier to add integrations for new data sources.
+//TODO: We need to converge on a single definition for this product because
+//we describe it in many different ways in these docs and others. I've made
+//some minor edits to this description, but it still needs work.
+
+{agent} is a single, unified way to add monitoring for logs, metrics, and other
+types of data to a host. A single agent makes it easier and faster to deploy
+monitoring across your infrastructure. Each agent has a single policy you
+can update to add integrations for new data sources.
 
 For more information, refer to <<elastic-agent-installation>>.
 
 [discrete]
-[[fleet]]
-== {fleet}
+[[unified-integrations]]
+== {integrations}
 
-{fleet} provides a web-based UI in {kib} to add and manage integrations
-for popular services and platforms, as well as manage a fleet of {agent}s. Our
-integrations provide an easy way to add new sources of data, plus they ship
+Our integrations provide an easy way to add new sources of data, plus they ship
 with out-of-the-box assets like dashboards, visualizations, and pipelines to
 extract structured fields out of logs. This makes it easier to get insights
-within seconds.
+within seconds. Integrations are available for popular services and platforms
+like Nginx or AWS, as well as many generic input types like log files. 
+
+{kib} provides a web-based UI to add and manage integrations. You can browse a
+unified view of available integrations that shows both {agent} and {beats}
+integrations.
 
 [role="screenshot"]
 image::images/integrations.png[Integrations page]
+
+For a list of {agent} integrations, refer to
+{integrations-docs}[{agent} Integrations]. To explore {beats} integrations,
+refer to {filebeat-ref}/filebeat-modules-overview.html[Filebeat modules] for
+logs or {metricbeat-ref}/metricbeat-modules.html[Metricbeat modules] for
+metrics.
+
+[discrete]
+[[configuring-integrations]]
+== {agent} policies
+
+Each {agent} is enrolled in an {agent} policy that allows you to use any number
+of integrations for data sources. You can apply the {agent} policy to multiple
+agents, making it even easier to manage configuration at scale.
+
+[role="screenshot"]
+image::images/add-integration.png[Add integration page]
+
+When you add an integration, you select the agent policy to use then
+configure inputs for logs and metrics, such as the path to your Nginx access
+logs. When you're done, you save the integration to update the {agent}
+policy. The next time enrolled agents check in, they receive the update.
+Having the policies automatically deployed is more convenient
+than doing it yourself by using SSH, Ansible playbooks, or some other tool.
+
+For more information, refer to <<integrations>>.
+
+If you prefer infrastructure as code, you may use YAML files and APIs.
+{fleet} has an API-first design. Anything you can do in the UI, you
+can also do using the {fleet-guide}/fleet-api-docs.html[`API`].
+This makes it easy to automate and integrate with other systems.
+
+[discrete]
+[[package-registry-intro]]
+== {package-registry}
+
+The {package-registry} is an online package hosting service for the {agent}
+integrations available in {kib}.
+
+{kib} connects to the {package-registry} at `epr.elastic.co` using the Elastic
+Package Manager, downloads the latest integration package, and stores its assets
+in {es}. This process typically requires an internet connection because
+integrations are updated and released periodically. In air-gapped environments,
+you can host your own {package-registry}.
+
+If you are running a self-managed deployment, you may need to configure the
+outbound connection so that the Elastic Package Manager can reach the
+{package-registry}.
+
+To do so, add the following setting to your `kibana.yml` file:
+
+[source,yaml]
+----
+xpack.fleet.registryProxyUrl: <your-proxy-address>
+----
+
+You can find more information about running the {package-registry} in air-gapped
+environments in the section about {fleet-guide}/air-gapped.html[Air-gapped environments].
+
+[discrete]
+[[central-management]]
+== Central management in {fleet}
+
+{fleet} provides a web-based UI in {kib} for centrally managing {agent}s and
+their policies.
+
+You can see the state of all your {agent}s in {fleet}. On the **Agents** page,
+you can see which agents are online, which have errors, and the last time
+they checked in. You can also see the version of the {agent} binary and
+policy.
+
+[role="screenshot"]
+image::images/kibana-fleet-agents-overview.png[Agents page]
+
+{fleet} serves as the communication channel back to the {agent}s. Agents check
+in for the latest updates on a regular basis. You can have any number of agents
+enrolled into each agent policy, which allows you to scale up to
+thousands of hosts.
+
+When you make a change to an agent policy, all the agents receive the update
+during their next check-in. You no longer have to distribute policy updates
+yourself.
+
+When you're ready to upgrade your {agent} binaries or integrations, you can
+initiate upgrades in {fleet}, and the {agent}s running on your hosts will
+upgrade automatically.
 
 [discrete]
 [[fleet-server-intro]]
@@ -48,61 +141,6 @@ ships it to the {agent}s. To communicate to {fleet} about the status of the
 {agent}s and the policy rollout, the {fleet-server}s write updates to the
 `fleet-*` indices.
 
-
-[discrete]
-[[package-registry-intro]]
-== {package-registry}
-
-The {package-registry} is an online package hosting service for the integrations
-available in the {fleet} UI in {kib}.
-
-{kib} connects to the {package-registry} at `epr.elastic.co` using the Elastic Package Manager,
-downloads the latest integration package and stores its assets in {es}. This process
-currently requires an internet connection because integrations are updated and released periodically.
-
-If you are running a self-managed deployment, you may need to configure the outbound connection
-so that the Elastic Package Manager can reach the {package-registry}.
-
-To do so, add the following setting to your `kibana.yml` file:
-
-[source,yaml]
-----
-xpack.fleet.registryProxyUrl: <your-proxy-address>
-----
-
-You can find more information about running the {package-registry} in air-gapped
-environments in the section about {fleet-guide}/air-gapped.html[Air-gapped environments].
-
-[discrete]
-[[configuring-integrations]]
-== {agent} {integrations}
-
-{kib} provides a web-based UI for configuring integrations with your
-data sources. This includes popular services and platforms like Nginx or AWS,
-as well as many generic input types like log files. For a list of
-available integrations, refer to {integrations-docs}[{agent} Integrations].
-
-The {agent} policy allows you to use any number of integrations for
-data sources. You can apply the {agent} policy to multiple agents,
-making it even easier to manage configuration at scale.
-
-[role="screenshot"]
-image::images/add-integration.png[Add integration page]
-
-When you add an integration, you select the agent policy to use then
-configure inputs for logs and metrics, such as the path to your Nginx access
-logs. When you're done, you save the integration to update the {agent}
-policy. The next time enrolled agents check in, they receive the update.
-Having the policies automatically deployed is more convenient
-than doing it yourself by using SSH, Ansible playbooks, or some other tool.
-
-For more information, refer to <<integrations>>.
-
-If you prefer infrastructure as code, you may use YAML files and APIs.
-{fleet} has an API-first design. Anything you can do in the UI, you
-can also do using the {fleet-guide}/fleet-api-docs.html[`API`].
-This makes it easy to automate and integrate with other systems.
-
 [discrete]
 [[agent-self-protection]]
 == {agent} self-protection
@@ -113,27 +151,8 @@ more information, refer to
 {security-guide}/es-overview.html#self-protection[{elastic-endpoint} self-protection].
 
 [discrete]
-[[central-management]]
-== Central management in {fleet}
-
-You can see the state of all your {agent}s in {fleet}. On the **Agents** page,
-you can see which agents are online, which have errors, and the last time
-they checked in. You can also see the version of the {agent} binary and
-policy.
-
-[role="screenshot"]
-image::images/kibana-fleet-agents-overview.png[Agents page]
-
-{fleet} serves as the communication channel back to the {agent}s. Agents check
-in for the latest updates on a regular basis. You can have any number of agents
-enrolled into each agent policy, which allows you to scale up to
-thousands of hosts. When you make a change to an agent policy, all the
-agents receive the update during their next check-in. You no longer have to
-distribute policy updates yourself.
-
-[discrete]
 [[data-streams-intro]]
-=== Data streams make index management easier
+== Data streams make index management easier
 
 The data collected by {agent} is stored in indices that are more granular than
 you'd get by default with the Beats shippers or APM Server. This gives you more visibility into the
