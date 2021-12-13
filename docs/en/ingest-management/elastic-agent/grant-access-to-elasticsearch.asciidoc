@@ -6,8 +6,8 @@ access to {es} resources. The following minimal permissions are required to send
 logs, metrics, traces, and synthetics to {es}:
 
 * `monitor` cluster privilege
-* `auto_configure` and `create_doc` index privileges on `logs-*`, `metrics-*`,
-`traces-*`, and `synthetics-*`.
+* `auto_configure` and `create_doc` index privileges on `logs-*-*`, `metrics-*-*`,
+`traces-*-*`, and `synthetics-*-*`.
 
 It's recommended that you use API keys to avoid exposing usernames and passwords
 in configuration files.
@@ -51,7 +51,7 @@ API key with privileges for ingesting logs, metrics, traces, and synthetics:
     "indices": [
       {
         "names": [
-          "logs-*-*", "metrics-*-*", "traces-*-*", "synthetics-*-*"
+          "logs-*-*", "metrics-*-*", "traces-*-*", "synthetics-*-*" <1>
         ],
         "privileges": [
           "auto_configure", "create_doc"
@@ -61,6 +61,9 @@ API key with privileges for ingesting logs, metrics, traces, and synthetics:
   }
 }
 ----
+<1> Adjust this list to match the data you want to collect. For example, if
+you aren't using APM or synthetics, remove `"traces-*-*"` and `"synthetics-*-*"`
+from this list.
 
 . To set an expiration date for the API key, select *Expire after time* and input
 the lifetime of the API key in days.
@@ -116,7 +119,12 @@ assign it to a user, and specify the user's credentials in the
 
 . In *Index privileges*, enter:
 
-.. `logs-*`, `metrics-*`, `traces-*` and `synthetics-*` in the *Indices* field.
+.. `logs-*-*`, `metrics-*-*`, `traces-*-*` and `synthetics-*-*` in the *Indices*
+field. 
++
+NOTE: Adjust this list to match the data you want to collect. For example, if
+you aren't using APM or synthetics, remove `traces-*-*` and `synthetics-*-*`
+from this list.
 
 .. `auto_configure` and `create_doc` in the *Privileges* field.
 +
