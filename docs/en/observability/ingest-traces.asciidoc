@@ -55,16 +55,18 @@ For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
 [[add-agent-to-fleet-traces]]
 == Step 2: Add an {agent} to {fleet}
 
-[TIP]
-====
-Don't confuse {agent} with APM agents–they are different components.
-In a later step, you'll instrument your code with APM agents and send the data
-to an APM Server instance that {agent} spins up.
-====
+****
+This step is optional for {ess} users as {ecloud} spins up an {agent} instance automatically.
+Unless you want to run a separate {agent} on an edge machine, {ess} users should skip this step.
+****
 
 {agent} is a single, unified agent that you can deploy to hosts or containers to
 collect data and send it to the {stack}. Behind the scenes, {agent} runs the
 {beats} shippers or Elastic Endpoint required for your configuration.
+
+Don't confuse {agent} with APM agents–they are different components.
+In a later step, you'll instrument your code with APM agents and send the data
+to an APM Server instance that {agent} spins up.
 
 If you plan on enabling Real User Monitoring (RUM), you must run {agent} centrally.
 If RUM is disabled, you should run {agent} on edge machines.
@@ -77,48 +79,11 @@ include::../ingest-management/elastic-agent/install-fleet-managed-elastic-agent.
 [[add-apm-integration]]
 == Step 3: Add the APM integration
 
-Next, you'll browse a catalog of integrations, then add an APM integration to
-the default policy used by your agent. You use policies to manage settings
-across a group of agents. An agent policy may contain any number of integrations
-for collecting observability data from the various services running on your
-host.
+Next, add the APM integration to the default policy used by your {agent}.
+Policies manage settings across a group of {agent}s and may contain any number of integrations
+for collecting observability data from the various services running on your host.
 
-. In {kib}, select **Add integrations**.
-+
-[role="screenshot"]
-image::images/kibana-fleet-integrations-apm.png[{fleet} showing APM integration]
-. Click the **Elastic APM** integration to see more details about it, then click
-**Add Elastic APM**.
-+
-[role="screenshot"]
-image::images/kibana-fleet-integrations-apm-overview.png[{fleet} showing APM integration overview]
-
-. On the **Add Elastic APM integration** page,
-define the host and port where APM Server will listen.
-If you're using our hosted **Elastic Cloud** offering, the URL where APM Server listens will be predefined.
-Inspect or change other settings.
-
-. Under **Apply to agent policy**, select the default policy.
-Click **Save and continue**.
-+
-****
-In this guide, you add integrations to the default policy created by
-{kib}. After you learn the basics, you can create your own policies and assign
-them to agents.
-****
-+
-[role="screenshot"]
-image::images/add-integration-apm.png[{fleet} Add APM integration page]
-
-. To see the updated policy, click the *Default policy* link.
-+
-The newly added APM integration should appear under **Fleet** > **Agent policies** > **Default policy**,
-along with the default System integration.
-+
-[role="screenshot"]
-image::images/kibana-fleet-policies-default-with-apm.png[{fleet} showing default agent policy with apm-1 datasource]
-+
-All {agent}s that use this policy will collect APM data from your instrumented services.
+include::./tab-widgets/add-apm-integration/widget.asciidoc[]
 
 [discrete]
 [[add-apm-integration-agents]]
