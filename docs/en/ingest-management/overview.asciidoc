@@ -10,9 +10,10 @@
 //some minor edits to this description, but it still needs work.
 
 {agent} is a single, unified way to add monitoring for logs, metrics, and other
-types of data to a host. A single agent makes it easier and faster to deploy
+types of data to a host. It can also protect hosts from security threats, query 
+data from operating systems, and more. A single agent makes it easier and faster to deploy
 monitoring across your infrastructure. Each agent has a single policy you
-can update to add integrations for new data sources.
+can update to add integrations for new data sources, security protections, and more.
 
 For more information, refer to <<elastic-agent-installation>>.
 
@@ -20,9 +21,10 @@ For more information, refer to <<elastic-agent-installation>>.
 [[unified-integrations]]
 == {integrations}
 
-Our integrations provide an easy way to add new sources of data, plus they ship
+Our [integrations](https://www.elastic.co/integrations/) provide an easy way to connect Elastic to external services and systems, and quickly get insights or take action.
+They can collect add new sources of data, and they often ship
 with out-of-the-box assets like dashboards, visualizations, and pipelines to
-extract structured fields out of logs. This makes it easier to get insights
+extract structured fields out of logs and events. This makes it easier to get insights
 within seconds. Integrations are available for popular services and platforms
 like Nginx or AWS, as well as many generic input types like log files. 
 
@@ -33,26 +35,21 @@ integrations.
 [role="screenshot"]
 image::images/integrations.png[Integrations page]
 
-For a list of {agent} integrations, refer to
-{integrations-docs}[{agent} Integrations]. To explore {beats} integrations,
-refer to {filebeat-ref}/filebeat-modules-overview.html[Filebeat modules] for
-logs or {metricbeat-ref}/metricbeat-modules.html[Metricbeat modules] for
-metrics.
+See our [list of integrations](https://www.elastic.co/integrations/data-integrations) to learn more about them.
 
 [discrete]
 [[configuring-integrations]]
 == {agent} policies
 
-Each {agent} is enrolled in an {agent} policy that allows you to use any number
-of integrations for data sources. You can apply the {agent} policy to multiple
+Agent policies specify which integrations you want to run and on which hosts. 
+You can apply an {agent} policy to multiple
 agents, making it even easier to manage configuration at scale.
 
 [role="screenshot"]
 image::images/add-integration.png[Add integration page]
 
-When you add an integration, you select the agent policy to use then
-configure inputs for logs and metrics, such as the path to your Nginx access
-logs. When you're done, you save the integration to update the {agent}
+When you add an integration, you configure inputs for logs and metrics, such as the path to your Nginx access
+logs. When you're done, you save the integration to an {agent}
 policy. The next time enrolled agents check in, they receive the update.
 Having the policies automatically deployed is more convenient
 than doing it yourself by using SSH, Ansible playbooks, or some other tool.
@@ -74,21 +71,7 @@ integrations available in {kib}.
 {kib} connects to the {package-registry} at `epr.elastic.co` using the Elastic
 Package Manager, downloads the latest integration package, and stores its assets
 in {es}. This process typically requires an internet connection because
-integrations are updated and released periodically. In air-gapped environments,
-you can host your own {package-registry}.
-
-If you are running a self-managed deployment, you may need to configure the
-outbound connection so that the Elastic Package Manager can reach the
-{package-registry}.
-
-To do so, add the following setting to your `kibana.yml` file:
-
-[source,yaml]
-----
-xpack.fleet.registryProxyUrl: <your-proxy-address>
-----
-
-You can find more information about running the {package-registry} in air-gapped
+integrations are updated and released periodically. You can find more information about running the {package-registry} in air-gapped
 environments in the section about {fleet-guide}/air-gapped.html[Air-gapped environments].
 
 [discrete]
