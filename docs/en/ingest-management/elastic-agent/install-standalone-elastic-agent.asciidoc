@@ -39,8 +39,8 @@ information, refer to <<create-standalone-agent-policy>>.
 +
 For additional configuration options, refer to <<elastic-agent-configuration>>.
 
-. In the `elastic-agent.yml` policy file, under `outputs`, modify the
-`ES_USERNAME` and `ES_PASSWORD` settings for {es}. For example:
+. In the `elastic-agent.yml` policy file, under `outputs`, specify an API key
+or user credentials for the {agent} to access {es}. For example:
 +
 [source,yaml]
 ----
@@ -49,32 +49,13 @@ outputs:
   default:
     type: elasticsearch
     hosts:
-      - 'http://localhost:9200'
-    username: ES_USERNAME <1>
-    password: ES_PASSWORD
+      - 'https://da4e3a6298c14a6683e6064ebfve9ace.us-central1.gcp.cloud.es.io:443'
+    api_key: _Nj4oH0aWZVGqM7MGop8:349p_U1ERHyIc4Nm8_AYkw <1>
 [...]
 ----
-<1> This user must have the privileges shown in the following example. For
-security reasons, it's recommended that you do not use the `elastic` super user.
 +
-To create a role that has the privileges needed by the {agent} user, go to
-*Management > Dev Tools* in {kib} and run:
-+
-[source,console]
-----
-POST /_security/role/standalone_agent
-{
-  "cluster": ["monitor"],
-  "indices": [
-    {
-      "names": ["logs-*", "metrics-*", "events-*", ".ds-logs-*", ".ds-metrics-*", ".ds-events-*"],
-      "privileges": ["write", "create_index", "indices:admin/auto_create"]
-    }
-  ]
-}
-----
-+
-Assign this role to the user in {kib}.
+For more information required privileges and creating API keys, see
+<<grant-access-to-elasticsearch>>.
 
 . Make sure the assets you need, such as dashboards and ingest pipelines, are
 set up in {kib} and {es}. If you used {kib} to generate the standalone
