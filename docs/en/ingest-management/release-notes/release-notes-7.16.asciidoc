@@ -1,4 +1,4 @@
-// Use these for links to issue and pulls. 
+// Use these for links to issue and pulls.
 :kib-issue: https://github.com/elastic/kibana/issues/
 :kib-pull: https://github.com/elastic/kibana/pull/
 :agent-issue: https://github.com/elastic/beats/issues/
@@ -56,6 +56,31 @@ Fleet::
 * Improves default settings for {fleet} component templates {kib-pull}114101[#114101]
 * Report `installing` status while package install is in progress {kib-pull}111875[#111875]
 
+[discrete]
+[[known-issues-7.16.0]]
+=== Known issues
+
+[[known-issue-121059]]
+.Naming conflict during agent policy creation may result in policy with no system integration
+[%collapsible]
+====
+
+*Details*
+
+There is a bug in the logic used to create unique integration policy names. If you edit a system integration in an existing agent policy, and then try to create a new agent policy with *Collect logs and metrics* selected, you'll see the error message, "There is already a package with the same name". {kib-pull}121059[#121059]
+
+*Impact*
+
+The new agent policy will be created, but it will not include the system integration, and it will be unable to collect logs and metrics. 
+
+*Workaround*
+
+You can either:
+
+* Manually add the system integration after creating the agent policy
+* Rename the other system integration policies and use unique names
+
+====
 
 // end 7.16.0 relnotes
 
@@ -109,7 +134,7 @@ Fleet::
 //[%collapsible]
 //====
 
-//*Details* 
+//*Details*
 
 //<Describe known issue.>
 
