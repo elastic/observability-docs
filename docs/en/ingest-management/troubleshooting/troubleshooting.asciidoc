@@ -23,6 +23,87 @@ Have a question? Read our <<fleet-faq,FAQ>>, or contact us in the
 //it down into sections like Agent, Fleet Server, etc.
 
 [discrete]
+[[agents-in-cloud-stuck-at-updating]]
+== {agent}s hosted on {ecloud} are stuck in `Updating` or go `Offline`
+
+In {ecloud}, after <<upgrade-integration,upgrading>> {fleet-server} and its
+integration policies, agents enrolled in the Elastic Cloud agent policy
+may experience issues updating. To resolve this problem:
+
+. Delete the {fleet-server} integration policy under the Elastic Cloud agent
+policy:
++
+.. To find the ID of the {fleet-server} integration policy in {kib}, go to
+*Management > Fleet > Agent Policies > Elastic Cloud agent policy > Fleet Server*.
+This should take you to a URL like this:
++
+`<kibana_ur>/app/fleet/policies/policy-elastic-agent-on-cloud/edit-integration/<integration_policy_id>`
++
+Copy the policy ID at the end of the URL.
+
+.. To delete the {fleet-server} integration policy, go to
+*Management > Dev Tools > Console* and run the following query:
++
+[source,console]
+----
+DELETE .kibana/_doc/ingest-package-policies:<integration_policy_id> <1>
+----
+<1> `<integration_policy_id>` is the ID you copied in the previous step.
+
+. Clean the existing `.fleet-policies` doc. In the Dev Tools Console, run:
++
+[source,console]
+----
+POST .fleet-policies/_delete_by_query?q=policy-elastic-agent-on-cloud
+----
+
+. Remove existing policy references to the {agent} cloud policy. In the Dev
+Tools Console, run:
++
+[source,console]
+----
+POST .fleet-policies/_delete_by_query?q=policy-elastic-agent-on-cloud
+----
+
+. Recreate the {fleet-server} integration policy:
++
+In a terminal window, run the following `cURL` request, providing your {kib}
+superuser credentials to force creation of the {fleet-server} integration
+policy in the Elastic Cloud agent policy:
++
+[source,shell]
+----
+curl -u <username>:<password> --request POST \
+  --url <kibana_url>/api/fleet/package_policies \
+  --header 'content-type: application/json' \
+  --header 'kbn-xsrf: xyz' \
+  --data '{"name": "Fleet Server","description": "","namespace": "default","policy_id": "policy-elastic-agent-on-cloud","enabled": true,"output_id": "","inputs": [{"type": "fleet-server","policy_template": "fleet_server","enabled": true,"streams": [],"vars": {"host": {"value": ["0.0.0.0"],"type": "text"},"port": {"value": [8220],"type": "integer"},"max_connections": {"type": "integer"},"custom": {"value": "server.runtime:\n  gc_percent: 20","type": "yaml"}}}],"package": {"name": "fleet_server","title": "Fleet Server","version": "1.0.1"},"force": true}'
+----
+
+. Force unenroll the agent stuck in `Updating`:
+
+.. To find agent's ID, go to *Fleet > Agents* and click the agent to see its
+details. Copy the Agent ID.
+
+.. In a terminal window, run:
++
+[source,shell]
+----
+curl '<kibana_url>/api/fleet/agents/<agentID>/unenroll' \ <1>
+  -u <username>:<password> \
+  -H 'kbn-xsrf: xx' \
+  -H 'Content-type: application/json' \
+  --data-raw '{"force":true,"revoke":true}' \
+  --compressed
+----
+<1> `<agentID>` is the ID you copied in the previous step.
+
+. Restart the APM & Fleet container:
++
+In the {ecloud} console under *APM & Fleet*, click *Force Restart*.
+
+
+[discrete]
 [[fleet-server-not-in-kibana-cloud]]
 == When using {ecloud}, {fleet-server} is not listed in {kib}
 
