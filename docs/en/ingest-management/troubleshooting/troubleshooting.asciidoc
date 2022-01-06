@@ -24,7 +24,7 @@ Have a question? Read our <<fleet-faq,FAQ>>, or contact us in the
 
 [discrete]
 [[agents-in-cloud-stuck-at-updating]]
-== {agent}s hosted on {ecloud} are stuck in `Updating` or go `Offline`
+== {agent}s hosted on {ecloud} are stuck in `Updating` or `Offline`
 
 In {ecloud}, after <<upgrade-integration,upgrading>> {fleet-server} and its
 integration policies, agents enrolled in the Elastic Cloud agent policy
@@ -49,13 +49,6 @@ Copy the policy ID at the end of the URL.
 DELETE .kibana/_doc/ingest-package-policies:<integration_policy_id> <1>
 ----
 <1> `<integration_policy_id>` is the ID you copied in the previous step.
-
-. Clean the existing `.fleet-policies` doc. In the Dev Tools Console, run:
-+
-[source,console]
-----
-POST .fleet-policies/_delete_by_query?q=policy-elastic-agent-on-cloud
-----
 
 . Remove existing policy references to the {agent} cloud policy. In the Dev
 Tools Console, run:
@@ -89,14 +82,15 @@ details. Copy the Agent ID.
 +
 [source,shell]
 ----
-curl '<kibana_url>/api/fleet/agents/<agentID>/unenroll' \ <1>
-  -u <username>:<password> \
-  -H 'kbn-xsrf: xx' \
-  -H 'Content-type: application/json' \
+curl -u <username>:<password> --request POST \
+  --url <kibana_url>/api/fleet/agents/<agentID>/unenroll \
+  --header 'content-type: application/json' \
+  --header 'kbn-xsrf: xx' \
   --data-raw '{"force":true,"revoke":true}' \
   --compressed
 ----
-<1> `<agentID>` is the ID you copied in the previous step.
++
+Where `<agentID>` is the ID you copied in the previous step.
 
 . Restart the APM & Fleet container:
 +
