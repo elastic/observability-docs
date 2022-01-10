@@ -41,12 +41,15 @@ This should take you to a URL like this:
 +
 Copy the policy ID at the end of the URL.
 
-.. To delete the {fleet-server} integration policy, go to
-*Management > Dev Tools > Console* and run the following query:
+.. In a terminal window, run the following `cURL` request, providing your {kib} superuser credentials to delete the {fleet-server} integration policy:
 +
-[source,console]
+[source,shell]
 ----
-DELETE .kibana/_doc/ingest-package-policies:<integration_policy_id> <1>
+curl -u <username>:<password> --request POST \
+  --url <kibana_url>/api/fleet/package_policies/delete \
+  --header 'content-type: application/json' \
+  --header 'kbn-xsrf: xyz' \
+  --data '{"packagePolicyIds": ["<integration_policy_id>"], "force": true}' <1>
 ----
 <1> `<integration_policy_id>` is the ID you copied in the previous step.
 
