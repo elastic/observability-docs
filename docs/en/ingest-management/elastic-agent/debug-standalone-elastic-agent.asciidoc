@@ -1,0 +1,96 @@
+[[debug-standalone-agents]]
+= Debug standalone {agent}s
+
+When you run standalone {agent}s, you are responsible for monitoring the status
+of your deployed {agent}s. You cannot view the status or logs in {fleet}.
+
+Use the following tips to help identify potential issues.
+
+Also refer to <<fleet-troubleshooting>> for guidance on specific problems.
+
+NOTE: You might need to log in as a root user (or Administrator on Windows) to
+run these commands.
+
+[discrete]
+== Check the status of the running {agent}
+
+To check the status of the running {agent} daemon and other processes managed by
+{agent}, run the `status` command. For example:
+
+[source,shell]
+----
+elastic-agent status
+----
+
+Returns something like: 
+
+[source,yaml]
+----
+Status: HEALTHY
+Message: (no message)
+Applications:
+  * metricbeat  (HEALTHY)
+                Running
+  * filebeat    (STOPPING)
+                (no message)
+----
+
+By default, this command returns the status in human-readable format. Use the
+`--output` flag to change it to `json` or `yaml`.
+
+For more information about this command, refer to
+<<elastic-agent-status-command>>.
+
+//REVIEWERS: Looks like JSON and YAML return status codes instead of healthy,
+//stopping, etc. Where can I find the mapping of status code to status?
+
+[discrete]
+[[inspect-standalone-agent-logs]]
+== Inspect {agent} and related logs
+
+If the {agent} status is unhealthy, or behaving unexpectedly, inspect the logs
+of the running {agent}. The log location varies by platform. Refer to
+<<installation-layout>> for the correct location.
+
+//REVIEWERS: Can we add more guidance here about how to explore logs, what to
+//look for, etc.
+
+[discrete]
+[[increase-log-level]]
+== Increase the log level of the running {agent}
+
+The log level of the running agent is set to `info` by default. At this level,
+{agent} will log informational messages, including the number of events that are
+published. It also logs any warnings, errors, or critical errors.
+
+To increase the log level, set it to `debug` in the `elastic-agent.yml` file.
+
+The `debug` setting configures {agent} to log debug messages, including a
+detailed printout of all flushed events, plus all the information collected at
+other log levels.
+
+Set other options if you want write logs to a file. For example:
+
+[source,yaml]
+----
+agent.logging.level: debug
+agent.logging.to_files: true
+agent.logging.files:
+  path: /var/log/elastic-agent
+  name: elastic-agent
+  keepfiles: 7
+  permissions: 0600
+----
+
+For other log settings, refer to <<elastic-agent-standalone-logging-config>>.
+
+//REVIEWERS: Should we also talk about exposing the agent monitoring endpoint
+//here? Sounds like that could be risky. We chould point to the topic and
+//let users decides.
+
+//REVIEWERS: Do we want to cover the diagnostics command here? Not sure there
+//is much info here that's helpful to end users.
+
+//What about the inspect command? I think it could be useful to inspect the
+//config, but only if we are mentioning it during a longer procedure that
+//involves troubleshooting config problems.
