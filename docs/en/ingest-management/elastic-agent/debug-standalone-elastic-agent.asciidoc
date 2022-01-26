@@ -85,12 +85,119 @@ agent.logging.files:
 For other log settings, refer to <<elastic-agent-standalone-logging-config>>.
 
 //REVIEWERS: Should we also talk about exposing the agent monitoring endpoint
-//here? Sounds like that could be risky. We chould point to the topic and
+//here? Sounds like that could be risky. We could point to the topic and
 //let users decides.
 
-//REVIEWERS: Do we want to cover the diagnostics command here? Not sure there
-//is much info here that's helpful to end users.
+[discrete]
+[[inspect-configuration]]
+== Inspect the {agent} configuration
 
-//What about the inspect command? I think it could be useful to inspect the
-//config, but only if we are mentioning it during a longer procedure that
-//involves troubleshooting config problems.
+To inspect the {agent} configuration, run the `inspect` command. For example:
+
+[source,shell]
+----
+elastic-agent inspect
+----
+
+Use the `--output` flag to inspect the configuration passed to other processes,
+such as {filebeat}. For example:
+
+[source,shell]
+----
+elastic-agent inspect output --output default --program filebeat
+----
+
+Returns something like:
+
+["source","yaml",subs="attributes"]
+----
+[default] filebeat:
+filebeat:
+  inputs:
+  - exclude_files:
+    - .gz$
+    id: logfile-system.auth-default-system
+    index: logs-system.auth-default
+    meta:
+      package:
+        name: system
+        version: {version}
+    multiline:
+      match: after
+      pattern: ^\s
+    name: system-1
+    paths:
+    - /var/log/auth.log*
+    - /var/log/secure*
+    processors:
+    - add_locale: null
+    - add_fields:
+        fields:
+          dataset: system.auth
+          namespace: default
+          type: logs
+        target: data_stream
+    - add_fields:
+        fields:
+          dataset: system.auth
+        target: event
+    - add_fields:
+        fields:
+          id: 3c4a8f14-561a-449f-8935-7485cd494bac
+          snapshot: false
+          version: {version}
+        target: elastic_agent
+    - add_fields:
+        fields:
+          id: 3c4a8f14-561a-449f-8935-7485cd494bac
+        target: agent
+    revision: 1
+    type: log
+  - exclude_files:
+    - .gz$
+    id: logfile-system.syslog-default-system
+    index: logs-system.syslog-default
+    meta:
+      package:
+        name: system
+        version: 1.6.4
+    multiline:
+      match: after
+      pattern: ^\s
+    name: system-1
+    paths:
+    - /var/log/messages*
+    - /var/log/syslog*
+    processors:
+    - add_locale: null
+    - add_fields:
+        fields:
+          dataset: system.syslog
+          namespace: default
+          type: logs
+        target: data_stream
+    - add_fields:
+        fields:
+          dataset: system.syslog
+        target: event
+    - add_fields:
+        fields:
+          id: 3c4a8f14-561a-449f-8935-7485cd494bac
+          snapshot: false
+          version: {version}
+        target: elastic_agent
+    - add_fields:
+        fields:
+          id: 3c4a8f14-561a-449f-8935-7485cd494bac
+        target: agent
+    revision: 1
+    type: log
+output:
+  elasticsearch:
+    api_key: your:apikey
+    hosts:
+    - https://5d87573b66ed4d7f6cd1d2d3f1e30bc5.us-central1.gcp.foundit.no:443
+----
+
+For more information about this command, refer to
+<<elastic-agent-inspect-command>>.
