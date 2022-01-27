@@ -133,26 +133,30 @@ the manifest file and enable the container to run as privileged.
 . In the manifest file, modify the `agent-node-datastreams` ConfigMap and adjust inputs:
 `kubernetes-cluster-metrics`:
 - If used https to access kube-state-metrics, to all `kubernetes.state_*` dataset should be added:
++
 [source,yaml]
------
+------------------------------------------------
   bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
   ssl.certificate_authorities:
     - /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
------
+------------------------------------------------
 `kubernetes-node-metrics`:
 - `kubernetes.controllermanager` datastream condition should be change to:
++
 [source,yaml]
------
+------------------------------------------------
 condition: ${kubernetes.labels.app} == 'kube-controller-manager'
------
+------------------------------------------------
 - `kubernetes.scheduler` datastream condition should be changed to:
++
 [source,yaml]
------
+------------------------------------------------
 condition: ${kubernetes.labels.app} == 'openshift-kube-scheduler'
------
+------------------------------------------------
 - `kubernetes.proxy` datastream configutation should look like:
++
 [source,yaml]
------
+------------------------------------------------
 - data_stream:
     dataset: kubernetes.proxy
     type: metrics
@@ -161,14 +165,15 @@ condition: ${kubernetes.labels.app} == 'openshift-kube-scheduler'
   hosts:
     - 'localhost:29101'
   period: 10s
------
+------------------------------------------------
 - to all datastreams that connnect to `https://${env.NODE_NAME}:10250` should be added:
++
 [source,yaml]
------
+------------------------------------------------
   bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
   ssl.certificate_authorities:
     - /path/to/ca-bundle.crt
------
+------------------------------------------------
 NOTE: `ca-bundle.crt` can be any CA bundle that contains the issuer of the certificate used in the Kubelet API.
 According to each specific installation of Openshift this can be found either in `secrets` or in `configmaps`.
 In some installations it can be available as part of the service account secret, in
