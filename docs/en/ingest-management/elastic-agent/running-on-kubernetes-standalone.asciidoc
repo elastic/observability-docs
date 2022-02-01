@@ -134,7 +134,7 @@ the manifest file and enable the container to run as privileged.
 +
 --
 * `kubernetes-cluster-metrics` input:
-** If `https` is used to access `kube-state-metrics`, then to all `kubernetes.state_*` datasets should be added:
+** If `https` is used to access `kube-state-metrics`, add the following settings to all `kubernetes.state_*` datasets:
 +
 [source,yaml]
 ------------------------------------------------
@@ -143,19 +143,19 @@ the manifest file and enable the container to run as privileged.
     - /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
 ------------------------------------------------
 * `kubernetes-node-metrics` input:
-** `kubernetes.controllermanager` datastream condition should be change to:
+** Change the `kubernetes.controllermanager` datastream condition to:
 +
 [source,yaml]
 ------------------------------------------------
 condition: ${kubernetes.labels.app} == 'kube-controller-manager'
 ------------------------------------------------
-** `kubernetes.scheduler` datastream condition should be changed to:
+** Change the `kubernetes.scheduler` datastream condition to:
 +
 [source,yaml]
 ------------------------------------------------
 condition: ${kubernetes.labels.app} == 'openshift-kube-scheduler'
 ------------------------------------------------
-** `kubernetes.proxy` datastream configutation should look like:
+** The `kubernetes.proxy` datastream configuration should look like:
 +
 [source,yaml]
 ------------------------------------------------
@@ -168,7 +168,7 @@ condition: ${kubernetes.labels.app} == 'openshift-kube-scheduler'
     - 'localhost:29101'
   period: 10s
 ------------------------------------------------
-** to all datastreams that connnect to `https://${env.NODE_NAME}:10250` should be added:
+** Add the following settings to all datastreams that connect to `https://${env.NODE_NAME}:10250`:
 +
 [source,yaml]
 ------------------------------------------------
@@ -180,8 +180,8 @@ NOTE: `ca-bundle.crt` can be any CA bundle that contains the issuer of the certi
 According to each specific installation of Openshift this can be found either in `secrets` or in `configmaps`.
 In some installations it can be available as part of the service account secret, in
 `/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt`.
-In case of using https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[Openshift installer]
-for GCP then the following `configmap` can be mounted in elastic-agent pod and use `ca-bundle.crt`
+When using the https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[Openshift installer]
+for GCP, mount the following `configmap` in the elastic-agent pod and use `ca-bundle.crt`
 in `ssl.certificate_authorities`:
 +
 [source,shell]
@@ -206,8 +206,8 @@ oc adm policy add-scc-to-user privileged system:serviceaccount:kube-system:elast
 This command enables the container to be privileged as an administrator for
 OpenShift.
 
-. If namespace, where elastic-agent is running, has `"openshift.io/node-selector"` annotation set, elastic-agent
-might not run on all nodes. In this case consider overriding node selector for the namespace to allow scheduling
+. If the namespace where elastic-agent is running has the `"openshift.io/node-selector"` annotation set, elastic-agent
+might not run on all nodes. In this case consider overriding the node selector for the namespace to allow scheduling
 on any node:
 +
 [source,shell]
