@@ -41,19 +41,22 @@ By default, this command returns the status in human-readable format. Use the
 For more information about this command, refer to
 <<elastic-agent-status-command>>.
 
-//REVIEWERS: Looks like JSON and YAML return status codes instead of healthy,
-//stopping, etc. Where can I find the mapping of status code to status?
-
 [discrete]
 [[inspect-standalone-agent-logs]]
 == Inspect {agent} and related logs
 
 If the {agent} status is unhealthy, or behaving unexpectedly, inspect the logs
-of the running {agent}. The log location varies by platform. Refer to
-<<installation-layout>> for the correct location.
+of the running {agent}.
 
-//REVIEWERS: Can we add more guidance here about how to explore logs, what to
-//look for, etc.
+The log location varies by platform. {agent} logs are in the folders described
+in <<installation-layout>>. {beats} and {fleet-server} logs are in folders named
+for the output (for example, `default`). Elastic Endpoint logs are in the
+installation directory.
+
+Start by investigating any errors you see in the {agent} and related logs. Also
+look for repeated lines that might indicate problems like connection issues. If
+the {agent} and related logs look clean, check the host operating system logs
+for out of memory (OOM) errors related to the {agent} or any of its processes.
 
 [discrete]
 [[increase-log-level]]
@@ -83,6 +86,119 @@ agent.logging.files:
 ----
 
 For other log settings, refer to <<elastic-agent-standalone-logging-config>>.
+
+[discrete]
+[[expose-debug-endpoint]]
+== Expose /debug/pprof/ endpoints with the monitoring endpoint
+
+Profiling data produced by the `/debug/pprof/` endpoints can be useful for
+debugging, but presents a security risk. Do not expose these endpoints if the
+monitoring endpoint is accessible over a network. (By default, the monitoring
+endpoint is bound to a local unix socket or Windows npipe and not accessible
+over a network.)
+
+To expose the `/debug/pprof/` endpoints, set `agent.monitoring.pprof: true` in
+the `elastic-agent.yml` file. For more information about monitoring settings,
+refer to <<elastic-agent-monitoring-configuration>>.
+
+After exposing the endpoints, you can access the http handler bound to a socket
+for {beats} or the {agent}. For example:
+
+[source,shell]
+----
+sudo curl --unix-socket /Library/Elastic/Agent/data/tmp/default/filebeat/filebeat.sock http://socket/ | json_pp
+----
+
+Returns something like:
+
+[source,json]
+----
+{
+   "beat" : "filebeat",
+   "binary_arch" : "amd64",
+   "build_commit" : "93708bd74e909e57ed5d9bea3cf2065f4cc43af3",
+   "build_time" : "2022-01-28T09:53:29.000Z",
+   "elastic_licensed" : true,
+   "ephemeral_id" : "421e2525-9360-41db-9395-b9e627fbbe6e",
+   "gid" : "0",
+   "hostname" : "My-MacBook-Pro.local",
+   "name" : "My-MacBook-Pro.local",
+   "uid" : "0",
+   "username" : "root",
+   "uuid" : "fc0cc98b-b6d8-4eef-abf5-2d5f26adc7e8",
+   "version" : "7.17.0"
+}
+----
+
+Likewise, the following request:
+
+[source,shell]
+----
+sudo curl --unix-socket /Library/Elastic/Agent/data/tmp/elastic-agent.sock http://socket/stats | json_pp
+----
+
+Returns something like:
+
+[source,shell]
+----
+{
+   "beat" : {
+      "cpu" : {
+         "system" : {
+            "ticks" : 16272,
+            "time" : {
+               "ms" : 16273
+            }
+         },
+         "total" : {
+            "ticks" : 42981,
+            "time" : {
+               "ms" : 42982
+            },
+            "value" : 42981
+         },
+         "user" : {
+            "ticks" : 26709,
+            "time" : {
+               "ms" : 26709
+            }
+         }
+      },
+      "info" : {
+         "ephemeral_id" : "ea8fec0d-f7dd-4577-85d7-a2c38583c9c6",
+         "uptime" : {
+            "ms" : 5885653
+         },
+         "version" : "7.17.0"
+      },
+      "memstats" : {
+         "gc_next" : 13027776,
+         "memory_alloc" : 7771632,
+         "memory_sys" : 39666696,
+         "memory_total" : 757970208,
+         "rss" : 58990592
+      },
+      "runtime" : {
+         "goroutines" : 101
+      }
+   },
+   "system" : {
+      "cpu" : {
+         "cores" : 12
+      },
+      "load" : {
+         "1" : 4.8892,
+         "15" : 2.6748,
+         "5" : 3.0537,
+         "norm" : {
+            "1" : 0.4074,
+            "15" : 0.2229,
+            "5" : 0.2545
+         }
+      }
+   }
+}
+----
 
 [discrete]
 [[inspect-configuration]]
