@@ -444,20 +444,20 @@ Elastic Observability exposes service HTTP health check APIs that are intended t
 
 [source,python]
 ----
-func check_service_health(service_name, error_rate_threshold, kibana_url, api_token)
-  now = datetime.now()
-  five_minutes_ago = now - timedelta(minutes=5)
-  params = {
+def check_service_health(service_name, error_rate_threshold, kibana_url, api_token):
+    now = datetime.now()
+    five_minutes_ago = now - timedelta(minutes=5)
+    params = {
     "start": five_minutes_ago.strftime("%Y-%m-%dT%H:%M:%SZ"),
     "end": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
     "kuery": "",
     "environment": "ENVIRONMENT_ALL",
     "serviceNames": "[\"{}\"]".format(service_name),
     "offset": "1d"
-  }
-  url = "{}/internal/apm/services/detailed_statistics?{}".format(kibana_url, urllib.parse.urlencode(params))
-  req = urllib.request.Request(url=url, headers={"Authorization": "Bearer {}".format(api_token)})
-  with urllib.request.urlopen(req) as response:
+    }
+    url = "{}/internal/apm/services/detailed_statistics?{}".format(kibana_url, urllib.parse.urlencode(params))
+    req = urllib.request.Request(url=url, headers={"Authorization": "Bearer {}".format(api_token)})
+    with urllib.request.urlopen(req) as response:
      body = response.read().decode("utf8")
      obj = json.loads(body)
      if obj["currentPeriod"]:
@@ -465,7 +465,6 @@ func check_service_health(service_name, error_rate_threshold, kibana_url, api_to
          if obj["currentPeriod"][service_name]["transactionErrorRate"]:
            for item in obj["currentPeriod"][service_name]["transactionErrorRate"]:
              error_rate = getattr(item, 'y', None)
-             if error_rate > error_rate_threshold or error_rate == None:
+             if error_rate > error_rate_threshold:
                raise Exception("Error rate for service {} is higer than threshold {}, current value is {}".format(service_name, error_rate_threshold, error_rate))
-
 ----
