@@ -427,3 +427,44 @@ The Concourse CI doesn’t report health metrics through OpenTelemetry. However,
 https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor#span-metrics-processor[OpenTelemetry Collector Span Metrics Processor]
 to derive pipeline execution traces into KPI metrics like throughput and the error rate
 of pipelines.
+
+
+[discrete]
+[[check-service-health-from-cd-pipelines]]
+== Check service health from deployment pipelines
+
+
+Integrating automatedservice health checks in deployment pipelines is critical to end to end deployment automation.
+
+Elastic Observability exposes service HTTP health check APIs that are intended to be invoked by deployment pipelines.
+
+/internal/apm/services/detailed_statistics?
+
+
+
+[source,python]
+----
+now = datetime.now()
+  five_minutes_ago = now - timedelta(minutes=5)
+  params = {
+    "start": five_minutes_ago.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    "end": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+    "kuery": "",
+    "environment": "ENVIRONMENT_ALL",
+    "serviceNames": "[\"jenkins\", \"frontend\"]",
+    "offset": "1d"
+  }
+  host = os.getenv("KIBANA_URL")
+  url = "{}/internal/apm/services/detailed_statistics?{}".format(host, urllib.parse.urlencode(params))
+  req = urllib.request.Request(url)
+  with urllib.request.urlopen(req) as response:
+     body = response.read().decode("utf8")
+     obj = json.loads(body)
+     if obj["currentPeriod"]:
+       if obj["currentPeriod"]["frontend"]:
+         if obj["currentPeriod"]["frontend"]["transactionErrorRate"]:
+           for item in obj["currentPeriod"]["frontend"]["transactionErrorRate"]:
+             y = getattr(item, 'y', None)
+             assert  y == 0 or y == None
+
+----
