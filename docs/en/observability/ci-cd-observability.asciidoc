@@ -444,6 +444,14 @@ image::images/ci-cd-canary-deployment-pipeline.png[Canary Deployment Pipeline]
 
 
 The primary HTTP API to check the health of a service is compare the transaction error rate with a threshold value.
+The API call requires authentication, we recomend to use an API Token to authenticate.
+The URL is `KIBANA_URL//internal/apm/services`, it is desing to query some service metrics.
+In order to check the transaction error rate, we have to pass some parameters to the API call.
+We need a rande of time, this range is defined by the parameters `start` and `end`, 
+these parameters are two dates in ISO-8601 format. Decause we want to query only one service,
+we have to compose a filter in the param `kuery`, we can filter by the service name using the expresion `service.name:MY_SERVICE_NAME`.
+Finally we apply a filter by environment passing the parameter `environment`, 
+to select all environments the value is `ENVIRONMENT_ALL`
 
 The API is subject to changes and a stable API optimized for Continous Delivery use cases will soon be published.
 
