@@ -452,7 +452,7 @@ In order to check the transaction error rate of the service on the newly deploye
 * `environment`: the environment on which the canary instances are deployed. Example: `production`.
 We need a range of time, this range is defined by the parameters `start` and `end`, 
 these parameters are two dates in ISO-8601 format. Decause we want to query only one service,
-we have to compose a filter in the param `kuery`, we can filter by the service name using the expresion `service.name:MY_SERVICE_NAME`.
+we have to compose a filter in the param `kuery`, we can filter by the service name using the expresion `service.name:MY_SERVICE_NAME and srevive.version: SERVICE_VERSION`.
 Finally we apply a filter by environment passing the parameter `environment`, 
 to select all environments the value is `ENVIRONMENT_ALL`
 
@@ -460,13 +460,13 @@ The API is subject to changes and a stable API optimized for Continous Delivery 
 
 [source,python]
 ----
-def check_service_health(service_name, error_rate_threshold, kibana_url, api_token):
+def check_service_health(service_name, service_version, error_rate_threshold, kibana_url, api_token):
     now = datetime.now()
     five_minutes_ago = now - timedelta(minutes=5)
     params = {
         "start": five_minutes_ago.strftime("%Y-%m-%dT%H:%M:%SZ"),
         "end": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "kuery": "", # "service.name:{}".format(service_name),
+        "kuery": "", # "service.name:{} and service.version:{}".format(service_name, servive_version),
         "environment": "ENVIRONMENT_ALL"
     }
     url = "{}/internal/apm/services?{}".format(kibana_url, urllib.parse.urlencode(params))
