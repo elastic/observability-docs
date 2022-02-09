@@ -50,9 +50,9 @@ to {agent}.
 The {fleet} and Integrations apps currently require the operator to have
 superuser privileges. In many deployments, particularly larger organizations,
 this requirement is unacceptable and poses a security risk. We recommend that
-you route any changes to {agent}s or integrations through personnel who have
-superuser credentials. Work is on the way to provide Role Based Access Control
-(RBAC) to alleviate this requirement.
+you route any changes related to {agent}s or integrations through personnel who
+have superuser credentials. Work is on the way to provide Role Based Access
+Control (RBAC) to alleviate this requirement.
 
 [discrete]
 [[prepare-for-migration]]
@@ -176,7 +176,7 @@ is out-of-the-box without any extra configuration or dashboard creation:
 [role="screenshot"]
 image::images/migration-agent-data-streams.png[Screen showing data streams created by the Elastic Agent]
 
-. Examine the data streams on the *Discover* tab in {kib}. Note that documents
+. Go to *Analytics > Discover* and examine the data streams. Note that documents
 indexed by {agent} match these patterns:
 +
 --
@@ -188,8 +188,7 @@ If {beats} are installed on the host machine, the data in {es} will be
 duplicated, with one set coming from {beats} and another from {agent} for the
 _same_ data source.
 +
-For example, in {kib}, go to *Analytics > Discover*, and filter on `filebeat-*`
-to see the data ingested by {filebeat}.
+For example, filter on `filebeat-*` to see the data ingested by {filebeat}.
 +
 [role="screenshot"]
 image::images/migration-event-from-filebeat.png[Screen showing event from {filebeat}]
@@ -229,10 +228,10 @@ Make sure you expand collapsed sections to see all the settings like log paths.
 [role="screenshot"]
 image::images/migration-add-integration-policy.png[Screen showing Nginx configuration]
 +
-When you deploy your changes, the agent policy is updated to include a new
-integration policy for Nginx. All {agent}s enrolled in the agent policy get the
-updated policy, and the {agent} running on your host will begin collecting Nginx
-data.
+When you save and deploy your changes, the agent policy is updated to include a
+new integration policy for Nginx. All {agent}s enrolled in the agent policy get
+the updated policy, and the {agent} running on your host will begin collecting
+Nginx data.
 +
 NOTE: Integration policy names must be globally unique across all agent
 policies.
@@ -369,7 +368,7 @@ POST _aliases
     {
       "add": {
         "index": "logs-*",
-        "alias": "filebeat"
+        "alias": "filebeat-"
       }
     }
  
@@ -387,7 +386,7 @@ POST _aliases
     {
       "add": {
         "index": "metrics-*",
-        "alias": "metricbeat"
+        "alias": "metricbeat-"
       }
     }
  ]
@@ -442,7 +441,7 @@ view indices linked to the policy. Click the policy name to see the settings.
 . Click the *logs* policy and, if necessary, edit the settings to match the old
 policy.
 
-. Under *Index Lifecycle Policies*, search for another {beats} policies, for
+. Under *Index Lifecycle Policies*, search for another {beats} policy, for
 example, *metricbeat*.
 
 . Click the *metrics* policy and edit the settings to match the old policy.
