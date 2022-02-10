@@ -12,14 +12,91 @@
 
 This section summarizes the changes in each release.
 
-//* <<release-notes-8.0.0>>
-
-coming[8.0.0]
+* <<release-notes-8.0.0>>
 
 Also see:
 
 * {kibana-ref}/release-notes.html[{kib} release notes]
 * {beats-ref}/release-notes.html[{beats} release notes]
+
+// begin 8.0.0 relnotes
+
+[[release-notes-8.0.0]]
+== {fleet} and {agent} 8.0.0
+
+Review important information about the {fleet} and {agent} 8.0.0 releases.
+
+[discrete]
+[[breaking-changes-8.0.0]]
+=== Breaking changes
+
+Breaking changes can prevent your application from optimal operation and
+performance. Before you upgrade, review the breaking changes, then mitigate the
+impact to your application.
+
+[discrete]
+[[breaking-29458]]
+.{fleet-server} can no longer use username and password to authenticate with {es}
+[%collapsible]
+====
+*Details* +
+Starting in 8.0, {es} has removed write access to system indices by the
+superuser. Therefore, {fleet-server} can no longer use a username and password
+to authenticate with {es}. For more information, refer to
+{agent-pull}29458[#29458].
+
+*Impact* +
+If you run a self-managed {fleet-server} that authenticates with {es} through a
+username and password, you must update the configuration to use a {fleet-server}
+service token instead. For more information, see <<add-a-fleet-server>>.
+====
+
+[discrete]
+[[breaking-28006]]
+.`IncludeCreatorMetadata` removed from Kubernetes metadata config options
+[%collapsible]
+====
+*Details* +
+The deprecated and undocumented `IncludeCreatorMetadata` setting has been
+removed from the Kubernetes metadata config options. For more information, refer
+to {agent-pull}28006[#28006].
+
+*Impact* +
+This change is unlikely to impact existing users because the setting was never
+documented. However, if your config uses this setting, you must remove it now.
+====
+
+[discrete]
+[[new-features-8.0.0]]
+=== New features
+
+The 8.0.0 release adds the following new and notable features.
+
+//{fleet}::
+//* add info
+
+{agent}::
+* Add `--pprof` flag to `elastic-agent diagnostics` command. Also add an
+`elastic-agent pprof` command to allow operators to gather pprof data from the
+{agent} and the {beats} running under it. {agent-pull}28798[#28798]
+* Add `--fleet-server-es-ca-trusted-fingerprint` flag to allow {agent} and
+{fleet-server} to work with {es} clusters using self-signed certs.
+{agent-pull}29128[#29128]
+* Set `agent.id` to the Fleet Agent ID in events published from inputs backed
+by {beats}. {agent-issue}21121[#21121] {agent-pull}26394[#26394] {agent-pull}26548[#26548]
+
+[discrete]
+[[bug-fixes-8.0.0]]
+=== Bug fixes
+
+{fleet}::
+* Allow empty strings for required text fields in package policies. {kib-pull}123610[#123610]
+
+{agent}::
+* Allow agent containers to use basic auth to create a service token. {agent-pull}29651[#29651]
+
+// end 8.0.0 relnotes
+
 
 // ---------------------
 //TEMPLATE
