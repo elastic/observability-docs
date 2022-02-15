@@ -442,14 +442,7 @@ The following example shows a canary deployment pipeline that leverages Elastic 
 
 image::images/ci-cd-canary-deployment-pipeline.png[Canary Deployment Pipeline]
 
-
-The primary HTTP API to check the health of a service is compare the transaction error rate with a threshold value.
-
-The API call requires authentication. We recommend to use an API Token to authenticate.
-
-The URL is `KIBANA_URL/internal/apm/services`. It is designed to query service metrics.
-
-To check the transaction error rate of the service on the newly deployed instance, pass the following parameters to the API call:
+The health check can be performed invoking the `KIBANA_URL/internal/apm/services` API to compare the transaction error rate of the service on the newly deployed instances with a threshold value passing the following parameters to the invocation:
 
 * `start` and `end`: time interval using the https://en.wikipedia.org/wiki/ISO_8601[ISO-8601] format (e.g. "2021-09-01T13:24:12Z" which is a UTC time)
 * `kuery`: used to filter on the service name and, for example, the new version being deployed to narrow down to the canary instances. Example `service.name:"MY_SERVICE_NAME" AND service.version:"1.2.3"`
@@ -460,6 +453,8 @@ dates in ISO-8601 format. To query only one service, compose a filter in the par
 then filter by the service name using the expression `service.name:MY_SERVICE_NAME
 and service.version: SERVICE_VERSION`. Finally apply an `environment` filter by passing
 the `environment` parameter. To select all environments, use `ENVIRONMENT_ALL`.
+
+The API call requires authentication. We recommend to use an API Token to authenticate.
 
 The API is subject to changes and a stable API optimized for Continous Delivery use cases will soon be published.
 
