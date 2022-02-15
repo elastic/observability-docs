@@ -67,6 +67,63 @@ documented. However, if your config uses this setting, you must remove it now.
 ====
 
 [discrete]
+[[deprecations-8.0.0]]
+=== Deprecations
+
+Deprecated functionality does not have an immediate impact on your application,
+but we strongly recommend you make the necessary updates after you complete the
+upgrade.
+
+{fleet}::
+[discrete]
+[[deprecation-119494]]
+.Updates Fleet API to improve consistency
+[%collapsible]
+====
+*Details* +
+The Fleet API has been updated to improve consistency:
+
+* Hyphens are changed to underscores in some names.
+* The `pkgkey` path parameter in the packages endpoint is split.
+* The `response` and `list` properties are renamed to `items` or `item` in some
+responses.
+
+For more information, refer to {kib-pull}119494[#119494].
+
+*Impact* +
+When you upgrade to 8.0.0, use the following API changes:
+
+* Use `enrollment_api_keys` instead of `enrollment-api-keys`.
+
+* Use `agent_status` instead of `agent-status`.
+
+* Use `service_tokens` instead of `service-tokens`.
+
+* Use `/epm/packages/{packageName}/{version}` instead of `/epm/packages/{pkgkey}`.
+
+* Use `items[]` instead of `response[]` in:
++
+[source,text]
+--
+/api/fleet/enrollment_api_keys
+/api/fleet/agents
+/epm/packages/
+/epm/categories
+/epm/packages/_bulk
+/epm/packages/limited
+/epm/packages/{packageName}/{version} <1>
+--
+<1> Use `items[]` when the verb is `POST` or `DELETE`. Use `item` when the verb
+is `GET` or `PUT`.
+
+For more information, refer to <<fleet-api-docs>>.
+====
+
+//{agent}::
+//* add info
+
+
+[discrete]
 [[new-features-8.0.0]]
 === New features
 
