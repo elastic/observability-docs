@@ -54,6 +54,9 @@ you route any changes related to {agent}s or integrations through personnel who
 have superuser credentials. Work is on the way to provide Role Based Access
 Control (RBAC) to alleviate this requirement.
 
+For more information about {agent} limitations, see
+<<<<beats-agent-comparison>>.
+
 [discrete]
 [[prepare-for-migration]]
 == Prepare for the migration
@@ -75,9 +78,6 @@ require are also supported.
 If everything checks out, proceed to the next step. Otherwise, you might want
 to continue using {beats} and possibly deploy {agent} alongside {beats} to
 use features like endpoint protection.
-
-//REVIEWERS: Is the last part of this true? I'm assuming that users might want to
-//run Elastic Agent alongside Beats for endpoint protection 
 
 [discrete]
 ==  Set up {fleet-server} (self-managed deployments only)
@@ -271,11 +271,6 @@ You must define processors in each integration policy where they are required.
 
 To add processors to an integration policy:
 
-//REVIEWERS: I noticed that some integrations (like the System integration) do
-//not provide a field for setting processors. Is this intentional? If so, what
-//can I say to explain to users which integrations (or data streams) allow you
-//to add processors?
-
 . In {kib}, go to *{fleet} > Agent policies*, and click the policy name to view
 its integration policies.
 
@@ -330,12 +325,9 @@ Elastic integration packages provide many assets, such as pre-built dashboards,
 to make it easier for you to visualize your data. In some cases, however, you
 might have custom dashboards you want to migrate.
 
-Because {agent} uses data streams, the fields exported by an {agent} are
-slightly different from those exported {beats}. Any custom dashboards that
+Because {agent} uses different data streams, the fields exported by an {agent}
+are slightly different from those exported {beats}. Any custom dashboards that
 you created for {beats} need to be modified or recreated to use the new fields.
-
-//REVIEWERS: Sounds like Beats is moving to data streams, too. Does this whole
-//section only apply to Beats 7.17 and earlier? Should I mention that now?
 
 You have a couple of options for migrating custom dashboards:
 
@@ -348,9 +340,9 @@ and continue using custom dashboards.
 [[create-index-aliases]]
 === Create index aliases to point to data streams
 
-You may want to continue using older custom dashboards if the dashboards
-installed with an integration are not adequate. To do this, use index aliases
-to feed data streams into your existing custom dashboards.
+You may want to continue using your custom dashboards if the dashboards
+installed with an integration are not adequate. To do this, use index aliases to
+feed data streams into your existing custom dashboards.
  
 For example, custom dashboards that point to `filebeat-` or `metricbeat-` can be
 aliased to use the equivalent data streams, `logs-` and `metrics-`.
@@ -488,11 +480,6 @@ available in {es} until you delete the data or it's removed according to the
 data retention policies you've specified for ILM.
 
 To remove {beats} from your host:
-
-//REVIEWERS: I'm just making stuff up below to show you the types of info I think
-//we need to provide. We don't really document how to uninstall Beats anyhwere. I might
-//be stating the obvious here, but I think we have to tell users how to clean
-//up their system. Let me know what's right/wrong/missing.
 
 . Stop the service by using the correct command for your system.
 
