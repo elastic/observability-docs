@@ -67,6 +67,44 @@ documented. However, if your config uses this setting, you must remove it now.
 ====
 
 [discrete]
+[[breaking-118854]]
+.Splits package policy `upgrade` endpoint for {fleet}
+[%collapsible]
+====
+*Details* +
+For package policy upgrades, the packagePolicy `upgrade` endpoint format
+supports a mutative upgrade operation (when `dryRun: false`) and a read-only dry
+run operation (when `dryRun: true`):
+
+[source,text]
+--
+ POST /package_policies/upgrade
+ {
+   packagePolicyIds: [...],
+   dryRun: false
+ }
+--
+
+For more information, refer to {kib-pull}118854[#118854].
+
+*Impact* +
+The endpoint is now split into two separate endpoints:
+
+[source,text]
+--
+ POST /package_policies/upgrade
+ {
+   packagePolicyIds: [...]
+ }
+
+ POST /package_policies/upgrade/dry_run
+ {
+   packagePolicyIds: [...]
+ }
+--
+====
+
+[discrete]
 [[deprecations-8.0.0]]
 === Deprecations
 
@@ -150,6 +188,7 @@ by {beats}. {agent-issue}21121[#21121] {agent-pull}26394[#26394] {agent-pull}265
 
 {fleet}::
 * Allow empty strings for required text fields in package policies. {kib-pull}123610[#123610]
+* Add consistent `_meta` property to all {fleet} ES assets {kib-pull}119380[#119380].
 
 {agent}::
 * Allow agent containers to use basic auth to create a service token. {agent-pull}29651[#29651]
