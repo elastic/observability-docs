@@ -427,3 +427,53 @@ The Concourse CI doesn’t report health metrics through OpenTelemetry. However,
 https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/spanmetricsprocessor#span-metrics-processor[OpenTelemetry Collector Span Metrics Processor]
 to derive pipeline execution traces into KPI metrics like throughput and the error rate
 of pipelines.
+
+
+[discrete]
+[[check-service-health-from-cd-pipelines]]
+== Check service health from deployment pipelines
+
+
+Integrating automated service health checks in deployment pipelines is critical for end-to-end deployment automation, which crucially enables deployment frequency to be increased.
+
+Elastic Observability exposes HTTP APIs to check the health of services. You can integrate these APIs in deployment pipelines to verify the behaviour of newly deployed instances, and either automatically continue the deployments or roll back according to the health status.
+
+The following example shows a canary deployment pipeline that leverages Elastic health check HTTP APIs to automate the quality check before rolling out the deployment from the canary to the entire set of instances:
+
+image::images/ci-cd-canary-deployment-pipeline.png[Canary Deployment Pipeline]
+
+Perform the health check by invoking the `KIBANA_URL/internal/apm/services` API to compare the transaction error rate of the service on the newly deployed instances with a threshold value. Pass the following parameters to the invocation:
+
+* `start` and `end`: time interval using the https://en.wikipedia.org/wiki/ISO_8601[ISO-8601] format (e.g. "2021-09-01T13:24:12Z" which is a UTC time)
+* `kuery`: used to filter on the service name and, for example, the new version being deployed to narrow down to the canary instances. Example `service.name:"MY_SERVICE_NAME" AND service.version:"1.2.3"`
+* `environment`: the environment on which the canary instances are deployed. Example: `production`.
+
+To define the time range, use the `start` and `end` parameters. These parameters are
+dates in ISO-8601 format. To query only one service, compose a filter in the param `kuery`,
+then filter by the service name using the expression `service.name:MY_SERVICE_NAME
+and service.version: SERVICE_VERSION`. Finally apply an `environment` filter by passing
+the `environment` parameter. To select all environments, use `ENVIRONMENT_ALL`.
+
+The API call requires authentication. We recommend to use an API Token to authenticate.
+
+The API is subject to changes and a stable API optimized for Continous Delivery use cases will soon be published.
+
+[source,python]
+----
+def check_service_health(service_name, service_version, error_rate_threshold, kibana_url, api_token):
+    now = datetime.now()
+    five_minutes_ago = now - timedelta(minutes=5)
+    params = {
+        "start": five_minutes_ago.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "end": now.strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "kuery": "service.name:{} and service.version:{}".format(service_name, service_version),
+        "environment": "ENVIRONMENT_ALL"
+    }
+    url = "{}/internal/apm/services?{}".format(kibana_url, urllib.parse.urlencode(params))
+    req = urllib.request.Request(url=url, headers={"Authorization": "Bearer {}".format(api_token)})
+    with urllib.request.urlopen(req) as response:
+     body = response.read().decode("utf8")
+     obj = json.loads(body)
+     if len(obj['items']) > 0 and obj['items'][0].transactionErrorRate > error_rate_threshold:
+            raise Exception("Error rate for service {} is higher than threshold {}, current value is {}".format(service_name, error_rate_threshold, obj['items'][0].transactionErrorRate))
+----
