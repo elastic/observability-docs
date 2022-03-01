@@ -26,6 +26,9 @@ agent.monitoring:
   pprof.enabled: false
   # specifies output to be used
   use_output: monitoring
+  http:
+    # exposes a /buffer endpoint that holds a history of recent metrics
+    buffer.enablde: false
 ----
 
 To turn off monitoring, set `agent.monitoring.enabled` to `false`. When set to
@@ -42,3 +45,9 @@ The `agent.monitoring.pprof.enabled` option controls whether the {agent} and {be
 by default. Data produced by these endpoints can be useful for debugging but present a
 security risk. It is recommended that this option remains `false` if the monitoring endpoint
 is accessible over a network.
+
+The `agent.monitoring.http.buffer.enabled` option controls whether the {agent} and {beats}
+collect metrics into an in-memory buffer and expose these through a `/buffer` endpoint.
+It is set to `false` by default. This data can be useful for debugging or if the {agent}
+has issues communicating with {es}. Enabling this option may slightly increase process
+memory usage.
