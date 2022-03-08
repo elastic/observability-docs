@@ -32,19 +32,19 @@ version of {fleet-server}. However, you can choose to deploy and self-manage
 To deploy a self-managed {fleet-server}, install an {agent} and enroll it in an
 agent policy containing the {fleet-server} integration.
 
-. Log in to {kib} and go to *Management > {fleet}*. The first time you visit
-this page, it might take a minute to load.
+. Log in to {kib} and go to *Management > {fleet} > Settings*. For more
+information about these settings, see
+{fleet-guide}/fleet-settings.html[{fleet} settings].
 
-. Click *{fleet} settings*, and in the *{fleet-server} hosts* field, specify the
-URLs {agent}s will use to connect to {fleet-server}. For example,
+. Under *Fleet Server hosts*, click *Edit hosts* and specify one or more host
+URLs your {agent}s will use to connect to {fleet-server}. For example,
 `https://192.0.2.1:8220`, where `192.0.2.1` is the host IP where you will
-install {fleet-server}.
+install {fleet-server}. Save and apply your settings.
 
 . In the *{es} hosts* field, specify the {es} URLs where {agent}s will send data.
-For example, `https://192.0.2.0:9200`.
-+
-For more information about these settings, see
-{fleet-guide}/fleet-settings.html[{fleet} settings].
+For example, `https://192.0.2.0:9200`. Skip this step if you've started the
+{stack} with security enabled (you cannot change this setting because it's
+managed outside of {fleet}).
 
 . Save and apply the settings.
 
@@ -58,19 +58,10 @@ image::images/add-fleet-server.png[In-product instructions for adding a {fleet-s
 
 * Make sure you download an x64 architecture installation package.
 
-* For the agent policy, choose one with a {fleet-server} integration. If
-one doesn't exist, create it.
-+
-.What is a {fleet-server} policy?
-****
-It is an agent policy that contains a {fleet-server} integration. In
-self-managed clusters, a default {fleet-server} policy is created
-automatically when you run {fleet} for the first time. If you are deploying a
-self-managed {fleet-server} to work with our hosted {ess}, you
-must explicitly
-{fleet-guide}/agent-policy.html#create-a-policy[create a new agent policy] that
-includes a {fleet-server} integration.
-****
+* For the agent policy, choose one with a {fleet-server} integration, or click
+*Create policy* to create one now. Alternatively you can 
+{fleet-guide}/create-a-policy-no-ui.html[create a {fleet-server} policy without using the UI],
+then select the policy here.
 
 * If you choose *Production* deployment mode, learn how to generate certs in
 {fleet-guide}/secure-connections.html[Encrypt traffic in clusters with a
@@ -86,7 +77,7 @@ a {fleet-server} and uses self-signed certs:
 +
 [source,yaml]
 ----
-sudo ./elastic-agent install  -f \
+sudo ./elastic-agent install \
   --fleet-server-es=http://localhost:9200 \
   --fleet-server-service-token=AAEbAWVsYXN0aWMvZmxlaXQtc2VydmVzL3Rva2VuLTE2MeIzNTY1NTQ3Mji6dERXeE9XbW5RRTZqNlJMWEdIRzAtZw \
   --fleet-server-policy=27467ed1-1bfd-11ec-9b88-a7c3d83e2897 \
@@ -100,12 +91,11 @@ provide. Make sure you replace the values in angle brackets.
 [source,yaml]
 ----
 sudo ./elastic-agent install --url=https://192.0.2.1:8220 \ <1>
- -f \
- --fleet-server-es=https://192.0.2.0:9200 \
- --fleet-server-service-token=AAEAaWVsYXN0aWcvZmxlZXQtc2VydmVyL3rva2VuLTE2MzIzNTYcNTQ3MjI6dER1eE9XbW5RRTZqNlJMWEdIRzAtZw \
-  --fleet-server-policy=27467ed1-1bfd-11ec-9b88-a7c3d83e2897 \
+  --fleet-server-es=https://192.0.2.0:9200 \
+  --fleet-server-service-token=AAEAaWVsYXN0aWcvZmxlZXQtc2VydmVyL3rva2VuLTE2MzIzNTYcNTQ3MjI6dER1eE9XbW5RRTZqNlJMWEdIRzAtZw \
+  --fleet-server-policy=fleet-server-policy \
+  --fleet-server-es-ca-trusted-fingerprint=a8f3042bc1d2097e94bd8bf75f05v61c0abbaa2eb3e19647c28078bv095ca7c3 \
   --certificate-authorities=<PATH_TO_CA> \
-  --fleet-server-es-ca=<PATH_TO_ES_CERT> \
   --fleet-server-cert=<PATH_TO_FLEET_SERVER_CERT> \
   --fleet-server-cert-key=<PATH_TO_FLEET_SERVER_CERT_KEY>
 ----
