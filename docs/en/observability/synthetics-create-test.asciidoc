@@ -13,7 +13,7 @@ beta[] To write synthetic tests for your application, you'll need to know basic 
 {playwright-url}[Playwright] syntax.
 Synthetics agent exposes a an API for creating and running tests:
 
-* `journey(name, ({ page, browser, client, params }) => {})` -- A journey tests one discrete unit of functionality.
+* `journey(name, ({ page, browser, context, params }) => {})` -- A journey tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
 Each journey provides a fresh playwright `browser`, `context`, and `page` instance.
 See <<synthetics-create-journey>> for more information.
@@ -33,52 +33,87 @@ TIP: {playwright-url}[Playwright] is browser testing library developed by Micros
 It is reliable and fast and features a modern API that auto waits for page elements to be ready.
 
 [discrete]
+[[synthetics-install]]
+== Install Elastic Synthetics
+
+Before creating your first synthetic journey, create a `package.json` file within your test's directory. To do this quickly, you can run `npm init -y`.
+
+Then, install the synthetics runner as a dev-dependency using `npm install -D @elastic/synthetics`.
+
+[discrete]
 [[synthetics-create-journey]]
-=== Create a `journey`
+== Create a `journey`
 
-The `journey` function takes a single parameter, `name`,
-and provides access to `page`, `params`, `browser`, and `context`:
+A journey tests one discrete unit of functionality.
+For example, logging into a website, adding something to a cart, or joining a mailing list.
 
-* `browser` -- A {playwright-api-docs}[browser] object created by Playwright.
-* `page` -- A https://playwright.dev/docs/api/class-page[page] object from Playwright that lets you control the browser's current page.
-* `context` -- A https://playwright.dev/docs/api/class-browsercontext[browser context] that doesn't share cookies or cache with other browser contexts.
-* `params` -- User-defined variables that allow you to invoke the Synthetics suite with custom parameters.
-For example, if you want to use a different homepage depending on the `env`
-(localhost for `dev`, and a URL for `prod`). See <<synthetics-params-secrets>>
-for more information.
-
-Putting it all together, a basic, two step journey might look something like this:
+Start by creating a new file called that follows the pattern `*.journey.js`,
+importing the synthetics library, and adding a new journey.
 
 [source,js]
 ----
-journey("Journey name", ({ page }) => {
-    step("Step 1 name", () => {
-      // Do something here
-    })
-    step("Step 2 name", () => {
-      // Do something else here
-    })
+import { journey } from '@elastic/synthetics';
+
+journey('Journey name', ({ page, browser, context, params }) => {
+  // Add steps here
 });
 ----
 
+The `journey` function takes a single parameter, `name` ('Journey name' in the example above).
+Then you pass a callback to the global `journey` function to encapsulate the whole test.
+This callback function provides access to fresh Playwright `page`, `params`, `browser`, and `context` instances.
+
+[horizontal]
+`name`::        A string you provide to describe the journey.
+`page`::        A https://playwright.dev/docs/api/class-page[page] object from Playwright
+                that lets you control the browser's current page.
+`browser`::     A {playwright-api-docs}[browser] object created by Playwright.
+`context`::     A https://playwright.dev/docs/api/class-browsercontext[browser context] 
+                that doesn't share cookies or cache with other browser contexts.
+`params`::      User-defined variables that allow you to invoke the Synthetics suite with custom parameters.
+                For example, if you want to use a different homepage depending on the `env`
+                (localhost for `dev`, and a URL for `prod`). See <<synthetics-params-secrets>>
+                for more information.
+
+
 [discrete]
 [[synthetics-create-step]]
-=== Create a `step`
+=== Add steps
 
-Steps can be as simple or complex as you need them to be.
-The {playwright-api-docs}[Playwright page API reference] will be your friend while writing tests.
+A journey consists of multiple _steps_. Steps are actions that should be completed in a specific order.
+Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
 
-A basic first step might simply load a page:
+A basic two-step journey would look like this:
 
 [source,js]
 ----
-await page.goto('https://elastic.github.io/synthetics-demo/'); <1>
+import { journey, step, expect } from '@elastic/synthetics';
+
+journey('Journey name', ({ page, browser, client, params }) => {
+    step('Step 1 name', () => {
+      // Do something here
+    });
+    step('Step 2 name', () => {
+      // Do something else here
+    });
+});
+----
+
+Steps can be as simple or complex as you need them to be.
+For example, a basic first step might load a web page:
+
+[source,js]
+----
+step('Load the demo page', () => {
+  await page.goto('https://elastic.github.io/synthetics-demo/'); <1>
+});
 ----
 <1> See the https://playwright.dev/docs/api/class-page#page-goto[`page.goto` reference] for more information.
 
-A more complex second step might wait for a page element to be selected,
+A more complex step might wait for a page element to be selected
 and then ensure that it matches an expected value.
-Consider the following HTML snippet:
+
+For example, on a page using the following HTML:
 
 [source,html]
 ----
@@ -90,27 +125,26 @@ Consider the following HTML snippet:
 </header>
 ----
 
-You can verify that `new-todo` class element contains the expected `placeholder` (input hint)
-with the following test:
+You can verify that the `input` element with class `new-todo` contains the expected `placeholder` value
+(the hint text for `input` elements) with the following test:
 
 [source,js]
 ----
-step("Check placeholder text", async () => {
+step('Assert placeholder text', async () => {
   const placeholderValue = await page.getAttribute(
       'input.new-todo',
       'placeholder'
   ); <1>
   expect(placeholderValue).toBe('What needs to be done?'); <2>
-})
+});
 ----
-<1> Query the page for the `input.new-todo` selector and get the `placeholder`
-attribute value. See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getAttribute` reference] for more information.
+<1> Find the `input` element with class `new-todo` and get the value of the `placeholder` attribute. See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getAttribute` reference] for more information.
 <2> Use the assertion library provided by the Synthetics agent to look for the
 expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
 
 [discrete]
 [[synthetics-sample-test]]
-=== Sample Synthetic test
+=== Sample synthetic test
 
 A complete example of a basic synthetic test looks like this:
 
@@ -118,17 +152,17 @@ A complete example of a basic synthetic test looks like this:
 ----
 import { journey, step, expect } from '@elastic/synthetics';
 
-journey("Ensure placeholder is correct", ({page}) => {
-    step("go to todos demo page", async () => {
-      await page.goto('https://elastic.github.io/synthetics-demo/');
-    })
-    step("assert placeholder text", async () => {
-      const placeholderValue = await page.getAttribute(
-        'input.new-todo',
-        'placeholder'
-      );
-      expect(placeholderValue).toBe('What needs to be done?');
-    })
+journey('Ensure placeholder is correct', ({ page }) => {
+  step('Load the demo page', async () => {
+    await page.goto('https://elastic.github.io/synthetics-demo/');
+  });
+  step('Assert placeholder text', async () => {
+    const placeholderValue = await page.getAttribute(
+      'input.new-todo',
+      'placeholder'
+    );
+    expect(placeholderValue).toBe('What needs to be done?');
+  });
 });
 ----
 
