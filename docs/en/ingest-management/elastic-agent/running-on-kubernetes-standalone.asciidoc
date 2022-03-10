@@ -124,6 +124,10 @@ elastic-agent-fj2z9             1/1     Running   0          81m
 elastic-agent-hs4pb             1/1     Running   0          81m
 ------------------------------------------------
 
+NOTE: you might need to adjust https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[resource limits] of elastic-agent container
+in `elastic-agent-standalone-kubernetes.yaml` manifest: container resources usage depends on number of datastreams
+and the environment size.
+
 [discrete]
 == Red Hat OpenShift configuration
 
@@ -264,3 +268,11 @@ and in such cases the Pod that will be collecting cluster level metrics might fa
 issues due to resources limitations. In this case users might consider to avoid using the
 leader election strategy and instead run a dedicated, standalone {agent} instance using
 a Deployment in addition to the DaemonSet.
+
+[discrete]
+== Deploying {agent} to managed kubenetes environment
+
+On managed kubernetes solutions such as AKS, GKE or EKS, elastic-agent has no access to collect metrics from the [kubernetes control plane](https://kubernetes.io/docs/concepts/overview/components/#control-plane-components)
+components, like `kube-scheduler` and `kube-controller-manager`, that are scheduled on kubernetes master nodes.
+
+Audit logs are available only on kubernetes master nodes as well, hense can not be collected by elastic-agent.
