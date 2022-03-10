@@ -36,8 +36,7 @@ It is reliable and fast and features a modern API that auto waits for page eleme
 [[synthetics-install]]
 == Install Elastic Synthetics
 
-Before creating your first synthetic journey, create a `package.json` file within your test's directory. To do this quickly, you can run `npm init -y`.
-
+Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
 Then, install the synthetics runner as a dev-dependency using `npm install -D @elastic/synthetics`.
 
 [discrete]
@@ -47,13 +46,11 @@ Then, install the synthetics runner as a dev-dependency using `npm install -D @e
 A journey tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
 
-Start by creating a new file called that follows the pattern `*.journey.js`,
+Start by creating a new file called using the `.journey.ts` or `.journey.js` file extension,
 importing the synthetics library, and adding a new journey.
 
 [source,js]
 ----
-import { journey } from '@elastic/synthetics';
-
 journey('Journey name', ({ page, browser, context, params }) => {
   // Add steps here
 });
@@ -87,8 +84,6 @@ A basic two-step journey would look like this:
 
 [source,js]
 ----
-import { journey, step, expect } from '@elastic/synthetics';
-
 journey('Journey name', ({ page, browser, client, params }) => {
     step('Step 1 name', () => {
       // Do something here
@@ -166,35 +161,29 @@ journey('Ensure placeholder is correct', ({ page }) => {
 });
 ----
 
-[discrete]
 [[synthetic-run-tests]]
-== Running synthetic tests
+== Run synthetic tests
 
-As explained in the <<synthetics-quickstart,quickstart>>, there are two ways to run synthetic tests:
+There are two ways to run synthetic tests:
 
-* Run as an inline journey -- embed into `heartbeat.yml`
-* Run a test suite -- import your tests into Heartbeat
-
-Which option is right for you? That depends.
-If you want to invoke a single journey with few steps, an inline journey might be the easiest workflow --
-you only need to write your tests into your `heartbeat.yml` file.
-
-Note that you can only paste the steps into an inline script, so these cannot be dependent on any packages that you may want to `import`. If you do have any dependencies, these would need to be defined with an `import` outside of the `journey` object and run via a test suite.
-If you have a complex test suite, or your tests need to live with your application code,
-you're likely better off setting up a synthetic test suite.
+* **If you want to invoke a single journey with few steps: <<synthetics-inline-journey>>.**
+This can be more efficienct since you only need to write your tests into your `heartbeat.yml` file.
+However, you can only paste the steps into an inline script, so the test cannot have any other dependencies.
+* **If you have any dependencies, you have a complex test suite, or your tests need to live with your
+application code: <<synthetics-test-suite>>.**
+Any dependencies need to be defined with an `import` outside of the `journey` object and run via the test suite.
 
 [discrete]
 [[synthetics-inline-journey]]
 === Run an inline journey
 
 The easiest way to run a synthetic test is by creating an inline journey.
-The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic. Remember you cannot `import` any dependencies using inline scripts.
+The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic. You cannot `import` any dependencies using inline scripts.
 
 Copy and paste your test steps into `heartbeat.yml`.
-Heartbeat spawns a separate Node.js process, schedules your tests, and runs them on a chromium browser.
-You don't need to worry about anything else.
+{heartbeat} spawns a separate Node.js process, schedules your tests, and runs them on a chromium browser.
 
-An example, `short.js`, is provided in the
+There is an example inline journey in the
 https://github.com/elastic/synthetics-demo/blob/main/heartbeat/monitors.d/browser-inline.yml[elastic/synthetics] GitHub repository:
 
 [source,js]
@@ -208,9 +197,8 @@ step("hover over products menu", async () => {
 });
 ----
 
-To run this, or any other inline example locally, change into the directory of your test,
+To run an inline example locally change into the directory of your test
 and pipe the file contents to the `npx @elastic/synthetics` command.
-
 For example:
 
 [source,sh]
@@ -218,7 +206,7 @@ For example:
 cat examples/inline/short.js | npx @elastic/synthetics --inline
 ----
 
-If everything works as expected, you'll get the similar response:
+And you'll get a response similar to:
 
 [source,sh]
 ----
@@ -249,41 +237,32 @@ heartbeat.monitors:
         });
 ----
 
-That's it! You can either spin up Heartbeat yourself, or jump to <<synthetics-quickstart-step-three>>
-of the Quickstart to use the provided Docker project template.
+You can either spin up {heartbeat} yourself, or jump to <<synthetics-quickstart-step-three>>
+to use the provided Docker project template.
 
 [discrete]
 [[synthetics-test-suite]]
 === Run a test suite
 
-If you have a suite of tests you'd like to implement, you can use Elastic synthetics as a library.
-In this method, you use Docker to run both Heartbeat and `elastic-synthetics`.
+If you have a suite of tests to implement, you can use Elastic Synthetics as a library.
+In this method, you use Docker to run both {heartbeat} and `elastic-synthetics`.
 
-// [discrete]
-// [[synthetics-suite-install]]
-// ==== Step 1: Install `@elastic/synthetics`
-
-Install the `@elastic/synthetics` package globally to get started:
+Start by installing the `@elastic/synthetics` package globally:
 
 [source,sh]
 ----
 npm install -g @elastic/synthetics
 ----
 
-// [discrete]
-// [[synthetics-suite-create]]
-// ==== Step 2: Create your tests
-
-Now it's time to write your tests:
+Then write your tests:
 
 . Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
 . Create a `javascript` or `typescript` file that imports your tests.
 All synthetic test files must use the `.journey.ts` or `.journey.js` file extension.
 . Compile everything together.
 
-At Elastic, we're fans of examples, so one is provided in the
-https://github.com/elastic/synthetics[elastic/synthetics] repository.
-If you'd like to test it locally, clone the repo, and install the example:
+Find examples in the https://github.com/elastic/synthetics[elastic/synthetics] repository.
+If you'd like to test an example locally, clone the repo and install the example:
 
 [source,sh]
 ----
@@ -295,7 +274,7 @@ npm install
 ----
 
 You are now inside the a synthetics test-suite, which is also an NPM project.
-You can now run the provided tests; Note that, by default, only files matching the filename `*.journey.(ts|js)*`
+You can now run the provided tests. By default only files matching the filename `*.journey.(ts|js)*`
 will be run.
 
 [source,sh]
@@ -305,7 +284,7 @@ will be run.
 npx @elastic/synthetics .
 ----
 
-Once you have your tests up and running, follow the steps in the <<synthetics-quickstart,quickstart guide>>
+Once you have your tests up and running, follow the steps in <<synthetics-quickstart,Synthetic monitoring using Docker>>
 to integrate with the provided Docker project template.
 
 // Results. . .
