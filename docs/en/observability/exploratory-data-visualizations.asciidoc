@@ -1,28 +1,205 @@
 [[exploratory-data-visualizations]]
-= Exploratory data visualizations
+= Exploratory view
 
-experimental[]
+The *Exploratory view* in {kib} enables you to select and filter result data in any dimension, and look
+ for the cause or impact of performance problems.
 
-The *Exploratory view* in {kib} enables you to build and analyze custom aggregation-based
-visualizations of your Synthetic monitoring and {user-experience} (RUM) data to help you
-thoroughly examine and discover insights.
+Based on your synthetic monitoring, user experience, and mobile
+  experience data, you can create multi-series visualizations of performance and device
+  distributions, key performance indicators (KPI) over time, and core web vitals
+  of your web applications.
 
 [role="screenshot"]
 image::images/exploratory-view.png[Exploratory view]
 
-You may only be interested in a specific set of data so you can identify underlying
-signals quickly. Or perhaps you want to manipulate your data to perform vital investigations
-without the need for deep domain knowledge.
+[discrete]
+[[exploratory-data-visualizations]]
+== Exploratory data visualizations
 
-Using the Exploratory view, you can filter your data and build visualizations that help you
-clarify what's essential and examine the cause or impact of performance
-difficulties.
+You can use Exploratory view to filter your data and build multi-series
+visualizations that help you clarify what's essential and examine the cause or
+impact of performance difficulties. You can compare different time periods,
+different cohorts, and even different data types.
 
-* <<synthetic-monitoring-visualizations,Synthetic monitoring visualizations>>
-* <<user-experience-visualizations,User Experience (RUM) visualizations>>
+Hover over the chart to display crosshairs with specific metric data.
+To drilldown into a specific time period, click and drag a selection then *Apply
+changes*.
 
-include::synthetic-monitoring-visualizations.asciidoc[leveloffset=+1]
+To add visualizations to an existing case, click *Add to case* from the toolbar.
 
-include::user-experience-visualizations.asciidoc[leveloffset=+1]
+To customize a visualization further, click *Open in Lens* from the toolbar to
+modify visualizations with the drag and drop editor. To learn more, see
+{kibana-ref}/lens.html[Lens].
 
+[discrete]
+[[report-types]]
+== What report types are available?
 
+[options,header]
+|===
+|Report type | Description
+
+|KPI over time
+|The KPI over time histogram represents the performance indicators based on the
+metric you select, such as page views or monitor duration.
+
+|Performance distribution
+|The Performance distribution time-series chart enables you to examine the
+perceived performance of your web applications based on the metric you select.
+
+|Core web vitals
+|The Core web vitals chart is a graphical representation of key metrics, such as
+loading performance, load responsiveness, and visual stability, for each of your
+web applications.
+
+To learn more about metrics such as Largest contentful paint, First input delay,
+and Cumulative layout shift, see {observability-guide}/user-experience.html#user-experience-metrics[{user-experience} metrics].
+
+|Device distribution
+|The Device distribution chart displays device information such as OS, carrier name, and connection type.
+
+|===
+
+For a breakdown of which data types are available for which reports, see <<data-types>>.
+
+You can create multi-series visualizations for each report type but you cannot
+combine different report types in one visualization. To change report type for
+your visualization, click *Remove series* and then *Add series*.
+
+[discrete]
+[[create-multi-series-visualizations]]
+== Create multi-series visualizations
+
+Exploratory view is currently enabled for the following apps:
+
+* Metrics
+* Uptime
+* User Experience
+
+To create a multi-series visualization:
+
+. Click *Explore data* from a compatible app.
+* The report type will default to the most appropriate for the app but you can
+edit the series or add more series to the visualization. For example, if you
+click *Explore Data* from the Uptime app, the `Synthetics monitoring`
+ data type and `Monitor duration` report metric will be preselected.
+. Click *Add series* to define an additional series for the visualization.
+. Click *Select data type* and choose from the following options:
+* Synthetics monitoring
+* User experience (RUM)
+* Infra metrics
+* Mobile experience
+. Click *Select report metric* and select the options and filters you need. You
+will see a *Missing...* warning if required fields (highlighted with red
+  underline) are incomplete.
+. Click *Apply changes* to see the updated visualization or repeat the *Add series* process to expand the visualization.
+. To add the visualization to an existing case, click *Add to case* and select the correct case.
+
+[discrete]
+[[metrics]]
+== Metrics
+
+[discrete]
+[[synthetic-monitoring]]
+== Synthetic Monitoring
+
+Based on the Uptime data you are sending to your deployment, you can create various visualizations relating to
+monitor durations, pings over time, or any of the <<data-types>>[available data types].
+
+[role="screenshot"]
+image::images/exploratory-view-uptime.png[Exploratory view]
+
+|===
+
+| *Monitor duration* | The Uptime monitor duration time-series chart displays the timing for each check that {heartbeat} performed.
+
+The visualization helps you to gain insights into how quickly requests resolve by the targeted endpoint
+and give you a sense of how frequently a host or endpoint was down in your selected timespan.
+
+| *Pings histogram* | The Uptime pings chart is a graphical representation of the check statuses over time.
+
+Monitor duration
+
+Up Pings
+
+Down Pings
+
+Step duration
+
+Largest contentful paint
+
+First contentful paint
+
+DOM content loaded
+
+Page load time
+
+Cumulative layout shift
+
+|===
+
+[discrete]
+[[user-experience]]
+== User Experience
+
+Based on the {user-experience} data from your instrumented applications, you can create
+detailed visualizations for performance distributions, key performance indicators (KPI) over time,
+and for core web vitals of your web applications.
+
+[role="screenshot"]
+image::images/exploratory-view-ux-page-load-time.png[Exploratory view]
+
+|===
+
+| *KPI over time* | The KPI over time histogram represents the performance indicators based on
+the metric you select.
+
+By default, the `page views` metric is selected.
+
+| *Performance distribution* | The Performance distribution time-series chart enables you to examine the perceived
+performance of your web applications based on the metric you select.
+
+By default, the `page load time` metric is selected.
+
+| *Core web vitals* | The Core web vitals chart is a graphical representation of key metrics, such as
+loading performance, load responsiveness, and visual stability, for each of your web applications.
+
+By default, the `largest contentful paint` metric is selected. Hover over the chart to display crosshairs
+with performance indicators for each web application: `poor`, `average`, and `good`.
+
+|===
+
+[discrete]
+[[data-types]]
+== What data types can I explore?
+
+The following table shows which data types are available for each report type:
+
+|===
+|Data type | Synthetics monitoring | Infra metrics | User experience (RUM) | Mobile experience
+
+| Monitor duration | {y} | | |
+| Up Pings | {y} | | |
+| Down Pings | {y} | | |
+| Step duration | {y} | | |
+| DOM content loaded | {y} | | |
+| Document complete (onLoad) | {y} | | |
+| Largest contentful paint | {y} | | {y} |
+| First contentful paint | {y} | | {y} |
+| Page load time | {y} | | {y} |
+| Cumulative layout shift | {y} | | {y} |
+| Page views | | | {y} |
+| Backend time | | | {y} |
+| Total blocking time | | | {y} |
+| First input delay | | | {y} |
+| Latency | | | | {y}
+| Throughput | | | | {y}
+| System memory usage | | {y} | | {y}
+| CPU usage | | | | {y}
+| Number of devices | | | | {y}
+| System CPU usage | | {y} | |
+| Docker CPU usage | | {y} | |
+| K8s pod CPU usage | | {y} | |
+| System CPU usage | | {y} | |
+
+|===
