@@ -87,7 +87,7 @@ traffic between {agent}s and {fleet-server}.
 [discrete]
 == Encrypt traffic between {agent}s, {fleet-server}, and {es}
 
-{fleet-server} needs a CA certificate to connect securely to {es}. It also
+{fleet-server} needs a CA certificate or the CA fingerprint to connect securely to {es}. It also
 needs to expose a {fleet-server} certificate so other {agent}s can connect to it
 securely.
 
@@ -111,40 +111,47 @@ for {fleet-server}.
 |The CA certificate to use to connect to {es}. This is the CA used to generate
 certs for {es} (see <<prereqs>>).
 
+Note that the CA certificate's SHA-256 fingerprint (hash) may be used instead of the `elasticsearch-ca.crt` file for securing connections to {es}.
+
+
 |===
 
 To encrypt traffic between {agent}s, {fleet-server}, and {es}:
 
-. Configure {fleet} settings:
+. Configure {fleet} settings. These settings are applied to all {fleet}-managed
+{agent}s.
 
-.. In {kib} go to *Management > {fleet}*.
+. In {kib}, open the main menu, then click *Management > {fleet} > Settings*.
 
-.. In the upper-right corner, click *Fleet settings* and set connection details
-that apply to all {fleet}-managed {agent}s:
+.. Under *{fleet-server} hosts*, specify the URLs {agent}s will use to connect to
+{fleet-server}. For example, https://192.0.2.1:8220, where 192.0.2.1 is the host
+IP where you will install {fleet-server}.
 +
-[role="screenshot"]
-image::images/fleet-settings-ssl.png[Screen capture that shows {fleet-server} hosts, {es} hosts, and {es} output settings]
-
-.. In the *Fleet Server hosts* field, specify the
-URLs {agent}s will use to connect to {fleet-server}. For example,
-https://192.0.2.1:8220, where 192.0.2.1 is the host IP where you will install
-{fleet-server}.
-
-.. In the *Elasticsearch host* field, specify the {es} URLs where {agent}s will
-send data. For example, https://192.0.2.0:9200.
-+
-Use the `https` protocol for both host settings. DNS-based names are also
+TIP: For host settings, use the `https` protocol. DNS-based names are also
 allowed.
 
-.. Under *Elasticsearch output configuration (YAML)*, set
+.. Under *Outputs*, search for the default output, then click the *Edit* icon in
+the *Action* column.
+
+.. In the *Hosts* field, specify the {es} URLs where
+{agent}s will send data. For example, https://192.0.2.0:9200.
+
+.. Specify either a CA certificate or CA fingerprint to connect securely
+{es}:
+
+* If you have a CA trusted fingerprint, specify it in the
+*Elasticsearch CA trusted fingerprint* field. To learn more, refer to the
+{ref}/configuring-stack-security.html[{es} security documentation].
+
+* Otherwise, under *Advanced YAML configuration*, set
 `ssl.certificate_authorities` and specify the CA certificate to use to connect
 to {es}. You can specify a list of file paths (if the files are available), or
 embed a certificate directly in the YAML configuration. If you specify file
 paths, the certificates must be available on the hosts running the {agent}s.
 +
+File path example:
++
 --
-Path example:
-
 [source,yaml]
 ----
 ssl.certificate_authorities: ["/path/to/your/elasticsearch-ca.crt"] <1>

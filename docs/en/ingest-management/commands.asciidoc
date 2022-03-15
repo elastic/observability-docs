@@ -4,7 +4,12 @@
 = {agent} command reference
 
 {agent} provides commands for running {agent}, managing {fleet-server}, and
-doing common tasks:
+doing common tasks.
+
+NOTE: You might need to log in as a root user (or Administrator on Windows) to
+run these commands. After the {agent} service is installed and running, make
+sure you run these commands without prepending them with `./` to avoid
+invoking the wrong binary.
 
 * <<elastic-agent-diagnostics-command,diagnostics>>
 * <<elastic-agent-enroll-command,enroll>>
@@ -13,13 +18,11 @@ doing common tasks:
 * <<elastic-agent-install-command,install>>
 * <<elastic-agent-restart-command,restart>>
 * <<elastic-agent-run-command,run>>
+* <<elastic-agent-status-command,status>>
 * <<elastic-agent-uninstall-command,uninstall>>
 * <<elastic-agent-upgrade-command,upgrade>>
 * <<elastic-agent-version-command,version>>
 //* <<elastic-agent-watch-command,watch>>
-
-NOTE: You might need to log in as a root user (or Administrator on Windows) to
-run these commands.
 
 ++++
 <hr>
@@ -33,11 +36,14 @@ Gather diagnostics information from the {agent} and applications it's running.
 
 If no options are specified, this command displays version numbers and application metadata.
 
-If `collect` is specified, it produces an archive containing application metadata, configuration information, the policy, and any local logs.
+If `collect` is specified, it produces an archive containing application metadata, configuration information, the policy, local logs, and metics data (if the buffer is enabled).
 
 Note that *credentials are not redacted* in the archive; they may appear in plain text in the configuration or policy files inside the archive.
 
 This command is intended for debugging purposes only. The output format and structure of the archive produced by `collect` may change between releases.
+
+If `pprof` is specified, it gathers specific `pprof` data from the {agent} or one of the specified underlying {beats}, and displays to `stdout`.
+By default it gathers a 30s profile of the {agent}.
 
 [discrete]
 === Synopsis
@@ -47,8 +53,19 @@ This command is intended for debugging purposes only. The output format and stru
 elastic-agent diagnostics [--help] [--output <string>] [global-flags]
 elastic-agent diagnostics collect [--output <string>]
                                   [--file <string>]
+                                  [--pprof]
+                                  [--pprof-duration <string>]
+                                  [--timeout <string>]
                                   [--help]
                                   [global-flags]
+elastic-agent diagnostics pprof [--file <string>]
+                                [--pprof-type <string]
+                                [--pprof-duration <string>]
+                                [--timeout <string>]
+                                [--pprof-application <string>]
+                                [--pprof-route-key <string>]
+                                [--help]
+                                [global-flags]
 ----
 
 [discrete]
@@ -59,8 +76,31 @@ Output format. If using `collect`, specify `json` or `yaml` (the default).
 Otherwise specify `json`, `yaml`, or `human` (the default).
 
 `--file`::
-Output archive name for the `collect` option.
-Defaults to `elastic-agent-diagnostics-<timestamp>.zip` where the timestamp is the current time in UTC.
+When running `collect`, specifies the output archive name. Defaults to `elastic-agent-diagnostics-<timestamp>.zip`, where the timestamp is the current time in UTC.
++
+When running `pprof`, specifies the output file name. Defaults to `stdout`.
+
+`--pprof`::
+Gather `pprof` data when running `collect` (default `false`).
+
+`--pprof-duration <string>`::
+The length for the `trace` and `profile` data that's collected when gathering `pprof` data.
+Must be a string that can be parsed as a `time.Duration` value (default: `30s`).
+
+`--timeout <string>`::
+The timeout value for the `diagnostics collect` or `diagnostics pprof` command.
+Should be longer then `pprof-duration` as the command needs to gather and process the data.
+Must be a string that can be parsed as a `time.Duration` value (default: `30s + pprof-duration`).
+
+`--pprof-type <string>`::
+The pprof data to gather, one of: `allocs`, `block`, `cmdline`, `goroutine`, `heap`, `mutex`, `profile`, `threadcreate`, or `trace` (default: `profile`).
+
+`--pprof-application <string>`::
+The application name to gather `pprof` data from (default `elastic-agent`).
+
+`--pprof-route-key <string>`::
+The route key (output destination) associated with the application to gather `pprof` data from (default `default`).
+Note that this setting is ignored in the case where `pprof-application=elastic-agent`.
 
 `--help`::
 Show help for the `diagnostics` command.
@@ -122,6 +162,7 @@ elastic-agent enroll --url <string>
                      --enrollment-token <string>
                      [--ca-sha256 <string>]
                      [--certificate-authorities <string>]
+                     [--delay-enroll]
                      [--force]
                      [--help]
                      [--insecure ]
@@ -136,27 +177,29 @@ elastic-agent enroll --fleet-server-es <string>
                      --fleet-server-service-token <string>
                      [--ca-sha256 <string>]
                      [--certificate-authorities <string>]
+                     [--delay-enroll]
                      [--fleet-server-cert <string>] <1>
                      [--fleet-server-cert-key <string>]
                      [--fleet-server-es-ca <string>]
+                     [--fleet-server-es-ca-trusted-fingerprint <string>] <2>
                      [--fleet-server-host <string>]
                      [--fleet-server-insecure-http]
                      [--fleet-server-policy <string>]
                      [--fleet-server-port <uint16>]
                      [--force]
                      [--help]
-                     [--url <string>] <2>
-                     [--fleet-server-es-insecure ] <3>
+                     [--url <string>] <3>
+                     [--fleet-server-es-insecure]
                      [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
 self-signed certificate with the hostname of the machine. Remote {agent}s
 enrolling into a {fleet-server} with self-signed certificates must specify
 the `--insecure` flag.
-<2> Required when enrolling in a {fleet-server} with custom certificates. The
+<2> Required when using self-signed certificates with {es}.
+<3> Required when enrolling in a {fleet-server} with custom certificates. The
 URL must match the DNS name used to generate the certificate specified by
 `--fleet-server-cert`.
-<3> Required when using self-signed certificate on {es} side.
 
 For more information about custom certificates, refer to <<secure-connections>>.
 
@@ -172,6 +215,11 @@ verification.
 
 `--certificate-authorities <string>`::
 Comma-separated list of root certificates used for server verification.
+
+`--delay-enroll`::
+Delays enrollment to occur on first start of the {agent} service. This setting
+is useful when you don't want the {agent} to enroll until the next reboot or manual start of the service, for
+example, when you're preparing an image that includes {agent}.
 
 `--enrollment-token <string>`::
 Enrollment token to use to enroll {agent} into {fleet}. You can use
@@ -190,6 +238,11 @@ specified {es} URL.
 `--fleet-server-es-ca <string>`::
 Path to certificate authority to use to communicate with {es}.
 
+`--fleet-server-es-ca-trusted-fingerprint <string>`::
+The SHA2-56 fingerprint (hash) of the certificate authority used to self-sign {es} certificates.
+This fingerprint will be used to verify self-signed certificates presented by {fleet-server} and any inputs started by {agent} for communication.
+This flag is required when using self-signed certificates with {es}.
+
 `--fleet-server-es-insecure`::
 Allows fleet server to connect to {es} in the following situations:
 +
@@ -197,7 +250,6 @@ Allows fleet server to connect to {es} in the following situations:
 * When connecting to an HTTP server.
 * When connecting to an HTTPs server and the certificate chain cannot be
 verified. The content is encrypted, but the certificate is not verified.
-* When using self-signed certificates.
 --
 +
 When this flag is used the certificate verification is disabled.
@@ -404,13 +456,16 @@ service manager. The agent will start automatically after installation is
 complete. On Linux (tar package), this command requires a system and service
 manager like systemd.
 
-IMPORTANT: If you installed {agent} from a DEB or RPM package, use the
-<<elastic-agent-enroll-command,`enroll` command>> instead of `install`. The DEB
-and RPM packages include a service unit for Linux systems with systemd.
+IMPORTANT: If you installed {agent} from a DEB or RPM package, the `install`
+command will skip the installation itself and function as an alias of the
+<<elastic-agent-enroll-command,`enroll` command>> instead.
 
 You must run this command as the root user (or Administrator on Windows)
 to write files to the correct locations. This command overwrites the
 `elastic-agent.yml` file in the agent directory.
+
+The syntax for running this command varies by platform. For platform-specific
+examples, refer to <<elastic-agent-installation>>.
 
 [discrete]
 === Synopsis
@@ -424,6 +479,7 @@ elastic-agent install --url <string>
                       --enrollment-token <string>
                       [--ca-sha256 <string>]
                       [--certificate-authorities <string>]
+                      [--delay-enroll]
                       [--force]
                       [--help]
                       [--insecure ]
@@ -440,27 +496,29 @@ elastic-agent install --fleet-server-es <string>
                       --fleet-server-service-token <string>
                       [--ca-sha256 <string>]
                       [--certificate-authorities <string>]
+                      [--delay-enroll]
                       [--fleet-server-cert <string>] <1>
                       [--fleet-server-cert-key <string>]
                       [--fleet-server-es-ca <string>]
+                      [--fleet-server-es-ca-trusted-fingerprint <string>] <2>
                       [--fleet-server-host <string>]
                       [--fleet-server-insecure-http]
                       [--fleet-server-policy <string>]
                       [--fleet-server-port <uint16>]
                       [--force]
                       [--help]
-                      [--url <string>] <2>
-                      [--fleet-server-es-insecure ] <3>
+                      [--url <string>] <3>
+                      [--fleet-server-es-insecure]
                       [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
 self-signed certificate with the hostname of the machine. Remote {agent}s
 enrolling into a {fleet-server} with self-signed certificates must specify
 the `--insecure` flag.
-<2> Required when enrolling in a {fleet-server} with custom certificates. The
+<2> Required when using self-signed certificate on {es} side.
+<3> Required when enrolling in a {fleet-server} with custom certificates. The
 URL must match the DNS name used to generate the certificate specified by
 `--fleet-server-cert`.
-<3> Required when using self-signed certificate on {es} side.
 
 For more information about custom certificates, refer to <<secure-connections>>.
 
@@ -616,6 +674,62 @@ Set log level to INFO.
 [source,shell]
 ----
 elastic-agent run -c myagentconfig.yml
+----
+
+++++
+<hr>
+++++
+
+[discrete]
+[[elastic-agent-status-command]]
+== elastic-agent status
+
+Returns the current status of the running Elastic Agent daemon and of each process
+in the Elastic Agent.
+
+[discrete]
+=== Synopsis
+
+[source,shell]
+----
+elastic-agent status [--output <string>]
+                     [--help]
+                     [global-flags]
+----
+
+[discrete]
+=== Options
+
+`--output <string>`::
+Output the status information in either `human` (the default), `json`, or
+`yaml`. When the output is `json` or `yaml`, the command returns status codes:
++
+--
+|===
+|Code |Status
+
+|0    |`STARTING`
+|1    |`CONFIGURING`
+|2    |`HEALTHY`
+|3    |`DEGRADED`
+|4    |`FAILED`
+|5    |`STOPPING`
+|6    |`UPGRADING`
+|7    |`ROLLBACK`
+|===
+--
+
+`--help`::
+Show help for the `status` command.
+
+{global-flags-link}
+
+[discrete]
+=== Examples
+
+[source,shell]
+----
+elastic-agent status
 ----
 
 ++++

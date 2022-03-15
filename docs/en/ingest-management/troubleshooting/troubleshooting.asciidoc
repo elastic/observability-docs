@@ -9,7 +9,8 @@ is not described here, please review the open issues in the following GitHub rep
 | Repo | To review or report issues about
 
 |https://github.com/elastic/kibana/issues[elastic/kibana] | {fleet} and {integrations} UI
-|https://github.com/elastic/beats/issues[elastic/beats] | {agent} or {beats} shippers
+|https://github.com/elastic/elastic-agent/issues[elastic/elastic-agent] | {agent}
+|https://github.com/elastic/beats/issues[elastic/beats] | {beats} shippers
 |https://github.com/elastic/fleet-server/issues[elastic/fleet-server] | {fleet-server}
 |https://github.com/elastic/package-registry/issues[elastic/package-registry] | {package-registry}
 |https://github.com/elastic/observability-docs/issues[elastic/observability-docs] | Documentation issues
@@ -19,8 +20,88 @@ is not described here, please review the open issues in the following GitHub rep
 Have a question? Read our <<fleet-faq,FAQ>>, or contact us in the
 {forum}[discuss forum]. Your feedback is valuable to us.
 
+Running {agent} standalone? Also refer to <<debug-standalone-agents>>.
+
 //TODO: Improve how content is organized in this section, perhaps by breaking
 //it down into sections like Agent, Fleet Server, etc.
+
+[discrete]
+[[agents-in-cloud-stuck-at-updating]]
+== {agent}s hosted on {ecloud} are stuck in `Updating` or `Offline`
+
+In {ecloud}, after <<upgrade-integration,upgrading>> {fleet-server} and its
+integration policies, agents enrolled in the Elastic Cloud agent policy
+may experience issues updating. To resolve this problem:
+
+. Delete the {fleet-server} integration policy under the Elastic Cloud agent
+policy:
++
+.. To find the ID of the {fleet-server} integration policy in {kib}, go to
+*Management > Fleet > Agent Policies > Elastic Cloud agent policy > Fleet Server*.
+This should take you to a URL like this:
++
+`<kibana_ur>/app/fleet/policies/policy-elastic-agent-on-cloud/edit-integration/<integration_policy_id>`
++
+Copy the policy ID at the end of the URL.
+
+.. In a terminal window, run the following `cURL` request, providing your {kib} superuser credentials to delete the {fleet-server} integration policy:
++
+[source,shell]
+----
+curl -u <username>:<password> --request POST \
+  --url <kibana_url>/api/fleet/package_policies/delete \
+  --header 'content-type: application/json' \
+  --header 'kbn-xsrf: xyz' \
+  --data '{"packagePolicyIds": ["<integration_policy_id>"], "force": true}' <1>
+----
+<1> `<integration_policy_id>` is the ID you copied in the previous step.
+
+. Remove existing policy references to the {agent} cloud policy. In the Dev
+Tools Console, run:
++
+[source,console]
+----
+POST .fleet-policies/_delete_by_query?q=policy-elastic-agent-on-cloud
+----
+
+. Recreate the {fleet-server} integration policy:
++
+In a terminal window, run the following `cURL` request, providing your {kib}
+superuser credentials to force creation of the {fleet-server} integration
+policy in the Elastic Cloud agent policy:
++
+[source,shell]
+----
+curl -u <username>:<password> --request POST \
+  --url <kibana_url>/api/fleet/package_policies \
+  --header 'content-type: application/json' \
+  --header 'kbn-xsrf: xyz' \
+  --data '{"name": "Fleet Server","description": "","namespace": "default","policy_id": "policy-elastic-agent-on-cloud","enabled": true,"output_id": "","inputs": [{"type": "fleet-server","policy_template": "fleet_server","enabled": true,"streams": [],"vars": {"host": {"value": ["0.0.0.0"],"type": "text"},"port": {"value": [8220],"type": "integer"},"max_connections": {"type": "integer"},"custom": {"value": "server.runtime:\n  gc_percent: 20","type": "yaml"}}}],"package": {"name": "fleet_server","title": "Fleet Server","version": "1.0.1"},"force": true}'
+----
+
+. Force unenroll the agent stuck in `Updating`:
+
+.. To find agent's ID, go to *Fleet > Agents* and click the agent to see its
+details. Copy the Agent ID.
+
+.. In a terminal window, run:
++
+[source,shell]
+----
+curl -u <username>:<password> --request POST \
+  --url <kibana_url>/api/fleet/agents/<agentID>/unenroll \
+  --header 'content-type: application/json' \
+  --header 'kbn-xsrf: xx' \
+  --data-raw '{"force":true,"revoke":true}' \
+  --compressed
+----
++
+Where `<agentID>` is the ID you copied in the previous step.
+
+. Restart the APM & Fleet container:
++
+In the {ecloud} console under *APM & Fleet*, click *Force Restart*.
+
 
 [discrete]
 [[fleet-server-not-in-kibana-cloud]]
@@ -253,8 +334,23 @@ This archive collects the following information:
 
 Note that the diagnostics bundle is intended for debugging purposes only, its structure may change between releases.
 
-IMPORTANT: The configration files in the archive may have credentials in *plain text*.
+IMPORTANT: The configuration files in the archive may have credentials in *plain text*.
 These will need to be manually redacted before the archive is shared.
+
+The diagnostics command is also able to collect `pprof` data in the archive if the `--pprof` flag is passed:
+
+If `agent.monitoring.http.buffer.enabled` is set to `true`, the archive will also contain recent metrics from the {agent} and {beats} processes.
+
+[source,shell]
+----
+elastic-agent diagnostics collect --pprof
+----
+
+By default this command takes a little more than 30s to run because it collects 30s trace and profile information from the {agent} and all underlying {beats}.
+To change the duration of the trace and profile data, set the `--pprof-duration` flag.
+
+To set the timeout value for the collection command, use the `--timeout` flag. The timeout defaults to 30s + `pprof-duration`.
+Use this flag to increase the timeout if the diagnostics command times out before creating the archive.
 
 [discrete]
 [[not-installing-no-logs-in-terminal]]
@@ -511,3 +607,31 @@ installed integrations.
 
 . Under advanced settings, set `windows.advanced.diagnostic.enabled`
 to `false`, and then save the integration.
+
+
+[discrete]
+[[hosted-agent-offline]]
+== Hosted {agent} is offline
+
+To scale the {fleet-server} deployment, {ecloud} starts new containers or shuts down old ones when hosted {agent}s are required or no longer needed. The old {agent}s will show in the Agents list for 24 hours then automatically disappear.
+
+[discrete]
+[[hosted-agent-8-x-upgrade-fail]]
+== APM & Fleet fails to upgrade to 8.x on {ecloud}
+
+In some scenarios, upgrading APM & Fleet to 8.x may fail if the Elastic Cloud agent policy was modified manually. The {fleet} app in {kib} may show a message like:
+
+[source,sh]
+----
+Unable to create package policy. Package 'apm' already exists on this agent policy
+----
+
+To work around this problem, you can reset the {ecloud} agent policy with an API call. Note that this will remove any custom integration policies that you've added to the policy, such as Synthetics monitors.
+
+[source,sh]
+----
+curl -u elastic:<password> --request POST \
+  --url <kibana_url>/internal/fleet/reset_preconfigured_agent_policies/policy-elastic-agent-on-cloud \
+  --header 'Content-Type: application/json' \
+  --header 'kbn-xsrf: xyz' \
+----

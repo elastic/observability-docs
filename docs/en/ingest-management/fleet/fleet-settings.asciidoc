@@ -8,9 +8,10 @@ settings that you can configure in the `kibana.yml` configuration file.
 Configure {fleet} settings to apply global settings to all {agent}s enrolled in
 {fleet}:
 
-. In {kib}, open the main menu, then click *Management > {fleet}*.
+. In {kib}, open the main menu, then click *Management > {fleet} > Settings*.
 
-. Click *{fleet} settings*
+. Under *{fleet-server} hosts*, click *Edit hosts* and specify one or more
+host URLs:
 +
 --
 [cols="2*<a"]
@@ -20,13 +21,16 @@ Configure {fleet} settings to apply global settings to all {agent}s enrolled in
 *{fleet-server} hosts*
 
 | The URLs your {agent}s will use to connect to a {fleet-server}. This setting
-is required. On self-managed clusters, you must specify one or more URLs. On
-{ecloud}, this field is populated automatically.
+is required. On self-managed clusters, you must specify one or more URLs.
+
+On {ecloud}, this field is populated automatically. If you are using
+Azure Private Link, GCP Private Service Connect, or AWS PrivateLink
+and enrolling the {agent} with a private link URL,
+ensure that this setting is configured. Otherwise, {agent} will
+reset to use a default address instead of the private link URL.
 
 NOTE: If a URL is specified without a port, {kib} sets the port to `80` (http)
 or `443` (https).
-
-//TODO: Find out what we need to say about IPv6 addresses.
 
 By default, {fleet-server} is typically exposed on the following ports:
 
@@ -34,8 +38,8 @@ By default, {fleet-server} is typically exposed on the following ports:
 Default {fleet-server} port for self-managed clusters
 
 `443` or `9243`::
-Default {fleet-server} port for {ecloud}. Look at *{fleet} settings*
-to see the actual port that's used.
+Default {fleet-server} port for {ecloud}. View the {fleet} *Settings* tab
+to find the actual port that's used.
 
 IMPORTANT: The exposed ports must be open for ingress and egress in the firewall and
 networking rules on the host to allow {agent}s to communicate with {fleet-server}.
@@ -47,7 +51,6 @@ If multiple URLs exist, {fleet} shows the first provided URL for enrollment
 purposes. Enrolled {agent}s will connect to the URLs in round robin order until
 they connect successfully. 
 
-
 When a {fleet-server} is added or removed from the list, all agent policies
 are updated automatically.
 
@@ -57,11 +60,40 @@ are updated automatically.
 * `https://abae718c1276457893b1096929e0f557.fleet.eu-west-1.aws.qa.cld.elstc.co:443`
 * `https://[2001:db8::1]:8220`
 
+|===
+--
+
+. Under *Outputs*, click the *Edit* icon in the *Action* column to modify
+output settings, as needed.
++
+NOTE: The Elastic Cloud internal output is locked and cannot be edited. This
+output is used for internal routing to reduce external network charges when
+using the Elastic Cloud agent policy. It also provides visibility for
+troubleshooting on {ece}.
++
+--
+[cols="2*<a"]
+|===
+|
+[id="es-output-name-setting"]
+*Name*
+
+| The name of the output. 
+
 // =============================================================================
 
 |
-[id="es-hosts-setting"]
-*{es} hosts*
+[id="es-output-type-setting"]
+*Type*
+
+| The output type. {es} is the only output type currently supported by
+{fleet}-managed {agent}s.
+
+// =============================================================================
+
+|
+[id="es-output-hosts-setting"]
+*Hosts*
 
 | The {es} URLs where {agent}s will send data. By default, {es} is exposed
 on the following ports:
@@ -78,12 +110,23 @@ Default {es} port for {ecloud}
 * `https://1d7a52f5eb344de18ea04411fe09e564.fleet.eu-west-1.aws.qa.cld.elstc.co:443`
 * `https://[2001:db8::1]:9200`
 
+// =============================================================================
+
+|
+[id="es-trusted-fingerprint-yaml-setting"]
+*{es} CA trusted fingerprint*
+
+| HEX encoded SHA-256 of a CA certificate. If this certificate is
+present in the chain during the handshake, it will be added to the
+`certificate_authorities` list and the handshake will continue
+normally. To learn more about trusted fingerprints, refer to the
+{ref}/configuring-stack-security.html[{es} security documentation].
 
 // =============================================================================
 
 |
-[id="es-output-configuration-setting"]
-*{es} output configuration (YAML)*
+[id="es-output-advanced-yaml-setting"]
+*Advanced YAML configuration*
 
 | YAML settings that will be added to the {es} output section
 of each policy. This setting allows you to specify global output settings for
@@ -94,3 +137,4 @@ not currently provide validation.
 --
 
 . Save and apply the settings.
+
