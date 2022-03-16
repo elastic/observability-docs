@@ -57,8 +57,10 @@ Tools Console, run:
 +
 [source,console]
 ----
-POST .fleet-policies/_delete_by_query?q=policy-elastic-agent-on-cloud
+POST .fleet-policies/_delete_by_query?q=policy-elastic-agent-on-cloud <1>
 ----
+<1> The user who runs this command must be authorized to delete restricted
+system indices.
 
 . Recreate the {fleet-server} integration policy:
 +
@@ -72,7 +74,7 @@ curl -u <username>:<password> --request POST \
   --url <kibana_url>/api/fleet/package_policies \
   --header 'content-type: application/json' \
   --header 'kbn-xsrf: xyz' \
-  --data '{"name": "Fleet Server","description": "","namespace": "default","policy_id": "policy-elastic-agent-on-cloud","enabled": true,"output_id": "","inputs": [{"type": "fleet-server","policy_template": "fleet_server","enabled": true,"streams": [],"vars": {"host": {"value": ["0.0.0.0"],"type": "text"},"port": {"value": [8220],"type": "integer"},"max_connections": {"type": "integer"},"custom": {"value": "server.runtime:\n  gc_percent: 20","type": "yaml"}}}],"package": {"name": "fleet_server","title": "Fleet Server","version": "1.0.1"},"force": true}'
+  --data '{"name": "Fleet Server","description": "","namespace": "default","policy_id": "policy-elastic-agent-on-cloud","enabled": true,"output_id": "","inputs": [{"type": "fleet-server","policy_template": "fleet_server","enabled": true,"streams": [],"vars": {"host": {"value": ["0.0.0.0"],"type": "text"},"port": {"value": [8220],"type": "integer"},"max_connections": {"type": "integer"},"custom": {"value": "server.runtime:\n  gc_percent: 20","type": "yaml"}}}],"package": {"name": "fleet_server","title": "Fleet Server","version": "1.1.0"},"force": true}'
 ----
 
 . Force unenroll the agent stuck in `Updating`:
@@ -390,15 +392,6 @@ netstat -nat | grep :8220
 +
 Any response data indicates that the port is in use. This could be correct or not
 if you had intended to uninstall the {fleet-server}. In which case, re-check and continue.
-
-[discrete]
-[[fleet-server-input-missing]]
-== {fleet-server} fails with `assigned policy does not have fleet-server input` log error
-
-//These includes are designed to break in 7.15 so we remember to remove this info when it's stale
-include::{fleet-repo-dir}/release-notes/release-notes-7.14.asciidoc[tag=fleet-server-input-missing-detail]
-
-include::{fleet-repo-dir}/release-notes/release-notes-7.14.asciidoc[tag=fleet-server-input-missing-fix]
 
 [discrete]
 [[secondary-agent-not-connecting]]
