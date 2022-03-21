@@ -154,16 +154,16 @@ image::images/jenkins-pipeline-context.png[Attributes of a Jenkins pipeline exec
 [[ci-cd-store-jenkins-logs]]
 == Store Jenkins pipeline logs in Elastic
 
-Jenkins pipeline build logs can be sent through OpenTelemetry Protocol (OTLP) to be stored
+Jenkins pipeline logs can be sent through OpenTelemetry Protocol (OTLP) to be stored
 in an observability backend alongside the traces of the pipeline builds and Jenkins health metrics.
 Storing logs in an observability backend provides several benefits including:
 
 * Better observability, monitoring, alerting, and troubleshooting of the Jenkins instance
-due to the unification of all the signals in the observability backend.
+thanks to the unification of all the signals in the observability backend.
 * Better traceability and control of long term storage for builds so you can more easily
 audit the Software Delivery Lifecycle.
 * Better scalability and reliability of Jenkins by greatly reducing the quantity of data stored in
-Jenkins and limiting the well known file system performance of Jenkins when storing a large history of builds.
+Jenkins and limiting the well known file system performance challenges of Jenkins when storing a large history of builds.
 
 [discrete]
 [[ci-cd-store-jenkins-logs-requirements-configuration]]
@@ -172,10 +172,11 @@ Jenkins and limiting the well known file system performance of Jenkins when stor
 Storing Jenkins pipeline logs in Elastic requires:
 
 * Elastic Observability version 8.1 or higher.
-* The OpenTelemetry Protocol endpoint configured on the Jenkins OpenTelemetry integrationmust be
+* The OpenTelemetry Protocol endpoint configured on the Jenkins OpenTelemetry Plugin must be
 reachable from the Jenkins Agents (i.e. don't specify a localhost OTLP endpoint unless OpenTelemetry
 collectors are also deployed on the Jenkins Agents).
-* When using OpenTelemetry Collectors, set up a logs pipeline in addition to the traces and metrics pipelines.
+* When using OpenTelemetry Collectors, set up a https://opentelemetry.io/docs/collector/configuration/#service[logs pipeline]
+in addition to the traces and metrics pipelines.
 
 To store pipeline logs in Elastic:
 
@@ -185,35 +186,22 @@ To store pipeline logs in Elastic:
 4. Set the _Kibana base URL_.
 5. Click the _Advanced_ button to choose a storage integration strategy.
 There are two options for storing pipeline logs in Elastic Observability:
-    * *Store pipeline logs in Elastic and visualize logs exclusively in Elastic*,
-    which means logs will no longer be visible through the Jenkins UI.
-    Read more in <<ci-cd-visualize-logs-kibana>> below.
     * *Store pipeline logs in Elastic and visualize logs both in Elastic and through Jenkins*,
     which means you can view logs stored in Elastic on demand in the Jenkins UI.
     Read more in <<ci-cd-visualize-logs-kibana-and-jenkins>> below.
-
-[discrete]
-[[ci-cd-visualize-logs-kibana]]
-=== Visualize logs in Kibana
-
-The Jenkins OpenTelemetry provides turnkey pipeline log storage in Elasticsearch with visualization in Kibana.
-The Jenkins pipeline build console will display a hyperlink to Kibana rather than displaying the logs on the page.
-
-[role="screenshot"]
-image::images/ci-cd-visualize-logs-kibana-console.png[Jenkins Console Output page with link to view logs in Elastic Observability]
-
-.Architecture for storing pipeline logs in Elastic and visualizing logs exclusively in Elastic
-image::images/ci-cd-visualize-logs-kibana-architecture.png[Architecture diagram for storing pipeline logs in Elastic and visualizing logs exclusively in Elastic]
+    * *Store pipeline logs in Elastic and visualize logs exclusively in Elastic*,
+    which means logs will no longer be visible through the Jenkins UI.
+    Read more in <<ci-cd-visualize-logs-kibana>> below.
 
 [discrete]
 [[ci-cd-visualize-logs-kibana-and-jenkins]]
-=== Visualize in both Kibana and Jenkins
+=== Visualize logs in both Kibana and Jenkins
 
 The Jenkins OpenTelemetry also provides pipeline log storage in Elasticsearch while enabling you to
 either visualize the logs in Kibana or continue to display them through the Jenkins pipeline build console.
 
 [role="screenshot"]
-image::images/ci-cd-visualize-logs-kibana-and-jenkins-console.png[Jenkins Console Output page displaying both log contents and a link to view logs in Elastic Observability]
+image::images/ci-cd-visualize-logs-kibana-and-jenkins-console.png[Jenkins Console Output page displaying both log contents and a link to view logs in Elastic Observability, width=1000]
 
 This more advanced setup requires connecting the Jenkins Controller to Elasticsearch with read permissions
 on the `logs-apm.app` and preferably on the Metadata of the ILM policy of this index template
@@ -221,7 +209,20 @@ on the `logs-apm.app` and preferably on the Metadata of the ILM policy of this i
 Use "Validate Elasticsearch configuration" to verify the setup.
 
 .Architecture for storing pipeline logs in Elastic and visualizing logs in both Elastic and Jenkins
-image::images/ci-cd-visualize-logs-kibana-and-jenkins-architecture.png[Architecture diagram for storing pipeline logs in Elastic and visualizing logs in both Elastic and Jenkins]
+image::images/ci-cd-visualize-logs-kibana-and-jenkins-architecture.png[Architecture diagram for storing pipeline logs in Elastic and visualizing logs in both Elastic and Jenkins, width=1000]
+
+[discrete]
+[[ci-cd-visualize-logs-kibana]]
+=== Visualize logs exclusively in Kibana
+
+The Jenkins OpenTelemetry provides turnkey pipeline log storage in Elasticsearch with visualization in Kibana.
+The Jenkins pipeline build console will display a hyperlink to Kibana rather than displaying the logs on the page.
+
+[role="screenshot"]
+image::images/ci-cd-visualize-logs-kibana-console.png[Jenkins Console Output page with link to view logs in Elastic Observability, width=1000]
+
+.Architecture for storing pipeline logs in Elastic and visualizing logs exclusively in Elastic
+image::images/ci-cd-visualize-logs-kibana-architecture.png[Architecture diagram for storing pipeline logs in Elastic and visualizing logs exclusively in Elastic, width=1000]
 
 [discrete]
 [[ci-cd-instrumentation]]
