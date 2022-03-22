@@ -43,11 +43,14 @@ It is reliable and fast and features a modern API that auto waits for page eleme
 [[synthetics-create-journey]]
 == Write a synthetic test
 
+Start by creating a new file called using the `.journey.ts` or `.journey.js` file extension,
+importing the synthetics library, and adding a new journey.
 A journey tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
 
-Start by creating a new file called using the `.journey.ts` or `.journey.js` file extension,
-importing the synthetics library, and adding a new journey.
+The journey function takes two parameters: a `name`, and a `callback`.
+The `name` helps you identify an individual journey.
+The `callback` argument is a function that encapsulates what the journey does.
 
 [source,js]
 ----
@@ -56,9 +59,7 @@ journey('Journey name', ({ page, browser, context, params }) => {
 });
 ----
 
-The `journey` function takes a single parameter, `name` ('Journey name' in the example above).
-Then you pass a callback to the global `journey` function to encapsulate the whole test.
-This callback function provides access to fresh Playwright `page`, `params`, `browser`, and `context` instances.
+The callback provides access to fresh Playwright `page`, `params`, `browser`, and `context` instances:
 
 [horizontal]
 `name`::        A string you provide to describe the journey.
@@ -78,7 +79,7 @@ This callback function provides access to fresh Playwright `page`, `params`, `br
 === Add steps
 
 A journey consists of multiple _steps_. Steps are actions that should be completed in a specific order.
-Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
+Steps are displayed individually in the {uptime-app} along with screenshots for easy debugging and error tracking.
 
 A basic two-step journey would look like this:
 
@@ -167,15 +168,16 @@ journey('Ensure placeholder is correct', ({ page }) => {
 
 There are two ways to run synthetic tests:
 
-* If you want to invoke a single journey with few steps, <<synthetics-inline-journey,run an inline journey>>.
-This can be more efficient, but has some limitations like not supporting dependencies.
-* If you have any dependencies, you have a complex test suite, or your tests need to live with your
-application code, <<synthetics-test-suite,run a test suite>>. Any dependencies need to be defined with an
+* If you want to create a single journey and manage it in isolation from monitors containing other journeys,
+<<synthetics-inline-journey,use an inline journey>>.
+Inline journeys can be more efficient, but have some limitations like not supporting multiple journeys and other dependencies.
+* If you have multiple journeys, rely on dependencies, or your tests need to live with your
+application code, <<synthetics-test-suite,use a test suite>>. Any dependencies need to be defined with an
 `import` outside of the `journey` object and run via the test suite.
 
 [discrete]
 [[synthetics-inline-journey]]
-=== Run an inline journey
+=== Use an inline journey
 
 The easiest way to run a synthetic test is by creating an inline journey.
 The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic.
@@ -227,7 +229,7 @@ project template or spin up {heartbeat} yourself.
 
 [discrete]
 [[synthetics-test-suite]]
-=== Run a test suite
+=== Use a test suite
 
 If you have a suite of tests to implement, you can use Elastic Synthetics as a library.
 In this method, you use Docker to run both {heartbeat} and `elastic-synthetics`.
@@ -286,7 +288,7 @@ project template or spin up {heartbeat} yourself.
 In addition to replacing your end-to-end tests locally, you can run a synthetic test suite on your CI environment.
 
 You can run `@elastic/synthetics` in a CI environment to execute journeys.
-Elastic's synthetics runnercan output results in multiple formats, including JSON and JUnit
+Elastic's synthetics runner can output results in multiple formats, including JSON and JUnit
 (the standard format supported by most CI platforms).
 If any of your journeys fail, it will yield a non-zero exit code, which most CI systems pick up as a failure. 
 
