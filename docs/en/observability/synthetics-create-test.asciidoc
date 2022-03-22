@@ -11,7 +11,7 @@
 
 beta[] To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
-Synthetics agent exposes a an API for creating and running tests:
+The Elastic Synthetics agent exposes a an API for creating and running tests:
 
 * `journey(name, ({ page, browser, context, params }) => {})` -- A journey tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
@@ -36,12 +36,12 @@ It is reliable and fast and features a modern API that auto waits for page eleme
 [[synthetics-create-journey]]
 == Write a synthetic test
 
-Start by creating a new file called using the `.journey.ts` or `.journey.js` file extension,
+Start by creating a new file using the `.journey.ts` or `.journey.js` file extension,
 importing the synthetics library, and adding a new journey.
-A journey tests one discrete unit of functionality.
+A _journey_ tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
 
-The journey function takes two parameters: a `name`, and a `callback`.
+The journey function takes two parameters: a `name` and a `callback`.
 The `name` helps you identify an individual journey.
 The `callback` argument is a function that encapsulates what the journey does.
 
@@ -63,7 +63,7 @@ The callback provides access to fresh Playwright `page`, `params`, `browser`, an
                 that doesn't share cookies or cache with other browser contexts.
 `params`::      User-defined variables that allow you to invoke the Synthetics suite with custom parameters.
                 For example, if you want to use a different homepage depending on the `env`
-                (localhost for `dev`, and a URL for `prod`). See <<synthetics-params-secrets>>
+                (`localhost` for `dev` and a URL for `prod`). See <<synthetics-params-secrets>>
                 for more information.
 
 
@@ -127,7 +127,8 @@ step('Assert placeholder text', async () => {
   expect(placeholderValue).toBe('What needs to be done?'); <2>
 });
 ----
-<1> Find the `input` element with class `new-todo` and get the value of the `placeholder` attribute. See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getAttribute` reference] for more information.
+<1> Find the `input` element with class `new-todo` and get the value of the `placeholder` attribute.
+See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getAttribute` reference] for more information.
 <2> Use the assertion library provided by the Synthetics agent to look for the
 expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
 
@@ -163,17 +164,16 @@ There are two ways to run synthetic tests:
 
 * If you want to create a single journey and manage it in isolation from monitors containing other journeys,
 <<synthetics-inline-journey,use an inline journey>>.
-Inline journeys can be more efficient, but have some limitations like not supporting multiple journeys and other dependencies.
+Inline journeys can be more efficient, but have some limitations like not supporting dependencies or multiple journeys.
 * If you have multiple journeys, rely on dependencies, or your tests need to live with your
-application code, <<synthetics-test-suite,use a test suite>>. Any dependencies need to be defined with an
-`import` outside of the `journey` object and run via the test suite.
+application code, <<synthetics-test-suite,use a test suite>>.
 
 [discrete]
 [[synthetics-inline-journey]]
 === Use an inline journey
 
 The easiest way to run a synthetic test is by creating an inline journey.
-The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic.
+The `journey` keyword isn't required and access to variables like `page` and `params` is automatic.
 You cannot `import` any dependencies using inline scripts.
 
 To test an inline example locally, change into the directory of your test
@@ -183,10 +183,10 @@ For example, create a `sample.js` file containing steps:
 
 [source,js]
 ----
-step("load homepage", async () => {
+step('load homepage', async () => {
     await page.goto('https://www.elastic.co');
 });
-step("hover over products menu", async () => {
+step('hover over products menu', async () => {
     await page.hover('css=[data-nav-item=products]');
 });
 ----
@@ -217,8 +217,7 @@ In Monitor settings, use Monitor Type "Browser" and switch the Source Type to "I
 See <<synthetics-quickstart-fleet>> for details.
 * **{heartbeat}**: Copy and paste your test steps into `heartbeat.yml`.
 {heartbeat} spawns a separate Node.js process, schedules your tests, and runs them on a chromium browser.
-You can jump to <<synthetics-quickstart-step-two>> if you're using the provided Docker
-project template or spin up {heartbeat} yourself.
+See <<synthetics-quickstart-step-two>> for details.
 
 [discrete]
 [[synthetics-test-suite]]
@@ -239,6 +238,7 @@ Then write your tests:
 . Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
 . Create a `javascript` or `typescript` file that imports your tests.
 All synthetic test files must use the `.journey.ts` or `.journey.js` file extension.
+. Make sure any dependencies are defined with an `import` outside of the `journey` object.
 . Compile everything together.
 
 Find examples in the https://github.com/elastic/synthetics[elastic/synthetics] repository.
@@ -253,9 +253,9 @@ cd synthetics/examples/todos/ &&\
 npm install
 ----
 
-You are now inside the a synthetics test suite, which is also an NPM project.
-You can now run the provided tests. By default only files matching the filename `*.journey.(ts|js)*`
-will be run.
+You are now inside the synthetics test suite, which is also an NPM project.
+You can now run the provided tests.
+By default only files matching the filename `*.journey.(ts|js)*` will be run.
 
 [source,sh]
 ----
@@ -271,8 +271,7 @@ Elastic Synthetics integration configuration or `heartbeat.yml`.
 Use Monitor Type "Browser" and use the Source Type "Zip URL" pointing to a zip file containing the test project.
 See <<synthetics-quickstart-fleet>> for details.
 * **{heartbeat}**: Copy and paste the path to your zip file into `heartbeat.yml`.
-You can jump to <<synthetics-quickstart-step-two>> if you're using the provided Docker
-project template or spin up {heartbeat} yourself.
+See <<synthetics-quickstart-step-two>> for details.
 
 [discrete]
 [[synthetics-ci]]
@@ -280,11 +279,10 @@ project template or spin up {heartbeat} yourself.
 
 In addition to replacing your end-to-end tests locally, you can run a synthetic test suite on your CI environment.
 
-You can run `@elastic/synthetics` in a CI environment to execute journeys.
 Elastic's synthetics runner can output results in multiple formats, including JSON and JUnit
 (the standard format supported by most CI platforms).
 If any of your journeys fail, it will yield a non-zero exit code, which most CI systems pick up as a failure. 
 
 You can see an example using GitHub Actions in the
-https://github.com/elastic/synthetics-demo/blob/main/.github/workflows/run-synthetics.yml[elastic/synthetics] repository.
+https://github.com/elastic/synthetics-demo/blob/main/.github/workflows/run-synthetics.yml[elastic/synthetics-demo] repository.
 This example sets up a job that executes the synthetics runner and tells the runner to yield results in a JUnit format.
