@@ -154,13 +154,13 @@ image::images/jenkins-pipeline-context.png[Attributes of a Jenkins pipeline exec
 [[ci-cd-store-jenkins-logs]]
 == Store Jenkins pipeline logs in Elastic
 
-Jenkins pipeline logs can be sent through OpenTelemetry Protocol (OTLP) to be stored
+Jenkins pipeline logs can be sent through the OpenTelemetry Protocol (OTLP) to be stored
 in an observability backend alongside the traces of the pipeline builds and Jenkins health metrics.
 Storing logs in an observability backend provides several benefits including:
 
 * Better observability, monitoring, alerting, and troubleshooting of the Jenkins instance
 thanks to the unification of all the signals in the observability backend.
-* Better traceability and control of long term storage for builds so you can more easily
+* Better traceability and long term storage for builds so you can more easily
 audit the Software Delivery Lifecycle.
 * Better scalability and reliability of Jenkins by greatly reducing the quantity of data stored in
 Jenkins and limiting the well known file system performance challenges of Jenkins when storing a large history of builds.
@@ -172,17 +172,17 @@ Jenkins and limiting the well known file system performance challenges of Jenkin
 Storing Jenkins pipeline logs in Elastic requires:
 
 * Elastic {observability} version 8.1 or higher.
-* The OpenTelemetry Protocol endpoint configured on the Jenkins OpenTelemetry Plugin must be
+* The OpenTelemetry Protocol endpoint configured on the Jenkins OpenTelemetry Plugin to be
 reachable from the Jenkins Agents (i.e. don't specify a localhost OTLP endpoint unless OpenTelemetry
 collectors are also deployed on the Jenkins Agents).
-* When using OpenTelemetry Collectors, set up a https://opentelemetry.io/docs/collector/configuration/#service[logs pipeline]
+* When using OpenTelemetry Collectors, to set up a https://opentelemetry.io/docs/collector/configuration/#service[logs pipeline]
 in addition to the traces and metrics pipelines.
 
 To store pipeline logs in Elastic:
 
 1. Navigate to the _OpenTelemetry_ section of the Jenkins configuration screen.
 2. Set the _OTLP Endpoint_.
-3. Use the _Add Visualisation {observability} Backend_ drop-down to select the *Elastic {observability}* option.
+3. Use the _Add Visualisation Observability Backend_ drop-down to select the *Elastic {observability}* option.
 4. Set the _{kib} base URL_.
 5. Click the _Advanced_ button to choose a storage integration strategy.
 There are two options for storing pipeline logs in Elastic {observability}:
@@ -200,7 +200,7 @@ by continuing to render the logs in the Jenkins UI while allowing you to verify 
 [[ci-cd-visualize-logs-kibana-and-jenkins]]
 === Visualize logs in both {kib} and Jenkins
 
-The Jenkins OpenTelemetry Plugin also provides pipeline log storage in {es} while enabling you to
+The Jenkins OpenTelemetry Plugin provides pipeline log storage in {es} while enabling you to
 either visualize the logs in {kib} or continue to display them through the Jenkins pipeline build console.
 
 [role="screenshot"]
@@ -208,7 +208,7 @@ image::images/ci-cd-visualize-logs-kibana-and-jenkins-console.png[Jenkins Consol
 
 This more advanced setup requires connecting the Jenkins Controller to {es} with read permissions
 on the `logs-apm.app` and preferably on the Metadata of the {ilm-init} policy of this index template
-(by default it's the `logs-apm.app_logs-default_policy policy`).
+(by default it's the `logs-apm.app_logs-default_policy` policy).
 Use "Validate {es} configuration" to verify the setup.
 
 .Architecture for storing pipeline logs in Elastic and visualizing logs in both Elastic and Jenkins
