@@ -1,8 +1,8 @@
 [[monitor-uptime-synthetics]]
-= Synthetic monitoring via the {uptime-app}
+= Uptime monitoring
 
 ++++
-<titleabbrev>Synthetic monitoring</titleabbrev>
+<titleabbrev>Uptime monitoring</titleabbrev>
 ++++
 
 Synthetic monitoring extends traditional end-to-end testing techniques because it allows your tests to run continuously on the cloud.
@@ -11,18 +11,66 @@ With Elastic's Synthetic Monitoring product, you can assert that your applicatio
 You can use synthetic monitors to detect bugs caused by invalid states you couldn't anticipate and didn't write tests for.
 Synthetic monitors can also help you catch bugs in features that don't get enough traffic by allowing you to periodically simulate users' actions.
 
+[discrete]
+[[uptime-monitors]]
+== Monitors
+
 The {uptime-app} in {kib} includes two types of synthetic monitoring:
 
 * <<monitoring-synthetics>>
 * <<monitoring-uptime>>
 
 [discrete]
+[[monitoring-uptime]]
+// [[monitor-uptime]]
+=== Lightweight HTTP/S, TCP, and ICMP checks
+
+You can monitor the status of network endpoints using lightweight HTTP/S, TCP, and ICMP checks, explore
+endpoint status over time, drill down into specific monitors, and view a high-level
+snapshot of your environment at any point in time.
+
+[role="screenshot"]
+image::images/uptime-app.png[Uptime app in Kibana]
+
+For more details, refer to <<monitor-uptime-synthetics,lightweight ICMP, TCP, and HTTP checks>>.
+
+// [role="screenshot"]
+// image::images/uptime-app.png[Uptime app in Kibana]
+
+// The {uptime-app} uses {agent} to check the status of your services and applications periodically.
+// By adding the Elastic Synthetics integration to the policy used by your agent, you can monitor the
+// availability of network endpoints and services using the following Uptime monitors:
+
+// |===
+
+// | *ICMP monitor* | Check the availability of your hosts. The ICMP monitor uses ICMP (v4 and v6) Echo
+// Requests to check the network reachability of the hosts you are pinging. This will tell you whether the
+// host is available and connected to the network. However, it doesn't tell you if a service on the host is running or
+// not.
+
+// | *TCP monitor* | Monitor the services running on your hosts. The TCP monitor checks individual ports
+// to ensure the service is accessible and running.
+
+// | *HTTP monitor* | Monitor your website. The HTTP monitor checks to ensure specific endpoints return the correct
+// status code and display the correct text.
+
+// | *Browser monitor* | Using the synthetics agent, run automated synthetic monitoring test suites on a real Chromium
+// browser. For more details, refer to <<monitor-uptime-synthetics,Real browser synthetic monitoring>>. 
+
+// |===
+
+// Along with getting notified when your <<tls-certificate-alert,TLS certificates>> are set to expire, you can also
+// create an <<duration-anomaly-alert,Uptime duration anomaly >> rule to receive notifications based on the response durations for all of the
+// geographic locations of each monitor.
+
+[discrete]
 [[monitoring-synthetics]]
-== Browser checks
+// [[synthetic-monitoring]]
+=== Browser checks
 
 beta[] Real browser synthetic monitoring enables you to test critical actions and requests that an end-user would perform
 on your site at predefined intervals and in a controlled environment. You can view each synthetic monitoring journey
-in the {uptime-app} side-by-side with your other <<monitor-uptime,Uptime monitors>>. The result is rich, consistent, and repeatable
+in the {uptime-app} side-by-side with your other <<monitor-uptime-synthetics,Uptime monitors>>. The result is rich, consistent, and repeatable
 data that you can trend and alert on.
 
 For example, test popular user journeys, like logging in, adding items to a cart, and checking
@@ -34,17 +82,30 @@ experience.
 [role="screenshot"]
 image::images/synthetic-app-overview.png[Synthetics app overview]
 
-For more details, refer to <<synthetic-monitoring,Real browser synthetic monitoring>>.
+For more details, refer to <<monitor-uptime-synthetics,Real browser synthetic monitoring>>.
+
+// [TIP]
+// ====
+// Have a question? Want to leave feedback? Visit the
+// https://discuss.elastic.co/tags/c/observability/uptime/75/synthetics[Synthetics discussion forum].
+// ====
+
+// [role="screenshot"]
+// image::images/synthetic-app-overview.png[Synthetics app overview]
+
+// beta[] The {uptime-app} uses {agent} to run automated synthetic monitoring test suites using a real Chromium browser.
+// Using the `elastic-agent-complete` Docker container, create a *browser* monitor to mimic the user experience
+// across multistep journeys and analyze what the browser displays for each step alongside a test script. 
+
+// To get started, try out our {agent} using the `elastic-agent-complete` Docker container image. For details, refer
+// to <<synthetics-quickstart-fleet,Get started using {agent} and {fleet}>>.
+
+// Or you might prefer to get started using our customizable Docker project template. This template provides two
+// types of sample tests: a two-step inline test and a packaged todo application with a custom suite of tests. For
+// more details, see <<synthetics-quickstart,Get started using Docker>>.
 
 [discrete]
-[[monitoring-uptime]]
-== Lightweight HTTP/S, TCP, and ICMP checks
+[[uptime-tls]]
+== TLS Certificates
 
-You can monitor the status of network endpoints using lightweight HTTP/S, TCP, and ICMP checks, explore
-endpoint status over time, drill down into specific monitors, and view a high-level
-snapshot of your environment at any point in time.
-
-[role="screenshot"]
-image::images/uptime-app.png[Uptime app in Kibana]
-
-For more details, refer to <<monitor-uptime,lightweight ICMP, TCP, and HTTP checks>>.
+tbd
