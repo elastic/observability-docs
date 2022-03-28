@@ -418,6 +418,31 @@ All of these features can help you quickly and visually assess your services use
 .ServiceMap view of a Jenkins pipeline execution instrumented with the Ansible plugin
 image::images/ansible-service-map.png[Ansible service map view]
 
+
+[[ci-cd-ansible-tower]]
+=== Ansible AWX/Tower
+
+The Ansible OpenTelemetry plugin integration supports Ansible AWX/Tower, if you'd like to enable it please follow the below steps.
+
+AWX requires an Execution Environment with the Ansible and Python packages installed.
+For this we used the https://www.ansible.com/blog/introduction-to-ansible-builder tool to create the container definition.
+
+You then upload the container to an image repository accessible by AWX and define an Execution Environment using the container you created.
+
+To inject the environment variables and service details you can use custom credential types and then assign the credentials to the Playbook template.
+This gives you the flexibility to reuse the endpoint details for Elastic APM and also standardize on custom fields for reporting purposes.
+
+[role="screenshot"]
+.An APM Service Endpoint in Ansible AWX/Tower
+image::images/ansible-automation-apm-endpoint.png[APM Service Endpoint in Ansible Tower]
+
+[role="screenshot"]
+.Custom fileds in Ansible AWX/Tower
+image::images/ansible-automation-apm-service-details.png[Custom fields in Ansible Tower]
+
+Finally, https://www.elastic.co/blog/5-questions-about-ansible-that-elastic-observability-can-answer provides a great
+overview of how all those pieces work together.
+
 [discrete]
 [[ci-cd-otel-cli]]
 === Otel cli
@@ -484,7 +509,7 @@ image::images/jenkins-service-map.png[Jenkins service map view]
 === Pytest-otel
 
 https://pypi.org/project/pytest-otel/[pytest-otel] is a pytest plugin for sending Python test
-results as OpenTelemetry traces. The test traces help you understand test execution, 
+results as OpenTelemetry traces. The test traces help you understand test execution,
 detect bottlenecks, and compare test executions across time to detect misbehaviors and issues.
 
 The context propagation from CI pipelines (Jenkins job or pipeline) is passed to the Maven build
