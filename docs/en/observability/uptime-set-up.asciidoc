@@ -5,4 +5,90 @@
 <titleabbrev>Set up monitors</titleabbrev>
 ++++
 
-tbd
+When setting up an uptime monitor, you will use a provided Docker image to run the monitor and send data back to Elasticsearch. 
+There are two approaches to configuring the monitor and connecting it to Elasticsearch.
+
+After set up is complete, the data will be available in the {uptime-app} in {kib} to view, analyze, and alert on.
+
+[discrete]
+[[uptime-set-up-choose]]
+== Choose an approach
+
+There are two ways to configure uptime monitors and connect them to the {stack}:
+
+* Use a *{heartbeat}* configuration file
+* beta[] Use *{agent}*, which runs Beats behind the scenes
+
+**{heartbeat}** is a lightweight daemon that you install on a remote server to periodically
+check the status of your services and determine whether they are available.
+Performance data is then gathered and reported back to Heartbeat,
+where it is formatted and sent to the Elastic Stack.
+
+// What are the pros and cons?
+
+beta[] *{agent}* is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
+Behind the scenes, {agent} runs {beats} or {elastic-endpoint} required for your configuration. 
+
+// What are the pros and cons?
+
+If you are using the {agent} approach, there are two prerequisites to complete before you can configure monitors:
+
+* _Set up {fleet-server}_: If you are using Elastic Cloud fleet server will already be provided and you can skip this step.
+To learn more, see <<set-up-fleet,{fleet}>>.
+* _Create a separate fleet policy to use for Synthetics monitors_: It is generally the case that synthetics monitors should run on nodes dedicated to that purpose.
+See {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy] for more information on Fleet policies and creating them.
+
+[discrete]
+[[uptime-set-up-instructions]]
+== Set up
+
+Once you've chosen an approach, you can begin setting up your first monitor.
+
+[discrete]
+[[uptime-set-up-docker]]
+== Pull the Docker image
+
+Start by pulling the Docker image.
+
+--
+include::tab-widgets/uptime-monitoring/set-up-docker-widget.asciidoc[]
+--
+
+[discrete]
+[[uptime-set-up-config]]
+=== Configure
+
+Configure the monitor using either a `heartbeat.yml` configuration file or through the {agent} UI.
+
+--
+include::tab-widgets/uptime-monitoring/set-up-conf-widget.asciidoc[]
+--
+
+[discrete]
+[[uptime-set-up-connect]]
+=== Connect to the {stack}
+
+After configuring the monitor, run it in Docker and connect the monitor to the {stack}.
+
+--
+include::tab-widgets/uptime-monitoring/set-up-connect-widget.asciidoc[]
+--
+
+[discrete]
+[[uptime-set-up-kibana]]
+=== View in {kib}
+
+Elastic synthetics is now sending synthetic monitoring data to the {stack}.
+Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
+set up alerts in case of test failures, and more.
+
+If a test does fail (shown as `down` in the {uptime-app}), you'll be able to view the step script that failed,
+any errors, and a stack trace.
+See <<synthetics-visualize>> for more information.
+
+[discrete]
+[[uptime-set-up-next]]
+== Next steps
+
+Now you can customize the provided Docker example with your own tests!
+See <<synthetics-syntax>> to learn more.

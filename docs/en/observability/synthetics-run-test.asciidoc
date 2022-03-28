@@ -59,10 +59,34 @@ Elastic Synthetics integration or `heartbeat.yml`.
 
 * **{agent} and {fleet}**: Add an inline journey when configuring the Elastic Synthetics integration.
 In Monitor settings, use Monitor Type "Browser" and switch the Source Type to "Inline script".
-See <<synthetics-quickstart-fleet>> for details.
+See <<uptime-set-up>> for details.
 * **{heartbeat}**: Copy and paste your test steps into `heartbeat.yml`.
 {heartbeat} spawns a separate Node.js process, schedules your tests, and runs them on a Chromium browser.
-See <<synthetics-quickstart-step-two>> for details.
+See <<uptime-set-up-config>> for details.
+
+// heartbeat
+//
+// [source,yml]
+// ----
+// - type: browser
+//   id: elastic-website <1>
+//   name: Elastic website
+//   schedule: "@every 1m"
+//   source:
+//     inline:
+//       script: |- <2>
+//       step("load homepage", async () => {
+//         await page.goto('https://www.elastic.co');
+//       });
+//       step("hover over products menu", async () => {
+//         await page.hover('css=[data-nav-item=products]');
+//       });
+// ----
+// <1> Each `monitor` gets its own ID in the {uptime-app} and, therefore its own schedule entry.
+// This allows tests to be run in parallel and analyzed separately.
+// <2> In this example, a synthetic test is defined inline. This is a two-step script that first loads
+// a homepage and then hovers over a product menu. See <<synthetics-syntax>> for more information.
+
 
 [discrete]
 [[synthetics-test-suite]]
@@ -114,9 +138,57 @@ Elastic Synthetics integration or `heartbeat.yml`.
 
 * **{agent} and {fleet}**: Add a test suite when configuring the Elastic Synthetics integration.
 Use Monitor Type "Browser" and use the Source Type "Zip URL" pointing to a zip file containing the test project.
-See <<synthetics-quickstart-fleet>> for details.
+See <<uptime-set-up>> for details.
 * **{heartbeat}**: Copy and paste the path to your zip file into `heartbeat.yml`.
-See <<synthetics-quickstart-step-two>> for details.
+See <<uptime-set-up-config>> for details.
+
+// heartbeat
+//
+// [source,yml]
+// ----
+// - name: Todos
+//   id: todos
+//   type: browser
+//   schedule: "@every 1m"
+//   params:
+//     url: "https://elastic.github.io/synthetics-demo/" <1>
+//   source:
+//     zip_url: <2>
+//       url: "https://github.com/elastic/synthetics-demo/archive/refs/heads/main.zip" <3>
+//       folder: ""todos/synthetics-tests" <4>
+//       username: "" <5>
+//       password: "" 
+// ----
+// <1> The params section lets you define custom parameters to use in your script. In this example the 'url' parameter is used by the test suite to determine which site to test.
+// <2> In this example, our library of synthetic tests is downloaded from the
+// remote zip endpoint for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. 
+// <3> Note that the url refers to the endpoint where the test project exists.
+// <4> Folder refers to the relative path where the synthetic journey files are located. {heartbeat} will invoke the synthetics library on this folder.
+// <5> Username and password are blank here, but if provided, will be sent as HTTP Basic Authentication headers to the remote zip endpoint.
+
+// agent
+
+// beta[] Elastic Synthetics tests can be configured through {fleet} using the Elastic Synthetics integration. To learn more, see <<add-synthetics-integration,Elastic Synthetics>>.
+//
+// [role="screenshot"]
+// image::images/synthetics-integration.png[Synthetics integration]
+//
+// In the example above, our library of synthetic tests is downloaded from the
+// remote zip endpoint for the git repository for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. 
+//
+// By using a git repository for synthetics journeys, we can benefit from a GitOps workflow for deploying changes to  synthetic monitors, enabling git features such as pull requests, reverts, etc. for managing tests more effectively.
+//
+// The fields should be set as follows:
+//
+// * *Zip URL*: URL pointing to a zip file containing the test project.
+// * *Folder*: The folder within the zip file containing synthetics tests. This will be the working directory in which the synthetics agent runs. {heartbeat} will invoke the synthetics library in this folder. 
+// * *Zip URL Username* and *Zip URL Password* HTTP Basic Authentication headers for the remote zip endpoint. 
+// * *Params* JSON formatted dynamic values that may be required by your specific tests. See <<synthetics-params-secrets>> for more information.
+//
+// When applying the integration policy to an {agent} policy, make sure to select your dedicated synthetics agent policy.
+//
+// [role="screenshot"]
+// image::images/synthetics-agent-policy-select.png[Synthetics integration]
 
 [discrete]
 [[synthetics-ci]]
