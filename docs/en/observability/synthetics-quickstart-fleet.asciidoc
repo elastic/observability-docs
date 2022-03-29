@@ -13,7 +13,7 @@ Prefer to use our legacy {beats} for your use case? Refer to <<ingest-uptime>>.
 
 [discrete]
 [[synthetics-quickstart-fleet-setup]]
-== Set up Fleet Server
+== Set up {fleet} Server
 
 Synthetic monitoring via {agent} and {fleet} requires {fleet-server} to be set up. If you are using Elastic Cloud fleet server will already be provided and you can skip this step. To learn more, see <<set-up-fleet,{fleet}>>.
 
@@ -44,23 +44,38 @@ You may need to set additional environment variables. See the {fleet-guide}/agen
 
 beta[] Elastic Synthetics tests can be configured through {fleet} using the Elastic Synthetics integration. To learn more, see <<add-synthetics-integration,Elastic Synthetics>>.
 
+For real browser monitoring, set the _Monitor type_ to "Browser" and define a _Monitor interval_.
+You can use the _Enabled_ toggle to turn the monitor on or off in {fleet} without having to delete and recreate the monitor.
+
 [role="screenshot"]
 image::images/synthetics-integration.png[Synthetics integration]
 
-In the example above, our library of synthetic tests is downloaded from the
-remote zip endpoint for the git repository for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. 
-
-By using a git repository for synthetics journeys, we can benefit from a GitOps workflow for deploying changes to  synthetic monitors, enabling git features such as pull requests, reverts, etc. for managing tests more effectively.
-
+Set the _Source Type_ for the browser monitor.
+If you're using a <<synthetics-test-suite, synthetic test suite>>, use the _Zip URL_ type.
 The fields should be set as follows:
 
 * *Zip URL*: URL pointing to a zip file containing the test project.
 
 * *Folder*: The folder within the zip file containing synthetics tests. This will be the working directory in which the synthetics agent runs. {heartbeat} will invoke the synthetics library in this folder. 
 
-* *Zip URL Username* and *Zip URL Password* HTTP Basic Authentication headers for the remote zip endpoint. 
+* *Params*: JSON formatted dynamic values that may be required by your specific tests. See <<synthetics-params-secrets>> for more information.
 
-* *Params* JSON formatted dynamic values that may be required by your specific tests. See <<synthetics-params-secrets>> for more information.
+* *Zip URL Username* and *Zip URL Password*: HTTP Basic Authentication headers for the remote zip endpoint. 
+
+[role="screenshot"]
+image::images/synthetics-integration-source-type.png[Set source type and related parameters for a synthetic monitor in Elastic {fleet}]
+
+In the example above, our library of synthetic tests is downloaded from the
+remote zip endpoint for the git repository for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. 
+
+Using a git repository for synthetics journeys allows you to use a GitOps workflow for deploying changes to synthetic monitors,
+enabling git features, like pull requests and reverts, for managing tests more effectively.
+
+Click *Advanced Browser options* to see more ways to configure your monitor including _Throttling options_.
+Set throttling parameters to more accurately control the network speed that the monitor represents.
+
+[role="screenshot"]
+image::images/synthetics-integration-throttling.png[Set throttling parameters for a synthetic monitor in Elastic {fleet}]
 
 When applying the integration policy to an {agent} policy, make sure to select your dedicated synthetics agent policy.
 
