@@ -21,6 +21,32 @@ changes after installation, you must modify the installed file.
 
 For installation details, refer to <<install-standalone-elastic-agent>>.
 
+Alternatively, you can put input configurations in YAML files into the
+folder `{path.config}/inputs.d` to separate your configuration into
+multiple smaller files.
+The YAML files in the `inputs.d` folder should contain input configurations only.
+Any other configurations are ignored.
+The files are reloaded at the same time as the standalone configuration.
+
+TIP: The first line of the configuration must be `inputs`. Then you can list the
+inputs you would like to run.
+
+[source,yaml]
+----
+inputs:
+  - type: logfile
+    data_stream.namespace: default
+    paths: [/path/to/file]
+    use_output: default
+
+  - type: system/metrics
+    data_stream.namespace: default
+    use_output: default
+    streams:
+      - metricset: cpu
+        data_stream.dataset: system.cpu
+----
+
 The following sections describe some settings you might need to configure to
 run an {agent} standalone. For a full reference example, refer to the
 <<elastic-agent-reference-yaml,elastic-agent.reference.yml>> file.
