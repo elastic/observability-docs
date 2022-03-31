@@ -5,37 +5,50 @@
 <titleabbrev>Set up monitors</titleabbrev>
 ++++
 
-When setting up an uptime monitor, you will use a provided Docker image to run the monitor and send data back to Elasticsearch. 
-There are two approaches to configuring the monitor and connecting it to Elasticsearch.
-
-After set up is complete, the data will be available in the {uptime-app} in {kib} to view, analyze, and alert on.
+To set up an uptime monitor, you will pull an Elastic-provided Docker image, configure the monitor,
+and use the Docker image to run the monitor and send data back to Elasticsearch.
+After setup is complete, the data will be available in the {uptime-app} in {kib} to view, analyze, and alert on.
 
 [discrete]
 [[uptime-set-up-choose]]
 == Choose an approach
 
-There are two ways to configure uptime monitors and connect them to the {stack}:
+There are two ways to set up an uptime monitor: *{heartbeat}* or *{agent}*.
 
-* Use a *{heartbeat}* configuration file
-* beta[] Use *{agent}*, which runs Beats behind the scenes
+[discrete]
+[[uptime-set-up-choose-heartbeat]]
+=== Heartbeat
 
-**{heartbeat}** is a lightweight daemon that you install on a remote server to periodically
+{heartbeat} is a lightweight daemon that you install on a remote server to periodically
 check the status of your services and determine whether they are available.
-Performance data is then gathered and reported back to Heartbeat,
-where it is formatted and sent to the Elastic Stack.
+Performance data is then gathered and reported back to {heartbeat},
+where it is formatted and sent to the {stack}.
 
 // What are the pros and cons?
+Using {heartbeat} works well when...
 
-beta[] *{agent}* is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
+The downsides of using {heartbeat} are...
+
+[discrete]
+[[uptime-set-up-choose-agent]]
+=== {agent}
+
+beta[] {agent} is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
 Behind the scenes, {agent} runs {beats} or {elastic-endpoint} required for your configuration. 
 
 // What are the pros and cons?
+Using {agent} works well when...
+
+There are many benefits to using {agent} including central management, easier configuration processes, and endpoint protection (see more in {fleet-guide}/migrate-beats-to-agent.html#why-migrate-to-elastic-agent[Why migrate to Elastic Agent?]).
+However, the Elastic Synthetics integration is currently in beta so...
+
+The downsides of using {agent} are...
 
 If you are using the {agent} approach, there are two prerequisites to complete before you can configure monitors:
 
-* _Set up {fleet-server}_: If you are using Elastic Cloud fleet server will already be provided and you can skip this step.
+* *Set up {fleet-server}*: If you are using Elastic Cloud fleet server will already be provided and you can skip this step.
 To learn more, see <<set-up-fleet,{fleet}>>.
-* _Create a separate fleet policy to use for Synthetics monitors_: It is generally the case that synthetics monitors should run on nodes dedicated to that purpose.
+* *Create a separate fleet policy to use for Synthetics monitors*: It is generally the case that synthetics monitors should run on nodes dedicated to that purpose.
 See {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy] for more information on Fleet policies and creating them.
 
 [discrete]
@@ -46,7 +59,7 @@ Once you've chosen an approach, you can begin setting up your first monitor.
 
 [discrete]
 [[uptime-set-up-docker]]
-== Pull the Docker image
+=== Pull the Docker image
 
 Start by pulling the Docker image.
 
