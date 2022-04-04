@@ -30,19 +30,12 @@ remote zip endpoint for https://github.com/elastic/synthetics-demo/tree/main/tod
 // tag::agent[]
 
 beta[] Add a test suite when configuring the Elastic Synthetics integration.
-Use Monitor Type "Browser" and use the Source Type "Zip URL" pointing to a zip file containing the test project.
+In *Monitor settings*, use the *Monitor Type* _Browser_.
 
 [role="screenshot"]
 image::images/synthetics-integration.png[Synthetics integration]
 
-In the example above, our library of synthetic tests is downloaded from the
-remote zip endpoint for the git repository for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. 
-
-By using a git repository for synthetics journeys, you can benefit from a GitOps workflow, where your team would use `git` for deploying changes to synthetic monitors.
-Others could, for example, update monitors through pull requests or use `git revert` to revert changes which broke a monitor.
-Such a workflow allows you to manage tests more effectively.
-
-The fields should be set as follows:
+Using the *Source Type* _Zip URL_, the fields should be set as follows:
 
 * *Zip URL*: URL pointing to a zip file containing the test project.
 * *Folder*: The folder within the zip file containing synthetics tests. This will be the working directory in which the synthetics agent runs. {heartbeat} will invoke the synthetics library in this folder. 
@@ -55,18 +48,20 @@ image::images/synthetics-integration-source-type.png[Set source type and related
 In the example above, our library of synthetic tests is downloaded from the
 remote zip endpoint for the git repository for https://github.com/elastic/synthetics-demo/tree/main/todos/synthetics-tests[our todos example]. 
 
-Using a git repository for synthetics journeys allows you to use a GitOps workflow for deploying changes to synthetic monitors,
-enabling git features, like pull requests and reverts, for managing tests more effectively.
+By using a git repository for synthetics journeys, you can benefit from a GitOps workflow, where your team would use `git` for deploying changes to synthetic monitors.
+Others could, for example, update monitors through pull requests or use `git revert` to revert changes which broke a monitor.
+Such a workflow allows you to manage tests more effectively.
 
-Click *Advanced Browser options* to see more ways to configure your monitor including _Throttling options_.
-Set throttling parameters to more accurately control the network speed that the monitor represents.
+Click *Advanced Browser options* to see more ways to configure your monitor.
 
-[role="screenshot"]
-image::images/synthetics-integration-throttling.png[Set throttling parameters for a synthetic monitor in Elastic {fleet}]
+* Use the *Selective tests* options to run a subset of all the tests in your suite.
+* Use the *Synthetics agent options* to provide fine-tuned configuration for the synthetics agent.
+* Use *Throttling options* to more accurately control the network speed that the monitor represents.
+You can control the monitor's download and upload speeds and its latency to simulate your application's behavior on slower or laggier networks.
 
 When applying the integration policy to an {agent} policy, make sure to select your dedicated synthetics agent policy.
 
 [role="screenshot"]
-// image::images/synthetics-agent-policy-select.png[Synthetics integration]
+image::synthetics-agent-policy-select.png[Select your dedicated synthetics agent policy]
 
 // end::agent[]
