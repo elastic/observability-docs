@@ -17,17 +17,15 @@ There are two ways to set up an uptime monitor: *{heartbeat}* or *{agent}*.
 
 [discrete]
 [[uptime-set-up-choose-heartbeat]]
-=== Heartbeat
+=== {heartbeat}
 
-{heartbeat} is a lightweight daemon that you install on a remote server to periodically
-check the status of your services and determine whether they are available.
-Performance data is then gathered and reported back to {heartbeat},
-where it is formatted and sent to the {stack}.
+{heartbeat} is a lightweight daemon that you install on a remote server to periodically check the status of your services and determine whether they are available.
+Performance data is then gathered and reported back to {heartbeat}, where it's formatted and sent to the {stack}.
 
-// What are the pros and cons?
-Using {heartbeat} works well when...
+This approach works well for system administrators wanting to configure monitors using YAML files.
+It's also the only method that will allow you to run monitors on premises that support configuring more than one location.
 
-The downsides of using {heartbeat} are...
+If you are not familiar with sysadmin processes and don't need to run checks from more than one location, consider using the <<uptime-set-up-choose-agent>> approach.
 
 [discrete]
 [[uptime-set-up-choose-agent]]
@@ -36,20 +34,19 @@ The downsides of using {heartbeat} are...
 beta[] {agent} is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
 Behind the scenes, {agent} runs {beats} or {elastic-endpoint} required for your configuration. 
 
-// What are the pros and cons?
-Using {agent} works well when...
+The {agent} approach works well if you want to configure and update monitors using a UI in your browser.
+While there are {fleet-guide}/migrate-beats-to-agent.html#why-migrate-to-elastic-agent[many benefits to using {agent}], the Elastic Synthetics integration is currently in beta and is subject to change.
 
-There are many benefits to using {agent} including central management, easier configuration processes, and endpoint protection (see more in {fleet-guide}/migrate-beats-to-agent.html#why-migrate-to-elastic-agent[Why migrate to Elastic Agent?]).
-However, the Elastic Synthetics integration is currently in beta so...
+The {agent} approach may not work for all use cases.
+This method does not support custom location names, so is only suitable for running checks from a single location.
+Also, if you want to heavily script the creation and destruction of monitors, it can be less convenient than using <<uptime-set-up-choose-heartbeat>> directly.
 
-The downsides of using {agent} are...
+If you are using the {agent} approach, there are also two prerequisites to complete before you can configure monitors:
 
-If you are using the {agent} approach, there are two prerequisites to complete before you can configure monitors:
-
-* *Set up {fleet-server}*: If you are using Elastic Cloud fleet server will already be provided and you can skip this step.
+* *Set up {fleet-server}*: If you are using {ecloud} {fleet-server} will already be provided and you can skip this step.
 To learn more, see <<set-up-fleet,{fleet}>>.
-* *Create a separate fleet policy to use for Synthetics monitors*: It is generally the case that synthetics monitors should run on nodes dedicated to that purpose.
-See {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy] for more information on Fleet policies and creating them.
+* *Create a separate {fleet} policy to use for Synthetics monitors*: It's generally the case that synthetics monitors should run on nodes dedicated to that purpose.
+See {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy] for more information on {fleet} policies and creating them.
 
 [discrete]
 [[uptime-set-up-instructions]]
