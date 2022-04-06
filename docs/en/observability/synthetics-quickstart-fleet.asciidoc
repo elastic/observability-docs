@@ -44,22 +44,24 @@ You may need to set additional environment variables. See the {fleet-guide}/agen
 
 beta[] Elastic Synthetics tests can be configured through {fleet} using the Elastic Synthetics integration. To learn more, see <<add-synthetics-integration,Elastic Synthetics>>.
 
-For real browser monitoring, set the _Monitor type_ to "Browser" and define a _Monitor interval_.
-You can use the _Enabled_ toggle to turn the monitor on or off in {fleet} without having to delete and recreate the monitor.
+For real browser monitoring, set the *Monitor type* to _Browser_ and define a *Monitor interval*.
+You can use the *Enabled* toggle to turn the monitor on or off in {fleet} without having to delete and recreate the monitor.
 
 [role="screenshot"]
 image::images/synthetics-integration.png[Synthetics integration]
 
-Set the _Source Type_ for the browser monitor.
-If you're using a <<synthetics-test-suite, synthetic test suite>>, use the _Zip URL_ type.
+[discrete]
+[[synthetics-quickstart-fleet-configure-policy-source-type]]
+=== Source type
+
+Set *Source Type* to either *Zip URL* or *Inline script*.
+
+*Zip URL*: Use a zip URL if you're using a <<synthetics-test-suite, synthetic test suite>>.
 The fields should be set as follows:
 
 * *Zip URL*: URL pointing to a zip file containing the test project.
-
 * *Folder*: The folder within the zip file containing synthetics tests. This will be the working directory in which the synthetics agent runs. {heartbeat} will invoke the synthetics library in this folder. 
-
 * *Params*: JSON formatted dynamic values that may be required by your specific tests. See <<synthetics-params-secrets>> for more information.
-
 * *Zip URL Username* and *Zip URL Password*: HTTP Basic Authentication headers for the remote zip endpoint. 
 
 [role="screenshot"]
@@ -70,6 +72,20 @@ remote zip endpoint for the git repository for https://github.com/elastic/synthe
 
 Using a git repository for synthetics journeys allows you to use a GitOps workflow for deploying changes to synthetic monitors,
 enabling git features, like pull requests and reverts, for managing tests more effectively.
+
+*Inline script*: Use an inline script if you're using a single journey that doesn't rely on any dependencies.
+See <<synthetics-inline-journey>> for details.
+
+Add steps to the code block directly.
+The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic.
+You cannot `import` any dependencies using inline scripts.
+
+[role="screenshot"]
+image::images/synthetics-integration-inline-script.png[Configure a synthetic monitor using an inline script in Elastic {fleet}]
+
+[discrete]
+[[synthetics-quickstart-fleet-configure-policy-inline]]
+=== Advanced Browser options
 
 Click *Advanced Browser options* to see more ways to configure your monitor.
 
