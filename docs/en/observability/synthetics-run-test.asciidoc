@@ -7,21 +7,80 @@
 
 There are two ways to run synthetic tests:
 
-* If you want to create a single journey and manage it individually, <<synthetics-inline-journey,use an inline monitor>>.
-Inline monitors can be more efficient, but have some limitations like not supporting dependencies or more than one journey.
 * If you have more than one journey, rely on dependencies, or your tests need to live with your
 application code, <<synthetics-test-suite,use a test suite>>.
+* If you want to create a single journey and manage it individually, <<synthetics-inline-journey,use an inline monitor>>.
+
+[discrete]
+[[synthetics-test-suite]]
+== Use a test suite
+
+If you have a suite of tests, you can use the `@elastic/synthetics` package as a library.
+
+To test an test suite locally, start by writing your tests:
+
+. Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
+. Create a `javascript` or `typescript` file that imports your tests.
+All synthetic test files must use the `.journey.ts` or `.journey.js` file extension.
+. Make sure any dependencies are defined with an `import` outside of the `journey` object.
+. Compile everything together.
+
+To see an example of a test suite, see the https://github.com/elastic/synthetics-demo[elastic/synthetics-demo] repository.
+You can use the `todo` directory if you'd like to test an example locally.
+Clone the repository, change into the directory containing the synthetics test suite,
+and install the necessary dependencies including `@elastic/synthetics`:
+
+[source,sh]
+----
+# Check out the synthetics repo and included examples
+git clone git@github.com:elastic/synthetics-demo.git &&\
+cd synthetics-demo/todos/ &&\
+# Install all required dependencies for the todos example
+npm install
+----
+
+[NOTE]
+==============
+If you want to test your own suite locally, be sure to install the `@elastic/synthetics` package:
+
+[source,sh]
+----
+npm install -g @elastic/synthetics
+----
+==============
+
+From inside the directory containing the synthetics test suite you can run the provided tests.
+By default, the `elastic-synthetics` runner will only run files matching the filename `*.journey.(ts|js)*`.
+
+[source,sh]
+----
+# Run tests on the current directory. The dot `.` indicates
+# that it should run all tests in the current directory.
+npx @elastic/synthetics .
+----
+
+[discrete]
+[[synthetics-test-suite-send]]
+=== Send to {stack}
+
+After testing locally, you can run the test suite using the Elastic Synthetics integration or {heartbeat}
+depending on <<uptime-set-up-choose,the approach you chose>>.
+
+--
+include::tab-widgets/uptime-monitoring/run-test-suite-widget.asciidoc[]
+--
 
 [discrete]
 [[synthetics-inline-journey]]
 == Use an inline monitor
 
-Inline monitors are quick and easy to set up.
-To create one, you can copy a journey's content, paste it into Kibana or your {heartbeat} configuration, and save.
-Variables like `page` and `params` will be part of your script's scope.
-However, this type of monitor does not allow you to import third-party packages.
+An inline monitor is a single journey that you manage individually.
+When writing a inline monitor, the `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope.
+To create an inline monitor, you can copy the steps from a journey, paste it into {kib} or your {heartbeat} configuration, and save.
 
-Inline monitors can also be more difficult to manage because each inline monitor can contain only _one_ journey, which must be maintained from within Kibana.
+Inline monitors can be quick to set up, but can also be more difficult to manage.
+Each inline monitor can contain only _one_ journey, which must be maintained directly in {kib} or in your {heartbeat} configuration file.
+
 If you depend on external packages, have your journeys next to your code repository, or wish to embed and manage more than one journey from a single monitor configuration <<synthetics-test-suite,use a test suite>>.
 
 [discrete]
@@ -31,7 +90,7 @@ If you depend on external packages, have your journeys next to your code reposit
 To test the inline monitor's journey locally, change into your test's directory
 and pipe the journey's contents to the `npx @elastic/synthetics` command.
 
-Assume, for example, that your inline monitor contains the following code:
+Assume, for example, that your inline monitor includes the following code:
 
 [source,js]
 ----
@@ -73,65 +132,6 @@ include::tab-widgets/uptime-monitoring/run-test-inline-widget.asciidoc[]
 --
 
 [discrete]
-[[synthetics-test-suite]]
-== Use a test suite
-
-If you have a suite of tests, you can use the `@elastic/synthetics` package as a library.
-
-To test an test suite locally, start by writing your tests:
-
-. Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
-. Create a `javascript` or `typescript` file that imports your tests.
-All synthetic test files must use the `.journey.ts` or `.journey.js` file extension.
-. Make sure any dependencies are defined with an `import` outside of the `journey` object.
-. Compile everything together.
-
-To see an example of a test suite, see the https://github.com/elastic/synthetics[elastic/synthetics] repository.
-You can use the `todo` directory if you'd like to test an example locally.
-Clone the repository, change into the directory containing the synthetics test suite,
-and install the necessary dependencies including `@elastic/synthetics`:
-
-[source,sh]
-----
-# Check out the synthetics repo and included examples
-git clone git@github.com:elastic/synthetics.git &&\
-cd synthetics/examples/todos/ &&\
-# Install all required dependencies for the todos example
-npm install
-----
-
-[NOTE]
-==============
-If you want to test your own suite locally, be sure to install the `@elastic/synthetics` package:
-
-[source,sh]
-----
-npm install -g @elastic/synthetics
-----
-==============
-
-From inside the directory containing the synthetics test suite you can run the provided tests.
-By default, the `elastic-synthetics` runner will only run files matching the filename `*.journey.(ts|js)*`.
-
-[source,sh]
-----
-# Run tests on the current directory. The dot `.` indicates
-# that it should run all tests in the current directory.
-npx @elastic/synthetics .
-----
-
-[discrete]
-[[synthetics-test-suite-send]]
-=== Send to {stack}
-
-After testing locally, you can run the test suite using the Elastic Synthetics integration or {heartbeat}
-depending on <<uptime-set-up-choose,the approach you chose>>.
-
---
-include::tab-widgets/uptime-monitoring/run-test-suite-widget.asciidoc[]
---
-
-[discrete]
 [[synthetics-ci]]
 == Run on CI
 
@@ -139,7 +139,7 @@ Besides running locally as end-to-end tests, you can run a synthetic test suite 
 
 Elastic's synthetics runner can output results in a few different formats, including JSON and JUnit
 (the standard format supported by most CI platforms).
-If any of your journeys fail, it will yield a non-zero exit code, which most CI systems pick up as a failure. 
+If any of your journeys fail, the synthetics agent it will yield a non-zero exit code, which most CI systems pick up as a failure by default.
 
 You can see an example using GitHub Actions in the
 https://github.com/elastic/synthetics-demo/blob/main/.github/workflows/run-synthetics.yml[elastic/synthetics-demo] repository.

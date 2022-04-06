@@ -2,12 +2,6 @@
 
 Before we proceed, you'll need to retrieve your Elasticsearch credentials for either an {heartbeat-ref}/configure-cloud-id.html[Elastic Cloud ID] or another {heartbeat-ref}/elasticsearch-output.html[Elasticsearch Cluster].
 
-WARNING: Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions.
-Add the `sandbox: true` option to a given browser monitor in {heartbeat} to enable sandboxing.
-This may require using a custom seccomp policy with docker, which brings its own additional risks.
-This is generally safe when run against sites whose content you trust,
-and with a recent version of Elastic synthetics and chromium.
-
 The example below, run from the `examples/todos` directory shows how to run synthetics tests indexing data into Elasticsearch.
 
 Run the script below to start running your synthetics tests. You'll need to insert your actual `cloud.id` and `cloud.auth` values to successfully index data to your cluster.
@@ -45,6 +39,12 @@ docker run \
 Note the use of `--volume` option, which mount local directories into the
 container. Here, we mount the `heartbeat.yml` from the working directory,
 into {heartbeat}'s expected location for `heartbeat.yml`.
+
+WARNING: Elastic synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions.
+Add the `sandbox: true` option to a given browser monitor in {heartbeat} to enable sandboxing.
+This may require using a custom seccomp policy with docker, which brings its own additional risks.
+This is generally safe when run against sites whose content you trust,
+and with a recent version of Elastic synthetics and chromium.
 
 // end::heartbeat[]
 
