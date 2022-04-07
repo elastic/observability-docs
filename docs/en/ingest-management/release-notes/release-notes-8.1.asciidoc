@@ -29,6 +29,11 @@ Also see:
 Review important information about the {fleet} and {agent} 8.1.2 release.
 
 [discrete]
+[[known-issues-8.1.2]]
+=== Known issues
+include::release-notes-8.1.asciidoc[tag=failed-binary-validation-issue]
+
+[discrete]
 [[bug-fixes-8.1.2]]
 === Bug fixes
 
@@ -47,6 +52,45 @@ that no validation is performed on this field. {agent-pull}30386[#30386]
 == {fleet} and {agent} 8.1.1
 
 Review important information about the {fleet} and {agent} 8.1.1 release.
+
+[discrete]
+[[known-issues-8.1.1]]
+=== Known issues
+
+//REVIEWERS: Does this happen for all upgrades or just sometimes?
+
+// tag::failed-binary-validation-issue[]
+.{agent} upgrade may fail with agent binary verification error
+[%collapsible]
+====
+
+*Details* 
+
+During an {agent} upgrade, agent binary verification may fail with the following
+message:
+
+[source,text]
+----
+[elastic_agent][error] failed to dispatch actions, error: failed verification of agent binary: 2 errors occurred:
+fetching asc file from '/opt/Elastic/Agent/data/elastic-agent-7f30bb/downloads/elastic-agent-<version>-linux-x86_64.tar.gz.asc': open /opt/Elastic/Agent/data/elastic-agent-7f30bb/downloads/elastic-agent-<version>-linux-x86_64.tar.gz.asc: no such file or directory
+open /opt/Elastic/Agent/data/elastic-agent-7f30bb/downloads/elastic-agent-<version>-linux-x86_64.tar.gz.sha512: no such file or directory
+----
+
+This is the result of a https://github.com/elastic/elastic-agent/issues/275[known issue].
+
+*Impact* +
+
+After upgrade, the agent status changes to `Unhealthy`, and {agent} no longer
+sends data. To fix this problem:
+
+* If you are using {agent} version 8.1.0 or earlier, continue using that
+version until you can upgrade directly to 8.2.x.
+* If you are using an affected version of {agent}, reinstall a non-affected
+version.
+
+====
+// end::failed-binary-validation-issue[]
+
 
 [discrete]
 [[bug-fixes-8.1.1]]
