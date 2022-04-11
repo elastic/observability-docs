@@ -5,8 +5,8 @@
 <titleabbrev>Set up monitors</titleabbrev>
 ++++
 
-To set up an uptime monitor, you need to configure the monitor and then run it and send data back to Elasticsearch.
-Elastic provides Docker images to run monitors to reduce the chance of problems.
+To set up an uptime monitor, you need to configure the monitor, run it, and send data back to {es}.
+Elastic provides Docker images that you can use to run monitors, which reduces the chance of problems.
 After setup is complete, the data will be available in the {uptime-app} in {kib} to view, analyze, and alert on.
 
 [discrete]
@@ -19,7 +19,7 @@ There are two ways to set up an uptime monitor: *{heartbeat}* or *{agent}*.
 [[uptime-set-up-choose-heartbeat]]
 === {heartbeat}
 
-{heartbeat} is a lightweight daemon that you install on a remote server to periodically check the status of your services and determine whether they are available.
+{heartbeat} is a lightweight daemon that you install on a remote server to periodically check the status of your services and determine if they are available.
 Performance data is then gathered and reported back to {heartbeat}, where it's formatted and sent to the {stack}.
 
 This approach works well for system administrators wanting to configure monitors using YAML files.
@@ -32,21 +32,21 @@ If you are not familiar with sysadmin processes and don't need to run checks fro
 === {agent}
 
 beta[] {agent} is a single, unified agent that you can deploy to hosts or containers to collect data and send it to the {stack}.
-Behind the scenes, {agent} runs {beats} or {elastic-endpoint} required for your configuration. 
+Behind the scenes, {agent} runs {beats} or {elastic-endpoint} as required for your configuration. 
 
 The {agent} approach works well if you want to configure and update monitors using a UI in your browser.
 While there are {fleet-guide}/migrate-beats-to-agent.html#why-migrate-to-elastic-agent[many benefits to using {agent}], the Elastic Synthetics integration is currently in beta and is subject to change.
 
 The {agent} approach may not work for all use cases.
-This method does not support custom location names, so is only suitable for running checks from a single location.
-Also, if you want to heavily script the creation and destruction of monitors, it can be less convenient than using <<uptime-set-up-choose-heartbeat>> directly.
+This method does not support custom location names so is only suitable for running checks from a single location.
+Also, if you want to create and delete monitors programmatically, using {agent} can be less convenient than using <<uptime-set-up-choose-heartbeat>> directly.
 
 If you are using the {agent} approach, there are also two prerequisites to complete before you can configure monitors:
 
-* *Set up {fleet-server}*: If you are using {ecloud} {fleet-server} will already be provided and you can skip this step.
+* *Set up {fleet-server}*: If you are using {ecloud}, {fleet-server} will already be provided and you can skip this step.
 To learn more, see <<set-up-fleet,{fleet}>>.
-* *Create a separate {fleet} policy to use for Synthetics monitors*: It's generally the case that synthetics monitors should run on nodes dedicated to that purpose.
-See {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy] for more information on {fleet} policies and creating them.
+* *Create a separate {fleet} policy to use for Synthetics monitors*: Generally, synthetics monitors should run on dedicated nodes.
+For more information on {fleet} policies and creating them, see {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
 
 [discrete]
 [[uptime-set-up-instructions]]
@@ -88,17 +88,10 @@ include::tab-widgets/uptime-monitoring/set-up-connect-widget.asciidoc[]
 [[uptime-set-up-kibana]]
 === View in {kib}
 
-Elastic synthetics is now sending synthetic monitoring data to the {stack}.
+Elastic Synthetics is now sending synthetic monitoring data to the {stack}.
 Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
 set up alerts in case of test failures, and more.
 
 If a test does fail (shown as `down` in the {uptime-app}), you'll be able to view the step script that failed,
 any errors, and a stack trace.
 See <<synthetics-visualize>> for more information.
-
-[discrete]
-[[uptime-set-up-next]]
-== Next steps
-
-Now you can customize the provided Docker example with your own tests!
-See <<synthetics-syntax>> to learn more.

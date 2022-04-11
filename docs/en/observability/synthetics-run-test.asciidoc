@@ -15,18 +15,19 @@ application code, <<synthetics-test-suite,use a test suite>>.
 [[synthetics-test-suite]]
 == Use a test suite
 
-If you have a suite of tests, you can use the `@elastic/synthetics` package as a library.
+A test suite can contain any number of journeys in any number of files using the file extensions `.journey.ts` or `.journey.js`.
+You can use the `@elastic/synthetics` package as a library to run a test suite.
 
-To test an test suite locally, start by writing your tests:
+To test a test suite locally, start by writing your tests:
 
 . Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
-. Create a `javascript` or `typescript` file that imports your tests.
-All synthetic test files must use the `.journey.ts` or `.journey.js` file extension.
+. Create a `javascript` or `typescript` file that imports your tests (using the `.journey.ts` or `.journey.js` file extension).
 . Make sure any dependencies are defined with an `import` outside of the `journey` object.
 . Compile everything together.
 
-To see an example of a test suite, see the https://github.com/elastic/synthetics-demo[elastic/synthetics-demo] repository.
-You can use the `todo` directory if you'd like to test an example locally.
+See an example of a test suite in the https://github.com/elastic/synthetics-demo[elastic/synthetics-demo] repository.
+The examples below show how to test that repository's `todo` directory locally.
+
 Clone the repository, change into the directory containing the synthetics test suite,
 and install the necessary dependencies including `@elastic/synthetics`:
 
@@ -49,7 +50,7 @@ npm install -g @elastic/synthetics
 ----
 ==============
 
-From inside the directory containing the synthetics test suite you can run the provided tests.
+From inside the directory containing the synthetics test suite, run the provided tests.
 By default, the `elastic-synthetics` runner will only run files matching the filename `*.journey.(ts|js)*`.
 
 [source,sh]
@@ -64,7 +65,7 @@ npx @elastic/synthetics .
 === Send to {stack}
 
 After testing locally, you can run the test suite using the Elastic Synthetics integration or {heartbeat}
-depending on <<uptime-set-up-choose,the approach you chose>>.
+depending on <<uptime-set-up-choose,the approach you chose to set up>>.
 
 --
 include::tab-widgets/uptime-monitoring/run-test-suite-widget.asciidoc[]
@@ -76,7 +77,8 @@ include::tab-widgets/uptime-monitoring/run-test-suite-widget.asciidoc[]
 
 An inline monitor is a single journey that you manage individually.
 When writing a inline monitor, the `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope.
-To create an inline monitor, you can copy the steps from inside a journey, paste it into {kib} or your {heartbeat} configuration.
+
+To create an inline monitor, copy the steps from inside a journey and paste it into {kib} or your {heartbeat} configuration.
 
 Inline monitors can be quick to set up, but can also be more difficult to manage.
 Each inline monitor can contain only _one_ journey, which must be maintained directly in {kib} or in your {heartbeat} configuration file.
@@ -125,7 +127,7 @@ Journey: inline
 === Send to {stack}
 
 After testing locally, you can copy the script into your Elastic Synthetics integration or `heartbeat.yml`
-depending on <<uptime-set-up-choose,the approach you chose>>.
+depending on <<uptime-set-up-choose,the approach you chose to set up>>.
 
 --
 include::tab-widgets/uptime-monitoring/run-test-inline-widget.asciidoc[]
@@ -135,10 +137,9 @@ include::tab-widgets/uptime-monitoring/run-test-inline-widget.asciidoc[]
 [[synthetics-ci]]
 == Run on CI
 
-Besides running locally as end-to-end tests, you can run a synthetic test suite on your CI environment.
-
-Elastic's synthetics runner can output results in a few different formats, including JSON and JUnit
+You can also run a synthetic test suite on your CI environment. Elastic's synthetics runner can output results in a few different formats, including JSON and JUnit
 (the standard format supported by most CI platforms).
+
 If any of your journeys fail, the synthetics agent it will yield a non-zero exit code, which most CI systems pick up as a failure by default.
 
 You can see an example using GitHub Actions in the

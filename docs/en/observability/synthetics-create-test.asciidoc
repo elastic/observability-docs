@@ -9,7 +9,7 @@
 
 beta[] To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
-Synthetics agent exposes a an API for creating and running tests.
+The synthetics agent exposes an API for creating and running tests, including:
 
 [horizontal]
 `journey`::     Tests one discrete unit of functionality.
@@ -21,20 +21,20 @@ Synthetics agent exposes a an API for creating and running tests.
 `beforeAll`::   Runs a provided function before all `journey` runs.
                 If the provided function is a promise, the runner will wait for the
                 promise to resolve before invoking the `journey`.
-                Takes one parameters: a `callback` (function).
+                Takes one parameter: a `callback` (function).
                 See <<before-after>>.
 `before`::      Runs a provided function before a single `journey` runs.
-                Takes one parameters: a `callback` (function).
+                Takes one parameter: a `callback` (function).
                 See <<before-after>>.
 `afterAll`::    Runs a provided function after all the `journey` runs have completed.
-                Takes one parameters: a `callback` (function).
+                Takes one parameter: a `callback` (function).
                 See <<before-after>>.
 `after`::       Runs a provided function after a single `journey` has completed.
-                Takes one parameters: a `callback` (function).
+                Takes one parameter: a `callback` (function).
                 See <<before-after>>.
 
 TIP: {playwright-url}[Playwright] is a browser testing library developed by Microsoft.
-It's reliable and fast and features a modern API that auto waits for page elements to be ready.
+It's reliable and fast and features a modern API that automatically waits for page elements to be ready.
 
 [discrete]
 [[synthetics-create-journey]]
@@ -42,12 +42,14 @@ It's reliable and fast and features a modern API that auto waits for page elemen
 
 Start by creating a new file using the `.journey.ts` or `.journey.js` file extension,
 importing the synthetics library, and adding a new journey.
+
 A _journey_ tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
 
 The journey function takes two parameters: a `name` and a `callback`.
 The `name` helps you identify an individual journey.
 The `callback` argument is a function that encapsulates what the journey does.
+The callback provides access to fresh Playwright `page`, `params`, `browser`, and `context` instances.
 
 [source,js]
 ----
@@ -55,8 +57,6 @@ journey('Journey name', ({ page, browser, context, params }) => {
   // Add steps here
 });
 ----
-
-The callback provides access to fresh Playwright `page`, `params`, `browser`, and `context` instances:
 
 [horizontal]
 `name`::        A user-defined string to describe the journey.
@@ -140,7 +140,9 @@ expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more inf
 [[before-after]]
 == Set up and remove a global state
 
-Set up global state or a server that will be used for a single `journey` using `before` or across one or more journeys using `beforeAll`.
+If there are any actions that should be done before or after journeys, you can use `before`, `beforeAll`, `after`, or `afterAll`.
+
+For example, set up global state or a server that will be used for a single `journey` using `before` or across more than one journey using `beforeAll`.
 
 [source,js]
 ----
@@ -153,7 +155,7 @@ beforeAll(({ params }) => {
 });
 ----
 
-Remove a global state or close a server used for a single `journey` using `after` or across one or more journeys using `afterAll`.
+Or you can remove a global state or close a server used for a single `journey` using `after` or across more than one journey using `afterAll`.
 
 [source,js]
 ----
