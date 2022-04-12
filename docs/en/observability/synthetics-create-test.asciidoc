@@ -18,7 +18,7 @@ The synthetics agent exposes an API for creating and running tests, including:
 `step`::        Actions within a journey that should be completed in a specific order.
                 Takes two parameters: a `name` (string) and a `callback` (function).
                 See <<synthetics-create-step>>.
-`beforeAll`::   Runs a provided function before all `journey` runs.
+`beforeAll`::   Runs a provided function once, before any `journey` runs.
                 If the provided function is a promise, the runner will wait for the
                 promise to resolve before invoking the `journey`.
                 Takes one parameter: a `callback` (function).
@@ -26,7 +26,7 @@ The synthetics agent exposes an API for creating and running tests, including:
 `before`::      Runs a provided function before a single `journey` runs.
                 Takes one parameter: a `callback` (function).
                 See <<before-after>>.
-`afterAll`::    Runs a provided function after all the `journey` runs have completed.
+`afterAll`::    Runs a provided function once, after all the `journey` runs have completed.
                 Takes one parameter: a `callback` (function).
                 See <<before-after>>.
 `after`::       Runs a provided function after a single `journey` has completed.
@@ -142,7 +142,8 @@ expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more inf
 
 If there are any actions that should be done before or after journeys, you can use `before`, `beforeAll`, `after`, or `afterAll`.
 
-For example, set up global state or a server that will be used for a single `journey` using `before` or across more than one journey using `beforeAll`.
+To set up global state or a server that will be used for a **single** `journey`, for example,
+use a `before` hook. To perform this setup once before **all** journeys, use a `beforeAll` hook.
 
 [source,js]
 ----
@@ -155,7 +156,8 @@ beforeAll(({ params }) => {
 });
 ----
 
-Or you can remove a global state or close a server used for a single `journey` using `after` or across more than one journey using `afterAll`.
+You can clean up global state or close a server used for a **single** `journey` using an `after` hook.
+To perform this cleanup once after all journeys, use an `afterAll` hook.
 
 [source,js]
 ----
