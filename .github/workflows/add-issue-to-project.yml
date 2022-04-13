@@ -1,0 +1,27 @@
+name: add-issue-to-project
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  add_issue_to_inbox:
+    name: Add issue to inbox
+    runs-on: ubuntu-latest
+    steps:
+      - uses: octokit/graphql-action@v2.x
+        id: add_issue
+        with:
+          headers: '{"GraphQL-Features": "projects_next_graphql"}'
+          query: |
+            mutation($project:ID!, $issue:ID!){
+              addProjectNextItem(input: {projectId: $project, contentId: $issue}){
+                projectNextItem{
+                  id
+                }
+              }
+            }
+          project: ${{ env.PROJECT_ID }}
+          issue: ${{ github.event.issue.node_id }}
+        env:
+          PROJECT_ID: "PNI_lADOAGc3Zs0iZ84AOxSz"
+          GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
