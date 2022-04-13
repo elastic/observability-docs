@@ -9,7 +9,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: octokit/graphql-action@v2.x
-        id: add_issue
+        id: add_issue_to_board
         with:
           query: |
             mutation($project:ID!, $issue:ID!){
@@ -21,6 +21,24 @@ jobs:
             }
           project: ${{ env.PROJECT_ID }}
           issue: ${{ github.event.issue.node_id }}
+        env:
+          PROJECT_ID: "PNI_lADOAGc3Zs0iZ84AOxSz"
+          GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
+      - uses: octokit/graphql-action@v2.x
+        id: move_issue_to_inbox
+        with:
+          query: |
+            mutation label_team($project:ID!, $item:ID!, $field:ID!, $value:String!){
+              updateProjectNextItemField(input: { projectId: $project, itemId: $item, fieldId: $field, value: $value }){
+                projectNextItem {
+                  id
+                }
+              }
+            }
+          project: ${{ env.PROJECT_ID }}
+          item: ${{ fromJSON(steps.add_issue_to_board.outputs.data).addProjectNextItem.projectNextItem.id }}
+          field: "MDE2OlByb2plY3ROZXh0RmllbGQ2NjA2OA=="
+          value: "947d05a0"
         env:
           PROJECT_ID: "PNI_lADOAGc3Zs0iZ84AOxSz"
           GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
