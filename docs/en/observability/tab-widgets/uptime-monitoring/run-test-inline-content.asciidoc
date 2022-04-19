@@ -1,0 +1,60 @@
+// tag::heartbeat[]
+
+Copy and paste your test steps into `heartbeat.yml`.
+{heartbeat} spawns a separate Node.js process, schedules your tests, and runs them on a Chromium browser.
+
+For a full list of configuration options, see {heartbeat-ref}/monitor-browser-options.html[Browser options in the {heartbeat} documentation].
+
+[source,yml]
+----
+- type: browser
+  id: elastic-website <1>
+  name: Elastic website
+  schedule: "@every 1m"
+  source:
+    inline:
+      script: |- <2>
+      step("load homepage", async () => {
+        await page.goto('https://www.elastic.co');
+      });
+      step("hover over products menu", async () => {
+        await page.hover('css=[data-nav-item=products]');
+      });
+----
+<1> Each `monitor` gets its own ID in the {uptime-app} and its own schedule entry.
+This allows tests to be run in parallel and analyzed separately.
+<2> In this example, a synthetic journey is defined inline. This is a two-step script that first loads
+a homepage and then hovers over a product menu. See <<synthetics-syntax>> for more information.
+
+// end::heartbeat[]
+
+// tag::agent[]
+
+beta[] Add an inline monitor when configuring the Elastic Synthetics integration.
+In *Monitor settings*, use the *Monitor Type* _Browser_.
+
+[role="screenshot"]
+image::images/synthetics-integration.png[Synthetics integration]
+
+Then switch the *Source Type* to _Inline script_.
+
+Add steps to the code block directly.
+The `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope.
+You cannot `import` any dependencies when using inline monitors.
+
+[role="screenshot"]
+image::images/synthetics-integration-inline-script.png[Configure a synthetic monitor using an inline script in Elastic {fleet}]
+
+Click *Advanced Browser options* to see more ways to configure your monitor.
+
+* Use the *Synthetics agent options* to provide fine-tuned configuration for the synthetics agent.
+Read more about available options in <<synthetics-command-reference>>.
+* Use *Throttling options* to control the monitor's network speed.
+You can control the monitor's download and upload speeds and its latency to simulate your application's behavior on slower or laggier networks.
+
+When applying the integration policy to an {agent} policy, make sure to select your dedicated synthetics agent policy.
+
+[role="screenshot"]
+image::synthetics-agent-policy-select.png[Select your dedicated synthetics agent policy]
+
+// end::agent[]
