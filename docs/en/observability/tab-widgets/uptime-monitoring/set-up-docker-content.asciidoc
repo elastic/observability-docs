@@ -1,0 +1,47 @@
+// tag::heartbeat[]
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+[source,sh,subs="attributes"]
+----
+docker pull docker.elastic.co/beats/heartbeat:{version}
+----
+
+endif::[]
+// end::heartbeat[]
+
+// tag::agent[]
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+There are two Docker images you can use based on the type of monitor you are setting up.
+
+For *browser checks*, you must use the `elastic-agent-complete` Docker image to create a self-hosted {agent} node.
+This image contains the dependencies needed to run synthetic monitors.
+The standard {ecloud} or self-hosted {agent} will not work.
+
+[source,sh,subs="attributes"]
+----
+docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
+----
+
+For *lightweight HTTP/S, TCP, and ICMP checks*, you can use either the
+`elastic-agent-complete` image mentioned above or the following `elastic-agent` image:
+
+[source,sh,subs="attributes"]
+----
+docker pull docker.elastic.co/beats/elastic-agent:{version}
+----
+
+endif::[]
+// end::agent[]
