@@ -1,16 +1,15 @@
 [[synthetics-create-test]]
-= Create a new synthetic test
+= Write a synthetic test
 
 ++++
-<titleabbrev>Create a test</titleabbrev>
+<titleabbrev>Write a synthetic test</titleabbrev>
 ++++
 
-[discrete]
 [[synthetics-syntax]]
-== Syntax
 
 beta[] To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
+<<<<<<< HEAD
 Synthetics agent exposes a an API for creating and running tests:
 
 * `journey(name, ({ page, browser, client, params }) => {})` -- A journey tests one discrete unit of functionality.
@@ -48,6 +47,49 @@ For example, if you want to use a different homepage depending on the `env`
 for more information.
 
 Putting it all together, a basic, two step journey might look something like this:
+=======
+The synthetics agent exposes an API for creating and running tests, including:
+
+[horizontal]
+`journey`::     Tests one discrete unit of functionality.
+                Takes two parameters: a `name` (string) and a `callback` (function).
+                See <<synthetics-create-journey>>.
+`step`::        Actions within a journey that should be completed in a specific order.
+                Takes two parameters: a `name` (string) and a `callback` (function).
+                See <<synthetics-create-step>>.
+`beforeAll`::   Runs a provided function once, before any `journey` runs.
+                If the provided function is a promise, the runner will wait for the
+                promise to resolve before invoking the `journey`.
+                Takes one parameter: a `callback` (function).
+                See <<before-after>>.
+`before`::      Runs a provided function before a single `journey` runs.
+                Takes one parameter: a `callback` (function).
+                See <<before-after>>.
+`afterAll`::    Runs a provided function once, after all the `journey` runs have completed.
+                Takes one parameter: a `callback` (function).
+                See <<before-after>>.
+`after`::       Runs a provided function after a single `journey` has completed.
+                Takes one parameter: a `callback` (function).
+                See <<before-after>>.
+
+TIP: {playwright-url}[Playwright] is a browser testing library developed by Microsoft.
+It's reliable and fast and features a modern API that automatically waits for page elements to be ready.
+
+[discrete]
+[[synthetics-create-journey]]
+== Create a journey
+
+Start by creating a new file using the `.journey.ts` or `.journey.js` file extension,
+importing the synthetics library, and adding a new journey.
+
+A _journey_ tests one discrete unit of functionality.
+For example, logging into a website, adding something to a cart, or joining a mailing list.
+
+The journey function takes two parameters: a `name` and a `callback`.
+The `name` helps you identify an individual journey.
+The `callback` argument is a function that encapsulates what the journey does.
+The callback provides access to fresh Playwright `page`, `params`, `browser`, and `context` instances.
+>>>>>>> bfab57f0 (Update the structure of Synthetic monitoring section (#1725))
 
 [source,js]
 ----
@@ -61,9 +103,45 @@ journey("Journey name", ({ page }) => {
 });
 ----
 
+<<<<<<< HEAD
 [discrete]
 [[synthetics-create-step]]
 === Create a `step`
+=======
+[horizontal]
+`name`::        A user-defined string to describe the journey.
+`page`::        A https://playwright.dev/docs/api/class-page[page] object from Playwright
+                that lets you control the browser's current page.
+`browser`::     A {playwright-api-docs}[browser] object created by Playwright.
+`context`::     A https://playwright.dev/docs/api/class-browsercontext[browser context] 
+                that doesn't share cookies or cache with other browser contexts.
+`params`::      User-defined variables that allow you to invoke the Synthetics suite with custom parameters.
+                For example, if you want to use a different homepage depending on the `env`
+                (`localhost` for `dev` and a URL for `prod`). See <<synthetics-params-secrets>>
+                for more information.
+
+
+[discrete]
+[[synthetics-create-step]]
+== Add steps
+
+A journey consists of one or more _steps_. Steps are actions that should be completed in a specific order.
+Steps are displayed individually in the {uptime-app} along with screenshots for convenient debugging and error tracking.
+
+A basic two-step journey would look like this:
+
+[source,js]
+----
+journey('Journey name', ({ page, browser, client, params }) => {
+    step('Step 1 name', () => {
+      // Do something here
+    });
+    step('Step 2 name', () => {
+      // Do something else here
+    });
+});
+----
+>>>>>>> bfab57f0 (Update the structure of Synthetic monitoring section (#1725))
 
 Steps can be as simple or complex as you need them to be.
 The {playwright-api-docs}[Playwright page API reference] will be your friend while writing tests.
@@ -76,9 +154,16 @@ await page.goto('https://elastic.github.io/synthetics-demo/'); <1>
 ----
 <1> See the https://playwright.dev/docs/api/class-page#page-goto[`page.goto` reference] for more information.
 
+<<<<<<< HEAD
 A more complex second step might wait for a page element to be selected,
 and then ensure that it matches an expected value.
 Consider the following HTML snippet:
+=======
+A more complex step might wait for a page element to be selected
+and then make sure that it matches an expected value.
+
+For example, on a page using the following HTML:
+>>>>>>> bfab57f0 (Update the structure of Synthetic monitoring section (#1725))
 
 [source,html]
 ----
@@ -90,8 +175,13 @@ Consider the following HTML snippet:
 </header>
 ----
 
+<<<<<<< HEAD
 You can verify that `new-todo` class element contains the expected `placeholder` (input hint)
 with the following test:
+=======
+You can verify that the `input` element with class `new-todo` has the expected `placeholder` value
+(the hint text for `input` elements) with the following test:
+>>>>>>> bfab57f0 (Update the structure of Synthetic monitoring section (#1725))
 
 [source,js]
 ----
@@ -109,8 +199,46 @@ attribute value. See the https://playwright.dev/docs/api/class-page#page-get-att
 expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
 
 [discrete]
+[[before-after]]
+== Set up and remove a global state
+
+If there are any actions that should be done before or after journeys, you can use `before`, `beforeAll`, `after`, or `afterAll`.
+
+To set up global state or a server that will be used for a **single** `journey`, for example,
+use a `before` hook. To perform this setup once before **all** journeys, use a `beforeAll` hook.
+
+[source,js]
+----
+before(({ params }) => {
+  // Actions to take
+});
+
+beforeAll(({ params }) => {
+  // Actions to take
+});
+----
+
+You can clean up global state or close a server used for a **single** `journey` using an `after` hook.
+To perform this cleanup once after all journeys, use an `afterAll` hook.
+
+[source,js]
+----
+after(({ params }) => {
+  // Actions to take
+});
+
+afterAll(({ params }) => {
+  // Actions to take
+});
+----
+
+[discrete]
 [[synthetics-sample-test]]
+<<<<<<< HEAD
 === Sample Synthetic test
+=======
+== Sample synthetic test
+>>>>>>> bfab57f0 (Update the structure of Synthetic monitoring section (#1725))
 
 A complete example of a basic synthetic test looks like this:
 
@@ -131,6 +259,7 @@ journey("Ensure placeholder is correct", ({page}) => {
     })
 });
 ----
+<<<<<<< HEAD
 
 [discrete]
 [[synthetic-run-tests]]
@@ -306,3 +435,5 @@ to integrate with the provided Docker project template.
 
 //  19 passed (2983 ms)
 // ----
+=======
+>>>>>>> bfab57f0 (Update the structure of Synthetic monitoring section (#1725))
