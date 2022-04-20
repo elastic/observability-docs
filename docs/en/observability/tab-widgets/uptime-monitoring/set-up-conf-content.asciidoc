@@ -1,0 +1,45 @@
+// tag::heartbeat[]
+
+Create a `heartbeat.yml` configuration file.
+There are four possible monitor types.
+The example below shows how to configure an `http` monitor.
+
+[source,yml]
+----
+heartbeat.monitors:
+- type: http
+  id: service-status <1>
+  name: Service Status
+  service.name: my-apm-service-name
+  hosts: ["http://localhost:80/service/status"]
+  check.response.status: [200]
+  schedule: '@every 5s'
+----
+<1> Each `monitor` gets its own ID in the {uptime-app} and its own schedule entry.
+This allows tests to be run in parallel and analyzed separately.
+
+Read more about configuration options in {heartbeat-ref}/configuration-heartbeat-options.html[Configure {heartbeat} monitors].
+
+If you are setting up a *`browser`* monitor, see <<synthetics-create-test>>
+for more details on writing synthetic tests to be added to the configuration file.
+
+// end::heartbeat[]
+
+// tag::agent[]
+
+beta[] Elastic Synthetics tests can be configured through {fleet} using the Elastic Synthetics integration.
+
+1. In the {kib} main menu, click *Add integrations*.
+2. Search for the *Elastic Synthetics* integration.
+3. Click *Add Elastic Synthetics*.
+4. On the _Add Elastic Synthetics integration_ page, under _Configure integration_, enter the integration name and select your desired monitor type.
+5. Enter the URL you want to monitor for availability and select a monitor interval in seconds or minutes. By default, a monitoring schedule of every 3 minutes is selected.
+6. Under *Apply to agent policy*, select the new policy you created.
+7. Click *Save and continue*, then *Save and deploy* changes.
+
+To learn more about setting up a {fleet} integration, see <<add-synthetics-integration,Step 4 of _Deploy {agent} to send data_>>.
+
+If you are setting up a *Browser* synthetic monitor, see <<synthetics-create-test>>
+for more details on writing synthetic tests to be added to the configuration file.
+
+// end::agent[]
