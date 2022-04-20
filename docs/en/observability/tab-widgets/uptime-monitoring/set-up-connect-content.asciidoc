@@ -1,0 +1,86 @@
+// tag::heartbeat[]
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+You'll need to retrieve your {es} credentials for either an {heartbeat-ref}/configure-cloud-id.html[{ecloud} ID] or another {heartbeat-ref}/elasticsearch-output.html[{es} Cluster].
+
+The example below, shows how to run synthetics tests indexing data into {es}.
+You'll need to insert your actual `cloud.id` and `cloud.auth` values to successfully index data to your cluster.
+
+// NOTE: We do NOT use <1> references in the below example, because they create whitespace after the trailing \
+// when copied into a shell, which creates mysterious errors when copy and pasting!
+[source,sh,subs="+attributes"]
+----
+docker run \
+  --rm \
+  --name=heartbeat \
+  --user=heartbeat \
+  --volume="$PWD/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro" \
+  docker.elastic.co/beats/elastic-agent-complete:{version} heartbeat -e \
+  -E cloud.id={cloud-id} \
+  -E cloud.auth=elastic:{cloud-pass}
+----
+
+If you aren't using {ecloud}, replace `-E cloud.id` and `-E cloud.auth` with your {es} hosts,
+username, and password:
+
+[source,sh,subs="attributes"]
+----
+docker run \
+  --rm \
+  --name=heartbeat \
+  --user=heartbeat \
+  --volume="$PWD/heartbeat.yml:/usr/share/heartbeat/heartbeat.yml:ro" \
+  docker.elastic.co/beats/elastic-agent-complete:{version} heartbeat -e \
+  -E output.elasticsearch.hosts=["localhost:9200"] \
+  -E output.elasticsearch.username=elastic \
+  -E output.elasticsearch.password=changeme
+----
+
+Note the `--volume` option, which mounts local directories into the
+container. Here, we mount the `heartbeat.yml` from the working directory,
+into {heartbeat}'s expected location for `heartbeat.yml`.
+
+WARNING: Elastic Synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions.
+Add the `sandbox: true` option to a given browser monitor in {heartbeat} to enable sandboxing.
+This may require using a custom seccomp policy with docker, which brings its own added risks.
+This is generally safe when run against sites whose content you trust,
+and with a recent version of Elastic Synthetics and Chromium.
+
+endif::[]
+// end::heartbeat[]
+
+// tag::agent[]
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+beta[] To add an {agent} to {fleet}, you'll need an enrollment token and the URL of your {fleet-server}.
+You can use the default enrollment token for your policy or create new enrollment tokens as needed.
+This example uses the `elastic-agent-complete` Docker container.
+
+[source,sh,subs="attributes"]
+----
+docker run \
+  --env FLEET_ENROLL=1 \
+  --env FLEET_URL={fleet-server-host-url} \
+  --env FLEET_ENROLLMENT_TOKEN={enrollment-token} \
+  --rm docker.elastic.co/beats/elastic-agent-complete:{version}
+----
+
+For more information on running {agent} with Docker, see {fleet-guide}/elastic-agent-container.html[Run {agent} in a container] and
+{fleet-guide}/fleet-enrollment-tokens.html[{fleet} enrollment tokens].
+
+You may need to set other environment variables.
+Learn how in {fleet-guide}/agent-environment-variables.html[{agent} environment variables guide].
+
+endif::[]
+// end::agent[]

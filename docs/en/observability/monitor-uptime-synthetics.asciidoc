@@ -1,43 +1,82 @@
 [[monitor-uptime-synthetics]]
-= Synthetic monitoring via the {uptime-app}
+= Uptime and synthetic monitoring
 
 ++++
-<titleabbrev>Synthetic monitoring</titleabbrev>
+<titleabbrev>Uptime and synthetic monitoring</titleabbrev>
 ++++
 
-The {uptime-app} in {kib} lets you monitor user journeys and full page loads using our browser monitor,
-and also monitor the availability and response times of applications and services using our lightweight HTTP/S,
-TCP, and ICMP monitors.
+[[uptime-monitors]]
+
+The {uptime-app} uses {agent} to periodically check the status of your services and applications.
+By adding the Elastic Synthetics integration to an agent's policy, you can monitor the
+availability of network endpoints and services using the following Uptime monitors:
+
+* <<monitoring-uptime>>
+* <<monitoring-synthetics>>
+
+[discrete]
+[[monitoring-uptime]]
+== Lightweight HTTP/S, TCP, and ICMP monitors
+
+In the {uptime-app}, you can monitor the status of network endpoints using the following lightweight checks:
+
+|===
+
+| *HTTP monitor* | Monitor your website. The HTTP monitor checks to make sure specific endpoints return the correct
+status code and display the correct text.
+
+| *ICMP monitor* | Check the availability of your hosts. The ICMP monitor uses ICMP (v4 and v6) Echo
+Requests to check the network reachability of the hosts you are pinging. This will tell you whether the
+host is available and connected to the network, but doesn't tell you if a service on the host is running or
+not.
+
+| *TCP monitor* | Monitor the services running on your hosts. The TCP monitor checks individual ports
+to make sure the service is accessible and running.
+
+|===
+
+[role="screenshot"]
+image::images/uptime-app.png[{uptime-app} in {kib}]
+
+To set up your first monitor, see <<uptime-set-up>>.
 
 [discrete]
 [[monitoring-synthetics]]
-== Browser checks
+== Browser monitors
 
-beta[] Real browser synthetic monitoring enables you to test critical actions and requests that an end-user would perform
-on your site at predefined intervals and in a controlled environment. You can view each synthetic monitoring journey
-in the {uptime-app} side-by-side with your other <<monitor-uptime,Uptime monitors>>. The result is rich, consistent, and repeatable
-data that you can trend and alert on.
+beta[] Real browser synthetic monitoring enables you to test critical actions and requests that an end-user would make
+on your site at predefined intervals and in a controlled environment.
+The result is rich, consistent, and repeatable data that you can trend and alert on.
 
-For example, test popular user journeys, like logging in, adding items to a cart, and checking
+For example, you can test popular user journeys, like logging in, adding items to a cart, and checking
 out -- actions that need to work for your users consistently.
 
-Alerting ensures that any degraded performance or broken actions are fixed before impacting your bottom line or customer
-experience.
+Using the synthetics agent or {heartbeat}, you can run automated synthetic monitoring test suites on a real Chromium browser and
+view each synthetic monitoring journey in the {uptime-app} side-by-side with your other monitors.
 
 [role="screenshot"]
 image::images/synthetic-app-overview.png[Synthetics app overview]
 
-For more details, refer to <<synthetic-monitoring,Real browser synthetic monitoring>>.
+Alerting helps you detect degraded performance or broken actions before your users do.
+By receiving alerts early, you can fix issues before they impact your bottom line or customer experience.
+
+To get started with browser monitors, <<uptime-set-up, get set up>> and then <<synthetics-journeys, write a synthetic journey>>.
 
 [discrete]
-[[monitoring-uptime]]
-== Lightweight HTTP/S, TCP, and ICMP checks
+[[view-certificate-status]]
+== TLS Certificates
 
-You can monitor the status of network endpoints using lightweight HTTP/S, TCP, and ICMP checks, explore
-endpoint status over time, drill down into specific monitors, and view a high-level
-snapshot of your environment at any point in time.
+The TLS Certificates page in the {uptime-app} lists the TLS certificates that are being monitored and 
+shows the TLS certificate data in your indices.
+
+In addition to the common name, associated monitors, issuer information, and SHA fingerprints,
+an assigned status is derived from the threshold values in the <<configure-uptime-settings,Settings>> page.
 
 [role="screenshot"]
-image::images/uptime-app.png[Uptime app in Kibana]
+image::images/tls-certificates.png[TLS certificates]
 
-For more details, refer to <<monitor-uptime,lightweight ICMP, TCP, and HTTP checks>>.
+The table entries can be sorted by _status_ and _valid until_. You can use the search bar at the
+top of the view to find values in most of the TLS-related fields in your Uptime indices.
+
+Additionally, you can select the *Alerts and rules* dropdown at the top of the page, and create a
+<<tls-certificate-alert,TLS rule>> to receive an alert when your certificate is about to expire.
