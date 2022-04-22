@@ -45,7 +45,7 @@ curl -L -O https://raw.githubusercontent.com/elastic/elastic-agent/{branch}/depl
 
 This manifest includes the Kubernetes integration to collect Kubernetes metrics,
 System integration to collect system level metrics and logs from nodes, and
-the Pod's log collection using <<kubernetes-provider,dynamic inputs and kubernetes provider>>.
+the Pod's log collection using <<kubernetes-provider,dynamic inputs and Kubernetes provider>>.
 
 [discrete]
 == Settings
@@ -91,8 +91,8 @@ Refer to <<agent-environment-variables>> for all available options.
 Kubernetes master nodes can use https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints]
 to limit the workloads that can run on them. The manifest for standalone {agent} defines
 tolerations to run on master nodes. Agents running on master nodes collect metrics from the control plane
-components (scheduler, controller manager) of Kuberentes.
-To disable {agent} from running on master nodes, remove the following part of the Daemonset spec:
+components (scheduler, controller manager) of Kubernetes.
+To disable {agent} from running on master nodes, remove the following part of the DaemonSet spec:
 
 [source,yaml]
 ------------------------------------------------
@@ -125,7 +125,7 @@ elastic-agent-hs4pb             1/1     Running   0          81m
 ------------------------------------------------
 
 NOTE: You might need to adjust https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[resource limits] of the elastic-agent container
-in the `elastic-agent-standalone-kubernetes.yaml` manifest. Container resource usage depends on the number of datastreams
+in the `elastic-agent-standalone-kubernetes.yaml` manifest. Container resource usage depends on the number of data streams
 and the environment size.
 
 [discrete]
@@ -147,19 +147,19 @@ the manifest file and enable the container to run as privileged.
     - /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
 ------------------------------------------------
 * `kubernetes-node-metrics` input:
-** Change the `kubernetes.controllermanager` datastream condition to:
+** Change the `kubernetes.controllermanager` data stream condition to:
 +
 [source,yaml]
 ------------------------------------------------
 condition: ${kubernetes.labels.app} == 'kube-controller-manager'
 ------------------------------------------------
-** Change the `kubernetes.scheduler` datastream condition to:
+** Change the `kubernetes.scheduler` data stream condition to:
 +
 [source,yaml]
 ------------------------------------------------
 condition: ${kubernetes.labels.app} == 'openshift-kube-scheduler'
 ------------------------------------------------
-** The `kubernetes.proxy` datastream configuration should look like:
+** The `kubernetes.proxy` data stream configuration should look like:
 +
 [source,yaml]
 ------------------------------------------------
@@ -172,7 +172,7 @@ condition: ${kubernetes.labels.app} == 'openshift-kube-scheduler'
     - 'localhost:29101'
   period: 10s
 ------------------------------------------------
-** Add the following settings to all datastreams that connect to `https://${env.NODE_NAME}:10250`:
+** Add the following settings to all data streams that connect to `https://${env.NODE_NAME}:10250`:
 +
 [source,yaml]
 ------------------------------------------------
@@ -181,10 +181,10 @@ condition: ${kubernetes.labels.app} == 'openshift-kube-scheduler'
     - /path/to/ca-bundle.crt
 ------------------------------------------------
 NOTE: `ca-bundle.crt` can be any CA bundle that contains the issuer of the certificate used in the Kubelet API.
-According to each specific installation of Openshift this can be found either in `secrets` or in `configmaps`.
+According to each specific installation of OpenShift this can be found either in `secrets` or in `configmaps`.
 In some installations it can be available as part of the service account secret, in
 `/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt`.
-When using the https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[Openshift installer]
+When using the https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[OpenShift installer]
 for GCP, mount the following `configmap` in the elastic-agent pod and use `ca-bundle.crt`
 in `ssl.certificate_authorities`:
 +
@@ -228,7 +228,7 @@ This command sets the node selector for the project to an empty string.
 Autodiscover conditions can be defined to allow {agent} to automatically
 identify Pods and start collecting from them using predefined integrations. For example, if a
 user wants to automatically identify a Redis Pod and start monitoring it using the Redis integration,
-the following configuration should be added as an extra input in the Daemonset manifest:
+the following configuration should be added as an extra input in the DaemonSet manifest:
 
 [source,yaml]
 ------------------------------------------------
@@ -256,7 +256,7 @@ the following configuration should be added as an extra input in the Daemonset m
       condition: ${kubernetes.pod.labels.app} == 'redis'
 ------------------------------------------------
 
-Refer to <<kubernetes-provider,dynamic inputs and kubernetes provider>> for more information
+Refer to <<kubernetes-provider,dynamic inputs and Kubernetes provider>> for more information
 about shaping dynamic inputs for autodiscovery.
 
 
