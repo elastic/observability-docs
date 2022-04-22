@@ -34,11 +34,11 @@ upgrades
 
 image::images/agent-proxy-server.png[Image showing connections between {agent}, {fleet-server}, and {es}]
 
-If {fleet} is unable to access the Elastic Package Registry because {kib} is
+If {fleet} is unable to access the {package-registry} because {kib} is
 behind a proxy server, you may also need to set the registry proxy URL
 in the {kib} configuration.
 
-image::images/fleet-epr-proxy.png[Image showing connections between {fleet} and the Elastic Package Registry]
+image::images/fleet-epr-proxy.png[Image showing connections between {fleet} and the {package-registry}]
 
 [discrete]
 [[host-proxy-env-vars]]
@@ -75,6 +75,7 @@ based on the system manager you're using. Here are some examples to get you
 started. For more information about setting environment variables, refer to the
 documentation for your operating system.
 
+// lint disable agent
 * For Windows services, set environment variables for the service in
 the Windows registry.
 +
@@ -93,6 +94,7 @@ Set-ItemProperty "HKLM:SYSTEM\CurrentControlSet\Services\Elastic Agent" -Name En
 
 Restart-Service "Elastic Agent"
 ----
+// lint enable agent
 
 * For Linux services, the location depends on the distribution you're using.
 For example, you can set environment variables in:
@@ -137,7 +139,7 @@ After adding environment variables, restart the service.
 
 Proxy settings in the {agent} policy override proxy settings specified by
 environment variables. This means you can specify proxy settings for {agent}
-that are different from host or system-level environment settings. Currently, we only offer a way to modify these for standalone agents. The ability to set these for Fleet-managed agents is https://github.com/elastic/elastic-agent/issues/96[under consideration]. 
+that are different from host or system-level environment settings. Currently, we only offer a way to modify these for standalone agents. The ability to set these for {fleet}-managed agents is https://github.com/elastic/elastic-agent/issues/96[under consideration]. 
 
 The following proxy settings are valid in the agent policy:
 
@@ -272,13 +274,13 @@ fleet:
 
 [discrete]
 [[epr-proxy-setting]]
-== Set the proxy URL of the Elastic Package Registry
+== Set the proxy URL of the {package-registry}
 
-{fleet} might be unable to access the Elastic Package Registry because {kib} is
+{fleet} might be unable to access the {package-registry} because {kib} is
 behind a proxy server.
 
 Also your organization might have network traffic restrictions that prevent {kib}
-from reaching the public Elastic Package Registry endpoints, like
+from reaching the public {package-registry} endpoints, like
 https://epr.elastic.co/[epr.elastic.co], to download package metadata and
 content. You can route traffic to the public endpoint of EPR through a network
 gateway, then configure proxy settings in the
