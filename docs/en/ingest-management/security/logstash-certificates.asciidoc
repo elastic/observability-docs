@@ -12,10 +12,6 @@ to trusted {ls} servers, and that your {ls} servers receive data from trusted
 [[secure-logstash-prereqs]]
 == Prerequisites
 
-//REVIEWERS: Is there a specific subscription level required for this? The issue
-//mentions platinum, but as a general rule we point to the subsciptions page.
-//It's not clear to me which part of this feature requires plat.
-
 * Make sure your https://www.elastic.co/subscriptions[subscription level]
 supports output to {ls}.
 
@@ -27,19 +23,12 @@ certificate that was used to sign the certificates for the HTTP layer of {es}
 cluster. For more information, refer to the
 {ref}/configuring-stack-security.html[{es} security docs].
 
-//REVIEWERS: I'm not going to explain the steps for securing the LS to ES
-//connection here because IMO that's beyond the scope of this doc and may
-//confused cloud users who don't need to know this.
-
 [discrete]
 [[generate-logstash-certs]]
 == Generate custom certificates and private keys
 
 You can use whatever process you typically use to generate PEM-formatted
 certificates. The examples shown here use the `certutil` tool provided by {es}.
-
-//REVIEWERS: The following worked for me, and I saw people asking on discuss. Is
-//there any reason we should not recommend this to cloud users? 
 
 TIP: The `certutil` tool is not available on {ecloud}, but you can still use it
 to generate certificates for {agent} to {ls} connections. Just
@@ -81,7 +70,7 @@ image::images/ca-certs.png[Screen capture of a folder called ca that contains tw
   --pem
 ----
 
-Where `dns` and `ip` specify the name and IP address of the client.
+Where `dns` and `ip` specify the valid host names and IP addresses where the generated certificates are valid.
 
 Extract the zip file:
 
@@ -102,7 +91,6 @@ image::images/client-certs.png[Screen capture of a folder called client that con
   --pem
 ----
 
-Where `dns` and `ip` specify the name and IP address of the {ls} server.
 
 Extract the zip file:
 
@@ -115,10 +103,6 @@ image::images/logstash-certs.png[Screen capture of a folder called logstash that
 ----
 openssl pkcs8 -inform PEM -in logstash.key -topk8 -nocrypt -outform PEM -out logstash.pkcs8.key
 ----
-
-//REVIEWERS: The GitHub issue says that Linux must be used to convert
-//the key. Is this true? Is what I have here ^^ accurate and good enough for Win
-//users?
 
 Store these files in a secure location.
 
