@@ -3,8 +3,6 @@
 
 Here are the highlights of what's new and improved in {minor-version}.
 
-coming[8.0.0]
-
 // Other versions:
 // {observability-guide-all}/8.1/whats-new.html[8.1] |
 // {observability-guide-all}/8.0/whats-new.html[8.0] |
@@ -13,5 +11,166 @@ coming[8.0.0]
 // tag::whats-new[]
 
 // What's new content goes in here. Don't uncomment or remove the tags surrounding this content :)
+
+[discrete]
+== AWS serverless log ingestion for faster insight
+
+The elastic-serverless-forwarder application enables you to ingest logs from the
+AWS environment into Elastic in a complete serverless fashion. You don’t need to
+set up and maintain compute resources, which simplifies the getting started
+experience and reduces data onboarding friction. The application is publicly
+available in Serverless Application repository (SAR), an AWS-managed repository
+for serverless applications.
+
+[role="screenshot"]
+image::images/lambda-elastic-serverless-forwarder.png[Add elastic-serverless-forwarder from AWS repository]
+
+We started with Amazon S3 in the last release and have now added Kinesis data
+streams, CloudWatch logs, and direct SQS queue as additional input options. This
+application fits seamlessly into your current operating environment, which means
+you don’t need to change any environments to start getting the logs ingested
+into Elastic.
+
+[role="screenshot"]
+image::images/aws-elastic-overview.png[Overview of AWS environment with Elastic serverless forwarder]
+
+For more information, see our
+https://www.elastic.co/blog/elastic-and-aws-serverless-application-repository-speed-time-to-actionable-insights-with-frictionless-log-ingestion-from-amazon-s3[blog]
+and https://github.com/elastic/elastic-serverless-forwarder/blob/main/docs/README-AWS.md[documentation].
+
+[discrete]
+== Custom AWS logs integration for {agent}
+
+We have added a new Custom AWS logs integration that enables you to ingest any
+custom logs from the AWS environment for which we don’t have an existing
+out-of-the-box {agent} integration. This new integration supports both
+Amazon S3 and CloudWatch logs as an input source for these logs. You can choose
+to set up your own index templates and ingest pipelines, and configure the
+integration to write data to a specific data stream. You can then use the power
+of {kib} to analyze the collected data.
+
+[role="screenshot"]
+image::images/integrations-custom-aws-logs.png[Add Customer AWS Logs integration]
+
+[discrete]
+== {agent} Azure virtual machine extension
+
+The new Microsoft Azure VM extension for {agent} provides Azure users a
+very simple way to install and register {agent} on all their Azure VM’s.
+It automatically installs {agent}, registers it with {fleet}, creates a
+separate policy that collects system logs and metrics, and assigns this policy
+— all with a single checkbox or command line option.
+
+You can use the Elastic deployment pane on the Azure console to configure
+Elastic Azure VM extension with a single click. If you prefer to manage with
+scripts, you can use Azure CLI or Powershell to interact with the extension and
+get {agent} installed and configured on all your Azure VM’s.
+
+[role="screenshot"]
+image::images/azure-elastic-vm.png[{es} VM extension installed on Azure]
+
+Once configured you can manage the lifecycle of your {agents} from within
+{fleet}. For more information, see the https://www.elastic.co/guide/en/cloud/current/ec-azure-marketplace-native.html[Native Azure integration documentation]
+and https://www.elastic.co/guide/en/observability/current/monitor-azure.html[Monitor Microsoft Azure tutorial].
+
+[role="screenshot"]
+image::images/{fleet}-azure-vm-policy.png[{agent} policy for Azure VM]
+
+[discrete]
+== {agent} support for {ls} output (public beta)
+
+You can now add a {ls} instance as an output to an {agent} policy.
+This feature is available as a public beta, with the goal of making it generally
+available (GA) in 8.4. Inline instructions are provided to Configure {ls}
+for {agent} (as shown below) that step through the requirements to
+establish a secure connection between agents and the {ls} instance. Please
+note that mutual TLS is enforced when agents are set to write to a {ls} output.
+
+[role="screenshot"]
+image::images/{fleet}-add-{ls}-output.gif[Add new {ls} output via {fleet}]
+
+[discrete]
+== APM support for {kib} spaces
+
+You can now configure APM UI indices in the context of {kib} spaces. This
+enables you to segment APM-related data to leverage {kib} spaces for access
+controls and UI performance improvements.
+
+[role="screenshot"]
+image::images/{kib}-observability-settings-indices.png[Configure APM UI indices within {kib}]
+
+[discrete]
+== APM Service groups introduced
+
+APM Service groups provide a simple way to curate services into groups. Group
+services together to build curated inventory views that remove noise and
+simplify investigations across services. Groups are {kib} space-specific and
+available for any users with appropriate access.
+
+You can create Service groups with a simple KQL-based workflow to populate group
+members. Once created, group members can interact with the service inventory and
+service map within the group context.
+
+Service groups are introduced as part of a technical preview — to enable Service
+groups, navigate to {kib} {stack-manage-app} > Advanced Settings > Observability,
+and enable **Service groups feature**.
+
+
+[role="screenshot"]
+image::images/APM-service-groups.png[APM Service groups]
+
+[discrete]
+== APM visibility for AWS Lambda Functions
+
+Elastic APM now supports distributed tracing for AWS Lambda Functions running in
+production environments. This feature is currently supported by the Java, Python
+and Node.js Agents. It provides performance monitoring, error monitoring, and
+topology views showing dependencies within the distributed microservices
+architecture. Additionally, auto-instrumentation of traces, transactions and
+spans out-of-the-box are supported.
+
+The {apm-agent} sends traces to the APM Lambda Extension which is responsible for
+APM server interactions. The {apm-agent} identifies cold starts of AWS Lambda
+functions and collects trigger-specific information for each Lambda invocation,
+as well as metadata associated with the AWS Lambda runtime.
+
+As can be seen in the following screenshot, cold starts of lambda invocations
+are directly denoted in the trace waterfall view.
+
+[role="screenshot"]
+image::images/apm-visibility-lambda-functions.png[Monitor AWS Lambda Functions in APM]
+
+[discrete]
+== Support for compressed spans in Elastic APM
+
+You can now reduce storage and processing overheads associated with low-value
+spans such as those encountered in an N+1 query to a database or cache.
+Normally, it would be quite difficult to analyze a trace waterfall in the UI
+involving hundreds of short duration spans. This feature enables such spans to
+be represented by a single aggregated span. The compressed span also provides
+contextual information such as the total number of spans included, total
+duration, and average span duration. This feature is currently supported by the
+Java, .NET, Python, GO and PHP Agents.
+
+[role="screenshot"]
+image::images/monitor-compressed-span.png[Example output for compressed span ‘same kind’ algorithm]
+
+[discrete]
+== New dedicated view for Observability alerting rules
+
+As part of our ongoing improvements to Observability alerting features
+(currently available as a technical preview), you can now manage rules via a
+dedicated Observability rule management view available from the **Alerts** page.
+This means you don’t have to leave the Observability context to view
+observability-specific alerting rules, making it easier to find and manage
+relevant rules. Use search and filter options to quickly identify and select the
+rules you want to manage. In addition to the new view, you can now also include
+the *alert reason* message and *View in app* URL as variables within alert
+notifications.
+
+[role="screenshot"]
+image::images/alert-rules-observability-tp.png[Observability rules within Alerts]
+
+For more information, see the https://www.elastic.co/guide/en/observability/8.2/create-alerts.html[Alerts documentation].
 
 // end::whats-new[]
