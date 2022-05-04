@@ -67,7 +67,7 @@ traces-apm-dev
 --
 
 All data streams, and the pre-built dashboards that they ship with,
-are viewable on the Fleet Data Streams page:
+are viewable on the {fleet} Data Streams page:
 
 [role="screenshot"]
 image::images/kibana-fleet-datastreams.png[Data streams page]
@@ -96,39 +96,39 @@ These templates are loaded when the integration is installed, and are used to co
 
 [discrete]
 [[data-streams-ilm]]
-== Configure an index lifecycle management (ILM) policy
+== Configure an {ilm} ({ilm-init}) policy
 
 Use the {ref}/index-lifecycle-management.html[index lifecycle
-management] (ILM) feature in {es} to manage your {agent} data stream indices as they age.
+management] ({ilm-init}) feature in {es} to manage your {agent} data stream indices as they age.
 For example, create a new index after a certain period of time,
 or delete stale indices to enforce data retention standards.
 
-Installed integrations may have one or many associated data streams--each with an associated ILM policy.
-By default, these data streams use an ILM policy that matches their data type.
+Installed integrations may have one or many associated data streams--each with an associated {ilm-init} policy.
+By default, these data streams use an {ilm-init} policy that matches their data type.
 For example, the data stream `metrics-system.logs-*`,
-uses the metrics ILM policy as defined in the `metrics-system.logs` index template.
+uses the metrics {ilm-init} policy as defined in the `metrics-system.logs` index template.
 
 [discrete]
 [[data-streams-ilm-tutorial]]
 == Tutorial: Customize data retention for integrations
 
-This tutorial explains how to apply a custom ILM policy to an integration's data stream.
+This tutorial explains how to apply a custom {ilm-init} policy to an integration's data stream.
 
 **Scenario:** You have {agent}s collecting system metrics with the System integration in two environments--one with the namespace `development`, and one with `production`.
 
-**Goal:** Customize the ILM policy for the `system.network` data stream in the `production` namespace.
-Specifically, apply the built-in `90-days-default` ILM policy so that data is deleted after 90 days.
+**Goal:** Customize the {ilm-init} policy for the `system.network` data stream in the `production` namespace.
+Specifically, apply the built-in `90-days-default` {ilm-init} policy so that data is deleted after 90 days.
 
 [discrete]
 [[data-streams-ilm-one]]
 === Step 1: View data streams
 
 The **Data Streams** view in {kib} shows you the data streams,
-index templates, and ILM policies associated with a given integration.
+index templates, and {ilm-init} policies associated with a given integration.
 
-. Navigate to **Stack Management** > **Index Management** > **Data Streams**.
+. Navigate to **{stack-manage-app}** > **Index Management** > **Data Streams**.
 . Search for `system` to see all data streams associated with the System integration.
-. Select the `metrics-system.network-{namespace}` data stream to view its associated index template and ILM policy.
+. Select the `metrics-system.network-{namespace}` data stream to view its associated index template and {ilm-init} policy.
 As you can see, the data stream follows the <<data-streams-naming-scheme>> and starts with its type, `metrics-`.
 +
 [role="screenshot"]
@@ -156,10 +156,10 @@ the component template name would be:
 metrics-system.network-production@custom
 ----
 
-. Navigate to **Stack Management** > **Index Management** > **Component Templates**
+. Navigate to **{stack-manage-app}** > **Index Management** > **Component Templates**
 . Click **Create component template**.
 . Use the template above to set the name--in this case, `metrics-system.network-production@custom`. Click **Next**.
-. Under **Index settings**, set the ILM policy name under the `lifecycle.name` key:
+. Under **Index settings**, set the {ilm-init} policy name under the `lifecycle.name` key:
 +
 [source,json]
 ----
@@ -185,7 +185,7 @@ The easiest way to do this is to duplicate and modify the integration's existing
 
 WARNING: When duplicating the index template, do not change or remove any managed properties. This may result in problems when upgrading.
 
-. Navigate to **Stack Management** > **Index Management** > **Index Templates**.
+. Navigate to **{stack-manage-app}** > **Index Management** > **Index Templates**.
 . Find the index template you want to clone. The index template will have the `<type>` and `<dataset>` in its name,
 but not the `<namespace>`. In this case, it's `metrics-system.network`.
 . Select **Actions** > **Clone**.
@@ -205,8 +205,8 @@ image::images/create-index-template.png[Create index template]
 [[data-streams-ilm-four]]
 === Step 4: Roll over the data stream (optional)
 
-To confirm that the data stream is now using the new index template and ILM policy,
-you can either repeat <<data-streams-ilm-one,step one>>, or navigate to **Dev Tools ** and run the following:
+To confirm that the data stream is now using the new index template and {ilm-init} policy,
+you can either repeat <<data-streams-ilm-one,step one>>, or navigate to **{dev-tools-app}** and run the following:
 
 [source,bash]
 ----
@@ -230,9 +230,9 @@ The result should include the following:
 }
 ----
 <1> The name of the custom index template created in step three
-<2> The name of the ILM policy applied to the new component template in step two
+<2> The name of the {ilm-init} policy applied to the new component template in step two
 
-New ILM policies only take effect when new indices are created,
+New {ilm-init} policies only take effect when new indices are created,
 so you either must wait for a rollover to occur (usually after 30 days or when the index size reaches 50GB),
 or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover API]:
 

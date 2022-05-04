@@ -5,7 +5,7 @@
 == Monitor Amazon Web Services ({aws})
 
 In this tutorial, you’ll learn how to monitor your {aws} infrastructure using
-Elastic Observability: Logs and Metrics.
+Elastic {observability}: Logs and Metrics.
 
 [discrete]
 [[aws-what-you-learn]]
@@ -15,7 +15,7 @@ You'll learn how to:
 
 - Create and configure an S3 bucket
 - Create and configure an SQS queue.
-- Install and configure Filebeat and Metricbeat to collect Logs and Metrics
+- Install and configure {filebeat} and {metricbeat} to collect Logs and Metrics
 - Collect logs from S3
 - Collect metrics from Amazon CloudWatch
 
@@ -27,11 +27,11 @@ You'll learn how to:
 Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}].
 The deployment includes an {es} cluster for storing and searching your data,
 and {kib} for visualizing and managing your data.
-To learn more, see <<spin-up-stack,Spin up the Elastic Stack>>.
+To learn more, see <<spin-up-stack,Spin up the {stack}>>.
 
 With this tutorial, we assume that your logs and your infrastructure
 data are already shipped to CloudWatch. We are going to show you how you can
-stream your data from CloudWatch to Elasticsearch. If you don’t know how to put
+stream your data from CloudWatch to {es}. If you don’t know how to put
 your {aws} logs and infrastructure data in CloudWatch, Amazon provides a lot of
 documentation around this specific topic:
 
@@ -43,8 +43,8 @@ documentation around this specific topic:
 [[aws-step-one]]
 === Step 1:  Create an S3 Bucket
 
-To centralize your logs in Elasticsearch, you need to have an S3 bucket.
-Filebeat, the agent you'll use to collect logs, has an input for S3.
+To centralize your logs in {es}, you need to have an S3 bucket.
+{filebeat}, the agent you'll use to collect logs, has an input for S3.
 
 In the https://s3.console.aws.amazon.com/s3[{aws} S3 console], click on *Create
 bucket*. Give the bucket a *name* and specify the *region* in which you want it
@@ -60,10 +60,10 @@ You should now have an S3 bucket in which you can export your logs, but you will
 also need an SQS queue. To avoid significant lagging with polling all
 log files from each S3 bucket, we will use Amazon Simple Queue Service (SQS).
 This will provide us with an Amazon S3 notification when a new S3 object is
-created. The {filebeat-ref}/filebeat-input-aws-s3.html[Filebeat S3 input]
+created. The {filebeat-ref}/filebeat-input-aws-s3.html[{filebeat} S3 input]
 checks SQS for new messages regarding the new object created in S3 and uses the
 information in these messages to retrieve logs from S3 buckets. With this setup,
-periodic polling from each S3 bucket is not needed. Instead, the Filebeat S3
+periodic polling from each S3 bucket is not needed. Instead, the {filebeat} S3
 input guarantees near real-time data collection from S3 buckets with both speed
 and reliability.
 
@@ -274,8 +274,8 @@ the following configurations.
 <3> Add the URL to the queue containing notifications around the bucket containing the EC2 logs
 <4> Add the URL to the queue containing notifications around the bucket containing the S3 access logs
 
-Once you have edited the config file, you need to restart filebeat. To stop
-flebeat, you can press CTRL + C in the terminal. Now let's restart filebeat by
+Once you have edited the config file, you need to restart {filebeat}. To stop
+flebeat, you can press CTRL + C in the terminal. Now let's restart {filebeat} by
 running the following command:
 
 [source,bash]
@@ -287,14 +287,15 @@ running the following command:
 [[aws-step-six]]
 === Step 6: Visualize Logs
 
-Now that the logs are being shipped to Elasticsearch we can visualize them in
-Kibana. To see the raw logs, open the main menu in Kibana, then click
+Now that the logs are being shipped to {es} we can visualize them in
+{kib}. To see the raw logs, open the main menu in {kib}, then click
 **Logs**:
 
 image::EC2-logs.png[EC2 logs in the Logs UI]
 
+// lint ignore filebeat
 The filesets we used in the previous steps also come with prebuilt dashboards
-that you can use to visualize the data. In Kibana, open the main menu and click
+that you can use to visualize the data. In {kib}, open the main menu and click
 **Dashboard**. Search for S3 and select the dashboard called:
 **[Filebeat AWS] S3 Server Access Log Overview**:
 
@@ -308,7 +309,7 @@ This gives you an overview of how your S3 buckets are being accessed.
 
 To monitor your {aws} infrastructure you will need to first make sure your
 infrastructure data are being shipped to CloudWatch. To ship the data to
-Elasticsearch we are going to use the {aws} module from Metricbeat. This module
+{es} we are going to use the {aws} module from {metricbeat}. This module
 periodically fetches monitoring metrics from AWS CloudWatch using
 **GetMetricData** API for {aws} services.
 
@@ -402,7 +403,7 @@ least the following permissions attached to it:
 }
 ----
 
-You can now start Metricbeat:
+You can now start {metricbeat}:
 
 [source,bash]
 ----
@@ -413,19 +414,21 @@ You can now start Metricbeat:
 [[aws-step-ten]]
 === Step 10: Visualize metrics
 
-Now that the metrics are being streamed to Elasticsearch we can visualize them in
-Kibana. In Kibana, open the main menu and click
+Now that the metrics are being streamed to {es} we can visualize them in
+{kib}. In {kib}, open the main menu and click
 **Metrics**. Make sure to show the **{aws}** source and the **EC2 Instances**:
 
 image::EC2-instances.png[Your EC2 Infrastructure]
 
+// lint ignore metricbeat
 The metricsets we used in the previous steps also comes with prebuilt dashboard
-that you can use to visualize the data. In Kibana, open the main menu and click
+that you can use to visualize the data. In {kib}, open the main menu and click
 **Dashboard**. Search for EC2 and select the dashboard called: **[Metricbeat
 AWS] EC2 Overview**:
 
 image::ec2-dashboard.png[EC2 Overview]
 
+// lint ignore metricbeat
 If you want to track your billings on {aws}, you can also check the
 **[Metricbeat AWS] Billing Overview** dashboard:
 
