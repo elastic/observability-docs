@@ -56,122 +56,9 @@ the inputs is driven by the integration you want to collect data from. The
 complexity of configuration details of various inputs is driven centrally by
 {fleet} and specifically by the integrations.
 
-The following table shows the inputs supported by the {agent} in {version}:
+To find out if an integration is GA, see the
+{integrations-docs}/all_integrations[{integrations} quick reference table].
 
-[options,header]
-|===
-|Input |{beats} |{fleet}-managed {agent} |Standalone {agent}
-
-|AWS CloudWatch
-|{y} (beta)
-|{y} (beta)
-|{y} (beta)
-
-|AWS S3
-|{y}
-|{y}
-|{y}
-
-|Azure Event Hub
-|{y}
-|{y}
-|{y}
-
-|Cloud Foundry
-|{y}
-|{n}
-|{y}
-
-|Container
-|{y}
-|{n}
-|{y}
-
-|Docker
-|{y}
-|{n}
-|{y}
-
-|Endpoint security
-|{n}
-|{y}
-|{n}
-
-|GCP Pub/Sub
-|{y}
-|{y}
-|{y}
-
-|HTTP Endpoint
-|{y} (beta)
-|{y} (beta)
-|{y} (beta)
-
-|HTTP JSON
-|{y}
-|{y}
-|{y}
-
-|Kafka
-|{y}
-|{n}
-|{y}
-
-|Logfile
-|{y}
-|{y}
-|{y}
-
-|MQTT
-|{y}
-|{n}
-|{y}
-
-|NetFlow
-|{y}
-|{y}
-|{y}
-
-|O365 Mgmt Act API
-|{y} (beta)
-|{y} (beta)
-|{y} (beta)
-
-|Osquery
-|{n}
-|{y}
-|{n}
-
-|Redis
-|{y} (beta)
-|{n}
-|{y} (beta)
-
-|Stdin
-|{y}
-|{n}
-|{y}
-
-|Syslog
-|{y}
-|{y}
-|{y}
-
-|TCP
-|{y}
-|{y}
-|{y}
-
-|UDP
-|{y}
-|{y}
-|{y}
-
-|UNIX
-|{y} (beta)
-|{y} (beta)
-|{y} (beta)
-|===
 
 [discrete]
 [[supported-outputs-beats-and-agent]]
@@ -198,7 +85,7 @@ NOTE: {endpoint-sec} has a different output matrix.
 
 |{ls}
 |{y}
-|Under consideration
+|{y} (public Beta)
 |{y}
 
 |Kafka
@@ -271,7 +158,7 @@ configuration experience.
 |New {agent} workflow doesn’t need this.
 
 |{filebeat-ref}/defining-processors.html[Processors]
-|Processors can be defined at the integration level. Global processors are currently not supported.
+|Processors can be defined at the integration level. Global processors, configured at the policy level, are currently under consideration.
 
 |{filebeat-ref}/configuration-autodiscover.html[Autodiscover]
 |Autodiscover is facilitated through <<dynamic-input-configuration,dynamic inputs>>. {agent} does not support hints-based autodiscovery.
@@ -374,9 +261,9 @@ The following table shows a comparison of capabilities supported by {beats} and 
 
 |Air-gapped network support
 |{y}
-|{n}
+|{y} (with Limits)
 |{y}
-|The Integrations app requires a network connection to the {fleet-guide}/fleet-overview.html#package-registry-intro[{package-registry}], or a {fleet-guide}/air-gapped.html#air-gapped-diy-epr[self-managed deployment of the {package-registry}]. {fleet}-managed {agent}s require a connection to our artifact repository for agent binary upgrades. These are not required for standalone {agent}s or {beats}.
+|The {integrations} and {fleet} apps can be deployed in an air-gapped environment {fleet-guide}/air-gapped.html#air-gapped-diy-epr[self-managed deployment of the {package-registry}]. {fleet}-managed {agent}s require a connection to our artifact repository for agent binary upgrades. These are not required for standalone {agent}s or {beats}. Upgrading {fleet}-managed {agent}s in an air-gapped environment is currently under consideration.
 
 |Run without root on host
 |{y}
@@ -386,9 +273,9 @@ The following table shows a comparison of capabilities supported by {beats} and 
 
 |Multiple outputs
 |{y}
-|{n}
 |{y}
-|{fleet}-managed {agent}s only provide a <<elastic-agent-output-configuration,single global output>> to the same {es} cluster where {fleet} is running. We are considering support for https://github.com/elastic/kibana/issues/104980[more outputs].
+|{y}
+|The policy for a single {fleet}-managed {agent} can specify multiple outputs.
 
 |Separate monitoring cluster
 |{y}

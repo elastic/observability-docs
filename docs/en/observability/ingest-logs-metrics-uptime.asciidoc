@@ -7,8 +7,6 @@
 
 This guide describes how to:
 
-* Set up {fleet}
-* Send data to the {stack} using {agent}
 * Monitor logs and metrics from systems and services across your organization
 * Monitor the availability of your HTTP, TCP, and ICMP services using the Synthetics integration
 * Monitor Nginx logs and metrics using the Nginx integration
@@ -19,22 +17,15 @@ For feedback and questions, please contact us in the {forum}[discuss forum].
 [[fleet-prereqs]]
 == Prerequisites
 
-* You need {es} for storing and searching your data, and {kib} for visualizing and
-managing it. You can use our
-{ess-product}[hosted {ess}]
-on {ecloud} (recommended), or self-manage the {stack} on your own hardware.
-+
+You need {es} for storing and searching your data, and {kib} for visualizing and
+managing it. You can use our {ess-product}[hosted {ess}] on {ecloud}
+(recommended), or self-manage the {stack} on your own hardware.
+
 Here's what you need for each deployment type:
-+
+
 --
 include::{tab-widgets}/prereq-widget.asciidoc[]
 --
-
-* An internet connection is required for {kib} to download integration packages
-from the {package-registry}. Make sure the {kib} server can connect to
-`https://epr.elastic.co` on port `443`. If your environment has network traffic restrictions,
-there are ways to work around this requirement.
-See {fleet-guide}/air-gapped.html[Air-gapped environments] for more information.
 
 [discrete]
 [[set-up-fleet]]
@@ -54,179 +45,244 @@ include::{tab-widgets}/add-fleet-server/widget.asciidoc[]
 For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
 
 [discrete]
+[[add-system-integration]]
+== Step 2: Add the {agent} System integration
+
+{agent} is a single, unified way to add monitoring for logs, metrics, and other
+types of data to a host. It can also protect hosts from security threats, query
+data from operating systems, and more. A single agent makes it easy and fast to
+deploy monitoring across your infrastructure. Each agent has a single policy (a
+collection of input settings) that you can update to add integrations for new
+data sources, security protections, and more.
+
+In this step, add the System integration to monitor host logs and metrics.
+
+. Go to the {kib} home page and click **Add integrations**.
++
+--
+[role="screenshot"]
+image::images/kibana-home.png[{kib} home page]
+--
+
+. In the query bar, search for **System** and select the integration to see more
+details about it.
+
+. Click **Add System**.
+
+. Configure the integration name and optionally add a description.
+Make sure that **Collect logs from System instances** and
+**Collect metrics from System instances** are turned on.
+
+. Expand each configuration section to verify that the settings are correct for
+your host. For example, if you're  deploying {agent} on macOS hosts, you
+need to add a new path to the _System syslog logs_ section by clicking
+**Add row** and specifying `/var/log/system.log`.
++
+--
+[role="screenshot"]
+image::images/kibana-agent-add-log-path.png[Configuration page for adding log paths to the {agent} System integration]
+--
+
+. Click **Save and continue**. This step takes a minute or two to complete. When
+it's done, you'll have an agent policy that contains a system integration policy
+for the configuration you just specified. 
++
+--
+[role="screenshot"]
+image::images/kibana-system-policy.png[Configuration page for adding the {agent} System integration]
+--
+
+. In the popup, click **Add {agent} to your hosts** to open the **Add agent**
+flyout.
++
+TIP: If you accidentally close the popup, go to **{fleet} > Agents**, then click
+**Add agent** to access the flyout.
+
+[discrete]
 [[add-agent-to-fleet]]
-== Step 2: Add an {agent} to {fleet}
+== Step 3: Install and run an {agent} on your machine
 
-{agent} is a single, unified agent that you can deploy to hosts or containers to
-collect data and send it to the {stack}. Behind the scenes, {agent} runs the
-{beats} shippers or {elastic-endpoint} required for your configuration.
+The **Add agent** flyout has two options: **Enroll in {fleet}** and
+**Run standalone**. The default is to enroll the agents in {fleet}, as this
+reduces the amount of work on the person managing the hosts by providing
+a centralized management tool in {kib}.
 
-To send logs and metrics to the {stack}:
+. Skip the **Select enrollment token** step. The enrollment token you need is
+already selected.
++
+NOTE: The enrollment token is specific to the {agent} policy that you just
+created. When you run the command to enroll the agent in {fleet}, you will pass
+in the enrollment token.
 
-include::{fleet-repo-dir}/elastic-agent/install-fleet-managed-elastic-agent.asciidoc[tag=agent-enroll]
+. Download, install, and enroll the {agent} on your host by selecting
+your host operating system and following the **Install {agent} on your host**
+step.
++
+--
+[role="screenshot"]
+image::images/kibana-agent-flyout.png[Add agent flyout in {kib}]
+--
++
+It takes about a minute for {agent} to enroll in {fleet}, download the
+configuration specified in the policy you just created, and start collecting
+data. 
 
 [discrete]
 [[view-data]]
-== Step 3: Monitor host logs and metrics
+== Step 4: Monitor host logs and metrics
 
-Next, view the data sent by {agent}. Right now, {agent} is only sending data
-about the host system because you haven't configured the agent to collect data
-from other sources yet.
+. Verify that data is flowing. Wait until agent enrollment is confirmed and
+incoming data is received, then click **View assets** to access dashboards
+related to the System integration.  
++
+--
+[role="screenshot"]
+image::images/kibana-agent-confirm-data.png[Agent confirm data]
+--
 
-To see host logs and metrics:
+. Choose a dashboard that is related to the operating system of your
+monitored system. Dashboards are available for Microsoft Windows systems
+and Unix-like systems (for example, Linux and macOS). 
++
+--
+[role="screenshot"]
+image::images/kibana-agent-system-integration-visualizations.png[Agent list of visualizations]
+--
 
-. In {fleet}, click the **Data streams** tab.
-. In the **Actions** column, navigate to the dashboards corresponding
-to the data stream. For example, to see host metrics, select one of the system
-datasets:
+. Open the **[Metrics System] Host overview** dashboard to view performance metrics
+from your host system.
 +
 [role="screenshot"]
-image::images/kibana-fleet-datastreams.png[{fleet} showing data streams list]
-+
-Then navigate to the [Metrics System] Host overview dashboard:
-+
-[role="screenshot"]
-image::images/host-metrics.png[Host overview dashboard in {kib}]
+image::images/host-metrics2.png[The Host Overview dashboard in {kib} with various metrics from your monitored system]
+
+You can hover over any visualization to adjust its settings, or click the
+**Edit** button to make changes to the dashboard. To learn more, refer to
+{kibana-ref}/dashboard.html[Dashboard and visualizations].
 
 [discrete]
 [[add-synthetics-integration]]
-== Step 4: Monitor services using real browsers and lightweight HTTP, TCP, and ICMP checks
+== Step 5: Monitor services using real browsers and lightweight HTTP, TCP, and ICMP checks
 [discrete]
 
 beta[] Next, you’ll add the Elastic Synthetics integration, enabling you to monitor the
 status and response times of applications and services in real time. You can monitor
 the availability of network endpoints via HTTP, TCP, ICMP or Browser monitors.
 
-Add the Elastic Synthetics integration to the default policy used by your agent.
-You use policies to manage settings across a group of agents. An agent policy may
-contain any number of integrations for collecting observability data from the various
-services running on your host.
+Add the Elastic Synthetics integration to your agent policy. You use policies to
+manage settings across a group of agents. An agent policy may contain any number
+of integrations for collecting observability data from the various services
+running on your host.
 
-. In {kib}, select **Add integrations**,
-and search for the **Elastic Synthetics** integration.
-+
-[role="screenshot"]
-image::images/kibana-fleet-integrations-synthetics.png[{fleet} showing Synthetics integration]
-. Click the Elastic Synthetics integration to see more details about it, then click
-**Add Elastic Synthetics**.
-+
-[role="screenshot"]
-image::images/kibana-fleet-integrations-synthetics-overview.png[{fleet} showing Synthetics integration overview]
+. In {kib}, go to the **Integrations** page (click **Add integrations** in the
+home page or main menu).
 
-. On the **Add Elastic Synthetics integration** page, under **Configure integration**,
-enter the integration name and select your desired monitor type from the following monitor types:
+. In the query bar, search for **Elastic Synthetics** and select the integration
+to see more details about it.
+
+. Click **Add Elastic Synthetics**.
+
+. Configure the integration name and select your desired monitor type from the
+following monitor types:
 +
 |===
 
-| *HTTP* | Connects via HTTP and verifies that the host returns the expected response.
+| **HTTP** | Connects via HTTP and verifies that the host returns the expected response.
 
-For detailed information
-about HTTP options, refer to our {heartbeat-ref}/monitor-http-options.html[{heartbeat}] documentation.
+For detailed information about HTTP options, refer to our
+{heartbeat-ref}/monitor-http-options.html[{heartbeat}] documentation.
 
-| *TCP* | Connects via TCP and verifies the endpoint by sending and receiving a custom payload.
+| **TCP** | Connects via TCP and verifies the endpoint by sending and receiving a custom payload.
 By default, the hostname and port are required.
 
 For detailed information about TCP options, refer to our
 {heartbeat-ref}/monitor-tcp-options.html[{heartbeat}] documentation.
 
-| *ICMP* | Uses an ICMP `v4` and `v6` Echo Request to ping the configured hosts. By default,
+| **ICMP** | Uses an ICMP `v4` and `v6` Echo Request to ping the configured hosts. By default,
 the host name is required.
 
 For detailed information about ICMP options, refer to our
 {heartbeat-ref}/monitor-icmp-options.html[{heartbeat}] documentation.
 
-| *Browser* | Runs automated tests using a real Chromium browser via the synthetics agent.
+| **Browser** a| Runs automated tests using a real Chromium browser via the synthetics agent.
 
 For detailed information about browser options, refer to our
 {heartbeat-ref}/monitor-browser-options.html[{heartbeat}] documentation.
 
-NOTE: To create a *browser* monitor, you must use the elastic-agent-complete Docker container as this contains the dependencies to run browser monitors. To learn more, refer to <<uptime-set-up>>.
+NOTE: To create a **browser** monitor, you must use the elastic-agent-complete Docker container as this contains the dependencies necessary to run browser monitors. To learn more, refer to <<uptime-set-up>>.
 
 |===
 
-. Enter the URL you want to monitor for availability and select a monitor interval in seconds or minutes. By default, a monitoring
+. Enter the URL you want to monitor for availability, and select a monitor interval in seconds or minutes. By default, a monitoring
 schedule of every 3 minutes is selected.
-
-. The *HTTP* and *TCP* monitor types both support TLS. Under *TLS settings*, select *Enable
-TLS configuration*. Click the down arrow next to advanced HTTP or TCP options, and then
-enter your required settings.
-
-. Under *Apply to agent policy*, select the `default policy`.
-+
-****
-In this guide, you add integrations to the default policy created by
-{kib}. After you learn the basics, you can create your own policies and assign
-them to agents.
-****
 +
 [role="screenshot"]
 image::images/add-synthetics-integration.png[{fleet} Add Synthetics integration page]
 
-. When you're done, click *Save and continue*, then *Save and deploy changes*.
+. The **HTTP** and **TCP** monitor types both support TLS. Under **TLS settings**, select **Enable
+TLS configuration**. Click the down arrow next to advanced HTTP or TCP options, and then
+enter your required settings.
 
-. To see the updated policy, click the *Default policy* link.
+. Under **Where to add this integration**, select *Existing hosts*, then select
+the agent policy you created earlier. That way, you can deploy the change to
+the agent that's already running.
+
+. When you're done, click **Save and continue**, then **Save and deploy changes**.
+
+. To see the updated policy, click the agent policy link, for example,
+*Agent policy 1*.
 +
-The newly added Elastic Synthetics integration should appear under **Integrations** in the
-default policy, along with the System integration.
+The newly added Elastic Synthetics integration should appear on the
+**Integrations** tab in the agent policy, along with the System integration.
 +
 [role="screenshot"]
 image::images/kibana-fleet-policies-default-with-synthetics.png[{fleet} showing default agent policy with synthetics-1 datasource]
 +
 All {agent}s that use this policy will collect logs, metrics, and uptime data from the host.
 
-. To view the data in the {observability-guide}/view-monitor-status.html[{uptime-app}], go to **{observability} > Uptime**.
+. To view the data in the {observability-guide}/view-monitor-status.html[{uptime-app}], go to
+**{observability} > Uptime** in the main menu.
 
 [discrete]
 [[add-nginx-integration]]
 == Step 5: Monitor Nginx logs and metrics
 [discrete]
 
-Next, you'll browse a catalog of integrations, then add an Nginx integration to
-the default policy used by your agent.
+Next, add an Nginx integration to the policy used by your agent.
 
-NOTE: For these steps, we assume that you have `nginx` running on some of your
-infrastructure, and want to collect logs and metrics from it.
+NOTE: For these steps, we assume that you have `nginx` running on your host, and
+want to collect logs and metrics from it. If not, you can skip this part of the
+guide.
 
-. In {kib}, go back to **Add integrations**,
-and search for the **Nginx** integration.
+. In {kib}, go to the **Integrations** page.
+
+. In the query bar, search for **Nginx** and select the integration to see more
+details about it.
+
+. Click **Add Nginx**.
+
+. Configure the integration name and optionally add a description.
+
+. Expand each configuration section to verify that the settings are correct for
+your host. You may need to change the **Paths** settings.
+
+. Under **Where to add this integration**, select *Existing hosts*, then select
+the agent policy you created earlier. That way, you can deploy the change to
+the agent that's already running.
+
+. When you're done, click **Save and continue**, then **Save and deploy changes**.
+
+. To see the updated policy, click the agent policy link.
 +
-[role="screenshot"]
-image::images/kibana-fleet-integrations-nginx.png[{fleet} showing Nginx integration]
-. Click the Nginx integration to see more details about it, then click
-**Add Nginx**.
-+
-[role="screenshot"]
-image::images/kibana-fleet-integrations-nginx-overview.png[{fleet} showing Nginx integration overview]
-
-. On the **Add Nginx integration** page, select the default policy.
-+
-****
-In this guide, you add integrations to the default policy created by
-{kib}. After you learn the basics, you can create your own policies and assign
-them to agents.
-****
-+
-[role="screenshot"]
-image::images/add-integration.png[{fleet} Add Nginx integration page]
-
-. Under **Configure integration**, click the down arrow next to enabled streams
-and make sure the **Paths** are correct for your host. Inspect or change other
-settings
-
-. When you're done, save and deploy the changes.
-
-. To see the updated policy, click the *Default policy* link.
-+
-The newly added Nginx integration should appear under **Integrations** in the
-default policy, along with the System and Elastic Synthetics integrations.
+The newly added Nginx integration should appear on the **Integrations** tab in
+your agent policy, along with the System and Elastic Synthetics integrations.
 +
 [role="screenshot"]
 image::images/kibana-fleet-policies-default-with-nginx.png[{fleet} showing default agent policy with nginx-1 datasource]
 +
 All {agent}s that use this policy will collect logs and metrics from the
-Nginx server and the host, along with uptime data.
+Nginx server and the host, along with system logs and uptime data.
 
-. To view the data, go to *Management > {fleet}*, then click the
+. To view the data, go to **Management > {fleet}**, then click the
 **Data streams** tab.
 
 . In the **Actions** column, navigate to the dashboards corresponding

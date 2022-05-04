@@ -20,22 +20,13 @@ For feedback and questions, please contact us in the {forum}[discuss forum].
 [[fleet-prereqs-traces]]
 == Prerequisites
 
-* You need {es} for storing and searching your data, and {kib} for visualizing and
-managing it. You can use our
-{ess-product}[hosted {ess}]
-on {ecloud} (recommended), or self-manage the {stack} on your own hardware.
-+
-Here's what you need for each deployment type:
-+
---
-include::../ingest-management/tab-widgets/prereq-widget.asciidoc[]
---
+You need {es} for storing and searching your data, and {kib} for visualizing and
+managing it. You can use our {ess-product}[hosted {ess}] on {ecloud}
+(recommended), or self-manage the {stack} on your own hardware.
 
-* An internet connection is required for {kib} to download integration packages
-from the {package-registry}. Make sure the {kib} server can connect to
-`https://epr.elastic.co` on port `443`. If your environment has network traffic restrictions,
-there are ways to work around this requirement.
-See {fleet-guide}/air-gapped.html[Air-gapped environments] for more information.
+Here's what you need for each deployment type:
+
+include::../ingest-management/tab-widgets/prereq-widget.asciidoc[]
 
 [discrete]
 [[set-up-fleet-traces]]
@@ -54,17 +45,30 @@ NOTE: The APM integration does not support running {agent} in standalone mode;
 you must use {fleet} to manage {agent}.
 
 [discrete]
+[[add-apm-integration]]
+== Step 2: Add the APM integration
+
+Next, add the APM integration to the default policy used by your {agent}.
+Policies manage settings across a group of {agent}s and may contain any number of integrations
+for collecting observability data from the various services running on your host.
+
+include::./tab-widgets/add-apm-integration/widget.asciidoc[]
+
+[discrete]
 [[add-agent-to-fleet-traces]]
-== Step 2: Add an {agent} to {fleet}
+== Step 3: Install and run an {agent} on your machine
 
 ****
 This step is optional for {ess} users as {ecloud} spins up an {agent} instance automatically.
 Unless you want to run a separate {agent} on an edge machine, {ess} users should skip this step.
 ****
 
-{agent} is a single, unified agent that you can deploy to hosts or containers to
-collect data and send it to the {stack}. Behind the scenes, {agent} runs the
-{beats} shippers or {elastic-endpoint} required for your configuration.
+{agent} is a single, unified way to add monitoring for logs, metrics, and other
+types of data to a host. It can also protect hosts from security threats, query
+data from operating systems, and more. A single agent makes it easy and fast to
+deploy monitoring across your infrastructure. Each agent has a single policy (a
+collection of input settings) that you can update to add integrations for new
+data sources, security protections, and more.
 
 Don't confuse {agent} with APM agents–they are different components.
 In a later step, you'll instrument your code with APM agents and send the data
@@ -77,15 +81,6 @@ To send APM data to the {stack}:
 
 include::../ingest-management/elastic-agent/install-fleet-managed-elastic-agent.asciidoc[tag=agent-enroll]
 
-[discrete]
-[[add-apm-integration]]
-== Step 3: Add the APM integration
-
-Next, add the APM integration to the default policy used by your {agent}.
-Policies manage settings across a group of {agent}s and may contain any number of integrations
-for collecting observability data from the various services running on your host.
-
-include::./tab-widgets/add-apm-integration/widget.asciidoc[]
 
 [discrete]
 [[add-apm-integration-agents]]

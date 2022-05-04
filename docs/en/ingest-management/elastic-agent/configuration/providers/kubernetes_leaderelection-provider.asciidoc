@@ -12,13 +12,22 @@ It can automatically reach the API if it's running in an inCluster environment (
 [source,yaml]
 ----
 providers.kubernetes_leaderelection:
+  #enabled: true
   #kube_config: /Users/elastic-agent/.kube/config
+  #kube_client_options:
+  #  qps: 5
+  #  burst: 10
   #leader_lease: agent-k8s-leader-lock
 ----
 
+`enabled`:: (Optional) Defaults to true. To explicitly disable the LeaderElection provider,
+set `enabled: false`.
 `kube_config`:: (Optional) Use the given config file as configuration for the Kubernetes
 client. If kube_config is not set, KUBECONFIG environment variable will be
 checked and will fall back to InCluster if it's not present.
+`kube_client_options`:: (Optional) Configure additional options for the Kubernetes client.
+Supported options are `qps` and `burst`. If not set, the Kubernetes client's
+default QPS and burst settings are used.
 `leader_lease`:: (Optional) Specify the name of the leader lease.
 This is set to `elastic-agent-cluster-leader` by default.
 

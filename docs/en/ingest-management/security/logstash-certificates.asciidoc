@@ -15,7 +15,7 @@ to trusted {ls} servers, and that your {ls} servers receive data from trusted
 * Make sure your https://www.elastic.co/subscriptions[subscription level]
 supports output to {ls}.
 
-* On Windows, add port 8220 for {fleet-server} and 5044 for Logstash to the
+* On Windows, add port 8220 for {fleet-server} and 5044 for {ls} to the
 inbound port rules in Windows Advanced Firewall.
 
 * If you are connecting to a self-managed {es} cluster, you need the CA
@@ -109,7 +109,7 @@ TIP: If you've already created the {ls} `elastic-agent-pipeline.conf` pipeline
 and added it to `pipelines.yml`, skip to the example configurations and modify
 your pipeline configuration as needed.
 
-In your Logstash configuration directory, open the `pipelines.yml` file and
+In your {ls} configuration directory, open the `pipelines.yml` file and
 add the following configuration. Replace the path to your file.
 
 [source,yaml]
@@ -196,11 +196,12 @@ bin/logstash
 [[add-ls-output]]
 == Add a {ls} output to {fleet}
 
-This section describes how to add a Logstash output and configure SSL settings
+This section describes how to add a {ls} output and configure SSL settings
 in {fleet}. If you're running {agent} standalone, refer to the
-<<logstash-output,Logstash output>> configuration docs.
+<<logstash-output,{ls} output>> configuration docs.
 
-. In {kib}, go to *Fleet > Settings*.
+// lint disable logstash
+. In {kib}, go to *{fleet} > Settings*.
 
 . Under *Outputs*, click *Add output*. If you've been following the {ls} steps
 in {fleet}, you might already be on this page.
@@ -223,6 +224,7 @@ contents of the `ca.crt` file you <<generate-logstash-certs,generated earlier>>.
 
 [role="screenshot"]
 image::images/add-logstash-output.png[Screen capture of a folder called logstash that contains two files: logstash.crt and logstash.key]
+// lint enable logstash
 
 When you're done, save and apply the settings.
 
@@ -234,7 +236,7 @@ When you're done, save and apply the settings.
 {es} yet. You need to select the {ls} output in an agent policy. You can edit
 an existing policy or create a new one:
 
-. In {kib}, go to *Fleet > Agent policies* and either create a new agent policy
+. In {kib}, go to *{fleet} > Agent policies* and either create a new agent policy
 or click an existing policy to edit it:
 +
 * To change the output settings in a new policy, click *Create agent policy*
@@ -247,7 +249,7 @@ to use the {ls} output you created earlier. You might need to scroll down to see
 these options
 +
 [role="screenshot"]
-image::images/agent-output-settings.png[Screen capture showing the Logstash output policy selected in an agent policy]
+image::images/agent-output-settings.png[Screen capture showing the {ls} output policy selected in an agent policy]
 
 . Save your changes.
 
@@ -273,7 +275,7 @@ curl -XGET localhost:9600/_node/stats/events
 The request should return stats on the number of events in and out. If these
 values are 0, check the {agent} logs for problems.
  
-When data is streaming to {es}, go to *Observability* and click
+When data is streaming to {es}, go to *{observability}* and click
 *Metrics* to view metrics about your system.
 
 //TODO: WE should add some troubleshooting advice like what to do if the
