@@ -82,10 +82,9 @@ $ kubectl create secret generic es-secret --from-literal=password='Y2hhbmdlbWU='
 ------------------------------------------------
 <1> Create the secret in the namespace where you will deploy {metricbeat}.
 
-To use the secret, change the env setting in the manifest file:
+To use the secret, change the `env` setting in the manifest file:
 
 [source,yaml]
-
 ------------------------------------------------
 env:
 - name: ELASTICSEARCH_PASSWORD
@@ -98,7 +97,7 @@ env:
 [discrete]
 ==== Step 3: Mount paths
 
-{metricbeat} will run on each node in the cluster as a Daemonset's pod.
+{metricbeat} will run on each node in the cluster as a DaemonSet's pod.
 To collect system-level metrics, key paths are mounted from the host to the pod:
 
 [source,yaml]
@@ -164,8 +163,8 @@ token-based authentication.
 ==== Step 6: Collect Kubernetes state metrics
 
 {metricbeat} gets some metrics from
-https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics].
-If kube-state-metrics is not already running, deploy it now. To learn how,
+https://github.com/kubernetes/kube-state-metrics#usage[`kube-state-metrics`].
+If `kube-state-metrics` is not already running, deploy it now. To learn how,
 see the Kubernetes deployment
 https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs].
 
@@ -174,10 +173,10 @@ To collect state metrics:
 . Enable metricsets that begin with the `state_` prefix. The metricsets that
 you're likely to want are already enabled in the manifest.
 
-. Set the `hosts` field to point to the kube-state-metrics service within the
+. Set the `hosts` field to point to the `kube-state-metrics` service within the
 cluster.
 
-Because the kube-state-metrics service provides cluster-wide metrics, there’s no
+Because the `kube-state-metrics` service provides cluster-wide metrics, there’s no
 need to fetch them per node. To use this singleton approach, {metricbeat}
 leverages a leader election method, where one pod holds a leader lock and is
 responsible for collecting cluster-wide metrics. For more information about
@@ -347,7 +346,7 @@ the manifest file and enable the container to run as privileged.
     privileged: true
 -----
 
-. In the manifest file, edit the metricbeat-daemonset-modules ConfigMap, and
+. In the manifest file, edit the `metricbeat-daemonset-modules` ConfigMap, and
 specify the following settings under `kubernetes.yml` in the data section:
 +
 [source,yaml]
@@ -372,12 +371,12 @@ kubernetes.yml: |-
 =========================
 `kubelet-service-ca.crt` can be any CA bundle that contains the issuer of
 the certificate used in the Kubelet API. According to each specific installation
-of Openshift this can be found either in secrets or in configmaps. In some
+of OpenShift this can be found either in secrets or in ConfigMaps. In some
 installations it can be available as part of the service account secret, in
 `/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt`. If you're using
 the
-https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[Openshift
-installer] for GCP then the following configmap can be mounted in {metricbeat}
+https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[OpenShift
+installer] for GCP then the following ConfigMap can be mounted in {metricbeat}
 pod and use `ca-bundle.crt` in `ssl.certificate_authorities`:
 
 [source,yaml]
