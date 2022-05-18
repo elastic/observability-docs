@@ -1,0 +1,336 @@
+[[beats-agent-comparison]]
+= {beats} and {agent} capabilities
+
+Elastic provides two main ways to send data to {es}:
+
+* *{beats}* are lightweight data shippers that send operational data to
+{es}. Elastic provides separate {beats} for different types of data, such as
+logs, metrics, and uptime. Depending on what data you want to collect, you may
+need to install multiple shippers on a single host.
+
+* *{agent}* is a single agent for logs, metrics, security data, and threat
+prevention. The {agent} can be deployed in two different modes:
+
+** *Managed by {fleet}* -- The {agent} policies and lifecycle are centrally managed by the {fleet} app in {kib}. The Integrations app also lets you centrally add integrations with other popular services and systems. This is the recommended option for most users.
+
+** *Standalone mode* -- All policies are applied to the {agent} manually as a YAML file. This is intended for more advanced users.
+See <<install-standalone-elastic-agent>> for more information.
++
+include::{fleet-repo-dir}/standalone-note.asciidoc[]
+
+The method you use depends on your use case, which features you need, and
+whether you want to centrally manage your agents.
+
+{beats} and {agent} can both send data directly to {es} or via {ls}, where you
+can further process and enhance the data, before visualizing it in {kib}.
+
+This article summarizes the features and functionality you need to be aware of
+before adding new {agent}s or replacing your current {beats} with {agent}s.
+Starting in version 7.14.0, {agent} is generally available (GA).
+
+[discrete]
+[[choosing-between-agent-and-beats]]
+== Choosing between {agent} and {beats}
+
+{agent} is a single binary designed to provide the same functionality that the various {beats} provide today. However, some functionality gaps are being addressed as we strive to reach feature parity.
+
+The following steps will help you determine if {agent} can support your use case:
+
+. Determine if the integrations you need are supported and Generally Available
+(GA) on {agent}. To find out if an integration is GA, see the
+{integrations-docs}/all_integrations[{integrations} quick reference table].
+
+. If the integration is available, check <<supported-outputs-beats-and-agent>> to see whether the required output is also supported.
+
+. Review <<additional-capabilities-beats-and-agent>> to determine if any features required by your deployment are supported. {agent} should support most of the features available on {beats} and is updated for each release.
+
+If you are satisfied with all three steps, then {agent} is suitable for your deployment. However, if any steps fail your assessment, you should continue using {beats}, and review future updates or contact us in the {forum}[discuss forum].
+
+[discrete]
+[[supported-inputs-beats-and-agent]]
+== Supported inputs
+
+For {agent}s that are centrally managed by {fleet}, data collection is
+further simplified and defined by integrations. In this model, the decision on
+the inputs is driven by the integration you want to collect data from. The
+complexity of configuration details of various inputs is driven centrally by
+{fleet} and specifically by the integrations.
+
+To find out if an integration is GA, see the
+{integrations-docs}/all_integrations[{integrations} quick reference table].
+
+
+[discrete]
+[[supported-outputs-beats-and-agent]]
+== Supported outputs
+
+The following table shows the outputs supported by the {agent} in {version}:
+
+
+NOTE: {endpoint-sec} has a different output matrix.
+
+[options,header]
+|===
+|Output |{beats} |{fleet}-managed {agent} |Standalone {agent}
+
+|{es} Service
+|{y}
+|{y} only to the same cluster where {fleet} runs
+|{y}
+
+|{es}
+|{y}
+|{y} only to the same cluster where {fleet} runs
+|{y}
+
+|{ls}
+|{y}
+|{y} (public Beta)
+|{y}
+
+|Kafka
+|{y}
+|Under consideration
+|Under consideration
+
+|Redis
+|{y}
+|{n}
+|{n}
+
+|File
+|{y}
+|{n}
+|{n}
+
+|Console
+|{y}
+|{n}
+|{n}
+|===
+
+Currently, {agent}s managed by {fleet} can only output to the same {es} cluster where {fleet} is running. Support for outputting to remote {es} clusters is under consideration for a future release.
+
+[discrete]
+[[supported-configurations]]
+== Supported configurations
+
+[options,header]
+|===
+|{beats} configuration |{agent} support
+
+|{filebeat-ref}/configuration-filebeat-modules.html[Modules]
+|Supported via integrations.
+
+|{filebeat-ref}/advanced-settings.html[Input setting overrides]
+|Not configurable. Set to default values.
+
+|{filebeat-ref}/configuration-general-options.html[General settings]
+| Many of these global settings are now internal to the agent and for proper
+operations should not be modified.
+
+|{filebeat-ref}/configuration-path.html[Project paths]
+|{agent} configures these paths to provide a simpler and more streamlined
+configuration experience.
+
+|{filebeat-ref}/filebeat-configuration-reloading.html[External configuration file loading]
+|Config is distributed via policy.
+
+|{filebeat-ref}/_live_reloading.html[Live reloading]
+|Related to the config file reload.
+
+|{filebeat-ref}/configuring-output.html[Outputs]
+|Configured through {fleet}. See <<supported-outputs-beats-and-agent>>.
+
+|{filebeat-ref}/configuration-ssl.html[SSL]
+|Supported
+
+|{filebeat-ref}/ilm.html[{ilm-cap}]
+|Enabled by default although the Agent uses <<data-streams,data streams>>.
+
+|{filebeat-ref}/configuration-template.html[{es} index template loading]
+|No longer applicable
+
+|{filebeat-ref}/setup-kibana-endpoint.html[{kib} endpoint]
+|New {agent} workflow doesn’t need this.
+
+|{filebeat-ref}/configuration-dashboards.html[{kib} dashboard loading]
+|New {agent} workflow doesn’t need this.
+
+|{filebeat-ref}/defining-processors.html[Processors]
+|Processors can be defined at the integration level. Global processors, configured at the policy level, are currently under consideration.
+
+|{filebeat-ref}/configuration-autodiscover.html[Autodiscover]
+|Autodiscover is facilitated through <<dynamic-input-configuration,dynamic inputs>>. {agent} does not support hints-based autodiscovery.
+
+|{filebeat-ref}/configuring-internal-queue.html[Internal queues]
+|{agent} does not expose the internal memory queues to the end user. You can
+configure output queue parameters to tune your environment, and the Agent takes
+care of configuring the internal queues to accomplish your tuning intent.
+
+|{filebeat-ref}/load-balancing.html[Load balance output hosts]
+|Within the {fleet} UI, you can add YAML settings to configure multiple hosts
+per output type, which enables load balancing.
+
+|{filebeat-ref}/configuration-logging.html[Logging]
+|Supported
+
+|{filebeat-ref}/http-endpoint.html[HTTP Endpoint]
+|Supported
+
+|{filebeat-ref}/regexp-support.html[Regular expressions]
+|Supported
+|===
+
+[discrete]
+[[additional-capabilities-beats-and-agent]]
+== Capabilities comparison
+
+The following table shows a comparison of capabilities supported by {beats} and the {agent} in {version}:
+
+
+[options,header]
+|===
+|Item |{beats} |{fleet}-managed {agent} |Standalone {agent} |Description
+
+|Single agent for all use cases
+|{n}
+|{y}
+|{y}
+|{agent} provides logs, metrics, and more. You'd need to install multiple {beats} for these use cases.
+
+|Install integrations from web UI or API
+|{n}
+|{y}
+|{y}
+|{agent} integrations are installed with a convenient web UI or API, but {beats} modules are installed with a CLI. This installs {es} assets such as index templates and ingest pipelines, and {kib} assets such as dashboards.
+
+|Configure from web UI or API
+|{n}
+|{y}
+|{y} (optional)
+|{fleet}-managed {agent} integrations can be configured in the web UI or API. Standalone {agent} can use the web UI, API, or YAML. {beats} can only be configured via YAML files.
+
+|Central, remote agent policy management
+|{n}
+|{y}
+|{n}
+|{agent} policies can be centrally managed through {fleet}. You have to manage {beats} configuration yourself or with a third-party solution.
+
+|Central, remote agent binary upgrades
+|{n}
+|{y}
+|{n}
+|{agent}s can be remotely upgraded through {fleet}. You have to upgrade {beats} yourself or with a third-party solution.
+
+|Add {kib} and {es} assets for a single integration or module
+|{n}
+|{y}
+|{y}
+|{agent} integrations allow you to add {kib} and {es} assets for a single integration at a time. {beats} installs hundreds of assets for all modules at once.
+
+|Auto-generated {es} API keys
+|{n}
+|{y}
+|{n}
+|{fleet} can automatically generate API keys with limited permissions for each {agent}, which can be individually revoked. Standalone {agent} and {beats} require you to create and manage credentials, and users often share them across hosts.
+
+|Auto-generate minimal {es} permissions
+|{n}
+|{y}
+|{n}
+|{fleet} can automatically give {agent}s minimal output permissions based on the inputs running. With standalone {agent} and {beats}, users often give overly broad permissions because it's more convenient.
+
+|Data streams support
+|{n}
+|{y}
+|{y}
+|{agent}s use <<data-streams,data streams>> with easier index life cycle management and the https://www.elastic.co/blog/an-introduction-to-the-elastic-data-stream-naming-scheme[data stream naming scheme]. {beats} uses a single index with potentially thousands of fields.
+
+|Variables and input conditions
+|{n}
+|{y} (limited)
+|{y}
+|{agent} offers {fleet-guide}/dynamic-input-configuration.html[variables and input conditions] to dynamically adjust based on the local host environment. Users can configure these directly in YAML for standalone {agent} or using the {fleet} API for {fleet}-managed {agent}. The Integrations app allows users to enter variables, and we are considering a https://github.com/elastic/kibana/issues/108525[UI to edit conditions]. {beats} only offers static configuration.
+
+|Allow non-superusers to manage assets and agents
+|{y}
+|{y}
+|{y} (it's optional)
+|Starting with version 8.1.0, a superuser role is no longer required to use the {fleet} and Integrations apps and corresponding APIs. These apps are optional for standalone {agent}. {beats} offers {filebeat-ref}/feature-roles.html[finer grained] roles.
+
+|Air-gapped network support
+|{y}
+|{y} (with Limits)
+|{y}
+|The {integrations} and {fleet} apps can be deployed in an air-gapped environment {fleet-guide}/air-gapped.html#air-gapped-diy-epr[self-managed deployment of the {package-registry}]. {fleet}-managed {agent}s require a connection to our artifact repository for agent binary upgrades. These are not required for standalone {agent}s or {beats}. Upgrading {fleet}-managed {agent}s in an air-gapped environment is currently under consideration.
+
+|Run without root on host
+|{y}
+|{n}
+|{y}
+|{fleet}-managed {agent}s require root permission, in particular for {endpoint-sec}. Standalone {agent}s and {beats} do not.
+
+|Multiple outputs
+|{y}
+|{y}
+|{y}
+|The policy for a single {fleet}-managed {agent} can specify multiple outputs.
+
+|Separate monitoring cluster
+|{y}
+|{n}
+|{y}
+|{fleet}-managed {agent}s only provide a single global output to the same {es} cluster where {fleet} is running. We are considering support for https://github.com/elastic/kibana/issues/104980[remote monitoring clusters]. Standalone {agent} and {beats} can send to a remote monitoring cluster.
+
+|Secret management
+|{y}
+|{n}
+|{n}
+|{agent} stores credentials in the agent policy. We are considering adding https://github.com/elastic/integrations/issues/244[keystore support]. {beats} allows users to access credentials in a local https://www.elastic.co/guide/en/beats/filebeat/current/keystore.html[keystore].
+
+|Progressive or canary deployments
+|{y}
+|{n}
+|{y}
+|{fleet} does not have a feature to deploy an {agent} policy update progressively but we are considering https://github.com/elastic/kibana/issues/108267[improved support]. With standalone {agent} and {beats} you can deploy configuration files progressively using third party solutions.
+
+|Multiple configurations per host
+|{y}
+|{n} (uses input conditions instead)
+|{n} (uses input conditions instead)
+|{agent} uses a single {agent} policy for configuration, and uses {fleet-guide}/dynamic-input-configuration.html[variables and input conditions] to adapt on a per-host basis. {beats} supports multiple configuration files per host, enabling third party solutions to deploy files hierarchically or in multiple groups, and enabling finer-grained access control to those files.
+
+|Compatible with version control and infrastructure as code solutions
+|{y}
+|{n} (only via API)
+|{y}
+|{fleet} stores the agent policy in {es}. It does not integrate with external version control or infrastructure as code solutions, but we are considering https://github.com/elastic/kibana/issues/108524[improved support]. However, {beats} and {agent} in standalone mode use a YAML file that is compatible with these solutions.
+
+
+|===
+
+[discrete]
+[[agent-monitoring-support]]
+== {agent} monitoring support
+
+You configure the collection of agent metrics in the agent policy. If metrics
+collection is selected (the default), all {agent}s enrolled in the policy will
+send metrics data to {es} (the output is configured globally).
+
+The following image shows the *Agent monitoring* settings for the default agent
+policy:
+
+[role="screenshot"]
+image::images/agent-monitoring-settings.png[Screen capture of agent monitoring settings in the default agent policy]
+
+There are also pre-built dashboards for agent metrics that you can access
+under *Assets* in the {agent} integration:
+
+[role="screenshot"]
+image::images/agent-monitoring-assets.png[Screen capture of {agent} monitoring assets]
+
+The *[{agent}] Agent metrics* dashboard shows an aggregated view of agent metrics:
+
+[role="screenshot"]
+image::images/agent-metrics-dashboard.png[Screen capture showing {agent} metrics]

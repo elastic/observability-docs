@@ -1,0 +1,263 @@
+// Use these for links to issue and pulls. 
+:kib-issue: https://github.com/elastic/kibana/issues/
+:kib-pull: https://github.com/elastic/kibana/pull/
+:agent-issue: https://github.com/elastic/beats/issues/
+:agent-pull: https://github.com/elastic/beats/pull/
+:fleet-server-issue: https://github.com/elastic/beats/issues/fleet-server/
+:fleet-server-pull: https://github.com/elastic/beats/pull/fleet-server/
+
+
+[[release-notes]]
+= Release notes
+
+This section summarizes the changes in each release.
+
+* <<release-notes-7.14.1>>
+
+* <<release-notes-7.14.0>>
+
+Also see:
+
+* {kibana-ref}/release-notes.html[{kib} release notes]
+* {beats-ref}/release-notes.html[{beats} release notes]
+
+// begin 7.14.1 relnotes
+
+[[release-notes-7.14.1]]
+== {fleet} and {agent} 7.14.1
+
+Review important information about the {fleet} and {agent} 7.14.1 releases.
+
+[discrete]
+[[bug-fixes-7.14.1]]
+=== Bug fixes
+
+{fleet}::
+* Fixes integrations count in category facet {kibana-pull}107652[#107652]
+* Fixes package info does not exist from older package {kibana-pull}109174[#109174]
+* Fixes {heartbeat} missing from monitoring datasets in the {agent} logs UI {kibana-pull}107989[#107989]
+
+{agent}::
+* Fixes policies not being assigned to {agent}s {agent-pull}27362[#27362] {agent-pull}27297[#27297]
+
+// end 7.14.1 relnotes
+
+// begin 7.14.0 relnotes
+
+[[release-notes-7.14.0]]
+== {fleet} and {agent} 7.14.0
+
+Review important information about the {fleet} and {agent} 7.14.0 releases.
+
+[discrete]
+[[known-issues-7.14.0]]
+=== Known issues
+
+[[known-issue-1]]
+.Credentials potentially exposed in `.fleet-*` and `.kibana*` indices
+[%collapsible]
+====
+
+*Details* 
+
+// tag::credential-storage[]
+
+Credentials that you provide for an agent or integration policy are stored in
+{es}. They can be read by any user who has read permissions to the `.fleet-*`
+and `.kibana*` indices in {es}. By default these are the superuser,
+`fleet-server` service account tokens, and the `kibana_system` user. These
+secrets are also included in agent policies and shared with agents via {fleet}
+through TLS. When you use the {agent} installer and enroll agents in {fleet},
+the policies are stored on the host file system and, by default, can only be
+read by root.
+
+// end::credential-storage[]
+
+*Impact* +
+
+To avoid exposing secrets, restrict access to the `.fleet-*` and `.kibana*`
+indices to trusted users. Do not change file ownership or permissions on policy
+files stored on the host file system unless you can secure the files from
+malicious users.
+
+====
+
+[[known-issue-27114]]
+.{agent} fails to start correctly when enrolled in {fleet} through a proxy
+[%collapsible]
+====
+
+*Details*
+
+When you attempt to enroll an {agent} in {fleet} and specify the `proxy-url`
+flag, the status of the agent hangs at `Updating` in {fleet}, and the
+{agent} fails to start correctly. 
+
+*Impact* +
+
+Do not enroll {agent}s through a proxy until this issue is fixed.
+{agent-issue}27114[#27114] {agent-issue}27187[#27187]
+
+====
+
+[[known-issue-938]]
+.{fleet-server} policy setup failure may result in {fleet} not starting
+[%collapsible]
+====
+
+*Details*
+
+// tag::fleet-server-input-missing-detail[]
+
+During setup of the default {fleet-server} policy, an error may occur, such
+as a network error or connectivity issue, that results in a default policy with
+no input. {fleet} will be unable to start.
+
+// end::fleet-server-input-missing-detail[]
+
+*Impact* +
+
+// tag::fleet-server-input-missing-fix[]
+
+To fix this problem:
+
+. Delete the default {fleet-server} policy saved object:
+
+.. In {kib}, open the main menu, then go to **Management > {dev-tools-app} > Console**.
+
+.. In the Console, send the following requests:
++
+[source,console]
+----
+POST .kibana/_delete_by_query?q=ingest-agent-policies.is_default_fleet_server:true
+DELETE .kibana/_doc/ingest-agent-policies:policy-elastic-agent-on-cloud
+POST .fleet-enrollment-api-keys/_delete_by_query?q=policy-elastic-agent-on-cloud
+----
+
+. Go to **Management > {fleet}** to force reloading of the object.
+
+. On {ecloud} you might need to restart the APM and {fleet-server} instances.
+
+// end::fleet-server-input-missing-fix[]
+
+====
+
+[discrete]
+[[new-features-7.14.0]]
+=== New features
+
+The 7.14.0 release adds the following new and notable features.
+
+{fleet}::
+* Moves integrations to a separate app {kib-pull}99848[#99848]
+
+// end 7.14.0 relnotes
+
+// ---------------------
+//TEMPLATE
+//Use the following text as a template. Remember to replace the version info.
+
+// begin 7.14.x relnotes
+
+//[[release-notes-7.14.x]]
+//== {fleet} and {agent} 7.14.x
+
+//Review important information about the {fleet} and {agent} 7.14.x releases.
+
+//[discrete]
+//[[security-updates-7.14.x]]
+//=== Security updates
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[breaking-changes-7.14.x]]
+//=== Breaking changes
+
+//Breaking changes can prevent your application from optimal operation and
+//performance. Before you upgrade, review the breaking changes, then mitigate the
+//impact to your application.
+
+//[discrete]
+//[[breaking-PR#]]
+//.Short description
+//[%collapsible]
+//====
+//*Details* +
+//<Describe new behavior.> For more information, refer to {kibana-pull}PR[#PR].
+
+//*Impact* +
+//<Describe how users should mitigate the change.> For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
+//====
+
+//[discrete]
+//[[known-issues-7.14.x]]
+//=== Known issues
+
+//[[known-issue-issue#]]
+//.Short description
+//[%collapsible]
+//====
+
+//*Details* 
+
+//<Describe known issue.>
+
+//*Impact* +
+
+//<Describe impact or workaround.>
+
+//====
+
+//[discrete]
+//[[deprecations-7.14.x]]
+//=== Deprecations
+
+//The following functionality is deprecated in 7.14.x, and will be removed in
+//8.0.0. Deprecated functionality does not have an immediate impact on your
+//application, but we strongly recommend you make the necessary updates after you
+//upgrade to 7.14.x.
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[new-features-7.14.x]]
+//=== New features
+
+//The 7.14.x release adds the following new and notable features.
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[enhancements-7.14.x]]
+//=== Enhancements
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[bug-fixes-7.14.x]]
+//=== Bug fixes
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+// end 7.14.x relnotes

@@ -1,0 +1,112 @@
+[[install-fleet-managed-elastic-agent]]
+= Install {fleet}-managed {agent}s
+
+****
+{fleet} is a web-based UI in {kib} for
+<<manage-agents-in-fleet,centrally managing {agent}s>>. To use {fleet}, you
+install {agent} on each host you want to monitor or protect, then enroll the
+agent in a policy defined in {kib}. The policy includes integrations that
+specify how to collect observability data from specific services and protect
+endpoints. The {agent} connects to a trusted <<fleet-server,{fleet-server}>>
+instance to retrieve the policy and report agent events.
+****
+
+These steps assume you're running a fresh installation. If {agent} is already
+running on your system, and you want to upgrade to a new version, see
+<<upgrade-elastic-agent>>.
+
+If you're a new user, instead of following the steps described here, read our
+quick start guides:
+
+* {observability-guide}/ingest-logs-metrics-uptime.html[Ingest logs, metrics, and uptime data with {agent}]
+
+* {observability-guide}/ingest-traces.html[Ingest application traces with {agent}]
+
+[discrete]
+[[elastic-agent-prereqs]]
+== Prerequisites
+
+* {kib} user with `All` privileges on {fleet} and {integrations}. Since many
+Integrations assets are shared across spaces, users need the {kib} privileges in
+all spaces.
+
+* <<fleet-server,{fleet-server}>> running in a location accessible to
+{agent}. {agent} must have a direct network connection to
+{fleet-server} and {es}. If you're using our hosted {ess} on {ecloud},
+{fleet-server} is already available as part of the {integrations-server}.
+
+* Internet connection for {kib} to download integration packages
+from the {package-registry}. Make sure the {kib} server can connect to
+`https://epr.elastic.co` on port `443`. If your environment has network traffic
+restrictions, there are ways to work around this requirement. See
+{fleet-guide}/air-gapped.html[Air-gapped environments] for more information.
+
+* If you're running {agent} 7.9 or earlier, stop the agent and manually remove
+it from your host.
+
+[discrete]
+[[elastic-agent-installation-steps]]
+== Installation steps
+
+To install an {agent} and enroll it in {fleet}:
+
+// tag::agent-enroll[]
+
+// lint disable fleet
+. In {kib}, go to **{fleet} > Agents**, and click **Add agent**.
+
+. In the *Add agent* flyout, select an existing agent policy or create a new
+one. If you create a new policy, {fleet} generates a new
+{fleet-guide}/fleet-enrollment-tokens.html[{fleet} enrollment token].
+
+. Make sure **Enroll in Fleet** is selected.
+
+. Download, install, and enroll the {agent} on your host by selecting
+your host operating system and following the **Install {agent} on your host**
+step.
++
+--
+[role="screenshot"]
+image::images/kibana-agent-flyout.png[Add agent flyout in {kib}]
+--
+// lint enable fleet
+
+After about a minute, the agent will enroll in {fleet}, download the
+configuration specified in the agent policy, and start collecting data. 
+
+**Notes:**
+
+* If you see an "x509: certificate signed by unknown authority" error, you
+might be trying to enroll in a {fleet-server} that uses self-signed certs. To
+fix this problem in a non-production environment, pass the `--insecure` flag.
+For more information, refer to the
+{fleet-guide}/fleet-troubleshooting.html#agent-enrollment-certs[troubleshooting guide].
+
+* Refer to {fleet-guide}/installation-layout.html[Installation layout] for the
+location of installed {agent} files.
+
+* Because {agent} is installed as an auto-starting service, it will restart
+automatically if the system is rebooted.
+
+
+To confirm that {agent} is installed and running, go to the **Agents** tab in
+{fleet}.
+
+[role="screenshot"]
+image::images/kibana-fleet-agents.png[{fleet} showing enrolled agents]
+
+TIP: If the status hangs at Enrolling, make sure the `elastic-agent` process
+is running.
+
+If you run into problems:
+
+* Check the {agent} logs. If you use the default policy, agent logs and metrics
+are collected automatically unless you change the default settings. For more
+information, refer to {fleet-guide}/elastic-agent-logging.html[View {agent} logs in {fleet}].
+
+* Refer to the {fleet-guide}/fleet-troubleshooting.html[troubleshooting guide].
+
+For information about managing {agent} in {fleet},
+refer to {fleet-guide}/manage-agents-in-fleet.html[Centrally manage {agent}s in {fleet}].
+
+// end::agent-enroll[]

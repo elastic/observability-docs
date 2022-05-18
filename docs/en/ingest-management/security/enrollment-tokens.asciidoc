@@ -1,0 +1,77 @@
+[[fleet-enrollment-tokens]]
+= {fleet} enrollment tokens
+
+A {fleet} enrollment token is an {es} API key that you use to enroll one or more
+{agent}s in {fleet}. The enrollment token enrolls the {agent} in a specific
+agent policy that defines the data to be collected by the agent. You can
+use the token as many times as required. It will remain valid until you revoke
+it.
+
+The enrollment token is used for the initial communication between {agent} and
+{fleet-server}. After the initial connection request from the {agent},
+the {fleet-server} passes two API keys to the {agent}:
+
+* An output API key
++
+This API key is used to send data to {es}. It has the minimal permissions needed
+to ingest all the data specified by the agent policy. If the API key is invalid,
+the {agent} stops ingesting data into {es}.
+
+* A communication API key
++
+This API key is used to communicate with the {fleet-server}. It has only the
+permissions needed to communicate with the {fleet-server}. If the API key is
+invalid, {fleet-server} stops communicating with the {agent}.
+
+// TODO: Convert the following steps to 7.14 after this topic is merged and
+// backported to 7.13.
+
+[discrete]
+[[create-fleet-enrollment-tokens]]
+== Create enrollment tokens
+
+Create enrollment tokens and use them to enroll {agent}s in specific policies.
+
+TIP: When you use the {fleet} UI to add an agent or create a new policy, {fleet}
+creates an enrollment token for you automatically.
+
+To create an enrollment token:
+
+. In {kib}, go to *Management > {fleet} > Enrollment tokens*.
+
+. Click  *Create enrollment token*. Name your token and select an agent policy.
++
+[role="screenshot"]
+image::images/create-token.png[Enrollment tokens tab in {fleet}]
+
+. Click *Create enrollment token*.
+
+. In the list of tokens, click the *Show token* icon to see the token secret.
++
+[role="screenshot"]
+image::images/show-token.png[Enrollment tokens tab with Show token icon highlighted]
+
+All {agent}s enrolled through this token will use the selected policy unless you
+assign or enroll them in a different policy.
+
+To learn how to install {agent}s and enroll them in {fleet}, refer to
+<<elastic-agent-installation>>.
+
+[discrete]
+[[revoke-fleet-enrollment-tokens]]
+== Revoke enrollment tokens
+
+To revoke an enrollment token:
+
+. In {fleet}, click *Enrollment tokens*.
+
+. Find the token you want to revoke in the list and click the *Revoke token*
+icon.
++
+[role="screenshot"]
+image::images/revoke-token.png[Enrollment tokens tab with Revoke token highlighted]
+
+. Click *Revoke enrollment token*. You can no longer use this token to enroll
+{agent}s. However, the currently enrolled agents will continue to function.
+
+To re-enroll your {agent}s, use an active enrollment token.

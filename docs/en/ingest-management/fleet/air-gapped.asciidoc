@@ -1,0 +1,146 @@
+[[air-gapped]]
+= Air-gapped environments
+
+There are certain environments in which network traffic restrictions are mandatory. In these environments, the {kib} instance
+isn't able to reach the public {package-registry} endpoints, like https://epr.elastic.co/[epr.elastic.co], to download
+package metadata and content.
+
+There are two workarounds in this situation -- use a proxy server as network gateway to reach the public endpoints,
+or deploy your own instance of the {package-registry}.
+
+[discrete]
+[[air-gapped-proxy-server]]
+== Use a proxy server
+
+If you can route traffic to the public endpoint of the {package-registry} through a network gateway, there is a property in {kib} that
+can orchestrate to use a proxy server:
+
+[source,yaml]
+----
+xpack.fleet.registryProxyUrl: your-nat-gateway.corp.net
+----
+
+[discrete]
+[[air-gapped-diy-epr]]
+== Host your own {package-registry}
+
+If routing traffic through a proxy server is not an option, you can host your own {package-registry}.
+
+The {package-registry} can be deployed and hosted on-site using one of the
+available Docker images. These docker images include the {package-registry} and
+a selection of packages.
+
+There are different distributions available:
+
+* {version} (recommended): +docker.elastic.co/package-registry/distribution:{version}+ - Selection of packages from the production repository released with the {version} version of the {stack}.
+* production: `docker.elastic.co/package-registry/distribution:production` - Packages available in the production registry (https://epr.elastic.co).
+* staging: `docker.elastic.co/package-registry/distribution:staging` - Packages available in the staging registry (https://epr-staging.elastic.co). These packages may be pending of validation.
+* snapshot: `docker.elastic.co/package-registry/distribution:snapshot` - Packages under development.
+
+ifeval::["{release-state}"=="unreleased"]
+[WARNING]
+====
+Version {version} of the {package-registry} distribution has not yet been released.
+====
+endif::[]
+
+To update the distribution image, re-pull the image and then restart the docker container.
+
+Every distribution contains packages that can be used by different versions of
+the {stack}. The {package-registry} API exposes a {kib} version constraint that
+allows for filtering packages that are compatible with a particular version.
+
+// lint ignore runtimes
+NOTE: These steps use the standard Docker CLI, but you can create a Kubernetes manifest
+based on this information.
+These images can also be used with other container runtimes compatible with Docker images.
+
+1. Pull the Docker image from the public Docker registry:
++
+["source", "sh", subs="attributes"]
+----
+docker pull docker.elastic.co/package-registry/distribution:{version}
+----
++
+2. Save the Docker image locally:
++
+["source", "sh", subs="attributes"]
+----
+docker save -o package-registry-{version}.tar docker.elastic.co/package-registry/distribution:{version}
+----
++
+TIP: Check the image size to ensure that you have enough disk space. 
+
+3. Transfer the image to the air-gapped environment and load it:
++
+["source", "sh", subs="attributes"]
+----
+docker load -i package-registry-{version}.tar
+----
+
+4. Run the {package-registry}:
++
+["source", "sh", subs="attributes"]
+----
+docker run -it -p 8080:8080 docker.elastic.co/package-registry/distribution:{version}
+----
+
+5. (Optional) You can monitor the health of your {package-registry} with
+requests to the root path:
++
+["source", "sh", subs="attributes"]
+----
+docker run -it -p 8080:8080 \
+    --health-cmd "curl -f -L http://127.0.0.1:8080/" \
+    docker.elastic.co/package-registry/distribution:{version}
+----
+
+[discrete]
+[[air-gapped-diy-epr-kibana]]
+=== Connect {kib} to your hosted {package-registry}
+
+Use the `xpack.fleet.registryUrl` property in the {kib} config to set the URL of your hosted package registry. For example:
+
+[source,yaml]
+----
+xpack.fleet.registryUrl: "http://package-registry.corp.net:8080"
+----
+
+[discrete]
+[[air-gapped-tls]]
+=== TLS configuration of the {package-registry}
+
+You can configure the {package-registry} to listen on a secure HTTPS port using TLS.
+
+For example, given a key and a certificate pair available in `/etc/ssl`, you
+can start the {package-registry} listening on the 443 port using the following command:
+
+["source", "sh", subs="attributes"]
+----
+docker run -it -p 443:443 \
+  -v /etc/ssl/package-registry.key:/etc/ssl/package-registry.key:ro \
+  -v /etc/ssl/package-registry.crt:/etc/ssl/package-registry.crt:ro \
+  -e EPR_ADDRESS=0.0.0.0:443 \
+  -e EPR_TLS_KEY=/etc/ssl/package-registry.key \
+  -e EPR_TLS_CERT=/etc/ssl/package-registry.crt \
+  docker.elastic.co/package-registry/distribution:{version}
+----
+
+[discrete]
+[[air-gapped-limitations]]
+== Limitations for {agent} upgrades
+
+The <<upgrade-elastic-agent>> feature in technical preview does not currently support network restricted environments without access to artifacts.elastic.co.
+To upgrade {agent}s:
+
+1. Download the new version from the https://www.elastic.co/downloads/elastic-agent[download page]
+2. Place the tarball in a secure internal network location
+3. Use the <<elastic-agent-upgrade-command,`upgrade`>> command with a custom `--source-uri` option
+
+[discrete]
+=== Example
+
+["source", "sh", subs="attributes"]
+----
+elastic-agent upgrade {version} --source-uri https://myinternaldomain.com/elastic-agent/elastic-agent-{version}-<platform>-x86_64.tar.gz
+----

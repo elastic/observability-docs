@@ -5,17 +5,26 @@
 include::{docs-root}/shared/versions/stack/{source_branch}.asciidoc[]
 include::{docs-root}/shared/attributes.asciidoc[]
 
+:y: image:images/green-check.svg[yes]
+:n: image:images/red-x.svg[no]
+
 :apm-py-ref-v:         https://www.elastic.co/guide/en/apm/agent/python/{apm-py-branch}
 :apm-node-ref-v:       https://www.elastic.co/guide/en/apm/agent/nodejs/{apm-node-branch}
 :apm-rum-ref-v:        https://www.elastic.co/guide/en/apm/agent/rum-js/{apm-rum-branch}
 :apm-ruby-ref-v:       https://www.elastic.co/guide/en/apm/agent/ruby/{apm-ruby-branch}
 :apm-java-ref-v:       https://www.elastic.co/guide/en/apm/agent/java/{apm-java-branch}
 :apm-go-ref-v:         https://www.elastic.co/guide/en/apm/agent/go/{apm-go-branch}
+:apm-ios-ref-v:        https://www.elastic.co/guide/en/apm/agent/swift/{apm-ios-branch}
 :apm-dotnet-ref-v:     https://www.elastic.co/guide/en/apm/agent/dotnet/{apm-dotnet-branch}
-:beats-root:           {docdir}/../../../../beats
-:beats-repo-dir:       {beats-root}/libbeat/docs
+
 :apm-server-root:      {docdir}/../../../../apm-server
+:beats-root:           {docdir}/../../../../beats
+
+:fleet-repo-dir: {observability-docs-root}/docs/en/ingest-management
+:tab-widgets: {fleet-repo-dir}/tab-widgets
+
 :apm-repo-dir:         {apm-server-root}/docs
+:beats-repo-dir:       {beats-root}/libbeat/docs
 :shared:               {observability-docs-root}/docs/en/shared
 
 // What is Observability?
@@ -27,13 +36,25 @@ include::whats-new.asciidoc[leveloffset=+1]
 // Send data to Elasticsearch
 include::add-observability-data.asciidoc[leveloffset=+1]
 
-include::ingest-logs.asciidoc[leveloffset=+2]
+include::spin-up-stack.asciidoc[leveloffset=+2]
 
-include::ingest-metrics.asciidoc[leveloffset=+2]
+include::deploy-agent-to-send-data.asciidoc[leveloffset=+2]
 
-include::ingest-uptime.asciidoc[leveloffset=+2]
+include::ingest-logs-metrics-uptime.asciidoc[leveloffset=+3]
 
-include::instrument-apps.asciidoc[leveloffset=+2]
+include::ingest-traces.asciidoc[leveloffset=+3]
+
+include::ingest-splunk.asciidoc[leveloffset=+3]
+
+include::deploy-beats-to-send-data.asciidoc[leveloffset=+2]
+
+include::ingest-logs.asciidoc[leveloffset=+3]
+
+include::ingest-metrics.asciidoc[leveloffset=+3]
+
+include::ingest-uptime.asciidoc[leveloffset=+3]
+
+include::instrument-apps.asciidoc[leveloffset=+3]
 
 // Observability overview page
 include::observability-ui.asciidoc[leveloffset=+1]
@@ -71,30 +92,39 @@ include::inspect-metric-anomalies.asciidoc[leveloffset=+2]
 
 include::configure-metrics-sources.asciidoc[leveloffset=+2]
 
-// Uptime
-include::monitor-uptime.asciidoc[leveloffset=+1]
+// Uptime & Synthetic monitoring
+include::monitor-uptime-synthetics.asciidoc[leveloffset=+1]
 
-include::view-monitor-status.asciidoc[leveloffset=+2]
+:playwright-url:      https://playwright.dev/
+:playwright-api-docs: https://playwright.dev/docs/api/class-playwright
 
-include::analyze-monitors.asciidoc[leveloffset=+2]
+include::uptime-set-up.asciidoc[leveloffset=+2]
 
-include::inspect-uptime-duration-anomalies.asciidoc[leveloffset=+2]
+include::synthetics-journeys.asciidoc[leveloffset=+2]
+
+include::synthetics-create-test.asciidoc[leveloffset=+3]
+
+include::synthetics-run-test.asciidoc[leveloffset=+3]
+
+include::synthetics-command-reference.asciidoc[leveloffset=+3]
+
+include::synthetics-params-secrets.asciidoc[leveloffset=+3]
+
+include::synthetics-configuration.asciidoc[leveloffset=+3]
+
+include::synthetics-visualize.asciidoc[leveloffset=+3]
+
+include::uptime-analyze.asciidoc[leveloffset=+2]
+
+include::view-monitor-status.asciidoc[leveloffset=+3]
+
+include::analyze-monitors.asciidoc[leveloffset=+3]
+
+include::inspect-uptime-duration-anomalies.asciidoc[leveloffset=+3]
 
 include::configure-uptime-settings.asciidoc[leveloffset=+2]
 
-// Synthetic monitoring
-:playwright-url:      https://github.com/Microsoft/playwright
-:playwright-api-docs: https://github.com/microsoft/playwright/blob/master/docs/api.md#class-page
-
-include::synthetic-monitoring.asciidoc[leveloffset=+1]
-
-include::synthetics-quickstart.asciidoc[leveloffset=+2]
-
-include::synthetics-create-test.asciidoc[leveloffset=+2]
-
-include::synthetics-command-reference.asciidoc[leveloffset=+2]
-
-include::synthetics-visualize.asciidoc[leveloffset=+2]
+include::troubleshoot-uptime-mapping-issues.asciidoc[leveloffset=+2]
 
 // User experience
 include::user-experience.asciidoc[leveloffset=+1]
@@ -102,8 +132,29 @@ include::user-experience.asciidoc[leveloffset=+1]
 // Alerting
 include::create-alerts.asciidoc[leveloffset=+1]
 
+// Cases
+include::create-cases.asciidoc[leveloffset=+1]
+
+include::grant-cases-access.asciidoc[leveloffset=+2]
+
+include::manage-cases.asciidoc[leveloffset=+2]
+
+include::create-observability-connectors.asciidoc[leveloffset=+2]
+
+include::ci-cd-observability.asciidoc[leveloffset=+1]
+
+// Troubleshooting
+include::troubleshooting.asciidoc[leveloffset=+1]
+
+include::exploratory-data-visualizations.asciidoc[leveloffset=+2]
+
+include::inspect.asciidoc[leveloffset=+2]
+
 // Fields
 include::fields-reference.asciidoc[leveloffset=+1]
 
 // Tutorials
 include::tutorials.asciidoc[]
+
+// add redirects file
+include::redirects.asciidoc[]

@@ -1,0 +1,289 @@
+// Use these for links to issue and pulls.
+:kib-issue: https://github.com/elastic/kibana/issues/
+:kib-pull: https://github.com/elastic/kibana/pull/
+:agent-issue: https://github.com/elastic/beats/issues/
+:agent-pull: https://github.com/elastic/beats/pull/
+:fleet-server-issue: https://github.com/elastic/beats/issues/fleet-server/
+:fleet-server-pull: https://github.com/elastic/beats/pull/fleet-server/
+
+
+[[release-notes]]
+= Release notes
+
+This section summarizes the changes in each release.
+
+* <<release-notes-7.16.3>>
+* <<release-notes-7.16.2>>
+* <<release-notes-7.16.1>>
+* <<release-notes-7.16.0>>
+
+Also see:
+
+* {kibana-ref}/release-notes.html[{kib} release notes]
+* {beats-ref}/release-notes.html[{beats} release notes]
+
+[[release-notes-7.16.3]]
+== {fleet} and {agent} 7.16.3
+
+Review important information about the {fleet} and {agent} 7.16.3 releases.
+
+
+[discrete]
+[[deprecations-7.16.3]]
+=== Deprecations
+
+The following functionality is deprecated in 7.16.3, and will be removed in
+8.0.0. Deprecated functionality does not have an immediate impact on your
+application, but we strongly recommend you make the necessary updates after you
+upgrade to 7.16.3.
+
+[discrete]
+==== Deprecated environment variables
+
+Some environment variables used by {fleet-server} are deprecated and will be
+removed in a future release {agent-pull}29434[#29434].
+
+|===
+|Deprecated | Use this instead
+
+|`FLEET_SETUP` |`KIBANA_FLEET_SETUP`
+|`FLEET_SERVER_ELASTICSEARCH_USERNAME` |`FLEET_SERVER_SERVICE_TOKEN`
+|`FLEET_SERVER_ELASTICSEARCH_PASSWORD` |`FLEET_SERVER_SERVICE_TOKEN`
+|`ELASTICSEARCH_USERNAME` |`FLEET_SERVER_SERVICE_TOKEN` 
+|`ELASTICSEARCH_PASSWORD` |`FLEET_SERVER_SERVICE_TOKEN`
+|`KIBANA_FLEET_USERNAME` |
+|`KIBANA_FLEET_PASSWORD` |
+|`KIBANA_USERNAME` |
+|`KIBANA_PASSWORD` |
+|===
+
+// end 7.16.3 relnotes
+
+// begin 7.16.2 relnotes
+
+[[release-notes-7.16.2]]
+== {fleet} and {agent} 7.16.2
+
+Review important information about the {fleet} and {agent} 7.16.2 releases.
+
+[discrete]
+[[bug-fixes-7.16.2]]
+=== Bug fixes
+
+{fleet}::
+* Omit `elasticsearch` field for policy update API (partial backport of
+{kib-pull}121412[#121412])
+
+// end 7.16.2 relnotes
+
+// begin 7.16.1 relnotes
+
+[[release-notes-7.16.1]]
+== {fleet} and {agent} 7.16.1
+
+Review important information about the {fleet} and {agent} 7.16.1 releases.
+
+[discrete]
+[[bug-fixes-7.16.1]]
+=== Bug fixes
+
+{fleet}::
+* Fix bug with duplicate {fleet-server} inputs in Cloud deployments
+{kib-pull}119925[#119925]
+
+// end 7.16.1 relnotes
+
+// begin 7.16.0 relnotes
+
+[[release-notes-7.16.0]]
+== {fleet} and {agent} 7.16.0
+
+Review important information about the {fleet} and {agent} 7.16.0 releases.
+
+[discrete]
+[[enhancements-7.16.0]]
+=== Enhancements
+
+{fleet}::
+* Adds prompt for users to add an agent if they add an integration to an agent policy with no agents {kib-pull}114830[#114830]
+* Allow users with read access to view Integrations app {kib-pull}113925[#113925]
+* Removes enterprise license requirement for custom registry URL {kib-pull}113858[#113858]
+* Adds "Keep Policies up to Date" functionality for integrations {kib-pull}112702[#112702]
+* Allow packages to specify index privileges {kib-pull}112397[#112397]
+* Allow Integrations browse page to filter on descriptions {kib-pull}111649[#111649]
+* Support automatic upgrades of package policies when updating integrations {kib-pull}108269[#108269]
+* Allow preconfiguration of alternative {es} outputs {kib-pull}111002[#111002]
+
+{agent}::
+* Adds `diagnostics` command to {agent} {agent-pull}28265[#28265] {agent-pull}28461[#28461]
+* Enables `/debug/pprof/` endpoints for all {beats} that the {agent} starts {agent-pull}28983[#28983]
+
+[discrete]
+[[bug-fixes-7.16.0]]
+=== Bug fixes
+
+{fleet}::
+* Link to the installed version of an integration from global search {kib-pull}115736[#115736]
+* Fixes agent count in update modal {kib-pull}114622[#114622]
+* Shows security requirements page when {es} security is not enabled {kib-pull}114583[#114583]
+* Improves default settings for {fleet} component templates {kib-pull}114101[#114101]
+* Report `installing` status while package install is in progress {kib-pull}111875[#111875]
+
+[discrete]
+[[known-issues-7.16.0]]
+=== Known issues
+
+[[known-issue-121059]]
+.Naming conflict during agent policy creation may result in policy with no system integration
+[%collapsible]
+====
+
+*Details*
+
+There is a bug in the logic used to create unique integration policy names. If you edit a system integration in an existing agent policy, and then try to create a new agent policy with *Collect logs and metrics* selected, you'll see the error message, "There is already a package with the same name". {kib-pull}121059[#121059]
+
+*Impact*
+
+The new agent policy will be created, but it will not include the system integration, and it will be unable to collect logs and metrics. 
+
+*Workaround*
+
+You can either:
+
+* Manually add the system integration after creating the agent policy
+* Rename the other system integration policies and use unique names
+
+====
+
+[[known-issue-unique-names]]
+.Integration policy names must be globally unique
+[%collapsible]
+====
+
+*Details*
+
+Starting in 7.16.0, integration policy names must be globally unique.
+
+*Impact*
+
+If you are upgrading from a previous version and have integrations with
+duplicate names, you'll encounter an error when you attempt to upgrade the
+integration: "There is already a package with the same name."
+
+*Workaround*
+
+You must modify all integration policy names to be unique before trying to
+upgrade integrations.
+
+====
+
+// end 7.16.0 relnotes
+
+// ---------------------
+//TEMPLATE
+//Use the following text as a template. Remember to replace the version info.
+
+// begin 7.16.x relnotes
+
+//[[release-notes-7.16.x]]
+//== {fleet} and {agent} 7.16.x
+
+//Review important information about the {fleet} and {agent} 7.16.x releases.
+
+//[discrete]
+//[[security-updates-7.16.x]]
+//=== Security updates
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[breaking-changes-7.16.x]]
+//=== Breaking changes
+
+//Breaking changes can prevent your application from optimal operation and
+//performance. Before you upgrade, review the breaking changes, then mitigate the
+//impact to your application.
+
+//[discrete]
+//[[breaking-PR#]]
+//.Short description
+//[%collapsible]
+//====
+//*Details* +
+//<Describe new behavior.> For more information, refer to {kibana-pull}PR[#PR].
+
+//*Impact* +
+//<Describe how users should mitigate the change.> For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
+//====
+
+//[discrete]
+//[[known-issues-7.16.x]]
+//=== Known issues
+
+//[[known-issue-issue#]]
+//.Short description
+//[%collapsible]
+//====
+
+//*Details*
+
+//<Describe known issue.>
+
+//*Impact* +
+
+//<Describe impact or workaround.>
+
+//====
+
+//[discrete]
+//[[deprecations-7.16.x]]
+//=== Deprecations
+
+//The following functionality is deprecated in 7.16.x, and will be removed in
+//8.0.0. Deprecated functionality does not have an immediate impact on your
+//application, but we strongly recommend you make the necessary updates after you
+//upgrade to 7.16.x.
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[new-features-7.16.x]]
+//=== New features
+
+//The 7.16.x release adds the following new and notable features.
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[enhancements-7.16.x]]
+//=== Enhancements
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+//[discrete]
+//[[bug-fixes-7.16.x]]
+//=== Bug fixes
+
+//{fleet}::
+//* add info
+
+//{agent}::
+//* add info
+
+// end 7.16.x relnotes

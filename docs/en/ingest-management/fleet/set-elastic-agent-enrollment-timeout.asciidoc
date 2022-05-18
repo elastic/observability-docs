@@ -1,0 +1,86 @@
+[[set-enrollment-timeout]]
+= Set unenrollment timeout for ephemeral hosts
+
+++++
+<titleabbrev>Set unenrollment timeout</titleabbrev>
+++++
+
+IMPORTANT: This setting is only valid for {fleet}-managed agents.
+
+Set the unenrollment timeout in the agent policy to specify the amount of time
+{fleet} waits for an {agent} to check in before forcing unenrollment.
+
+This setting is useful for {agent}s running on ephemeral hosts, such as docker
+containers, which can disappear at any time.
+
+To set the unenrollment timeout:
+
+. In *{fleet}*, select *Agent policies*.
+
+. Click the policy name, then click *Settings*.
+
+. In the *Unenrollment timeout* field, enter a value in seconds. 
++
+Set the unenrollment timeout to a value that's high enough to prevent {fleet} from
+accidentally unenrolling agents during a temporary outage. For example, `1440`.
+
+[[why-set-timeout]]
+== Why set an unenrollment timeout?
+
+Containers might be killed, deleted, or moved, preventing agents from
+unenrolling gracefully. If there's no unenrollment timeout specified, the agent
+will continue to appear as `Offline` in {fleet}, and its API keys will remain
+active until explicitly revoked. To remove these "orphan" agents from the main
+Agent list and make them inactive, you need to force unenroll them in {fleet}.
+However, in some environments, like {ess} on {ecloud}, you may not be allowed to
+unenroll agents, which means the agents will appear as `Offline` indefinitely.
+
+To avoid this problem, set the unenrollment timeout in the agent policy for
+{agent}s running on ephemeral hosts. If an {agent} fails to check in with
+{fleet} during the timeout period, {fleet} will:
+
+* force unenroll the agent
+* set the agent status to `Inactive`
+* invalidate the API keys used by the agent
+
+The agent's ID and logs will be preserved in {es}, but container logs will be
+lost.
+
+NOTE: The {ecloud} agent policy, which is used by {fleet-server} in
+{ecloud}, already has an unenrollment timeout specified. You cannot change this
+setting.
+
+== What if I don't set an unenrollment timeout?
+
+If there is no unenrollment timeout specified and an {agent} fails to check in,
+the agent remains enrolled in {fleet} and its status is set to `Offline`. When
+the agent checks in with {fleet} again, the status changes to `Healthy`, and the
+agent receives updates, as needed.
+
+In most cases, you should avoid setting an unenrollment timeout for {agent}s
+running on laptops or servers that may be shut down, paused, or restarted for
+short periods of time before coming back online.
+
+== What if an {agent} is accidentally unenrolled?
+
+You must reenroll the {agent} in {fleet} to resume normal functioning. The
+{agent} will enroll using a new agent ID and API keys, which means the Agent
+will be appear as a new entry in the Agents list. When you click to see
+the Agent details, including logs, you'll see details for the new agent.
+
+If you reenroll an {agent} inside the same container, it uses the local log
+files, disk queue, and registry from the previous run and resumes sending data
+to {es}. This minimizes data loss and duplication.
+
+== How do I see logs for inactive {agent}s?
+
+Logs for inactive {agent}s are preserved in {es}. To view them:
+
+. In *{fleet}*, select *Agents*.
+
+. In the *Status* menu, select *Inactive*.
+
+. Click the name of the inactive agent to see agent details, then click *Logs*.
+
+. If necessary, adjust the time range to see older logs.
+ 

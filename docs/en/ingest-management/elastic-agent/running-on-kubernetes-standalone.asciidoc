@@ -1,30 +1,31 @@
-[[running-on-kubernetes]]
-[role="xpack"]
-=== Run {agent} on Kubernetes
+[[running-on-kubernetes-standalone]]
+= Run {agent} standalone on Kubernetes
 
-You can use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
+Use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
 retrieve cluster metrics.
+
+TIP: Running {ecloud} on Kubernetes? Refer to {eck-ref}/k8s-elastic-agent.html[Run {elastic-agent} on ECK].
 
 ifeval::["{release-state}"=="unreleased"]
 
-However, version {version} of {agent} has not yet been
-released, so no Docker image is currently available for this version.
+A Docker image is not currently available for this version, as version {version} of {agent} has not yet been released.
 
 endif::[]
 
 
-[float]
-==== Kubernetes deploy manifests
+[discrete]
+== Kubernetes deploy manifests
 
-You deploy {agent} in two different ways at the same time:
 
-* As a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
-to ensure that there's a running instance on each node of the cluster. These
+Deploy {agent} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+to ensure that there is a running instance on each node of the cluster. These
 instances are used to retrieve most metrics from the host, such as system
 metrics, Docker stats, and metrics from all the services running on top of
 Kubernetes.
 
-* As a single {agent} instance created using a https://kubernetes.io/docs/concepts/workloads/controllers/Deployment/[Deployment].
+In addition, one of the Pods in the DaemonSet will constantly hold a _leader lock_ which makes it responsible for
+handling cluster-wide monitoring.
+Find more information about leader election configuration options at <<kubernetes_leaderelection-provider, leader election provider>>.
 This instance is used to retrieve metrics that are unique for the whole
 cluster, such as Kubernetes events or
 https://github.com/kubernetes/kube-state-metrics[kube-state-metrics]. If `kube-state-metrics` is not already
@@ -39,17 +40,17 @@ To download the manifest file, run:
 
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
-curl -L -O https://raw.githubusercontent.com/elastic/beats/{branch}/deploy/kubernetes/elastic-agent-standalone-kubernetes.yaml
+curl -L -O https://raw.githubusercontent.com/elastic/elastic-agent/{branch}/deploy/kubernetes/elastic-agent-standalone-kubernetes.yaml
 ------------------------------------------------
 
-This manifest includes Kubernetes integration to collect Kubernetes metrics,
-System integration to collect system level metrics/logs from nodes and
-Pod's log collection using <<kubernetes-provider,dynamic inputs and kubernetes provider>>.
+This manifest includes the Kubernetes integration to collect Kubernetes metrics,
+System integration to collect system level metrics and logs from nodes, and
+the Pod's log collection using <<kubernetes-provider,dynamic inputs and Kubernetes provider>>.
 
-[float]
-==== Settings
+[discrete]
+== Settings
 
-User need to set Elasticsearch settings before deploying the manifest:
+Set the {es} settings before deploying the manifest:
 
 [source,yaml]
 ------------------------------------------------
@@ -61,14 +62,37 @@ User need to set Elasticsearch settings before deploying the manifest:
   value: "https://somesuperhostiduuid.europe-west1.gcp.cloud.es.io:443"
 ------------------------------------------------
 
-[float]
-===== Running {agent} on master nodes
+// Begin collapsed section
+[%collapsible]
+.Configuration details
+====
+****
+
+[cols="2*<a"]
+|===
+| Setting | Description
+
+include::configuration/env/shared-env.asciidoc[tag=es-username]
+
+include::configuration/env/shared-env.asciidoc[tag=es-password]
+
+include::configuration/env/shared-env.asciidoc[tag=es-host]
+
+|===
+
+Refer to <<agent-environment-variables>> for all available options.
+
+****
+====
+
+[discrete]
+=== Run {agent} on master nodes
 
 Kubernetes master nodes can use https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/[taints]
 to limit the workloads that can run on them. The manifest for standalone {agent} defines
-tolerations so as to run on master nodes too and being able to collect metrics from the control plane
-components of Kuberentes (scheduler, controller manager)
-To disable {agent} from running on master nodes remove the following part of the Daemonset spec:
+tolerations to run on master nodes. Agents running on master nodes collect metrics from the control plane
+components (scheduler, controller manager) of Kubernetes.
+To disable {agent} from running on master nodes, remove the following part of the DaemonSet spec:
 
 [source,yaml]
 ------------------------------------------------
@@ -79,8 +103,8 @@ spec:
 ------------------------------------------------
 
 
-[float]
-==== Deploy
+[discrete]
+== Deploy
 To deploy to Kubernetes, run:
 
 ["source", "sh", subs="attributes"]
@@ -100,13 +124,111 @@ elastic-agent-fj2z9             1/1     Running   0          81m
 elastic-agent-hs4pb             1/1     Running   0          81m
 ------------------------------------------------
 
-[float]
-==== Autodiscover targeted Pods
+NOTE: You might need to adjust https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[resource limits] of the elastic-agent container
+in the `elastic-agent-standalone-kubernetes.yaml` manifest. Container resource usage depends on the number of data streams
+and the environment size.
 
-It is possible to define autodiscover conditions so as to allow {agent} to automatically
-identify Pods and start collecting from them using predefined integrations. For example if a
-user want to automatically identify a Redis Pod and start monitoring it using the Redis integration
-the following configuration should be added as an extra input in the Daemonset manifest:
+[discrete]
+== Red Hat OpenShift configuration
+
+If you are using Red Hat OpenShift, you need to specify additional settings in
+the manifest file and enable the container to run as privileged.
+
+. In the manifest file, modify the `agent-node-datastreams` ConfigMap and adjust inputs:
++
+--
+* `kubernetes-cluster-metrics` input:
+** If `https` is used to access `kube-state-metrics`, add the following settings to all `kubernetes.state_*` datasets:
++
+[source,yaml]
+------------------------------------------------
+  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+  ssl.certificate_authorities:
+    - /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt
+------------------------------------------------
+* `kubernetes-node-metrics` input:
+** Change the `kubernetes.controllermanager` data stream condition to:
++
+[source,yaml]
+------------------------------------------------
+condition: ${kubernetes.labels.app} == 'kube-controller-manager'
+------------------------------------------------
+** Change the `kubernetes.scheduler` data stream condition to:
++
+[source,yaml]
+------------------------------------------------
+condition: ${kubernetes.labels.app} == 'openshift-kube-scheduler'
+------------------------------------------------
+** The `kubernetes.proxy` data stream configuration should look like:
++
+[source,yaml]
+------------------------------------------------
+- data_stream:
+    dataset: kubernetes.proxy
+    type: metrics
+  metricsets:
+    - proxy
+  hosts:
+    - 'localhost:29101'
+  period: 10s
+------------------------------------------------
+** Add the following settings to all data streams that connect to `https://${env.NODE_NAME}:10250`:
++
+[source,yaml]
+------------------------------------------------
+  bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
+  ssl.certificate_authorities:
+    - /path/to/ca-bundle.crt
+------------------------------------------------
+NOTE: `ca-bundle.crt` can be any CA bundle that contains the issuer of the certificate used in the Kubelet API.
+According to each specific installation of OpenShift this can be found either in `secrets` or in `configmaps`.
+In some installations it can be available as part of the service account secret, in
+`/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt`.
+When using the https://github.com/openshift/installer/blob/master/docs/user/gcp/install.md[OpenShift installer]
+for GCP, mount the following `configmap` in the elastic-agent pod and use `ca-bundle.crt`
+in `ssl.certificate_authorities`:
++
+[source,shell]
+-----
+Name:         kubelet-serving-ca
+Namespace:    openshift-kube-apiserver
+Labels:       <none>
+Annotations:  <none>
+
+Data
+====
+ca-bundle.crt:
+-----
+--
+. Grant the `elastic-agent` service account access to the privileged SCC:
++
+[source,shell]
+-----
+oc adm policy add-scc-to-user privileged system:serviceaccount:kube-system:elastic-agent
+-----
++
+This command enables the container to be privileged as an administrator for
+OpenShift.
+
+. If the namespace where elastic-agent is running has the `"openshift.io/node-selector"` annotation set, elastic-agent
+might not run on all nodes. In this case consider overriding the node selector for the namespace to allow scheduling
+on any node:
++
+[source,shell]
+----
+oc patch namespace kube-system -p \
+'{"metadata": {"annotations": {"openshift.io/node-selector": ""}}}'
+----
++
+This command sets the node selector for the project to an empty string.
+
+[discrete]
+== Autodiscover targeted Pods
+
+Autodiscover conditions can be defined to allow {agent} to automatically
+identify Pods and start collecting from them using predefined integrations. For example, if a
+user wants to automatically identify a Redis Pod and start monitoring it using the Redis integration,
+the following configuration should be added as an extra input in the DaemonSet manifest:
 
 [source,yaml]
 ------------------------------------------------
@@ -134,5 +256,23 @@ the following configuration should be added as an extra input in the Daemonset m
       condition: ${kubernetes.pod.labels.app} == 'redis'
 ------------------------------------------------
 
-Users can find more information about how to shape their dynamic inputs
-for autodiscover at <<kubernetes-provider,dynamic inputs and kubernetes provider>> docs.
+Refer to <<kubernetes-provider,dynamic inputs and Kubernetes provider>> for more information
+about shaping dynamic inputs for autodiscovery.
+
+
+[discrete]
+== Deploying {agent} to collect cluster-level metrics in large clusters
+
+The size and the number of nodes in a Kubernetes cluster can be fairly large at times,
+and in such cases the Pod that will be collecting cluster level metrics might face performance
+issues due to resources limitations. In this case users might consider to avoid using the
+leader election strategy and instead run a dedicated, standalone {agent} instance using
+a Deployment in addition to the DaemonSet.
+
+[discrete]
+== Deploying {agent} to managed Kubernetes environment
+
+On managed Kubernetes solutions, such as AKS, GKE or EKS, {agent} has no access to collect metrics from the https://kubernetes.io/docs/concepts/overview/components/#control-plane-components[Kubernetes control plane]
+components, like `kube-scheduler` and `kube-controller-manager`, that are scheduled on Kubernetes master nodes.
+
+Audit logs are available only on Kubernetes master nodes as well, and hence cannot be collected by {agent}.

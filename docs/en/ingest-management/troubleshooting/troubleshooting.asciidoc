@@ -1,0 +1,593 @@
+[[fleet-troubleshooting]]
+= Troubleshoot common problems
+
+We have collected the most common known problems and listed them here. If your problem
+is not described here, please review the open issues in the following GitHub repositories:
+
+[options,header]
+|===
+| Repository | To review or report issues about
+
+|https://github.com/elastic/kibana/issues[elastic/kibana] | {fleet} and {integrations} UI
+|https://github.com/elastic/elastic-agent/issues[elastic/elastic-agent] | {agent}
+|https://github.com/elastic/beats/issues[elastic/beats] | {beats} shippers
+|https://github.com/elastic/fleet-server/issues[elastic/fleet-server] | {fleet-server}
+|https://github.com/elastic/package-registry/issues[elastic/package-registry] | {package-registry}
+|https://github.com/elastic/observability-docs/issues[elastic/observability-docs] | Documentation issues
+
+|===
+
+Have a question? Read our <<fleet-faq,FAQ>>, or contact us in the
+{forum}[discuss forum]. Your feedback is valuable to us.
+
+Running {agent} standalone? Also refer to <<debug-standalone-agents>>.
+
+//TODO: Improve how content is organized in this section, perhaps by breaking
+//it down into sections like Agent, {fleet-server}, etc.
+
+[discrete]
+[[agents-in-cloud-stuck-at-updating]]
+== {agent}s hosted on {ecloud} are stuck in `Updating` or `Offline`
+
+In {ecloud}, after <<upgrade-integration,upgrading>> {fleet-server} and its
+integration policies, agents enrolled in the {ecloud} agent policy
+may experience issues updating. To resolve this problem:
+
+. In a terminal window, run the following `cURL` request, providing your {kib} superuser credentials to reset the {ecloud} agent policy.
+
++
+[source,shell]
+----
+curl -u <username>:<password> --request POST \
+  --url <kibana_url>/internal/fleet/reset_preconfigured_agent_policies/policy-elastic-agent-on-cloud \
+  --header 'content-type: application/json' \
+  --header 'kbn-xsrf: xyz'
+----
+
+. Force unenroll the agent stuck in `Updating`:
+
+.. To find agent's ID, go to *{fleet} > Agents* and click the agent to see its
+details. Copy the Agent ID.
+
+.. In a terminal window, run:
++
+[source,shell]
+----
+curl -u <username>:<password> --request POST \
+  --url <kibana_url>/api/fleet/agents/<agentID>/unenroll \
+  --header 'content-type: application/json' \
+  --header 'kbn-xsrf: xx' \
+  --data-raw '{"force":true,"revoke":true}' \
+  --compressed
+----
++
+Where `<agentID>` is the ID you copied in the previous step.
+
+. Restart the {integrations-server}:
++
+In the {ecloud} console under {integrations-server}, click *Force Restart*.
+
+
+[discrete]
+[[fleet-server-not-in-kibana-cloud]]
+== When using {ecloud}, {fleet-server} is not listed in {kib}
+
+If you are unable to see {fleet-server} in {kib}, make sure it's set up.
+
+To set up {fleet-server} on {ecloud}:
+
+. Go to your deployment on {ecloud}.
+. Follow the {ecloud} prompts to set up *{integrations-server}*. Once complete, the {fleet-server} {agent}
+will show up in {fleet}.
+
+To enable {fleet} and set up {fleet-server} on a self-managed cluster:
+
+. In the {es} configuration file, `config/elasticsearch.yml`, set the following
+security settings to enable security and API keys:
++
+[source,yaml]
+----
+xpack.security.enabled: true
+xpack.security.authc.api_key.enabled: true
+----
+
+. In the {kib} configuration file, `config/kibana.yml`, enable {fleet}
+and specify your user credentials:
++
+[source,yaml]
+----
+xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters"
+xpack.security.enabled: true
+elasticsearch.username: "my_username" <1>
+elasticsearch.password: "my_password"
+----
+<1> Specify a user who is authorized to use {fleet}.
++
+To set up passwords, you can use the documented {es} APIs or the
+`elasticsearch-setup-passwords` command. For example, `./bin/elasticsearch-setup-passwords auto`
++
+After running the command:
+
+ .. Copy the Elastic user name to the {kib} configuration file.
+ .. Restart {kib}.
+ .. Follow the documented steps for setting up a self-managed {fleet-server}.
+For more information, refer to <<fleet-server>>.
+
+
+[discrete]
+[[fleet-setup-fails]]
+== The `/api/fleet/setup` endpoint can't reach the package registry
+
+To install {integrations}, the {fleet} app requires a connection to
+an external service called the {package-registry}.
+
+For this to work, the {kib} server must connect to `https://epr.elastic.co` on port `443`.
+
+[discrete]
+[[fleet-app-crashes]]
+== {fleet} in {kib} crashes
+
+. To investigate the error, open your browser's development console.
+. Select the **Network** tab, and refresh the page.
++
+One of the requests to the {fleet} API will most likely have returned an error. If the error
+message doesn't give you enough information to fix the problem, please contact us in the {forum}[discuss forum].
+
+[discrete]
+[[agent-enrollment-certs]]
+== {agent} enrollment fails on the host with `x509: certificate signed by unknown authority` message
+
+To ensure that communication with {fleet-server} is encrypted,
+{fleet-server} requires {agent}s to present a signed certificate. In a
+self-managed cluster, if you don't specify certificates when you set up
+{fleet-server}, self-signed certificates are generated automatically.
+
+If you attempt to enroll an {agent} in a {fleet-server} with a self-signed
+certificate, you will encounter the following error:
+
+[source,sh]
+----
+Error: fail to enroll: fail to execute request to fleet-server: x509: certificate signed by unknown authority
+Error: enroll command failed with exit code: 1
+----
+
+To fix this problem, pass the `--insecure` flag along with the `enroll` or
+`install` command. For example:
+
+[source,sh]
+----
+sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
+----
+
+Traffic between {agent}s and {fleet-server} over HTTPS will be encrypted; you're
+simply acknowledging that you understand that the certificate chain cannot be
+verified.
+
+Allowing {fleet-server} to generate self-signed certificates is useful to get
+things running for development, but not recommended in a production environment.
+
+For more information, refer to <<secure-connections>>.
+
+[discrete]
+[[es-enrollment-certs]]
+== {agent} enrollment fails on the host with `x509: cannot validate certificate for x.x.x.x because it doesn't contain any IP SANs` message
+
+To ensure that communication with {es} is encrypted,
+{fleet-server} requires {es} to present a signed certificate.
+
+This error occurs when you use self-signed certificates with {es} using IP as a Common Name (CN).
+With IP as a CN, {fleet-server} looks into subject alternative names (SANs), which is empty. To work
+around this situation, use the `--fleet-server-es-insecure` flag to disable certificate verification.
+
+You will also need to set `ssl.verification_mode: none` in the Output settings in {fleet} and {integrations} UI.
+
+[discrete]
+[[agent-enrollment-timeout]]
+== {agent} enrollment fails on the host with `Client.Timeout exceeded` message
+
+To enroll in {fleet}, {agent} must connect to the {fleet-server} instance.
+If the agent is unable to connect, you see the following failure:
+
+[source,output]
+-----
+fail to enroll: fail to execute request to {fleet-server}:Post http://fleet-server:8220/api/fleet/agents/enroll?: net/http: request canceled while waiting for connection (Client.Timeout exceeded while awaiting headers)
+-----
+
+Here are several steps to help you troubleshoot the problem.
+
+. Check for networking problems. From the host, run the `ping` command to confirm
+that it can reach the {fleet-server} instance.
+
+. Additionally, `curl` the `/status` API of {fleet-server}:
++
+[source,shell]
+----
+curl -f http://<fleet-server-url>:8220/api/status
+----
++
+. Verify that you have specified the correct {kib} {fleet} settings URL and port for
+your environment.
++
+By default, HTTPS protocol and port 8220 is expected by {fleet-server} to communicate
+with {es} unless you have explicitly set it otherwise.
++
+. Check that you specified a valid enrollment key during enrollment. To do this:
+.. In {fleet}, select **Enrollment tokens**.
+.. To view the secret, click the eyeball icon. The secret should match the string
+that you used to enroll {agent} on your host.
+.. If the secret doesn't match, create a new enrollment token and use this
+token when you run the `elastic-agent enroll` command.
+
+[discrete]
+[[general-fleet-server-triage]]
+== Many {fleet-server} problems can be triaged and fixed with the below tips
+
+IMPORTANT: When creating an issue or sending a support forum communication, this section
+can help you identify what is required.
+
+{fleet-server} allows {agent} to connect to {es}, which is the same as the connection
+to {kib} in prior releases. However, because {fleet-server} is on the edge host, it may
+result in additional networking setup and troubleshooting.
+
+[discrete]
+=== Retrieve the {agent} version
+
+. If you installed the {agent}, run the following command (the example is for POSIX
+based systems):
++
+[source,shell]
+----
+elastic-agent version
+----
++
+. If you have not installed the {agent} and you are running it as a temporary process, you can run:
++
+[source,shell]
+----
+./elastic-agent version
+----
++
+NOTE: Both of the above commands are accessible via Windows or macOS with their OS-specific slight variation in
+how you call them. If needed, please refer to <<elastic-agent-installation>>
+for examples of how to adjust them.
+
+[discrete]
+=== Check the {agent} status
+
+Run the following command to view the current status of the {agent}.
+
+[source,shell]
+----
+elastic-agent status
+----
+
+Based on the information returned, you can take further action.
+
+If {agent} is running, but you do not see what you expect, here are some items to review:
+
+. In {fleet}, click **Agents**. Check which policy is associated with the running {agent}. If it is not the policy you expected, you can change it.
+. In {fleet}, click **Agents**, and then select the {agent} policy. Check for the integrations that should be included.
++
+For example, if you want to include system data, make sure the *System* integration is included in the policy.
++
+. Confirm if the *Collect agent logs* and *Collect agent metrics* options are selected.
+.. In {fleet}, click **Agents**, and then select the {agent} policy.
+.. Select the *Settings* tab. If you want to collect agent logs or metrics, select these options.
++
+IMPORTANT: The *{ecloud} agent policy* is created only in {ecloud} deployments and, by default,
+does not include the collection of logs of metrics.
+
+You can collect other files to assess and pass to the Elastic team for review for some more advanced debugging cases.
+These files should all be in the {agent} directory on disk: `state.yml`, `fleet.yml` and `elastic-agent.yml`.
+
+[discrete]
+=== Collect {agent} diagnostics bundle
+
+Run the following command to generate a zip archive containing diagnostics information that the Elastic team can use for debugging cases.
+
+[source,shell]
+----
+elastic-agent diagnostics collect
+----
+
+This archive collects the following information:
+
+. {agent} versions numbers
+. {beats} (and other process) version numbers and process metadata
+. Local configuration, elastic-agent policy, and the configuration that is rendered and passed to {beats} and other processes
+. {agent}'s local log files
+
+Note that the diagnostics bundle is intended for debugging purposes only, its structure may change between releases.
+
+IMPORTANT: The configuration files in the archive may have credentials in *plain text*.
+These will need to be manually redacted before the archive is shared.
+
+The diagnostics command is also able to collect `pprof` data in the archive if the `--pprof` flag is passed:
+
+If `agent.monitoring.http.buffer.enabled` is set to `true`, the archive will also contain recent metrics from the {agent} and {beats} processes.
+
+[source,shell]
+----
+elastic-agent diagnostics collect --pprof
+----
+
+By default this command takes a little more than 30 seconds to run because it collects 30 seconds trace and profile information from the {agent} and all underlying {beats}.
+To change the duration of the trace and profile data, set the `--pprof-duration` flag.
+
+To set the timeout value for the collection command, use the `--timeout` flag. The timeout defaults to 30 seconds + `pprof-duration`.
+Use this flag to increase the timeout if the diagnostics command times out before creating the archive.
+
+[discrete]
+[[not-installing-no-logs-in-terminal]]
+== Some problems occur so early that insufficient logging is available
+
+If some problems occur early and insufficient logging is available, run the following command:
+
+[source,shell]
+----
+./elastic-agent install -f
+----
+
+The stand-alone install command installs the {agent}, and all of the service configuration is set up. You can now run the
+'enrollment' command. For example:
+
+[source,shell]
+----
+elastic-agent enroll -f --fleet-server-es=https://<es-url>:443 --fleet-server-service-token=<token> --fleet-server-policy=<policy-id>
+----
+Note: Port `443` is commonly used in {ecloud}. However, with self-managed deployments, your {es} may run on port `9200` or something entirely different.
+
+For information on where to find agent logs, refer to our <<where-are-the-agent-logs,FAQ>>.
+
+[discrete]
+[[agent-healthy-but-no-data-in-es]]
+== The {agent} is cited as `Healthy` but still has set up problems sending data to {es}
+
+. To confirm that the {agent} is running and its status is `Healthy`, select the *Agents* tab.
++
+If you previously selected the *Collect agent logs* option, you can now look at the agent logs.
++
+. Click the agent name and then select the *Logs* tab.
++
+If there are no logs displayed, it suggests a communication problem between your host and {es}. The possible reason for this is
+that the port is already in use.
++
+. You can check the port usage using tools like Wireshark or netstat. On a POSIX system, you can run the following command:
++
+[source,shell]
+----
+netstat -nat | grep :8220
+----
++
+Any response data indicates that the port is in use. This could be correct or not
+if you had intended to uninstall the {fleet-server}. In which case, re-check and continue.
+
+[discrete]
+[[secondary-agent-not-connecting]]
+== {fleet-server} is running and healthy with data, but other Agents cannot use it to connect to {es}
+
+Some settings are only used when you have multiple {agent}s.  If this is the case, it may help
+to check that the hosts can communicate with the {fleet-server}.
+
+From the non-{fleet-server} host, run the following command:
+
+[source,shell]
+----
+curl -f http://<fleet-server-ip>:8220/api/status
+----
+
+The response may yield errors that you can be debug further, or it may work and show that communication ports and
+networking are not the problems.
+
+One common problem is that the default {fleet-server} port of `8220` isn’t open on the {fleet-server}
+host to communicate. You can review and correct this using common tools in alignment with any
+networking and security concerns you may have.
+
+[discrete]
+[[es-apikey-failed]]
+== {es} authentication service fails with `Authentication using apikey failed` message
+
+To save API keys and encrypt them in {es}, {fleet} requires an encryption key.
+
+To provide an API key, in the `kibana.yml` configuration file, set the `xpack.encryptedSavedObjects.encryptionKey` property.
+
+[source,yaml]
+----
+xpack.encryptedSavedObjects.encryptionKey: "something_at_least_32_characters"
+----
+
+[discrete]
+[[process-not-root]]
+== {agent} fails with `Agent process is not root/admin or validation failed` message
+
+Ensure the user running {agent} has root privileges as some integrations
+require root privileges to collect sensitive data.
+
+If you're running {agent} in the foreground (and not as a service) on Linux or macOS, run the
+agent under the root user: `sudo` or `su`.
+
+If you're using the {elastic-endpoint-integration} integration, make sure you're
+running {agent} under the SYSTEM account.
+
+TIP: If you install {agent} as a service as described in
+<<elastic-agent-installation>>, {agent} runs under the SYSTEM account by
+default.
+
+To run {agent} under the SYSTEM account, you can do the following:
+
+. Download https://docs.microsoft.com/en-us/sysinternals/downloads/psexec[PsExec]
+and extract the contents to a folder. For example, `d:\tools`.
+. Open a command prompt as an Administrator (right-click the command prompt
+icon and select *Run As Administrator*).
+. From the command prompt, run {agent} under the SYSTEM account:
++
+[source,sh]
+----
+d:\tools\psexec.exe -sid "C:\Program Files\Elastic-Agent\elastic-agent.exe" run
+----
+
+
+[discrete]
+[[upgrading-integration-too-many-conflicts]]
+== Integration policy upgrade has too many conflicts
+
+If you try to upgrade an integration policy that is several versions old, there
+may be substantial conflicts or configuration issues. Rather than trying to fix
+these problems, it might be faster to create a new policy, test it, and roll
+out the integration upgrade to additional hosts.
+
+After <<upgrade-integration,upgrading the integration>>:
+
+. <<create-a-policy,Create a new policy>>.
+
+. <<add-integration,Add the integration to the policy>>.
+The newer version is automatically used.
+
+. <<apply-a-policy,Apply the policy>> to an {agent}.
++
+TIP: In larger deployments, you should test integration upgrades on a sample {agent}
+before rolling out a larger upgrade initiative.
+Only after a small trial is deemed successful should the updated policy be
+rolled out all hosts.
+
+. Roll out the integration update to additional hosts:
+
+.. In {fleet}, click *Agent policies*.
+Click on the name of the policy you want to edit.
+
+.. Search or scroll to a specific integration.
+Open the *Actions* menu and select *Delete integration*.
+
+.. Click *Add integration* and re-add the freshly deleted integration.
+The updated version will be used and applied to all {agent}s.
+
+.. Repeat this process for each policy with the out-of-date integration.
++
+NOTE: In some instances, for example, when there are hundreds or thousands of different {agent}s and
+policies that need to be updated, this upgrade path is not feasible.
+In this case, update one policy and use the <<copy-policy>> action to apply the updated policy versions to additional policies.
+This method's downside is losing
+the granularity of assessing the individual Integration version changes individually across policies.
+
+[discrete]
+[[agent-hangs-while-unenrolling]]
+== {agent} hangs while unenrolling
+
+When unenrolling {agent}, {fleet} waits for acknowledgment from the agent
+before it completes the unenroll process. If {fleet} doesn't receive an
+acknowledgment, the status hangs at `unenrolling.`
+
+You can unenroll an agent to invalidate all API keys related to the agent and change the status to
+`inactive` so that the agent no longer appears in {fleet}.
+
+. In {fleet}, select **Agents**.
+
+. Under Agents, choose **Unenroll agent** from the **Actions** menu next to the
+agent you want to unenroll.
+
+. Click **Force unenroll**.
+
+[discrete]
+[[ca-cert-testing]]
+== On {fleet-server} startup, ERROR seen with `State changed to CRASHED: exited with code: 1`
+
+You may see this error message for a number of different reasons. A common reason is when attempting production-like usage and the ca.crt file passed in cannot be found.  To verify if this is the problem, bootstrap {fleet-server} without passing a ca.crt file. This implies you would test any subsequent
+{agent} installs temporarily with {fleet-sever}'s own self-signed cert.
+
+TIP: Ensure to pass in the full path to the ca.crt file. A relative path is not viable.
+
+You will know if your {fleet-server} is set up with its testing oriented self-signed certificate usage,
+when you see the following error during {agent} installs:
+
+[source,sh]
+----
+Error: fail to enroll: fail to execute request to fleet-server: x509: certificate signed by unknown authority
+Error: enroll command failed with exit code: 1
+----
+
+To install or enroll against a self-signed cert {fleet-server} {agent}, add in the `--insecure` option to the
+command:
+
+[source,sh]
+----
+sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
+----
+
+For more information, refer to <<agent-enrollment-certs>>.
+
+[discrete]
+[[endpoint-not-uninstalled-with-agent]]
+== Uninstalling {elastic-endpoint} fails
+
+When you uninstall {agent}, all the programs managed by {agent}, such as
+{elastic-endpoint}, are also removed. If uninstalling fails,
+{elastic-endpoint} might remain on your system.
+
+To remove {elastic-endpoint}, run the following commands:
+
+--
+include::{tab-widgets}/remove-endpoint-files/widget.asciidoc[]
+
+--
+
+[discrete]
+[[endpoint-unauthorized]]
+== API key is unauthorized to send telemetry to `.logs-endpoint.diagnostic.collection-*` indices
+
+By default, telemetry is turned on in the {stack} to helps us learn about the
+features that our users are most interested in. This helps us to focus our efforts on
+making features even better.
+
+If you've recently upgraded from version `7.10` to `7.11`, you might see the
+following message when you view {endpoint-sec} logs:
+
+[source,sh]
+----
+action [indices:admin/auto_create] is unauthorized for API key id [KbvCi3YB96EBa6C9k2Cm]
+of user [fleet_enroll] on indices [.logs-endpoint.diagnostic.collection-default]
+----
+
+The above message indicates that {elastic-endpoint} does not have the correct
+permissions to send telemetry. This is a known problem in 7.11 that will be
+fixed in an upcoming patch release.
+
+To remove this message from your logs, you can turn off telemetry for the {endpoint-sec} integration
+until the next patch release is available.
+
+. In {kib}, click **Integrations**, and then select the **Manage** tab.
+
+. Click **{endpoint-sec}**, and then select the **Policies** tab to view all the
+installed integrations.
+
+. Click the integration to edit it.
+
+. Under advanced settings, set `windows.advanced.diagnostic.enabled`
+to `false`, and then save the integration.
+
+
+[discrete]
+[[hosted-agent-offline]]
+== Hosted {agent} is offline
+
+To scale the {fleet-server} deployment, {ecloud} starts new containers or shuts down old ones when hosted {agent}s are required or no longer needed. The old {agent}s will show in the Agents list for 24 hours then automatically disappear.
+
+[discrete]
+[[hosted-agent-8-x-upgrade-fail]]
+== APM & {fleet} fails to upgrade to 8.x on {ecloud}
+
+In some scenarios, upgrading APM & {fleet} to 8.x may fail if the {ecloud} agent policy was modified manually. The {fleet} app in {kib} may show a message like:
+
+[source,sh]
+----
+Unable to create package policy. Package 'apm' already exists on this agent policy
+----
+
+To work around this problem, you can reset the {ecloud} agent policy with an API call. Note that this will remove any custom integration policies that you've added to the policy, such as Synthetics monitors.
+
+[source,sh]
+----
+curl -u elastic:<password> --request POST \
+  --url <kibana_url>/internal/fleet/reset_preconfigured_agent_policies/policy-elastic-agent-on-cloud \
+  --header 'Content-Type: application/json' \
+  --header 'kbn-xsrf: xyz' \
+----

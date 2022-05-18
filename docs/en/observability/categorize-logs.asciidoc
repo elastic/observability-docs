@@ -6,53 +6,56 @@ log messages are the same or very similar, so classifying them can reduce
 millions of log lines into just a few categories.
 
 Within the {logs-app}, the *Categories* page enables you to identify patterns in
-your log events quickly. Instead of manually identifying similar logs, the logs categorization view lists
-log events that have been grouped based on their messages and formats so that you can take action
-quicker.
+your log events quickly. Instead of manually identifying similar logs, the logs 
+categorization view lists log events that have been grouped based on their 
+messages and formats so that you can take action quicker.
 
+[discrete]
 [[create-log-categories]]
 == Create log categories
 
-Create a machine learning job to categorize log messages automatically. Machine learning will observe
-the static parts of the message, cluster similar messages, and classify them into message categories.
+Create a 
+{ml-docs}/ml-configuring-categories.html[{ml} job to categorize log messages] 
+automatically. {ml-cap} observes the static parts of the message, clusters 
+similar messages, classifies them into message categories, and detects unusually 
+high message counts in the categories. 
 
-1. Select *Categories*, and you'll be prompted to use machine learning, which will carry out the log rate categorizations.
-2. Choose a time range for the machine learning analysis.
-3. Add the Indices that contain the logs you want to analyze.
-4. Click *Create ML job*.
-5. You're now ready to explore your log categories.
+[role="screenshot"]
+image::images/log-create-categorization-job.jpg[Configure log categorization job]
 
+// lint ignore ml
+1. Select *Categories*, and you are prompted to use {ml} to create 
+   log rate categorizations.
+2. Choose a time range for the {ml} analysis. By default, the {ml} job analyzes 
+   log messages no older than four weeks and continues indefinitely.
+3. Add the indices that contain the logs you want to examine.
+4. Click *Create ML job*. The job is created, and it starts to run. It takes a few 
+   minutes for the {ml} robots to collect the necessary data. After the job 
+   processed the data, you can view the results.
+
+[discrete]
 [[analyze-log-categories]]
 == Analyze log categories
 
-Here we see the *Categories* page, which lists various log categories from
-`elasticsearch.server` logs, along with the maximum anomaly score on the right.
+The *Categories* page lists all the log categories from the selected indices. 
+You can filter the categories by indices. The screenshot below shows the 
+categories from the `elastic.agent` log.
 
 [role="screenshot"]
-image::images/log-categories.png[Log categories]
+image::images/log-categories.jpg[Log categories]
 
-The highlighted log category has a very high anomaly score, and looks like this:
+The category row contains the following information: 
 
-[source,console-result]
-----------------------------------
-⁕type⁕server⁕timestamp⁕level⁕component⁕o.e.m.j.JvmGcMonitorService⁕cluster.name
-⁕elasticsearch⁕node.name⁕message⁕gc⁕overhead⁕spent⁕collecting⁕in⁕the⁕last⁕cluster.uuid⁕
-jx_Bw17eT_OQshT2IrDuzg⁕node.id⁕
-----------------------------------
+* message count: shows how many messages belong to the given category.
+* trend: indicates how the occurrence of the messages changes in time.
+* category name: it is the name of the category and is derived from the message 
+  text.
+* datasets: the name of the datasets where the categories are present.
+* maximum anomaly score: the highest anomaly score in the category.
 
-Here is an example of a log line in this category:
+To view a log message under a particular category, click  
+the arrow at the end of the row. To further examine a message, it 
+can be viewed in the corresponding log event on the *Stream* page or displayed in its context.
 
-[source,console-result]
-----------------------------------
-[elasticsearch.server][INFO] {"type": "server", "timestamp": "2020-01-31T22:51:03,633Z",
-"level": "INFO", "component": "o.e.m.j.JvmGcMonitorService", "cluster.name": "elasticsearch",
-"node.name": "elasticsearch-master-0", "message": "[gc][411617] overhead, spent [316ms]
-collecting in the last [1s]", "cluster.uuid": "jx_Bw17eT_OQshT2IrDuzg", "node.id": "JwIW6wI2T6WsgpoaUB3eaA" }
-----------------------------------
-
-The anomaly indicates an unexpected slow down of garbage collection runs, which could indicate low
-JVM memory problems impacting {es} performance.
-
-Suppose you were already alerted about low JVM memory through the monitoring setup. In that case,
-logs categorization makes it easier to find the root cause by indicating the above category
-of `stopped garbage collection`.
+[role="screenshot"]
+image::images/log-opened.png[Opened log category]

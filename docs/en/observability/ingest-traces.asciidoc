@@ -1,0 +1,155 @@
+[[ingest-traces]]
+= Ingest application traces with {agent}
+
+++++
+<titleabbrev>Ingest traces</titleabbrev>
+++++
+
+// THIS CONTENT IS ALSO USED IN THE APM GUIDE
+// tag::apm-quick-start[]
+
+This guide describes how to:
+
+* Collect Application Performance Monitoring (APM) data
+* Send APM data to the {stack}
+* Explore and visualize the data in real-time
+
+For feedback and questions, please contact us in the {forum}[discuss forum].
+
+[discrete]
+[[fleet-prereqs-traces]]
+== Prerequisites
+
+You need {es} for storing and searching your data, and {kib} for visualizing and
+managing it. You can use our {ess-product}[hosted {ess}] on {ecloud}
+(recommended), or self-manage the {stack} on your own hardware.
+
+Here's what you need for each deployment type:
+
+include::../ingest-management/tab-widgets/prereq-widget.asciidoc[]
+
+[discrete]
+[[set-up-fleet-traces]]
+== Step 1: Set up {fleet}
+
+Use {fleet} in {kib} to get APM data into the {stack}.
+
+The first time you use {fleet}, you might need to set it up and add a
+{fleet-server}:
+
+include::../ingest-management/tab-widgets/add-fleet-server/widget.asciidoc[]
+
+For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
+
+NOTE: The APM integration does not support running {agent} in standalone mode;
+you must use {fleet} to manage {agent}.
+
+[discrete]
+[[add-apm-integration]]
+== Step 2: Add the APM integration
+
+Next, add the APM integration to the default policy used by your {agent}.
+Policies manage settings across a group of {agent}s and may contain any number of integrations
+for collecting observability data from the various services running on your host.
+
+include::./tab-widgets/add-apm-integration/widget.asciidoc[]
+
+[discrete]
+[[add-agent-to-fleet-traces]]
+== Step 3: Install and run an {agent} on your machine
+
+****
+This step is optional for {ess} users as {ecloud} spins up an {agent} instance automatically.
+Unless you want to run a separate {agent} on an edge machine, {ess} users should skip this step.
+****
+
+{agent} is a single, unified way to add monitoring for logs, metrics, and other
+types of data to a host. It can also protect hosts from security threats, query
+data from operating systems, and more. A single agent makes it easy and fast to
+deploy monitoring across your infrastructure. Each agent has a single policy (a
+collection of input settings) that you can update to add integrations for new
+data sources, security protections, and more.
+
+Don't confuse {agent} with APM agents–they are different components.
+In a later step, you'll instrument your code with APM agents and send the data
+to an APM Server instance that {agent} spins up.
+
+If you plan on enabling Real User Monitoring (RUM), you must run {agent} centrally.
+If RUM is disabled, you should run {agent} on edge machines.
+
+To send APM data to the {stack}:
+
+include::../ingest-management/elastic-agent/install-fleet-managed-elastic-agent.asciidoc[tag=agent-enroll]
+
+
+[discrete]
+[[add-apm-integration-agents]]
+== Step 4: Install APM agents
+
+APM agents are written in the same language as your service.
+To monitor a new service, you must install the agent and configure it with a service name,
+APM Server host, and Secret token.
+
+* **Service name**: The APM integration maps an instrumented service's name–defined in each {apm-agent}'s configuration–
+to the index that its data is stored in {es}.
+Service names are case-insensitive and must be unique.
+For example, you cannot have a service named `Foo` and another named `foo`.
+Special characters will be removed from service names and replaced with underscores (`_`).
+
+* **APM Server URL**: The host and port that APM Server listens for events on.
+This should match the host and port defined when setting up the APM integration.
+
+* **Secret token**: Authentication method for {apm-agent} and APM Server communication.
+This should match the secret token defined when setting up the APM integration.
+
+TIP: You can edit your APM integration settings if you need to change the APM Server URL
+or secret token to match your APM agents.
+
+--
+// this if directive includes the same file, but changes the file path based on where this guide is built
+ifndef::apm-integration-docs[]
+include::{apm-repo-dir}/legacy/tab-widgets/install-agents-widget.asciidoc[]
+endif::[]
+
+ifdef::apm-integration-docs[]
+include::{docdir}/legacy/tab-widgets/install-agents-widget.asciidoc[]
+endif::[]
+--
+
+[discrete]
+[[view-apm-integration-data]]
+== Step 5: View your data
+
+Back in {kib}, under {observability}, select APM.
+You should see application performance monitoring data flowing into the {stack}!
+
+NOTE: The built-in `apm_user` role is not compatible with the APM integration
+as it only provides read access to `apm-*` indices.
+For a list of indices users need access to, refer to
+{apm-guide-ref}/apm-data-streams.html[APM data streams]
+
+[role="screenshot"]
+image::images/kibana-apm-sample-data.png[{apm-app} with data]
+
+[discrete]
+== What's next?
+
+* Now that data is streaming into the {stack}, take your investigation to a
+deeper level! Use https://www.elastic.co/observability[Elastic {observability}]
+to unify your logs, metrics, uptime, and application performance data.
+
+* Want to protect your endpoints from security threats? Try
+https://www.elastic.co/security[{elastic-sec}]. Adding endpoint protection is
+just another integration that you add to the agent policy!
+
+* Are your eyes bleary from staring at a wall of screens?
+{observability-guide}/create-alerts.html[Create alerts] and find out about
+problems while sipping your favorite beverage poolside.
+
+* Want Elastic to do the heavy lifting? Use {ml} to
+{observability-guide}/inspect-log-anomalies.html[detect anomalies].
+
+* Got everything working like you want it? Roll out your agent policies to
+other hosts by deploying {agent}s across your infrastructure!
+
+// end::apm-quick-start[]

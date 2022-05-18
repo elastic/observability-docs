@@ -5,17 +5,20 @@
 :beatname_lc: filebeat
 :beatname_pkg: {beatname_lc}
 :beatname_url: {beats-ref-root}/{beatname_lc}/{branch}
-:modulename: system nginx mysql
+:modulename: nginx
 :has_modules_command:
-:release-state: released
 
 [[ingest-logs]]
-= Ingest logs
+= Ingest logs with {filebeat}
+
+++++
+<titleabbrev>Ingest logs</titleabbrev>
+++++
 
 [NOTE]
 =====
 If you haven't already, you need to install {es} for storing and searching your data, and {kib} for visualizing and
-managing it. For more information, see <<add-observability-data,Send data to {es}>>.
+managing it. For more information, see <<spin-up-stack>>.
 =====
 
 Install and configure {filebeat} on your servers to collect log events. {filebeat} allows you ship log data from sources that come
@@ -24,6 +27,7 @@ collects log events, and forwards them to {es}. To ease the collection and parsi
 log formats for common applications such as Apache, MySQL, and Kafka, a number of
 {filebeat-ref}/filebeat-modules.html[modules] are available.
 
+[discrete]
 [[install-filebeat]]
 == Step 1: Install {beatname_uc}
 
@@ -33,6 +37,7 @@ To download and install {beatname_uc}, use the commands that work with your syst
 
 include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
 
+[discrete]
 [[other-filebeat-installations]]
 === Other installation options
 
@@ -43,6 +48,7 @@ include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
 * {filebeat-ref}/setup-repositories.html[APT or YUM]
 * https://www.elastic.co/downloads/beats/filebeat[Download page]
 
+[discrete]
 [[logs-connect-to-stack]]
 == Step 2: Connect to {es} and {kib}
 
@@ -58,11 +64,12 @@ To learn more about required roles and privileges, see {filebeat-ref}/feature-ro
 [NOTE]
 =====
 
-You can send data to other {filebeat-ref}/configuring-output.html[outputs], such as Logstash, 
+You can send data to other {filebeat-ref}/configuring-output.html[outputs], such as {ls},
 but that requires additional configuration and setup.
 
 =====
 
+[discrete]
 [[enable-logs-modules]]
 == Step 3: Enable and configure modules
 
@@ -78,14 +85,13 @@ Can’t find a module for your file type? Skip this section and
 {filebeat-ref}/configuration-filebeat-options.html[configure the input manually].
 
 . From the installation directory, enable one or more modules. For example, the
-following command enables the `system`, `nginx`, and `mysql` module
-configs:
+following command enables the +{modulename}+ module config:
 +
 --
 include::{beats-repo-dir}/tab-widgets/enable-modules-widget.asciidoc[]
 --
 
-. In the module configs under `modules.d`, change the module settings to match
+. In the module config under `modules.d`, change the module settings to match
 your environment.
 +
 For example, log locations are set based on the OS. If your logs aren't in
@@ -96,7 +102,7 @@ default locations, set the `paths` variable:
 ----
 - module: nginx
   access:
-    var.paths: ["/var/log/nginx/access.log*"] <1> 
+    var.paths: ["/var/log/nginx/access.log*"] <1>
 ----
 --
 
@@ -106,8 +112,8 @@ To see the full list of variables for a module, see the documentation under
 [TIP]
 =====
 To test your configuration file, change to the directory where the {beatname_uc} binary
-is installed, and run {beatname_uc} in the foreground with the following options specified: 
-`./filebeat test config -e`. Make sure your config files are in the path expected by 
+is installed, and run {beatname_uc} in the foreground with the following options specified:
+`./filebeat test config -e`. Make sure your config files are in the path expected by
 {beatname_uc} (see {filebeat-ref}/directory-layout.html[Directory layout]),
 or use the `-c` flag to specify the path to the config file.
 =====
@@ -116,9 +122,10 @@ For more information about configuring {beatname_uc}, also see:
 
 * {filebeat-ref}/configuring-howto-filebeat.html[Configure {beatname_uc}]
 * {beats-ref}/config-file-format.html[Config file format]
-* {filebeat-ref}/filebeat-reference-yml.html[`filebeat.reference.yml`]: This reference 
+* {filebeat-ref}/filebeat-reference-yml.html[`filebeat.reference.yml`]: This reference
 configuration file shows all non-deprecated options. You’ll find it in the same location as `filebeat.yml`.
 
+[discrete]
 [[set-filebeat-assets]]
 == Step 4: Set up assets
 {beatname_uc} comes with predefined assets for parsing, indexing, and
@@ -148,10 +155,11 @@ A connection to {es} (or {ess}) is required to set up the initial
 environment. If you're using a different output, such as {ls}, see:
 
 * {filebeat-ref}/filebeat-template.html#load-template-manually[Load the index template manually]
-* {filebeat-ref}/load-kibana-dashboards.html[Load Kibana dashboards]
+* {filebeat-ref}/load-kibana-dashboards.html[Load {kib} dashboards]
 * {filebeat-ref}/load-ingest-pipelines.html[Load ingest pipelines]
 =====
 
+[discrete]
 [[start-filebeat]]
 == Step 5: Start {beatname_uc}
 
@@ -169,6 +177,7 @@ include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
 
 {beatname_uc} should begin streaming events to {es}.
 
+[discrete]
 [[view-logs-kibana]]
 == Step 6: Confirm logs are streaming
 
@@ -182,23 +191,19 @@ include::{beats-repo-dir}/tab-widgets/open-kibana-widget.asciidoc[]
 
 . Open the main menu, then click *Discover*.
 +
-. Select `filebeat-*` as your index pattern.
+. Select `filebeat-*` as your {data-source}.
 +
-Each document in the index that matches the `filebeat-*` index pattern
+Each document in the index that matches the `filebeat-*` {data-source}
 is displayed. By default, *Discover* shows data for the last 15 minutes.  If you have
 a time-based index, and no data displays, you might need to increase the time range.
 +
 You can now search your log messages, filter your search results, add or remove fields,
 examine the document contents in either table or JSON format, and view a document in context.
 
-Now let's have a look at the <<monitor-logs,Logs app>>.
-
-// Add Javascript and CSS for tabbed panels
-include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
+Now let's have a look at the <<monitor-logs,{logs-app}>>.
 
 :!beatname_uc:
 :!beatname_lc:
 :!beatname_pkg:
 :!modulename:
 :!has_modules_command:
-:!release-state:

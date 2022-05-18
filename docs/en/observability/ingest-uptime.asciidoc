@@ -7,24 +7,29 @@
 :beatname_url: {beats-ref-root}/{beatname_lc}/{branch}
 
 [[ingest-uptime]]
-= Ingest uptime data
+= Ingest uptime data with {heartbeat}
+
+++++
+<titleabbrev>Ingest uptime data</titleabbrev>
+++++
 
 [NOTE]
 =====
 If you haven't already, you need to install {es} for storing and searching your data, and {kib} for visualizing and
-managing it. For more information, see <<add-observability-data,Send data to {es}>>.
+managing it. For more information, see <<spin-up-stack>>.
 =====
 
-Install and configure {heartbeat} on your servers to periodically check the status of your 
-services. {heartbeat} uses probing to monitor the availability of services and helps 
+Install and configure {heartbeat} on your servers to periodically check the status of your
+services. {heartbeat} uses probing to monitor the availability of services and helps
 verify that you’re meeting your service level agreements for service uptime.
-You typically install {heartbeat} as part of a monitoring service that runs on a separate machine 
+You typically install {heartbeat} as part of a monitoring service that runs on a separate machine
 and possibly even outside of the network where the services that you want to monitor are running.
 
+[discrete]
 [[deployment-considerations]]
 == Deployment considerations
 
-There are multiple ways to deploy Uptime and Heartbeat. A guiding principle is that when
+There are multiple ways to deploy Uptime and {heartbeat}. A guiding principle is that when
 an outage takes down the service being monitored, it should not take down {heartbeat}.
 
 {heartbeat} is commonly run as a centralized service within a data center.
@@ -43,7 +48,7 @@ To check if your site is reachable via CDN POPS, deploy multiple {heartbeat} ins
 different data centers around the world.
 +
 * A service within a single data center that is accessed across multiple VPNs.
-+ 
++
 Set up one {heartbeat} instance within the VPN the service operates from, and another within an additional
 VPN that users access the service from. In the event of an outage, having both instances helps pinpoint
 the network errors.
@@ -56,16 +61,18 @@ copy of the service and its counterpart across the country. Set up two monitors 
 the local service, and one for the remote service. In the event of a data center failure, it will be
 immediately apparent if the service has a connectivity issue to the outside world, or if the failure is only internal.
 
+[discrete]
 [[install-heartbeat]]
 == Step 1: Install {beatname_uc}
 
-You typically install {heartbeat} as part of a monitoring service that runs on a separate machine 
+You typically install {heartbeat} as part of a monitoring service that runs on a separate machine
 and possibly even outside of the network where the services that you want to monitor are running.
 
 To download and install {beatname_uc}, use the commands that work with your system:
 
 include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
 
+[discrete]
 [[other-heartbeat-installations]]
 === Other installation options
 
@@ -73,6 +80,7 @@ include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
 * {heartbeat-ref}/setup-repositories.html[APT or YUM]
 * https://www.elastic.co/downloads/beats/heartbeat[Download page]
 
+[discrete]
 [[uptime-connect-to-stack]]
 == Step 2: Connect to {es} and {kib}
 
@@ -86,19 +94,20 @@ include::{beats-repo-dir}/tab-widgets/set-connection-widget.asciidoc[]
 [NOTE]
 =====
 
-You can send data to other {heartbeat-ref}/configuring-output.html[outputs], such as Logstash, 
+You can send data to other {heartbeat-ref}/configuring-output.html[outputs], such as {ls},
 but that requires additional configuration and setup.
 
 =====
 
 To learn more about required roles and privileges, see {heartbeat-ref}/feature-roles.html[Grant users access to secured resources].
 
+[discrete]
 [[heartbeat-configuration]]
 == Step 3: Configure {beatname_uc} monitors
 
 {beatname_uc} provides monitors to check the status of hosts at set intervals.
 {beatname_uc} currently provides monitors for ICMP, TCP, and HTTP (see
-{heartbeat-ref}/heartbeat-overview.html[{beatname_uc} overview] for more about these monitors). 
+{heartbeat-ref}/heartbeat-overview.html[{beatname_uc} overview] for more about these monitors).
 
 You configure each monitor individually. In `heartbeat.yml`, specify the
 list of monitors that you want to enable. Each item in the list begins with a
@@ -128,10 +137,10 @@ was started. {beatname_uc} adds the `@every` keyword to the syntax provided by t
 [TIP]
 =====
 
-To test your configuration file, change to the directory where the {beatname_uc} binary 
-is installed, and run {beatname_uc} in the foreground with the following options specified: 
-`./heartbeat test config -e`. Make sure your config files are in the path expected by 
-{beatname_uc} (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the 
+To test your configuration file, change to the directory where the {beatname_uc} binary
+is installed, and run {beatname_uc} in the foreground with the following options specified:
+`./heartbeat test config -e`. Make sure your config files are in the path expected by
+{beatname_uc} (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the
 `-c` flag to specify the path to the config file.
 =====
 
@@ -139,20 +148,21 @@ For more information about configuring {beatname_uc}, also see:
 
 * {heartbeat-ref}/configuring-howto-heartbeat.html[Configure {beatname_uc}]
 * {beats-ref}/config-file-format.html[Config file format]
-* {heartbeat-ref}/heartbeat-reference-yml.html[`heartbeat.reference.yml`]: This 
+* {heartbeat-ref}/heartbeat-reference-yml.html[`heartbeat.reference.yml`]: This
 reference configuration file shows all non-deprecated options. You’ll find it in the same location as `heartbeat.yml`.
 
+[discrete]
 [[configure-heartbeat-location]]
 == Step 4: Configure {beatname_uc} location
 
-{beatname_uc} can be deployed in multiple locations so that you can detect 
+{beatname_uc} can be deployed in multiple locations so that you can detect
 differences in availability and response times across those locations.
 Configure the {beatname_uc} location to allow {kib} to display location-specific
-information on Uptime maps and perform Uptime anomaly detection based
+information on Uptime maps and perform Uptime {anomaly-detect} based
 on location.
 
-To configure the location of a {beatname_uc} instance, modify the 
-`add_observer_metadata` processor in +{beatname_lc}.yml+.  The following 
+To configure the location of a {beatname_uc} instance, modify the
+`add_observer_metadata` processor in +{beatname_lc}.yml+.  The following
 example specifies the `geo.name` of the `add_observer_metadata` processor as
 `us-east-1a`:
 
@@ -170,19 +180,20 @@ processors:
         #location: "37.926868, -78.024902" <3>
 ----------------------------------------------------------------------
 <1> Uncomment the `geo` setting.
-<2> Uncomment `name` and assign the name of the location of the Heartbeat server.
+<2> Uncomment `name` and assign the name of the location of the {heartbeat} server.
 <3> Optionally uncomment `location` and assign the latitude and longitude.
 
 [TIP]
 =====
 
-To test your configuration file, change to the directory where the {beatname_uc} binary 
-is installed, and run {beatname_uc} in the foreground with the following options specified: 
-`./heartbeat test config -e`. Make sure your config files are in the path expected by 
-{beatname_uc} (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the 
+To test your configuration file, change to the directory where the {beatname_uc} binary
+is installed, and run {beatname_uc} in the foreground with the following options specified:
+`./heartbeat test config -e`. Make sure your config files are in the path expected by
+{beatname_uc} (see {heartbeat-ref}/directory-layout.html[Directory layout]), or use the
 `-c` flag to specify the path to the config file.
 =====
 
+[discrete]
 [[set-heartbeat-assets]]
 == Step 5: Set up assets
 
@@ -201,7 +212,7 @@ include::{beats-repo-dir}/tab-widgets/setup-widget.asciidoc[]
 `-e` is optional and sends output to standard error instead of the configured log output.
 
 This step loads the recommended {ref}/indices-templates.html[index template] for writing to {es}.
-It does not install {beatname_uc} dashboards. {beatname_uc} dashboards and 
+It does not install {beatname_uc} dashboards. {beatname_uc} dashboards and
 installation steps are available in the
 https://github.com/elastic/uptime-contrib[uptime-contrib] GitHub repository.
 
@@ -212,6 +223,7 @@ environment. If you're using a different output, such as {ls}, see
 {heartbeat-ref}/heartbeat-template.html#load-template-manually[Load the index template manually].
 =====
 
+[discrete]
 [[start-heartbeat]]
 == Step 6: Start {beatname_uc}
 
@@ -229,6 +241,7 @@ include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
 
 {beatname_uc} is now ready to check the status of your services and send events to your defined output.
 
+[discrete]
 [[view-uptime-kibana]]
 == Step 7: View your data in {kib}
 
@@ -240,12 +253,9 @@ Let's confirm your data is correctly ingested to your cluster.
 include::{beats-repo-dir}/tab-widgets/open-kibana-widget.asciidoc[]
 --
 
-. In the side navigation, click *Observability > Uptime*.
+. In the side navigation, click *{observability} > Uptime*.
 
-Now let's have a look at the <<monitor-uptime,Uptime app>>.
-
-// Add Javascript and CSS for tabbed panels
-include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
+Now let's have a look at the <<monitor-uptime-synthetics,{uptime-app}>>.
 
 :!beatname_uc:
 :!beatname_lc:

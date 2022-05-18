@@ -1,72 +1,70 @@
 [[elastic-agent-installation]]
-[role="xpack"]
-= Install {agent} and enroll it in {fleet}
+= Install {agent}s
 
-beta[]
+****
+// tag::agent-install-intro[]
+{agent} is a single, unified way to add monitoring for logs, metrics, and other
+types of data to a host. It can also protect hosts from security threats, query
+data from operating systems, and more. A single agent makes it easy and fast to
+deploy monitoring across your infrastructure. Each agent has a single policy (a
+collection of input settings) that you can update to add integrations for new
+data sources, security protections, and more.
+// end::agent-install-intro[]
+****
 
-Install an {agent} on each host that you want to monitor. These steps assume
-that you're running a fresh installation. If {agent} is already running on your
-system and you want to upgrade to a new version, see <<upgrade-elastic-agent>>.
+//TODO: Follow up with Jason to see where and what we need to say about allowlists
+//for restricting access to the file system.
+You have a few options for installing and managing an {agent}:
 
-Before running the installation, decide whether you want to use {fleet} to
-manage your agents in a central location in {kib} (recommended), or run
-standalone agents.
+* **Install a {fleet}-managed {agent} (recommended)**
++
+With this approach, you install {agent} on each host you want to monitor and
+use {fleet} in {kib} to define, configure, and manage your agents in a central
+location.
++
+We recommend using {fleet} management because it makes the management and
+upgrade of your agents considerably easier.
++
+Refer to <<install-fleet-managed-elastic-agent>>.
 
-With {fleet}, you enroll each agent in a policy defined in {kib}. The policy
-specifies how to collect observability data from the services you want to
-monitor. The agent connects to a trusted {kib} instance to retrieve the policy
-and report agent events.
+* **Install {agent} in standalone mode (advanced users)**
++
+With this approach, you install {agent} on each host you want to monitor and
+manually configure the agent locally on the system where it’s installed. You are
+responsible for managing and upgrading the agents. This approach is reserved
+for advanced users only.
++
+Refer to <<install-standalone-elastic-agent>>.
++
+include::{fleet-repo-dir}/standalone-note.asciidoc[]
 
-TIP: We recommend using {fleet} management because it makes the management and
-upgrade of your agents considerably easier. If you want to run standalone
-agents, instead of using {fleet}, see <<run-elastic-agent-standalone>>.
-
-To install {agent} and enroll it in {fleet}:
-
-. If you're running {agent} 7.9 or earlier, stop the agent and manually remove
-it from your host.
-
-. On your host, download and extract the installation package.
+*  **Install {agent} in a containerized environment**
++
+You can run {agent} inside of a container -- either with {fleet-server} or
+standalone. Docker images for all versions of {agent} are available from the
+Elastic Docker registry, and we provide deployment manifests for running on
+Kubernetes.
++
+Refer to:
 +
 --
-// tag::install-elastic-agent[]
-
-include::{tab-widgets}/download-widget.asciidoc[]
-
-// end::install-elastic-agent[]
+* <<elastic-agent-container>>
+* <<running-on-kubernetes-managed-by-fleet>>
+* <<running-on-kubernetes-standalone>>
+* {eck-ref}/k8s-elastic-agent.html[Run {agent} on ECK] -- for {eck} users
 --
-
-. From the agent directory, run the appropriate command to install {agent} as
-a managed service, enroll it in {fleet}, and start the service. Don't have a
-{fleet} enrollment key? Read the
-{fleet-guide}/fleet-quick-start.html[Quick start guide] to learn how to get one
-from {fleet}.
-+
---
-include::{tab-widgets}/install-widget.asciidoc[]
---
-+
-This step installs the {agent} files into the directory locations described
-in <<installation-layout>>.
-
-Because {agent} is installed as an auto-starting service, it will restart
-automatically if the system is rebooted.
-
-To confirm that {agent} is installed and running, go to the **Agents** tab in
-{fleet}. 
-
-If you run into problems, see <<fleet-troubleshooting>>.
 
 [discrete]
-[[installation-layout]]
-== Installation layout
+== Minimum Requirements
 
-When you run the `install` command, {agent} installs files in the following
-locations. You cannot override these installation paths because they are
-required for upgrades.
+// lint ignore 2vcpu 1gb
+Minimum requirements have been determined by running the {agent} (`v8.0.0`) on a GCP `e2-micro` instance (2vCPU/1GB).
+The {agent} used the default policy, running the system integration and self-monitoring.
 
-include::{tab-widgets}/install-layout-widget.asciidoc[]
-
-
-// Add Javascript and CSS for tabbed panels
-include::{tab-widgets}/code.asciidoc[]
+// lint ignore mem
+|===
+| **CPU** | Under 2% total, including all monitoring processes
+| **Disk** | 640 MB
+| **RSS Mem Size** | 300 MB
+|===
+Adding integrations will increase the memory used by the agent and its processes.

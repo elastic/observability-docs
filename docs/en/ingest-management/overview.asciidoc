@@ -1,0 +1,157 @@
+[[fleet-overview]]
+= {fleet} and {agent} overview
+
+[discrete]
+[[elastic-agent]]
+== {agent}
+
+//TODO: We need to converge on a single definition for this product because
+//we describe it in many different ways in these docs and others. I've made
+//some minor edits to this description, but it still needs work.
+
+{agent} is a single, unified way to add monitoring for logs, metrics, and other
+types of data to a host. It can also protect hosts from security threats, query 
+data from operating systems, and more. A single agent makes it easier and faster to deploy
+monitoring across your infrastructure. Each agent has a single policy you
+can update to add integrations for new data sources, security protections, and more.
+
+For more information, refer to <<elastic-agent-installation>>.
+
+[discrete]
+[[unified-integrations]]
+== {integrations}
+
+Our https://www.elastic.co/integrations/[integrations] provide an easy way to connect Elastic to external services and systems, and quickly get insights or take action.
+They can collect new sources of data, and they often ship
+with out-of-the-box assets like dashboards, visualizations, and pipelines to
+extract structured fields out of logs and events. This makes it easier to get insights
+within seconds. Integrations are available for popular services and platforms
+like Nginx or AWS, as well as many generic input types like log files. 
+
+{kib} provides a web-based UI to add and manage integrations. You can browse a
+unified view of available integrations that shows both {agent} and {beats}
+integrations.
+
+[role="screenshot"]
+image::images/integrations.png[Integrations page]
+
+See our https://www.elastic.co/integrations/data-integrations[list of integrations] to learn more about them.
+
+[discrete]
+[[configuring-integrations]]
+== {agent} policies
+
+Agent policies specify which integrations you want to run and on which hosts. 
+You can apply an {agent} policy to multiple
+agents, making it even easier to manage configuration at scale.
+
+[role="screenshot"]
+image::images/add-integration.png[Add integration page]
+
+When you add an integration, you configure inputs for logs and metrics, such as the path to your Nginx access
+logs. When you're done, you save the integration to an {agent}
+policy. The next time enrolled agents check in, they receive the update.
+Having the policies automatically deployed is more convenient
+than doing it yourself by using SSH, Ansible playbooks, or some other tool.
+
+For more information, refer to <<agent-policy>>.
+
+If you prefer infrastructure as code, you may use YAML files and APIs.
+{fleet} has an API-first design. Anything you can do in the UI, you
+can also do using the {fleet-guide}/fleet-api-docs.html[`API`].
+This makes it easy to automate and integrate with other systems.
+
+[discrete]
+[[package-registry-intro]]
+== {package-registry}
+
+The {package-registry} is an online package hosting service for the {agent}
+integrations available in {kib}.
+
+{kib} connects to the {package-registry} at `epr.elastic.co` using the Elastic
+Package Manager, downloads the latest integration package, and stores its assets
+in {es}. This process typically requires an internet connection because
+integrations are updated and released periodically. You can find more information about running the {package-registry} in air-gapped
+environments in the section about {fleet-guide}/air-gapped.html[Air-gapped environments].
+
+[discrete]
+[[central-management]]
+== Central management in {fleet}
+
+{fleet} provides a web-based UI in {kib} for centrally managing {agent}s and
+their policies.
+
+You can see the state of all your {agent}s in {fleet}. On the **Agents** page,
+you can see which agents are healthy or unhealthy, and the last time they
+checked in. You can also see the version of the {agent} binary and policy.
+
+[role="screenshot"]
+image::images/kibana-fleet-agents-overview.png[Agents page]
+
+{fleet} serves as the communication channel back to the {agent}s. Agents check
+in for the latest updates on a regular basis. You can have any number of agents
+enrolled into each agent policy, which allows you to scale up to
+thousands of hosts.
+
+When you make a change to an agent policy, all the agents receive the update
+during their next check-in. You no longer have to distribute policy updates
+yourself.
+
+When you're ready to upgrade your {agent} binaries or integrations, you can
+initiate upgrades in {fleet}, and the {agent}s running on your hosts will
+upgrade automatically.
+
+[discrete]
+[[selective-agent-management]]
+=== Roll out changes to many {agent}s quickly
+
+Some subscription levels support bulk select operations, including:
+
+* Selective binary updates
+* Selective agent policy reassignment
+* Selective agent unenrollment
+
+This capability enables you to apply changes and trigger updates across many
+{agent}s so you can roll out changes quickly across your organization.
+
+For more information, refer to {subscriptions}[{stack} subscriptions].
+
+[discrete]
+[[fleet-server-intro]]
+== {fleet-server}
+
+{fleet-server} is the mechanism to connect {agent}s to {fleet}.  It allows for
+a scalable infrastructure and is supported in {ecloud} and self-managed clusters.
+{fleet-server} is a separate process that communicates with the deployed {agent}s.
+It can be started from any available x64 architecture {agent} artifact.
+
+For more information, refer to <<fleet-server>>.
+
+[discrete]
+[[fleet-communication-layer]]
+== {es} as the communication layer
+
+All communication between the {fleet} UI and {fleet-server} happens through
+{es}. {fleet} writes policies, actions, and any changes to the `fleet-*`
+indices in {es}. Each {fleet-server} monitors the indices, picks up changes, and
+ships them to the {agent}s. To communicate to {fleet} about the status of the
+{agent}s and the policy rollout, the {fleet-server}s write updates to the
+`fleet-*` indices.
+
+[discrete]
+[[agent-self-protection]]
+== {agent} self-protection
+
+On macOS and Windows, {agent} can self-protect against malicious users and
+attackers when the {endpoint-sec} integration is added to the agent policy. For
+more information, refer to
+{security-guide}/es-overview.html#self-protection[{elastic-endpoint} self-protection].
+
+[discrete]
+[[data-streams-intro]]
+== Data streams make index management easier
+
+The data collected by {agent} is stored in indices that are more granular than
+you'd get by default with the {beats} shippers or APM Server. This gives you more visibility into the
+sources of data volume, and control over lifecycle management policies and index
+permissions. These indices are called <<data-streams,_data streams_>>.

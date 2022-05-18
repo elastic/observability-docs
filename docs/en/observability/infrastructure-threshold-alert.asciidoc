@@ -1,49 +1,51 @@
 [[infrastructure-threshold-alert]]
-= Create an infrastructure threshold alert
+= Create an infrastructure threshold rule
 
 Based on the resources listed on the *Inventory* page within the {metrics-app},
-you can create a threshold alert to notify you when a metric has reached or exceeded a value for a specific
+you can create a threshold rule to notify you when a metric has reached or exceeded a value for a specific
 resource or a group of resources within your infrastructure.
 
-Additionally, each alert can be defined using multiple
+Additionally, each rule can be defined using multiple
 conditions that combine metrics and thresholds to create precise notifications and reduce false positives.
 
-. To access this page, go to *Observability > Metrics*.
+. To access this page, go to *{observability} > Metrics*.
 . On the *Inventory* page or the *Metrics Explorer* page, click *Alerts > Infrastructure*.
 . Select *Create inventory alert*.
 
 [TIP]
 ==============================================
 When you select *Create inventory alert*, the parameters you configured on the *Inventory* page will automatically
-populate the alert. You can use the Inventory first to view which nodes in your infrastructure you'd
-like to be notified about and then quickly create an alert in just a few clicks.
+populate the rule. You can use the Inventory first to view which nodes in your infrastructure you'd
+like to be notified about and then quickly create a rule in just a few clicks.
 ==============================================
 
+[discrete]
 [[inventory-conditions]]
 == Inventory conditions
 
-Conditions for each alert can be applied to specific metrics relating to the inventory type you select.
+Conditions for each rule can be applied to specific metrics relating to the inventory type you select.
 You can choose the aggregation type, the metric, and by including a warning threshold value, you can be
-alerted on multiple threshold values based on severity scores. When creating the alert, you can still get
-notified if no data is returned for the specific metric or if the alert fails to query {es}.
+alerted on multiple threshold values based on severity scores. When creating the rule, you can still get
+notified if no data is returned for the specific metric or if the rule fails to query {es}.
 
 In this example, Kubernetes Pods is the selected inventory type. The conditions state that you will receive
 a critical alert for any pods within the `ingress-nginx` namespace with a memory usage of 95% or above
 and a warning alert if memory usage is 90% or above.
 
 [role="screenshot"]
-image::images/inventory-alert.png[Inventory alert]
+image::images/inventory-alert.png[Inventory rule]
 
-Before creating an alert, you can preview whether the conditions would have triggered the alert in the last
+Before creating a rule, you can preview whether the conditions would have triggered the alert in the last
 hour, day, week, or month.
 
 [role="screenshot"]
-image::images/alert-preview.png[Preview alerts]
+image::images/alert-preview.png[Preview rules]
 
+[discrete]
 [[action-types-infrastructure]]
 == Action types
 
-You can extend your alerts by connecting them to actions that use the following supported built-in integrations.
+You can extend your rules by connecting them to actions that use the following supported built-in integrations.
 
 [role="screenshot"]
 image::images/alert-action-types.png[Action types]
@@ -54,56 +56,23 @@ threshold condition: `Alert`, `Warning`, or `Recovered` (a value that was once a
 [role="screenshot"]
 image::images/run-when-selection.png[Configure when an alert is triggered]
 
+[discrete]
 == Action variables
 
-This section details the variables that infrastructure threshold alerts will send to your actions.
-
-[float]
-=== Basic variables
-
-[role="screenshot"]
-image::images/basic-variables.png[The default infrastructure threshold alert message detailing basic variables]
-
-The default message for an infrastructure threshold alert displays the basic variables you can use.
-
-- `context.group`: This variable resolves to the **group** that the alert's condition detected. For inventory alerts,
-this is the name of a monitored host, pod, container, etc. For metric threshold alerts, this is the value of the field
-specified in the **Create alert per** field or `*` if the alert is configured to aggregate your entire infrastructure.
-- `context.alertState`: Depending on why the action is triggered, this variable resolves to `ALERT`, `NO DATA`, or
-`ERROR`. `ALERT` means the alert's condition is detected, `NO DATA` means that no data was returned for the time period
-that was queried, and `ERROR` indicates an error when querying the data.
-- `context.reason`: This variable describes why the alert is in its current state. For each of the alert’s conditions,
-it includes the monitored metric's detected value and a description of the threshold.
-- `context.timestamp`: The timestamp of when the alert was detected.
-
-
-[float]
-=== Advanced variables
+Use the default notification message or customize it.
+You can add more context to the message by clicking the icon above the message text box
+and selecting from a list of available variables.
 
 [role="screenshot"]
-image::images/advanced-variables.png[The default infrastructure threshold alert message detailing advanced variables]
+image::images/infrastructure-threshold-alert-default-message.png[Default notification message for infrastructure threshold rules with open "Add variable" popup listing available action variables,width=600]
 
-Instead of using `context.reason` to provide all the information you need, there may be cases when you'd like to
-customize your action message. Infrastructure threshold alerts provide advanced context variables that have a tree structure.
-
-[IMPORTANT]
-==============================================
-These variables must use the structure of `{{context.[Variable Name].condition[Number]}}`. For example,
-`{{context.value.condition0}}`, `{{context.value.condition1}}`, and so on. This is required even if your alert has only
-one condition (accessible with `.condition0`). Using just `{{context.[Variable Name]}}` evaluates to a blank line or
-`[object Object]` depending on the action type.
-==============================================
-
-- `context.value.condition[X]`: This variable resolves to the detected value of conditions 0, 1, 2, etc.
-- `context.value.threshold[X]`: This variable resolves to the threshold values of conditions 0, 1, 2, and so on.
-- `context.value.metric[X]`: This variable resolves to the monitored metric of conditions 0, 1, 2, and so on.
-
+[discrete]
 [[infra-alert-settings]]
 == Settings
 
-With infrastructure threshold alerts, it's not possible to set an explicit index pattern as part of the configuration. The index pattern
+With infrastructure threshold rules, it's not possible to set an explicit index pattern as part of the configuration. The index pattern
 is instead inferred from *Metrics indices* on the <<configure-settings,Settings>> page of the {metrics-app}.
 
-With each alert check's execution, the *Metrics indices* setting is checked, but it is not stored when the alert is created.
+With each execution of the rule check, the *Metrics indices* setting is checked, but it is not stored when the rule is created.
 
 The *Timestamp* field that is set under *Settings* determines which field is used for timestamps in queries.

@@ -1,0 +1,66 @@
+[[view-elastic-agent-status]]
+= View {agent} status
+
+To view the status of your {fleet}-managed agents, go to *Management > {fleet} > Agents*.
+
+[role="screenshot"]
+image::images/agent-status.png[Agents tab showing status of each {agent}]
+
+{fleet} reports these statuses:
+
+|=== 
+
+| *Healthy* | The {agent} is online and running as expected. There are no agent
+policy updates or automatic agent binary updates in progress, but the
+agent binary may still be out of date.
+
+| *Unhealthy* | The {agent} is online, but requires attention because it's
+reporting either agent or integration-level errors.
+
+| *Updating* | The {agent} is online and updating the agent policy, updating the
+binary, or enrolling or unenrolling from {fleet}.
+
+| *Offline* | The {agent} has not checked in during the expected time period.
+
+| *Inactive* | The {agent} is no longer enrolled in {fleet}. The agent must reenroll to connect to {fleet} again.
+
+|===
+
+[discrete]
+[[view-agent-list]]
+== Filter the list of agents
+
+To filter the list of agents by status, click the *Status* dropdown and select
+one or more statuses.
+
+[role="screenshot"]
+image::images/agent-status-filter.png[Agent Status dropdown with multiple statuses selected]
+
+For advanced filtering, use the search bar to create structured queries
+using {kibana-ref}/kuery-query.html[{kib} Query Language]. For example, enter
+`local_metadata.os.family : "darwin"` to see only agents running on macOS.
+
+[discrete]
+[[view-agent-logs]]
+== View agent logs
+
+When {fleet} reports a status like `Offline` or `Unhealthy`, you might want to
+view the agent logs to diagnose potential causes. If logging is configured for
+the agent:
+
+. Under *Agents*, click the agent name listed in the *Host* column.
+
+. Click the *Logs* tab.
++
+On the *Logs* tab you can filter, search, and explore the agent logs.
+You can also remotely turn on debug logging by changing the log level.
++
+[role="screenshot"]
+image::images/view-agent-logs.png[View agent logs under agent details]
++
+To tail the agent log files in real time, click *Open in Logs*.
+
+For more information about logging, refer to:
+
+* <<elastic-agent-logging>>
+* {observability-guide}/tail-logs.html[Tail log files]

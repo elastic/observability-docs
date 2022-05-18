@@ -1,0 +1,89 @@
+[[install-standalone-elastic-agent]]
+= Install standalone {agent}s (advanced users)
+
+
+include::{fleet-repo-dir}/standalone-note.asciidoc[]
+
+To run an {agent} in standalone mode, install the agent on each host you want to
+monitor and manually configure the agent locally on the system where it’s
+installed. You are responsible for managing and upgrading the agents. This
+approach is recommended for advanced users only.
+
+We recommend using <<install-fleet-managed-elastic-agent,{fleet}-managed {agent}s>>,
+when possible, because it makes the management and upgrade of your agents
+considerably easier. 
+
+IMPORTANT: Standalone agents are unable to upgrade to new integration package
+versions automatically. When you upgrade the integration in {kib}, you'll
+need to update the standalone policy manually.
+
+To install and run {agent} standalone:
+
+. On your host, download and extract the installation package.
++
+--
+// tag::install-elastic-agent[]
+
+include::{tab-widgets}/download-widget.asciidoc[]
+
+// end::install-elastic-agent[]
+--
++
+Refer to the https://www.elastic.co/downloads/elastic-agent[download page] for other
+installation options.
+
+. Modify settings in the `elastic-agent.yml` as required.
++
+To get started quickly and avoid errors, use {kib} to create and download a
+standalone configuration file rather than trying to build it by hand. For more
+information, refer to <<create-standalone-agent-policy>>.
++
+For additional configuration options, refer to <<elastic-agent-configuration>>.
+
+. In the `elastic-agent.yml` policy file, under `outputs`, specify an API key
+or user credentials for the {agent} to access {es}. For example:
++
+[source,yaml]
+----
+[...]
+outputs:
+  default:
+    type: elasticsearch
+    hosts:
+      - 'https://da4e3a6298c14a6683e6064ebfve9ace.us-central1.gcp.cloud.es.io:443'
+    api_key: _Nj4oH0aWZVGqM7MGop8:349p_U1ERHyIc4Nm8_AYkw <1>
+[...]
+----
++
+For more information required privileges and creating API keys, see
+<<grant-access-to-elasticsearch>>.
+
+. Make sure the assets you need, such as dashboards and ingest pipelines, are
+set up in {kib} and {es}. If you used {kib} to generate the standalone
+configuration, the assets are set up automatically. Otherwise, you need to
+install them. For more information, refer to <<view-integration-assets>> and
+<<install-integration-assets>>.
+
+. From the agent directory, run the following commands to install {agent}
+and start it as a service.
++
+NOTE: On macOS, Linux (tar package), and Windows, run the `install` command to
+install {agent} as a managed service and start the service. The DEB and RPM
+packages include a service unit for Linux systems with
+systemd, so just enable then start the service.
++
+--
+include::{tab-widgets}/run-standalone-widget.asciidoc[]
+--
+
+//TODO: Update the privileges shown above.
+
+Refer to <<installation-layout>> for the location of installed {agent} files.
+
+Because {agent} is installed as an auto-starting service, it will restart
+automatically if the system is rebooted.
+
+If you run into problems, refer to <<fleet-troubleshooting>>.
+
+//TODO: Fix link to troubleshooting when we have a topic about troubleshooting for
+//stand-alone agents.

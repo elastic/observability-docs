@@ -11,7 +11,7 @@ data–meaning no more indices with hundreds of thousands of fields.
 This leads to better space efficiency and faster queries.
 As an added bonus, only relevant fields are shown in Discover.
 
-* *More granular data control*: For example, filesystem, load, cpu, network, and process metrics are sent
+* *More granular data control*: For example, file system, load, CPU, network, and process metrics are sent
 to different indices–each potentially with its own rollover, retention, and security permissions.
 
 * *Flexible*: Use the custom namespace component to divide and organize data in a way that
@@ -34,14 +34,13 @@ A generic `type` describing the data, such as `logs`, `metrics`, `traces`, or `s
 The `dataset` is defined by the integration and describes the ingested data and its structure for each index.
 For example, you might have a dataset for process metrics with a field describing whether the process is running or not,
 and another dataset for disk I/O metrics with a field describing the number of bytes read.
-+
-For APM data, the `dataset` is the instrumented service's `service.name`.
 
 `namespace`::
 A user-configurable arbitrary grouping, such as an environment (`dev`, `prod`, or `qa`),
 a team, or a strategic business unit.
 A `namespace` can be up to 100 bytes in length (multibyte characters will count toward this limit faster).
-Using a namespace makes it easier to search the data from a given source by using index patterns, or to give users permissions to data by assigning an index pattern to user roles.
+Using a namespace makes it easier to search data from a given source by using a matching pattern.
+You can also use matching patterns to give users access to data when creating user roles.
 // Corresponds to the `data_stream.dataset` field.
 
 The naming scheme separates each components with a `-` character:
@@ -59,16 +58,16 @@ For example, if you've set up the Nginx integration with a namespace of `prod`,
 logs-nginx.access-prod
 --
 
-Alternatively, if you use the APM integration with a namespace of `dev`, and a `service.name` of `frontend`,
+Alternatively, if you use the APM integration with a namespace of `dev`,
 {agent} stores data in the following data stream:
 
 [source,text]
 --
-traces-apm.frontend-dev
+traces-apm-dev
 --
 
 All data streams, and the pre-built dashboards that they ship with,
-are viewable on the Fleet Data Streams page:
+are viewable on the {fleet} Data Streams page:
 
 [role="screenshot"]
 image::images/kibana-fleet-datastreams.png[Data streams page]
@@ -78,10 +77,10 @@ Under the hood though, things are a bit more complex.
 All of the juicy details are available in {ref}/data-streams.html[{es} Data streams].
 
 [discrete]
-[[data-streams-index-pattern]]
-== Index patterns
+[[data-streams-data-view]]
+== {data-sources-cap}
 
-When searching your data in {kib}, you can use an {kibana-ref}/index-patterns.html[index pattern]
+When searching your data in {kib}, you can use a {kibana-ref}/data-views.html[{data-source}]
 to search across all or some of your data streams.
 
 [discrete]
@@ -97,19 +96,147 @@ These templates are loaded when the integration is installed, and are used to co
 
 [discrete]
 [[data-streams-ilm]]
-== Configure an index lifecycle management (ILM) policy
+== Configure an {ilm} ({ilm-init}) policy
 
-Use the {ref}/getting-started-index-lifecycle-management.html[index lifecycle
-management] (ILM) feature in {es} to manage your {agent} data stream indices as they age.
+Use the {ref}/index-lifecycle-management.html[index lifecycle
+management] ({ilm-init}) feature in {es} to manage your {agent} data stream indices as they age.
 For example, create a new index after a certain period of time,
 or delete stale indices to enforce data retention standards.
 
-{agent} uses ILM policies built-in to {es} to manage backing indices for its data streams.
-See the {ref}/example-using-index-lifecycle-policy.html[Customize built-in ILM policies] tutorial
-to learn how to customize these policies based on your performance, resilience, and retention requirements.
+Installed integrations may have one or many associated data streams--each with an associated {ilm-init} policy.
+By default, these data streams use an {ilm-init} policy that matches their data type.
+For example, the data stream `metrics-system.logs-*`,
+uses the metrics {ilm-init} policy as defined in the `metrics-system.logs` index template.
 
-To instead create a new ILM policy, in {kib},
-go to **Stack Management** > **Index Lifecycle Policies**. Click **Create policy**.
-Define data tiers for your data, and any associated actions,
-like a rollover, freeze, or shrink.
-See {ref}/set-up-lifecycle-policy.html[configure a lifecycle policy] for more information.
+[discrete]
+[[data-streams-ilm-tutorial]]
+== Tutorial: Customize data retention for integrations
+
+This tutorial explains how to apply a custom {ilm-init} policy to an integration's data stream.
+
+**Scenario:** You have {agent}s collecting system metrics with the System integration in two environments--one with the namespace `development`, and one with `production`.
+
+**Goal:** Customize the {ilm-init} policy for the `system.network` data stream in the `production` namespace.
+Specifically, apply the built-in `90-days-default` {ilm-init} policy so that data is deleted after 90 days.
+
+[discrete]
+[[data-streams-ilm-one]]
+=== Step 1: View data streams
+
+The **Data Streams** view in {kib} shows you the data streams,
+index templates, and {ilm-init} policies associated with a given integration.
+
+. Navigate to **{stack-manage-app}** > **Index Management** > **Data Streams**.
+. Search for `system` to see all data streams associated with the System integration.
+. Select the `metrics-system.network-{namespace}` data stream to view its associated index template and {ilm-init} policy.
+As you can see, the data stream follows the <<data-streams-naming-scheme>> and starts with its type, `metrics-`.
++
+[role="screenshot"]
+image::images/data-stream-info.png[Data streams info]
+
+[discrete]
+[[data-streams-ilm-two]]
+=== Step 2: Create a component template
+
+For your changes to continue to be applied in future versions,
+you must put all custom index settings into a component template.
+The component template must follow the data stream naming scheme,
+and end with `@custom`:
+
+[source,text]
+----
+<type>-<dataset>-<namespace>@custom
+----
+
+For example, to create custom index settings for the `system.network` data stream with a namespace of `production`,
+the component template name would be:
+
+[source,text]
+----
+metrics-system.network-production@custom
+----
+
+. Navigate to **{stack-manage-app}** > **Index Management** > **Component Templates**
+. Click **Create component template**.
+. Use the template above to set the name--in this case, `metrics-system.network-production@custom`. Click **Next**.
+. Under **Index settings**, set the {ilm-init} policy name under the `lifecycle.name` key:
++
+[source,json]
+----
+{
+  "lifecycle": {
+    "name": "90-days-default"
+  }
+}
+----
+. Continue to **Review** and ensure your request looks similar to the image below.
+If it does, click **Create component template**.
++
+[role="screenshot"]
+image::images/create-component-template.png[Create component template]
+
+[discrete]
+[[data-streams-ilm-three]]
+=== Step 3: Clone and modify the existing index template
+
+Now that you've created a component template,
+you need to create an index template to apply the changes to the correct data stream.
+The easiest way to do this is to duplicate and modify the integration's existing index template.
+
+WARNING: When duplicating the index template, do not change or remove any managed properties. This may result in problems when upgrading.
+
+. Navigate to **{stack-manage-app}** > **Index Management** > **Index Templates**.
+. Find the index template you want to clone. The index template will have the `<type>` and `<dataset>` in its name,
+but not the `<namespace>`. In this case, it's `metrics-system.network`.
+. Select **Actions** > **Clone**.
+. Set the name of the new index template to `metrics-system.network-production`.
+. Change the index pattern to include a namespace--in this case, `metrics-system.network-production*`.
+This ensures the previously created component template is only applied to the `production` namespace.
+. Set the priority to `250`. This ensures that the new index template takes precedence over other index templates that match the index pattern.
+. Under **Component templates**, search for and add the component template created in the previous step.
+To ensure your namespace-specific settings are applied over other custom settings,
+the new template should be added below the existing `@custom` template.
+. Create the index template.
+
+[role="screenshot"]
+image::images/create-index-template.png[Create index template]
+
+[discrete]
+[[data-streams-ilm-four]]
+=== Step 4: Roll over the data stream (optional)
+
+To confirm that the data stream is now using the new index template and {ilm-init} policy,
+you can either repeat <<data-streams-ilm-one,step one>>, or navigate to **{dev-tools-app}** and run the following:
+
+[source,bash]
+----
+GET /_data_stream/metrics-system.network-production <1>
+----
+<1> The name of the data stream we've been hacking on
+
+The result should include the following:
+
+[source,json]
+----
+{
+  "data_streams" : [
+    {
+      ...
+      "template" : "metrics-system.network-production", <1>
+      "ilm_policy" : "90-days-default", <2>
+      ...
+    }
+  ]
+}
+----
+<1> The name of the custom index template created in step three
+<2> The name of the {ilm-init} policy applied to the new component template in step two
+
+New {ilm-init} policies only take effect when new indices are created,
+so you either must wait for a rollover to occur (usually after 30 days or when the index size reaches 50 GB),
+or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover API]:
+
+[source,bash]
+----
+POST /metrics-system.network-production/_rollover/
+----

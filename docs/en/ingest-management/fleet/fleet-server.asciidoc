@@ -1,0 +1,62 @@
+[[fleet-server]]
+= {fleet-server}
+
+{fleet-server} is a component of the {stack} used to centrally manage {agent}s.
+It's launched as part of an {agent} on a host intended to act as a server. One
+{fleet-server} process can support many {agent} connections, and serves as a
+control plane for updating agent policies, collecting status information, and
+coordinating actions across {agent}s.
+
+{fleet-server} is the mechanism {agent}s use to communicate with {es}:
+
+. When a new agent policy is created, it's saved to {es}.
+
+. To enroll in the policy, {agent}s send a request to {fleet-server},
+using the enrollment key generated for authentication.
+
+. {fleet-server} receives the request and gets the agent policy from {es},
+then ships the policy to all {agent}s enrolled in that policy.
+
+. {agent} uses configuration information in the policy to collect and send data
+to {es}.
+
+. {agent} checks into {fleet-server} for updates, maintaining an open connection.
+
+. When a policy is updated, {fleet-server} retrieves the updated policy from
+{es} and sends it to the connected {agent}s.
+
+image:images/fleet-server-communication.png[{fleet-server} handles communication between {agent}, {fleet}, {es}, and {kib}]
+
+{fleet-server} runs as a subprocess inside an {agent}. The agent uses a special
+policy that describes the {fleet-server} configuration. In large scale
+self-managed deployments or on {ess-product}[hosted {ess}] on {ecloud},
+{fleet-server} is typically run as a dedicated {agent} communication host, but
+you can optionally use it for data collection on self-managed clusters. For more
+details, refer to <<fleet-server-scalability>>.
+
+[discrete]
+[[fleet-security-account]]
+== Service account
+
+{fleet-server} uses a service token to communicate with {es}, which contains
+a `fleet-server` service account. Each {fleet-server} can use its own service
+token, and you can share it across multiple servers (not recommended). The
+advantage of using a separate token for each server is that you can invalidate
+each one separately.
+
+You can create a service token by either using the {fleet} UI or the {es} API.
+For more information, refer to <<add-a-fleet-server>>.
+
+[discrete]
+== Learn more
+
+To learn more about adding and scaling {fleet-server}, refer to:
+
+[[add-fleet-server]]
+* <<add-a-fleet-server>>
+
+* <<deployment-models>>
+
+* <<fleet-server-scalability>>
+
+* <<fleet-server-monitoring>>

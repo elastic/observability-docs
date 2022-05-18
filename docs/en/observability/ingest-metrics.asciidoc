@@ -5,19 +5,23 @@
 :beatname_lc: metricbeat
 :beatname_pkg: {beatname_lc}
 :beatname_url: {beats-ref-root}/{beatname_lc}/{branch}
-:modulename: apache mysql
+:modulename: nginx
 :has_modules_command:
 
 [[ingest-metrics]]
-= Ingest metrics
+= Ingest metrics with {metricbeat}
+
+++++
+<titleabbrev>Ingest metrics</titleabbrev>
+++++
 
 [NOTE]
 =====
 If you haven't already, you need to install {es} for storing and searching your data, and {kib} for visualizing and
-managing it. For more information, see <<add-observability-data,Send data to {es}>>.
+managing it. For more information, see <<spin-up-stack>>.
 =====
 
-Install and configure {metricbeat} on your servers to collect and preprocess system 
+Install and configure {metricbeat} on your servers to collect and preprocess system
 and service metrics, such as information about running processes, as well as CPU, memory,
 disk, and network utilization numbers.
 
@@ -28,23 +32,26 @@ integration defines the basic logic for collecting data from specific services, 
 Redis or MySQL. A module consists of metricsets that fetch and structure the data. To learn more, see
 {metricbeat-ref}/how-metricbeat-works.html[How {metricbeat} works].
 
+[discrete]
 [[install-metricbeat]]
 == Step 1: Install {metricbeat}
 
-Install {metricbeat} as close as possible to the service you want to monitor. 
+Install {metricbeat} as close as possible to the service you want to monitor.
 
 To download and install {metricbeat}, use the commands that work with your system:
 
 include::{beats-repo-dir}/tab-widgets/install-widget.asciidoc[]
 
+[discrete]
 === Other installation options
 
 * {metricbeat-ref}/running-on-kubernetes.html[Kubernetes]
 * {metricbeat-ref}/running-on-docker.html[Docker]
 * {metricbeat-ref}/running-on-cloudfoundry.html[Cloud Foundry]
 * {metricbeat-ref}/setup-repositories.html[APT or YUM]
-* https://www.elastic.co/downloads/beats/{beatname_lc}[Download page] 
+* https://www.elastic.co/downloads/beats/{beatname_lc}[Download page]
 
+[discrete]
 [[metrics-connect-to-stack]]
 == Step 2: Connect to {es} and {kib}
 
@@ -57,6 +64,7 @@ include::{beats-repo-dir}/tab-widgets/set-connection-widget.asciidoc[]
 
 To learn more about required roles and privileges, see {metricbeat-ref}/feature-roles.html[Grant users access to secured resources].
 
+[discrete]
 [[enable-metrics-modules]]
 == Step 3: Enable and configure modules
 
@@ -69,7 +77,7 @@ include::{beats-repo-dir}/tab-widgets/list-modules-widget.asciidoc[]
 . From the installation directory, enable one or more modules. If you accept the default configuration without enabling additional
 modules, {beatname_uc} collects system metrics only.
 +
-The following command enables the `apache` and `mysql` configs in the `modules.d` directory:
+The following command enables the +{modulename}+ config in the `modules.d` directory:
 +
 --
 include::{beats-repo-dir}/tab-widgets/enable-modules-widget.asciidoc[]
@@ -77,16 +85,16 @@ include::{beats-repo-dir}/tab-widgets/enable-modules-widget.asciidoc[]
 +
 See the {metricbeat-ref}/command-line-options.html#modules-command[modules command]
 to learn more about this command. If you are using a Docker image,
-see {metricbeat-ref}/running-on-docker.html[Run Metricbeat on Docker].
+see {metricbeat-ref}/running-on-docker.html[Run {metricbeat} on Docker].
 
-. In the module configs under `modules.d`, change the module settings to match your environment. 
+. In the module config under `modules.d`, change the module settings to match your environment.
 See {metricbeat-ref}/configuration-metricbeat.html#module-config-options[Standard config options]
 for more about available settings.
 
-TIP: To test your configuration file, change to the directory where the {beatname_uc} binary is installed, and run 
+TIP: To test your configuration file, change to the directory where the {beatname_uc} binary is installed, and run
 {beatname_uc} in the foreground with the following options specified: `./metricbeat test config -e`. Make sure
-your config files are in the path expected by {beatname_uc} (see 
-{metricbeat-ref}/directory-layout.html[Directory layout]), or use 
+your config files are in the path expected by {beatname_uc} (see
+{metricbeat-ref}/directory-layout.html[Directory layout]), or use
 the `-c` flag to specify the path to the config file.
 
 For more information about configuring {beatname_uc}, also see:
@@ -96,6 +104,7 @@ For more information about configuring {beatname_uc}, also see:
 * {metricbeat-ref}/metricbeat-reference-yml.html[`metricbeat.reference.yml`]:
 This reference configuration file shows all non-deprecated options. You’ll find it in the same location as `metricbeat.yml`.
 
+[discrete]
 [[set-metricbeat-assets]]
 == Step 4: Set up assets
 
@@ -116,10 +125,11 @@ This step loads the recommended {ref}/indices-templates.html[index template]
 for writing to {es} and deploys the sample dashboards for visualizing the data in {kib}.
 
 TIP: A connection to {es} (or {ess}) is required to set up the initial environment.
-If you’re using a different output, such as Logstash, see
+If you’re using a different output, such as {ls}, see
 {metricbeat-ref}/metricbeat-template.html#load-template-manually[Load the index template manually]
-and {metricbeat-ref}/load-kibana-dashboards.html[Load Kibana dashboards].
+and {metricbeat-ref}/load-kibana-dashboards.html[Load {kib} dashboards].
 
+[discrete]
 [[start-metricbeat]]
 == Step 5: Start {beatname_uc}
 
@@ -135,6 +145,7 @@ include::{beats-repo-dir}/tab-widgets/start-widget.asciidoc[]
 :requires-sudo!:
 // end::start-step[]
 
+[discrete]
 [[view-metrics-kibana]]
 == Step 6: Confirm metrics are ingested
 
@@ -148,15 +159,12 @@ include::{beats-repo-dir}/tab-widgets/open-kibana-widget.asciidoc[]
 
 . Open the main menu, then click *Discover*
 +
-. Select `metricbeat-*` as your index pattern. 
+. Select `metricbeat-*` as your {data-source}.
 +
-Each document in the index that matches the `metricbeat-*` index pattern
+Each document in the index that matches the `metricbeat-*` {data-source}
 is displayed. By default, *Discover* shows data for the last 15 minutes.
 
-Now let's have a look at the <<analyze-metrics,Metrics app>>.
-
-// Add Javascript and CSS for tabbed panels
-include::{beats-repo-dir}/tab-widgets/code.asciidoc[]
+Now let's have a look at the <<analyze-metrics,{metrics-app}>>.
 
 :!beatname_uc:
 :!beatname_lc:

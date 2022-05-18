@@ -1,48 +1,36 @@
-[[elastic-agent-input-settings]]
-== Input settings
+[[elastic-agent-input-configuration]]
+= Configure inputs for standalone {agent}s
 
-Input settings specify how {agent} locates and processes input data.
+++++
+<titleabbrev>Inputs</titleabbrev>
+++++
 
-You can specify multiple inputs, and you can specify the same input type more
-than once. For example:
+include::{fleet-repo-dir}/standalone-note.asciidoc[]
 
-["source","yaml",subs="attributes"]
-----
-inputs:
-- type: log
-  paths:
-    - /var/log/system.log
-    - /var/log/wifi.log
-- type: log
-  paths:
-    - "/var/log/apache2/*"
-  fields:
-    apache: true
-  fields_under_root: true
-----
+The `inputs` section of the `elastic-agent.yml` file specifies how {agent}
+locates and processes input data.
 
-For the most basic configuration, define a single input with a single path. For
-example:
+By default {agent} collects system metrics, such as CPU, memory, network, and
+file system metrics, and sends them to the default output. For example:
 
 [source,yaml]
 -------------------------------------------------------------------------------------
 inputs:
-- type: log
-  enabled: true
-  paths:
-    - /var/log/*.log
+  - type: system/metrics
+    data_stream.namespace: default
+    use_output: default
+    streams:
+      - metricset: cpu
+        data_stream.dataset: system.cpu
+      - metricset: memory
+        data_stream.dataset: system.memory
+      - metricset: network
+        data_stream.dataset: system.network
+      - metricset: filesystem
+        data_stream.dataset: system.filesystem
 -------------------------------------------------------------------------------------
 
-The input in this example harvests all files in the path `/var/log/*.log`, which
-means that {agent} will harvest all files in the directory `/var/log/`
-that end with `.log`. All patterns supported by
-https://golang.org/pkg/path/filepath/#Glob[Go Glob] are also supported here.
-
-To fetch all files from a predefined level of subdirectories, use this pattern:
-`/var/log/*/*.log`. This fetches all `.log` files from the subfolders of
-`/var/log`. It does not fetch log files from the `/var/log` folder itself.
-Currently it is not possible to recursively fetch all files in all
-subdirectories of a directory.
+If `use_output` is not specified, the `default` output is used.
 
 include::input-aws-cloudwatch.asciidoc[leveloffset=+1]
 

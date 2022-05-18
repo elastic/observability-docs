@@ -1,0 +1,48 @@
+[[elastic-agent-output-configuration]]
+= Configure outputs for standalone {agent}s
+
+++++
+<titleabbrev>Outputs</titleabbrev>
+++++
+
+include::{fleet-repo-dir}/standalone-note.asciidoc[]
+
+The `outputs` section of the `elastic-agent.yml` file specifies where to
+send data. You can specify multiple outputs to pair specific inputs with
+specific outputs.
+
+This example configures two outputs: `default` and  `monitoring`:
+
+[source,yaml]
+-------------------------------------------------------------------------------------
+outputs:
+  default:
+    type: elasticsearch
+    hosts: [127.0.0.1:9200]
+    username: elastic
+    password: changeme
+
+  monitoring:
+    type: elasticsearch
+    api_key: VuaCfGcBCdbkQm-e5aOx:ui2lp2axTNmsyakw9tvNnw
+    hosts: ["localhost:9200"]
+    ca_sha256: "7lHLiyp4J8m9kw38SJ7SURJP4bXRZv/BNxyyXkCcE/M="
+-------------------------------------------------------------------------------------
+
+
+Notice that they use different authentication methods. The first one uses a
+username and password pair, and the second one contains an API key.
+
+[NOTE]
+==============
+A default output configuration is required.
+==============
+
+{agent} currently supports these outputs:
+
+* <<elasticsearch-output>>
+* <<logstash-output>> (standalone mode only)
+
+include::output-elasticsearch.asciidoc[leveloffset=+1]
+
+include::output-logstash.asciidoc[leveloffset=+1]
