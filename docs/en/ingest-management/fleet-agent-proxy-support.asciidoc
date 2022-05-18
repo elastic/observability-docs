@@ -8,7 +8,7 @@ you may have a firewall rule that prevents endpoints from connecting directly to
 the proxy can connect to {es} through the firewall.
 
 Support is available in {agent} and {fleet} for connections through HTTP Connect
-(HTTP 1 only) and Socks5 proxy servers.
+(HTTP 1 only) and SOCKS5 proxy servers.
 
 This guide describes where a proxy server is allowed in your deployment and how
 to configure proxy settings for {agent} and {fleet}. The steps for deploying the
@@ -172,6 +172,7 @@ To set the proxy for communicating with {es}, specify proxy settings under
 `outputs` in the agent policy. The procedure for doing this depends on
 whether you're running {fleet}-managed or standalone agents:
 
+// lint disable proxy_url
 * For {fleet}-managed agents, specify proxy settings in the {kib} UI:
 +
 --
@@ -189,6 +190,7 @@ image::images/proxy_url_settings.png[Screen capture of proxy_url setting]
 The proxy settings you specify here are applied to all {agent}s enrolled in
 {fleet}.
 --
+// lint enable proxy_url
 
 * For standalone agents, specify proxy settings the `elastic-agent.yml` file. For
 example:
@@ -225,7 +227,7 @@ The `enroll` and `install` commands accept the following flags:
 
 |`--proxy-url <url>`
 |URL of the proxy server. The value may be either a complete URL or a
-`host[:port]`, in which case the http scheme is assumed.  The URL accepts optional
+`host[:port]`, in which case the `http` scheme is assumed.  The URL accepts optional
 username and password settings for authenticating with the proxy. For example:
 `http://<username>:<password>@<proxy host>/`.
 
@@ -279,7 +281,7 @@ fleet:
 behind a proxy server.
 
 Also your organization might have network traffic restrictions that prevent {kib}
-from reaching the public {package-registry} endpoints, like
+from reaching the public {package-registry} (EPR) endpoints, like
 https://epr.elastic.co/[epr.elastic.co], to download package metadata and
 content. You can route traffic to the public endpoint of EPR through a network
 gateway, then configure proxy settings in the
