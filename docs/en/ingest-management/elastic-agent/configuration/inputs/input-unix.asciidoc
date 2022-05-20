@@ -21,72 +21,79 @@ inputs:
     path: "/var/run/filebeat.sock"
 ----
 
+[[input-unix-configuration-settings]]
+== Configuration settings
 
-The `unix` input supports the following settings, grouped by category.
-Many of these settings have sensible defaults that allow you to run {agent}
-with minimal configuration.
+The `unix` input supports the following settings. Many of these settings have
+sensible defaults that allow you to run {agent} with minimal configuration.
 
-<<input-unix-unix-settings>>::
-Settings for reading over a Unix socket.
+{also-see-common-input-settings}
 
-<<input-unix-data-parsing-settings>>::
-Settings used to parse, filter, and transform data.
+// tag::unix-settings[]
 
-[[input-unix-unix-settings]]
-== Unix settings
+[id="input-{input-type}-unix-framing-setting"]
+`framing`::
+(string) The framing used to split incoming events.  Can be one of
+`delimiter` or `rfc6587`. `delimiter` uses the characters specified
+in `line_delimiter` to split the incoming events. `rfc6587` supports
+octet counting and non-transparent framing as described in
+https://tools.ietf.org/html/rfc6587[RFC6587]. `line_delimiter` is
+used to split the events in non-transparent framing.
++
+Default: `delimiter`
 
-Settings for reading over a Unix socket.
+[id="input-{input-type}-unix-group-setting"]
+`group`::
+(string) The group ownership of the Unix socket that will be created by
+{agent}.
++
+Default: the primary group name for the user {agent} is running
+ +
+This option is ignored on Windows.
 
-beta[]
+[id="input-{input-type}-unix-line_delimiter-setting"]
+`line_delimiter`::
+(string) The characters used to split the incoming events.
++
+Default: `'\n'`
 
-[cols="2*<a"]
-|===
-| Settings | Description
+[id="input-{input-type}-unix-max_connections-setting"]
+`max_connections`::
+(int) The maximum number of connections to accept at any time.
++
+Default: `????`
 
-include::input-shared-settings.asciidoc[tag=unix-framing-setting]
+//QUESTION: What is the default?
 
-include::input-shared-settings.asciidoc[tag=unix-group-setting]
+[id="input-{input-type}-unix-max_message_size-setting"]
+`max_message_size`::
+(string) The maximum size of the message received over the socket. 
++
+Default: `20MiB`
 
-include::input-shared-settings.asciidoc[tag=unix-line_delimiter-setting]
+[id="input-{input-type}-unix-mode-setting"]
+`mode`::
+(string) The file mode of the Unix socket that will be created by {agent}.
+This is expected to be a file mode as an octal string.
++
+Default: system default (usually `0755`)
 
-include::input-shared-settings.asciidoc[tag=unix-max_connections-setting]
+[id="input-{input-type}-unix-path-setting"]
+`path`::
+(string) The path to the Unix socket that will receive events.
 
-include::input-shared-settings.asciidoc[tag=unix-max_message_size-setting]
+[id="input-{input-type}-unix-socket_type-setting"]
+`socket_type`::
+(string) The type to of the Unix socket that will receive events. Valid values
+are `stream` and `datagram`.
++
+Default: `stream`
 
-include::input-shared-settings.asciidoc[tag=unix-mode-setting]
+[id="input-{input-type}-unix-timeout-setting"]
+`timeout`::
+(duration) The number of seconds of inactivity before a connection is closed. The default
+is `300s`.
 
-include::input-shared-settings.asciidoc[tag=unix-path-setting]
-
-include::input-shared-settings.asciidoc[tag=unix-socket_type-setting]
-
-include::input-shared-settings.asciidoc[tag=unix-timeout-setting]
-
-|===
-
-[[input-unix-data-parsing-settings]]
-== Data parsing, filtering, and manipulation settings
-
-Settings used to parse, filter, and transform data. These settings are
-valid for all input types.
-
-[cols="2*<a"]
-|===
-| Settings | Description
-
-include::input-shared-settings.asciidoc[tag=fields-setting]
-
-include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
-
-include::input-shared-settings.asciidoc[tag=keep_null-setting]
-
-include::input-shared-settings.asciidoc[tag=pipeline-setting]
-
-include::input-shared-settings.asciidoc[tag=processors-setting]
-
-include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
-
-include::input-shared-settings.asciidoc[tag=tags-setting]
-
-|===
+// end::unix-settings[]
 
 :input-type!:

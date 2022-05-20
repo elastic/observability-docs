@@ -16,7 +16,7 @@ to NetFlow v9.
 
 Example configuration:
 
-["source","yaml",subs="attributes"]
+[source,yaml]
 ----
 inputs:
   - type: netflow
@@ -30,133 +30,28 @@ inputs:
     detect_sequence_reset: true
 ----
 
-The `netflow` input supports the following settings, grouped by category.
-Many of these settings have sensible defaults that allow you to run {agent}
-with minimal configuration.
+[[input-netflow-configuration-settings]]
+== Configuration settings
 
-<<input-netflow-commonly-used-settings>>::
-Settings frequently changed for this input type.
+The `netflow` input supports the following settings. Many of these settings have
+sensible defaults that allow you to run {agent} with minimal configuration.
 
-<<input-netflow-custom-field-settings>>::
-Settings used to override existing field definitions.
+{also-see-common-input-settings}
 
-<<input-netflow-data-parsing-settings>>::
-Settings used to parse, filter, and transform data.
-
-[[input-netflow-commonly-used-settings]]
-== Commonly used settings
-
-Settings frequently changed for this input type.
-
-[cols="2*<a"]
-|===
-| Settings | Description
-
-// =============================================================================
-
-// tag::detect_sequence_reset-setting[]
-|
-[id="input-{input-type}-detect_sequence_reset-setting"]
-`detect_sequence_reset`
-
-| (boolean) Controls whether {agent} monitors sequence numbers in the Netflow
-packets to detect an Exporting Process reset. When this condition is detected,
-record templates for the given exporter will be dropped. This will cause flow
-loss until the exporter provides new templates. If set to `false`, {agent}
-ignores sequence numbers, which can cause some invalid flows if the exporter
-process is reset. This option is only applicable to Netflow V9 and IPFIX.
-
-*Default:* `true`
-
-// end::detect_sequence_reset-setting[]
-
-// =============================================================================
-
-include::input-shared-settings.asciidoc[tag=udp-host-setting]
-
-// =============================================================================
-
-include::input-shared-settings.asciidoc[tag=udp-max_message_size-setting]
-
-// =============================================================================
-
-// tag::protocols-setting[]
-|
-[id="input-{input-type}-protocols-setting"]
-`protocols`
-
-| (list) List of enabled protocols. Valid values are `v1`, `v5`, `v6`, `v7`,
-`v8`, `v9` and `ipfix`.
-
-*Default:* `????`
-
-//QUESTION: What is the default?
-
-// end::protocols-setting[]
-
-// =============================================================================
-
-// tag::queue_size-setting[]
-|
-[id="input-{input-type}-NAME-setting"]
-`queue_size`
-
-| (int) The maximum number of packets that can be queued for processing. Use
-this setting to avoid packet loss when dealing with occasional bursts of
-traffic.
-
-*Default:* `????`
-
-//QUESTION: What is the default?
-
-// end::queue_size-setting[]
-
-// =============================================================================
-
-// tag::internal_networks-setting[]
-|
-[id="input-{input-type}-internal_networks-setting"]
-`internal_networks`
-
-A list of CIDR ranges describing the IP addresses that you consider internal.
-This is used in determining the values of `source.locality`,
-`destination.locality`, and `flow.locality`. The values can be either a CIDR
-value or one of the named ranges supported by the
-<<condition-network, `network`>> condition. The default value is `[private]`
-which classifies RFC 1918 (IPv4) and RFC 4193 (IPv6) addresses as internal.
-
-// end::internal_networks-setting[]
-
-// =============================================================================
-
-|===
-
-[[input-netflow-custom-field-settings]]
-== Custom field settings
-
-Settings used to override existing field definitions.
-
-[cols="2*<a"]
-|===
-| Settings | Description
-
-// tag::custom_definitions-setting[]
-|
-[id="input-{input-type}-custom_definitions-setting"]
-`custom_definitions`
-
-| (list) A list of paths to YAML files containing field definitions. Use these
+[[input-netflow-custom_definitions-setting]]
+`custom_definitions`::
+(list) A list of paths to YAML files containing field definitions. Use these
 custom definitions to update the NetFlow/IPFIX fields with vendor extensions and
 to override existing fields.
-
++
 The expected format is the same as used by the {ls} NetFlow codec
 {logstash-ref}/plugins-codecs-netflow.html#plugins-codecs-netflow-ipfix_definitions[ipfix_definitions]
 and
 {logstash-ref}/plugins-codecs-netflow.html#plugins-codecs-netflow-netflow_definitions[netflow_definitions].
 {agent} detects which of the two formats is used.
-
++
 NetFlow format example:
-
++
 [source,yaml]
 ----
 id:
@@ -168,11 +63,11 @@ id:
 id:
 - :skip
 ----
-
++
 Where `id` is the numeric field ID.
-
++
 The IPFIX format, grouped by Private Enterprise Number (PEN):
-
++
 [source,yaml]
 ----
 pen1:
@@ -186,82 +81,84 @@ pen2:
   - :octetarray
   - :name
 ----
-
++
 Note that fields are shared between NetFlow V9 and IPFIX. Changes to
 IPFIX PEN zero are equivalent to changes to NetFlow fields.
++
+WARNING: Overriding standard field names and/or types might prevent ECS field
+mappings from functioning properly.
 
-//QUESTION: What does "IPFIX PEN zero" mean? Is it a typo?
+[[input-netflow-detect_sequence_reset-setting]]
+`detect_sequence_reset`::
+(boolean) Controls whether {agent} monitors sequence numbers in the Netflow
+packets to detect an Exporting Process reset. When this condition is detected,
+record templates for the given exporter will be dropped. This will cause flow
+loss until the exporter provides new templates. If set to `false`, {agent}
+ignores sequence numbers, which can cause some invalid flows if the exporter
+process is reset. This option is only applicable to Netflow V9 and IPFIX.
++
+Default: `true`
 
-[WARNING]
-Overriding standard field names and/or types might prevent ECS field mappings
-from functioning properly.
-
-// end::custom_definitions-setting[]
-
-// =============================================================================
-
-|===
-
-
-[[input-netflow-performance-tuning-settings]]
-== Performance tuning settings
-
-Settings that affect performance.
-
-[cols="2*<a"]
-|===
-| Settings | Description
-
-// =============================================================================
-
-// tag::expiration_timeout-setting[]
-|
-[id="input-{input-type}-expiration_timeout-setting"]
-`expiration_timeout`
-
-| (string) The time before an idle session or unused template is expired. Only
+[[input-netflow-expiration_timeout-setting]]
+`expiration_timeout`::
+(string) The time before an idle session or unused template is expired. Only
 applicable to v9 and IPFIX protocols. A value of zero disables expiration.
-
-*Default:* `????`
++
+Default: `????`
 
 //QUESTION: What is the default? Should the above say 0 rather than zero?
 
-// end::expiration_timeout-setting[]
+[[input-netflow-udp-host-setting]]
+`host`::
+(string) The host and UDP port to listen on for event streams.
 
-// =============================================================================
+[[input-netflow-internal_networks-setting]]
+`internal_networks`::
+(list) A list of CIDR ranges describing the IP addresses that you consider
+internal. This is used in determining the values of `source.locality`,
+`destination.locality`, and `flow.locality`. The values can be either a CIDR
+value or one of the named ranges supported by the `network` condition. The
+default value is `[private]`, which classifies RFC 1918 (IPv4) and RFC 4193
+(IPv6) addresses as internal.
 
-include::input-shared-settings.asciidoc[tag=udp-read_buffer-setting]
+//TODO: Make network condition an active link after the processors PR is merged.
+//should say: ...supported by the <<condition-network,`network`>> condition
 
-include::input-shared-settings.asciidoc[tag=udp-timeout-setting]
+[[input-netflow-udp-max_message_size-setting]]
+`max_message_size`::
+(string) The maximum size of the message received over UDP.
++
+Default: `10KiB`
 
-// =============================================================================
+[[input-netflow-protocols-setting]]
+`protocols`::
+(list) List of enabled protocols. Valid values are `v1`, `v5`, `v6`, `v7`,
+`v8`, `v9` and `ipfix`.
++
+Default: `????`
 
-|===
+//QUESTION: What is the default?
 
-[[input-netflow-data-parsing-settings]]
-== Data parsing, filtering, and manipulation settings
+[[input-netflow-queue_size-setting]]
+`queue_size`::
+(int) The maximum number of packets that can be queued for processing. Use
+this setting to avoid packet loss when dealing with occasional bursts of
+traffic.
++
+Default: `????`
 
-Settings used to parse, filter, and transform data. These settings are
-valid for all input types.
+//QUESTION: What is the default?
 
-[cols="2*<a"]
-|===
-| Settings | Description
+[[input-netflow-udp-read_buffer-setting]]
+`read_buffer`::
+(string) The size of the read buffer on the UDP socket.
++
+Default: `???`
 
-include::input-shared-settings.asciidoc[tag=fields-setting]
+[[input-netflow-udp-timeout-setting]]
+`timeout`::
+(string) The read and write timeout for socket operations.
++
+Default: `????`
 
-include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
-
-include::input-shared-settings.asciidoc[tag=keep_null-setting]
-
-include::input-shared-settings.asciidoc[tag=pipeline-setting]
-
-include::input-shared-settings.asciidoc[tag=processors-setting]
-
-include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
-
-include::input-shared-settings.asciidoc[tag=tags-setting]
-
-|===
-
-:input-type!:
+//QUESTION: What is the default?

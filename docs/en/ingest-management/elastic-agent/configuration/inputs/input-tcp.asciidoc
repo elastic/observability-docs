@@ -19,65 +19,64 @@ inputs:
     host: "localhost:9000"
 ----
 
-The `tcp` input supports the following settings, grouped by category.
-Many of these settings have sensible defaults that allow you to run {agent}
-with minimal configuration.
+[[input-tcp-configuration-settings]]
+== Configuration settings
 
-<<input-tcp-tcp-settings>>::
-Settings for reading over TCP.
+The `tcp` input supports the following settings. Many of these settings have
+sensible defaults that allow you to run {agent} with minimal configuration.
 
-<<input-tcp-data-parsing-settings>>::
-Settings used to parse, filter, and transform data.
+{also-see-common-input-settings}
 
-[[input-tcp-tcp-settings]]
-== TCP settings
+// tag::tcp-settings[]
 
-Settings for reading over TCP.
+[id="input-{input-type}-tcp-framing-setting"]
+`framing`::
+(string) The framing used to split incoming events.  Can be one of
+`delimiter` or `rfc6587`. `delimiter` uses the characters specified
+in `line_delimiter` to split the incoming events. `rfc6587` supports
+octet counting and non-transparent framing as described in
+https://tools.ietf.org/html/rfc6587[RFC6587]. `line_delimiter` is
+used to split the events in non-transparent framing.
++
+Default: `delimiter`
 
-[cols="2*<a"]
-|===
-| Settings | Description
 
-include::input-shared-settings.asciidoc[tag=tcp-framing-setting]
+[id="input-{input-type}-tcp-host-setting"]
+`host`::
+(string) The host and TCP port to listen on for event streams.
 
-include::input-shared-settings.asciidoc[tag=tcp-host-setting]
+[id="input-{input-type}-tcp-line_delimiter-setting"]
+`line_delimiter`::
+(string) The characters used to split the incoming events.
++
+Default: `'\n'`
 
-include::input-shared-settings.asciidoc[tag=tcp-line_delimiter-setting]
+[id="input-{input-type}-tcp-max_connections-setting"]
+`max_connections`::
+(int) The maximum number of connections to accept at any time.
++
+Default: `????`
 
-include::input-shared-settings.asciidoc[tag=tcp-max_connections-setting]
+//QUESTION: What is the default?
 
-include::input-shared-settings.asciidoc[tag=tcp-max_message_size-setting]
+[id="input-{input-type}-tcp-max_message_size-setting"]
+`max_message_size`::
+(string) The maximum size of the message received over TCP.
++
+Default: `20MiB`
 
-include::input-shared-settings.asciidoc[tag=ssl-setting]
+[id="input-{input-type}-ssl-setting"]
+`ssl`::
+Configuration options for SSL parameters like the certificate, key, and the
+certificate authorities to use.
 
-include::input-shared-settings.asciidoc[tag=tcp-timeout-setting]
+//See <<configuration-ssl>> for more information.
 
-|===
+[id="input-{input-type}-tcp-timeout-setting"]
+`timeout`::
+(string) The number of seconds of inactivity before a remote connection is
+closed.
++
+Default: `300s`
 
-[[input-tcp-data-parsing-settings]]
-== Data parsing, filtering, and manipulation settings
-
-Settings used to parse, filter, and transform data. These settings are
-valid for all input types.
-
-[cols="2*<a"]
-|===
-| Settings | Description
-
-include::input-shared-settings.asciidoc[tag=fields-setting]
-
-include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
-
-include::input-shared-settings.asciidoc[tag=keep_null-setting]
-
-include::input-shared-settings.asciidoc[tag=pipeline-setting]
-
-include::input-shared-settings.asciidoc[tag=processors-setting]
-
-include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
-
-include::input-shared-settings.asciidoc[tag=tags-setting]
-
-|===
-
-:input-type!:
+// end::tcp-settings[]

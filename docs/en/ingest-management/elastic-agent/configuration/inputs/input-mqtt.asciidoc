@@ -1,5 +1,3 @@
-:input-type: mqtt
-
 [[mqtt-input]]
 = MQTT input
 
@@ -29,128 +27,53 @@ inputs:
       - sample_topic
 ----
 
-The `mqtt` input supports the following settings, grouped by category.
-Many of these settings have sensible defaults that allow you to run {agent}
-with minimal configuration.
+[[input-mqtt-configuration-settings]]
+== Configuration settings
 
-<<input-mqtt-commonly-used-settings>>::
-Settings frequently changed for this input type.
+The `mqtt` input supports the following settings. Many of these settings have
+sensible defaults that allow you to run {agent} with minimal configuration.
 
-<<input-mqtt-data-parsing-settings>>::
-Settings used to parse, filter, and transform data.
+{also-see-common-input-settings}
 
-[[input-mqtt-commonly-used-settings]]
-== Commonly used settings
+[id="input-mqtt-client_id-setting"]
+`client_id`::
+(string) A unique identifier of each MQTT client connecting to a MQTT broker.
 
-Settings frequently changed for this input type.
+[id="input-mqtt-hosts-setting"]
+`hosts` (required)::
+(list) A list of MQTT brokers to connect to.
 
-[cols="2*<a"]
-|===
-| Settings | Description
-
-// tag::client_id-setting[]
-|
-[id="input-{input-type}-client_id-setting"]
-`client_id`
-
-| (string) A unique identifier of each MQTT client connecting to a MQTT broker.
-// end::client_id-setting[]
-
-// =============================================================================
-
-// tag::hosts-setting[]
-|
-[id="input-{input-type}-hosts-setting"]
-`hosts` (required)
-
-| (list) A list of MQTT brokers to connect to.
-// end::hosts-setting[]
-
-// =============================================================================
-
-// tag::password-setting[]
-|
-[id="input-{input-type}-password-setting"]
-`password`
-
-| (string) A client password used for authentication provided on the application
+[id="input-mqtt-password-setting"]
+`password`::
+(string) A client password used for authentication provided on the application
 level by the MQTT protocol.
-// end::password-setting[]
 
-// =============================================================================
-
-// tag::qos-setting[]
-|
-[id="input-{input-type}-qos-setting"]
-`qos`
-
-| (int) An agreement level between the sender of a message and the receiver of a
+[id="input-mqtt-qos-setting"]
+`qos`::
+(int) An agreement level between the sender of a message and the receiver of a
 message that defines the guarantee of delivery.
-
++
 There are 3 QoS levels in MQTT:
-
++
 * At most once (`0`),
 * At least once (`1`),
 * Exactly once (`2`).
 
-//QUESTION: What is the default for this setting?
+[id="input-mqtt-ssl-setting"]
+`ssl`::
+Configuration options for SSL parameters like the certificate, key, and the
+certificate authorities to use.
 
-// end::qos-setting[]
+//See <<configuration-ssl>> for more information.
 
-// =============================================================================
+//TODO: Might make more sense to just add a link at the top of the page to a
+//full listing of SSL settings.
 
-include::input-shared-settings.asciidoc[tag=ssl-setting]
+[id="input-mqtt-topics-setting"]
+`topics` (required)::
+(list) A list of topics to subscribe to and read from.
 
-// =============================================================================
-
-// tag::topics-setting[]
-|
-[id="input-{input-type}-topics-setting"]
-`topics` (required)
-
-| (list) A list of topics to subscribe to and read from.
-
-// end::topics-setting[]
-
-// =============================================================================
-
-// tag::username-setting[]
-|
-[id="input-{input-type}-username-setting"]
-`username`
-
-| (string) A client username used for authentication provided on the application
+[id="input-mqtt-username-setting"]
+`username`::
+(string) A client username used for authentication provided on the application
 level by the MQTT protocol.
-// end::username-setting[]
-
-// =============================================================================
-
-|===
-
-[[input-mqtt-data-parsing-settings]]
-== Data parsing, filtering, and manipulation settings
-
-Settings used to parse, filter, and transform data. These settings are
-valid for all input types.
-
-[cols="2*<a"]
-|===
-| Settings | Description
-
-include::input-shared-settings.asciidoc[tag=fields-setting]
-
-include::input-shared-settings.asciidoc[tag=fields-under-root-setting]
-
-include::input-shared-settings.asciidoc[tag=keep_null-setting]
-
-include::input-shared-settings.asciidoc[tag=pipeline-setting]
-
-include::input-shared-settings.asciidoc[tag=processors-setting]
-
-include::input-shared-settings.asciidoc[tag=publisher_pipeline.disable_host-setting]
-
-include::input-shared-settings.asciidoc[tag=tags-setting]
-
-|===
-
-:input-type!:

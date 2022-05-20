@@ -1,0 +1,253 @@
+[id="input-{input-type}-settings"]
+= Reader settings
+
+The settings configure how the +{input-type}+ input reads and processes files.
+
+[id="input-{input-type}-encoding-setting"]
+`encoding`::
+(string) The file encoding to use for reading data that contains international
+characters. See the encoding names http://www.w3.org/TR/encoding/[recommended by
+the W3C for use in HTML5]. Valid encodings:
++
+	* `plain`: plain ASCII encoding
+	* `utf-8` or `utf8`: UTF-8 encoding
+	* `gbk`: simplified Chinese charaters
+	* `iso8859-6e`: ISO8859-6E, Latin/Arabic
+	* `iso8859-6i`: ISO8859-6I, Latin/Arabic
+	* `iso8859-8e`: ISO8859-8E, Latin/Hebrew
+	* `iso8859-8i`: ISO8859-8I, Latin/Hebrew
+	* `iso8859-1`: ISO8859-1, Latin-1
+	* `iso8859-2`: ISO8859-2, Latin-2
+	* `iso8859-3`: ISO8859-3, Latin-3
+	* `iso8859-4`: ISO8859-4, Latin-4
+	* `iso8859-5`: ISO8859-5, Latin/Cyrillic
+	* `iso8859-6`: ISO8859-6, Latin/Arabic
+	* `iso8859-7`: ISO8859-7, Latin/Greek
+	* `iso8859-8`: ISO8859-8, Latin/Hebrew
+	* `iso8859-9`: ISO8859-9, Latin-5
+	* `iso8859-10`: ISO8859-10, Latin-6
+	* `iso8859-13`: ISO8859-13, Latin-7
+	* `iso8859-14`: ISO8859-14, Latin-8
+	* `iso8859-15`: ISO8859-15, Latin-9
+	* `iso8859-16`: ISO8859-16, Latin-10
+	* `cp437`: IBM CodePage 437
+	* `cp850`: IBM CodePage 850
+	* `cp852`: IBM CodePage 852
+	* `cp855`: IBM CodePage 855
+	* `cp858`: IBM CodePage 858
+	* `cp860`: IBM CodePage 860
+	* `cp862`: IBM CodePage 862
+	* `cp863`: IBM CodePage 863
+	* `cp865`: IBM CodePage 865
+	* `cp866`: IBM CodePage 866
+	* `ebcdic-037`: IBM CodePage 037
+	* `ebcdic-1040`: IBM CodePage 1140
+	* `ebcdic-1047`: IBM CodePage 1047
+	* `koi8r`: KOI8-R, Russian (Cyrillic)
+	* `koi8u`: KOI8-U, Ukranian (Cyrillic)
+	* `macintosh`: Macintosh encoding
+	* `macintosh-cyrillic`: Macintosh Cyrillic encoding
+	* `windows1250`: Windows1250, Central and Eastern European
+	* `windows1251`: Windows1251, Russian, Serbian (Cyrillic)
+	* `windows1252`: Windows1252, Legacy
+	* `windows1253`: Windows1253, Modern Greek
+	* `windows1254`: Windows1254, Turkish
+	* `windows1255`: Windows1255, Hebrew
+	* `windows1256`: Windows1256, Arabic
+	* `windows1257`: Windows1257, Estonian, Latvian, Lithuanian
+	* `windows1258`: Windows1258, Vietnamese
+	* `windows874`:  Windows874, ISO/IEC 8859-11, Latin/Thai
+	* `utf-16-bom`: UTF-16 with required BOM
+	* `utf-16be-bom`: big endian UTF-16 with required BOM
+	* `utf-16le-bom`: little endian UTF-16 with required BOM
++
+The `plain` encoding is special, because it does not validate or transform any
+input.
+
+[id="input-{input-type}-exclude_lines-setting"]
+`exclude_lines`::
+(list) A list of regular expressions to match the lines you want to
+exclude. {agent} drops any lines that match a regular expression in the
+list. Empty lines are ignored.
++
+The following example configures {agent} to drop any lines that start with
+`DBG`.
++
+[source,yaml]
+----
+inputs:
+- type: {type}
+  ...
+  exclude_lines: ['^DBG']
+----
++
+Default: no lines are excluded
+
+//See <<regexp-support>> for a list of supported regexp patterns.
+
+[id="input-{input-type}-include_lines-setting"]
+`include_lines`::
+(list) A list of regular expressions to match the lines you want to
+include. {agent} exports only the lines that match a regular expression in
+the list. Empty lines are ignored.
++
+The following example configures {agent} to export any lines that start
+with `ERR` or `WARN`:
++
+[source,yaml]
+----
+inputs:
+  - type: {input-type}
+    ...
+    include_lines: ['^ERR', '^WARN']
+----
++
+NOTE: If both `include_lines` and `exclude_lines` are defined, {agent}
+executes `include_lines` first and then executes `exclude_lines`. The order in
+which the two options are defined doesn't matter. The `include_lines` option
+will always be executed before the `exclude_lines` option, even if
+`exclude_lines` appears before `include_lines` in the config file.
++
+The following example exports all log lines that contain `sometext`,
+except for lines that begin with `DBG` (debug messages):
++
+[source,yaml]
+----
+inputs:
+  - type: {input-type}
+    ...
+    include_lines: ['sometext']
+    exclude_lines: ['^DBG']
+----
++
+Default: all lines are exported
+
+//See <<regexp-support>> for a list of supported regexp patterns.
+
+[id="input-{input-type}-buffer_size-setting"]
+`buffer_size`::
+(int) The size in bytes of the buffer that each harvester uses when fetching a
+file.
++
+Default: `16384`
+
+[id="input-{input-type}-message_max_bytes-setting"]
+`message_max_bytes`::
+(int) The maximum number of bytes that a single log message can have. All bytes
+after `mesage_max_bytes` are discarded and not sent.
++
+Default: `10485760` (10 MB)
+
+[id="input-{input-type}-parsers-setting"]
+`parsers`::
+(list) A list of <<input-{input-type}-parsers>> to pass the log line through.
++
+In this example, {agent} is reading multiline messages that consist of three
+lines and are encapsulated in single-line JSON objects. The multiline message is
+stored under the key `msg`.
++
+[source,yaml]
+----
+inputs:
+- type: {type}
+  ...
+  parsers:
+    - ndjson:
+        keys_under_root: true
+        message_key: msg
+    - multiline:
+        type: counter
+        lines_count: 3
+----
+
+[id="input-{input-type}-parsers"]
+== Parsers
+The following parsers are available under the `parsers` setting:
+
+[id="input-{input-type}-multiline-setting"]
+`multiline`::
+Parser that controls how {agent} deals with log messages that span multiple
+lines.
+
+//See <<multiline-examples>> for more information about configuring
+//multiline options.
+
+[id="input-{input-type}-ndjson-setting"]
+`ndjson`::
+Parser that decodes logs structured as JSON messages. {agent} processes the
+logs line by line, so the JSON decoding only works if there is one JSON object
+per message.
++
+The decoding happens before line filtering. You can combine JSON decoding with
+filtering if you set the `message_key` option. This can be helpful in situations
+where the application logs are wrapped in JSON objects, like when using Docker.
++
+Example configuration:
++
+[source,yaml]
+----
+- ndjson:
+    keys_under_root: true
+    add_error_key: true
+    message_key: log
+----
++
+--
+**`keys_under_root`**::: By default, the decoded JSON is placed under a "json" key
+in the output document. If you enable this setting, the keys are copied top
+level in the output document. Default: `false`
+
+**`overwrite_keys`**::: If `keys_under_root` and this setting are enabled, then the
+values from the decoded JSON object overwrite the fields that {agent}
+normally adds (type, source, offset, etc.) in case of conflicts.
+
+**`expand_keys`**::: If this setting is enabled, {agent} will recursively
+de-dot keys in the decoded JSON and expand them into a hierarchical object
+structure. For example, `{"a.b.c": 123}` would be expanded into `{"a":{"b":{"c":123}}}`.
+This setting should be set when the input is produced by an
+https://github.com/elastic/ecs-logging[ECS logger].
+
+**`add_error_key`**::: If this setting is specified, {agent} adds an
+"error.message" and "error.type: json" key in case of JSON unmarshalling errors
+or when a `message_key` is defined in the configuration but cannot be used.
+
+**`message_key`**::: An optional configuration setting that specifies a JSON key on
+which to apply the line filtering and multiline settings. If specified, the key
+must be at the top level in the JSON object and the value associated with the
+key must be a string; otherwise no filtering or multiline aggregation will
+occur.
+**`document_id`**::: Option configuration setting that specifies the JSON key to
+set the document id. If configured, the field will be removed from the original
+JSON document and stored in `@metadata._id`
+
+**`ignore_decoding_error`**::: An optional configuration setting that specifies if
+JSON decoding errors should be logged or not. If set to true, errors will not
+be logged. Default: `false`
+--
+
+[id="input-{input-type}-container-setting"]
+`container`::
+Parser that extracts information from container log files.
+It parses lines into common message lines, extracting timestamps too.
++
+--
+**`stream`**::: Reads from the specified streams only: `all`, `stdout` or
+`stderr`. Default: `all`.
+
+**`format`**::: Use the given format when parsing logs: `auto`, `docker` or
+`cri`. Default: `auto` (automatically detects the format).
++
+To disable auto detection, set any of the other option besides `auto`.
+--
++
+The following snippet configures {agent} to read the `stdout` stream from
+all containers under the default Kubernetes logs path:
++
+[source,yaml]
+----
+  paths:
+    - "/var/log/containers/*.log"
+  parsers:
+    - container:
+        stream: stdout
+----
