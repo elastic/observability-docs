@@ -8,7 +8,12 @@ jobs:
     # The steps below only run for PRs where `obs-docs` has been added as a reviewer
     if: ${{ github.event.requested_team.name == 'obs-docs'}}
     steps:
-      - run: echo 'A review from obs-docs was requested'
+      - name: Get token
+        id: get_token
+        uses: elastic/actions-app-token@master
+        with:
+          APP_PEM: ${{ secrets.OBS_DOCS_AUTOMATION_PRIVATE_KEY }}
+          APP_ID: 203735
       - uses: octokit/graphql-action@v2.x
         id: add_pr_to_board
         with:
@@ -24,7 +29,7 @@ jobs:
           pull_request: ${{ github.event.pull_request.node_id }}
         env:
           PROJECT_ID: "PN_kwDOAGc3Zs0iZw"
-          GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}
       - uses: octokit/graphql-action@v2.x
         id: move_pr_to_review_column
         with:
@@ -60,4 +65,4 @@ jobs:
           # an array of label IDs to add — just one in this case
           label: "['LA_kwDOEHZbcs7wV_c6']"
         env:
-          GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}
