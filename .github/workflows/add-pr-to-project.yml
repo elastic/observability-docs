@@ -14,9 +14,11 @@ jobs:
         with:
           APP_PEM: ${{ secrets.OBS_DOCS_AUTOMATION_PRIVATE_KEY }}
           APP_ID: 203735
-      - uses: octokit/graphql-action@v2.x
+      - name: Add PR to board
+        uses: octokit/graphql-action@v2.x
         id: add_pr_to_board
         with:
+          headers: '{"GraphQL-Features": "projects_next_graphql"}'
           query: |
             mutation($project:ID!, $pull_request:ID!){
               addProjectNextItem(input: {projectId: $project, contentId: $pull_request}){
@@ -30,9 +32,11 @@ jobs:
         env:
           PROJECT_ID: "PN_kwDOAGc3Zs0iZw"
           GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}
-      - uses: octokit/graphql-action@v2.x
+      - name: Move PR to review column
+        uses: octokit/graphql-action@v2.x
         id: move_pr_to_review_column
         with:
+          headers: '{"GraphQL-Features": "projects_next_graphql"}'
           query: |
             mutation label_team($project:ID!, $item:ID!, $field:ID!, $value:String!){
               updateProjectNextItemField(input: { projectId: $project, itemId: $item, fieldId: $field, value: $value }){
@@ -50,10 +54,12 @@ jobs:
           value: "2d732740"
         env:
           PROJECT_ID: "PN_kwDOAGc3Zs0iZw"
-          GITHUB_TOKEN: ${{ secrets.APM_TECH_USER_TOKEN }}
-      - uses: octokit/graphql-action@v2.x
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}
+      - name: Add needs-writer-review label
+        uses: octokit/graphql-action@v2.x
         id: add_needs-writer-review_label
         with:
+          headers: '{"GraphQL-Features": "projects_next_graphql"}'
           query: |
             mutation($item: ID!, $label: [ID!]!) {
               addLabelsToLabelable(input: {labelableId: $item, labelIds:$label}) {
