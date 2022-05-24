@@ -55,20 +55,3 @@ jobs:
         env:
           PROJECT_ID: "PN_kwDOAGc3Zs0iZw"
           GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}
-      - name: Add needs-writer-review label
-        uses: octokit/graphql-action@v2.x
-        id: add_needs-writer-review_label
-        with:
-          headers: '{"GraphQL-Features": "projects_next_graphql"}'
-          query: |
-            mutation($item: ID!, $label: [ID!]!) {
-              addLabelsToLabelable(input: {labelableId: $item, labelIds:$label}) {
-                clientMutationId
-              }
-            }
-          # `item` is the ID returned by the first step
-          item: ${{ fromJSON(steps.add_pr_to_board.outputs.data).addProjectNextItem.projectNextItem.id }}
-          # an array of label IDs to add — just one in this case
-          label: "['LA_kwDOEHZbcs7wV_c6']"
-        env:
-          GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}
