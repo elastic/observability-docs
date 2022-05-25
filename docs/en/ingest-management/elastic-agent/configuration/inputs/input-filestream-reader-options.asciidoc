@@ -3,6 +3,13 @@
 
 The settings configure how the +{input-type}+ input reads and processes files.
 
+[id="input-{input-type}-buffer_size-setting"]
+`buffer_size`::
+(int) The size in bytes of the buffer that each harvester uses when fetching a
+file.
++
+Default: `16384`
+
 [id="input-{input-type}-encoding-setting"]
 `encoding`::
 (string) The file encoding to use for reading data that contains international
@@ -102,11 +109,14 @@ inputs:
     include_lines: ['^ERR', '^WARN']
 ----
 +
+--
 NOTE: If both `include_lines` and `exclude_lines` are defined, {agent}
 executes `include_lines` first and then executes `exclude_lines`. The order in
 which the two settings are defined doesn't matter. The `include_lines` setting
 will always be executed before the `exclude_lines` setting, even if
 `exclude_lines` appears before `include_lines` in the config file.
+
+--
 +
 The following example exports all log lines that contain `sometext`,
 except for lines that begin with `DBG` (debug messages):
@@ -124,13 +134,6 @@ Default: all lines are exported
 
 //See <<regexp-support>> for a list of supported regexp patterns.
 
-[id="input-{input-type}-buffer_size-setting"]
-`buffer_size`::
-(int) The size in bytes of the buffer that each harvester uses when fetching a
-file.
-+
-Default: `16384`
-
 [id="input-{input-type}-message_max_bytes-setting"]
 `message_max_bytes`::
 (int) The maximum number of bytes that a single log message can have. All bytes
@@ -140,14 +143,16 @@ Default: `10485760` (10 MB)
 
 [id="input-{input-type}-parsers-setting"]
 `parsers`::
-(list) A list of parsers to pass the log line through.
+(list) A list of <<input-parsers,parsers>> to pass the log line through.
 +
 Available parsers:
 +
+--
 * `multiline`
 * `ndjson`
 * `container`
 * `syslog`
+--
 +
 In this example, {agent} is reading multiline messages that consist of three
 lines and are encapsulated in single-line JSON objects. The multiline message is
@@ -166,6 +171,12 @@ inputs:
         type: count
         count_lines: 3
 ----
+
+[[input-parsers]]
+== Parsers
+
+//TODO: I think we should move this its own topic so that other topics can
+//point to it easily.
 
 The following parsers are available under the `parsers` setting:
 
@@ -292,7 +303,10 @@ Example configuration:
     add_error_key: true
 -------------------------------------------------------------------------------
 
-*Timestamps*
+--
+
+[[rfc3164-timestamps]]
+=== Timestamps
 
 The RFC 3164 format accepts the following forms of timestamps:
 
@@ -322,4 +336,3 @@ The RFC 5424 format accepts the following forms of timestamps:
 ** `2003-10-11T22:14:15.123456-06:00`
 
 Formats with an asterisk (*) are a non-standard allowance.
---

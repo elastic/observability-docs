@@ -3,34 +3,47 @@
 [[syslog-input]]
 = Syslog input
 
+++++
+<titleabbrev>Syslog</titleabbrev>
+++++
+
 Use the `syslog` input to read events over TCP, UDP, or a Unix stream socket.
 This input will parse BSD (rfc3164) events and some variants.
 
 Example configurations:
 
+****
+**Reviewers:** These configs are incorrect. Waiting to fix until I know what is
+correct.
+****
+
 [source,yaml]
 ----
 inputs:
-  - type: syslog
-    protocol.udp:
-      host: "localhost:9000"
+- type: syslog
+  format: rfc3164
+  protocol.udp:
+    host: "localhost:9000"
 ----
 
 [source,yaml]
 ----
 inputs:
-  - type: syslog
-    protocol.tcp:
-      host: "localhost:9000"
+- type: syslog
+  format: rfc5424
+  protocol.tcp:
+    host: "localhost:9000"
 ----
 
 [source,yaml]
 ----
 inputs:
-  - type: syslog
-    protocol.unix:
-      path: "/path/to/syslog.sock"
+- type: syslog
+  format: auto
+  protocol.unix:
+    path: "/path/to/syslog.sock"
 ----
+
 
 [[input-syslog-configuration-settings]]
 == Configuration settings
@@ -40,18 +53,31 @@ sensible defaults that allow you to run {agent} with minimal configuration.
 
 {also-see-common-input-settings}
 
+[[input-syslog-format-setting]]
+`format`::
+(string) The syslog variant to use, `rfc3164` or `rfc5424`. To automatically
+detect the format from the log entries, set this option to `auto`. The default
+is `rfc3164`.
+
+[[input-syslog-timezone-setting]]
+`timezone`::
+(string) IANA time zone name (such as `America/New_York`) or fixed time offset
+(such as `+0200`) to use when parsing syslog timestamps that do not contain a
+time zone. `Local` may be specified to use the machine's local time zone.
+Defaults to `Local`.
+
 [[input-syslog-udp-settings]]
-=== `protocol.udp` settings
+== `protocol.udp` settings
 
 include::input-udp.asciidoc[tag=udp-settings]
 
 [[input-syslog-tcp-settings]]
-=== `protocol.tcp` settings
+== `protocol.tcp` settings
 
 include::input-tcp.asciidoc[tag=tcp-settings]
 
 [[input-syslog-unix-settings]]
-=== `protocol.unix` settings
+== `protocol.unix` settings
 
 beta[]
 

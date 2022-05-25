@@ -14,6 +14,11 @@ reads this log data and the metadata associated with it.
 The simplest configuration example is one that reads all logs from the default
 journal.
 
+****
+**Reviewers:** These configs are incorrect. Waiting to fix until I know what is
+correct.
+****
+
 [source,yaml]
 ----
 inputs:
@@ -67,6 +72,13 @@ have sensible defaults that allow you to run {agent} with minimal configuration.
 
 {also-see-common-input-settings}
 
+[[input-journald-backoff-setting]]
+`backoff`::
+(duration) The number of seconds to wait before trying to read again from
+journals.
++
+Default: `1s`
+
 [[input-journald-id-setting]]
 `id`::
 (string) An optional unique identifier for the input. By providing a unique `id`,
@@ -86,69 +98,6 @@ inputs:
   include_matches:
     - _SYSTEMD_UNIT=vault.service
 ----
-
-[[input-journald-paths-setting]]
-`paths`::
-(list) A list of paths that will be crawled and fetched. Each path can be a
-directory path (to collect events from all journals in a directory), or a file
-path. If you specify a directory, {agent} merges all journals under the
-directory into a single journal and reads them.
-+
-If no paths are specified, {agent} reads from the default journal.
-
-[[input-journald-backoff-setting]]
-`backoff`::
-(duration) The number of seconds to wait before trying to read again from
-journals.
-+
-Default: `1s`
-
-[[input-journald-max_backoff-setting]]
-`max_backoff`::
-(duration) The maximum number of seconds to wait before attempting to read again
-from journals.
-+
-Default: `60s`
-
-[[input-journald-seek-setting]]
-`seek`::
-(string) The position to start reading the journal from. Valid settings are:
-+
-* `head`: Starts reading at the beginning of the journal. After a restart,
-{agent} resends all log messages in the journal.
-* `tail`: Starts reading at the end of the journal. After a restart,
-{agent} resends the last message, which might result in duplicates. If
-multiple log messages are written to a journal while {agent} is down,
-only the last log message is sent on restart.
-* `cursor`: On first read, starts reading at the beginning of the journal. After
-a reload or restart, continues reading at the last known position.
-+
-If you have old log files and want to skip lines, start {agent} with
-`seek: tail` specified. Then stop {agent}, set `seek: cursor`, and restart
-{agent}.
-
-[[input-journald-units-setting]]
-`units`::
-(list) A list of units to iterate. The iterated entries include messages from
-the units, messages about the units by authorized daemons, and coredumps. Does
-not match systemd user units.
-
-[[input-journald-syslog_identifiers-setting]]
-`syslog_identifiers`::
-Read only the entries with the selected syslog identifiers.
-
-[[input-journald-transports-setting]]
-`transports`::
-Collect the messages using the specified transports. Example: `syslog`.
-+
-Valid transports:
-+
-* `audit`: messages from the kernel audit subsystem
-* `driver`: internally generated messages
-* `syslog`: messages received via the local syslog socket with the syslog protocol
-* `journal`: messages received via the native journal protocol
-* `stdout`: messages from a service's standard output or error output
-* `kernel`: messages from the kernel
 
 [[input-journald-include_matches-setting]]
 `include_matches`::
@@ -189,6 +138,63 @@ To reference fields, use one of the following:
 used by {agent}. For example, `container.image.tag=redis`. {agent}
 does not translate all fields from the journal. For custom fields, use the name
 specified in the systemd journal.
+
+[[input-journald-max_backoff-setting]]
+`max_backoff`::
+(duration) The maximum number of seconds to wait before attempting to read again
+from journals.
++
+Default: `60s`
+[[input-journald-paths-setting]]
+`paths`::
+(list) A list of paths that will be crawled and fetched. Each path can be a
+directory path (to collect events from all journals in a directory), or a file
+path. If you specify a directory, {agent} merges all journals under the
+directory into a single journal and reads them.
++
+If no paths are specified, {agent} reads from the default journal.
+
+[[input-journald-seek-setting]]
+`seek`::
+(string) The position to start reading the journal from. Valid settings are:
++
+--
+* `head`: Starts reading at the beginning of the journal. After a restart,
+{agent} resends all log messages in the journal.
+* `tail`: Starts reading at the end of the journal. After a restart,
+{agent} resends the last message, which might result in duplicates. If
+multiple log messages are written to a journal while {agent} is down,
+only the last log message is sent on restart.
+* `cursor`: On first read, starts reading at the beginning of the journal. After
+a reload or restart, continues reading at the last known position.
+--
++
+If you have old log files and want to skip lines, start {agent} with
+`seek: tail` specified. Then stop {agent}, set `seek: cursor`, and restart
+{agent}.
+
+[[input-journald-syslog_identifiers-setting]]
+`syslog_identifiers`::
+Read only the entries with the selected syslog identifiers.
+
+[[input-journald-transports-setting]]
+`transports`::
+Collect the messages using the specified transports. Example: `syslog`.
++
+Valid transports:
++
+* `audit`: messages from the kernel audit subsystem
+* `driver`: internally generated messages
+* `syslog`: messages received via the local syslog socket with the syslog protocol
+* `journal`: messages received via the native journal protocol
+* `stdout`: messages from a service's standard output or error output
+* `kernel`: messages from the kernel
+
+[[input-journald-units-setting]]
+`units`::
+(list) A list of units to iterate. The iterated entries include messages from
+the units, messages about the units by authorized daemons, and coredumps. Does
+not match systemd user units.
 
 [[input-journald-translated_field-names]]
 == Translated field names

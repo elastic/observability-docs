@@ -17,8 +17,8 @@ the ambiguity here.
 `id`::
 A unique identifier for this `filestream` input. Each `filestream` input
 must have a unique ID.
-
-WARNING: Changing the input ID may cause data duplication because the
++
+IMPORTANT: Changing the input ID may cause data duplication because the
 state of the files will be lost and they will be read from the
 beginning again.
 
@@ -30,10 +30,10 @@ also supported here. For example, to fetch all files from a predefined level of
 subdirectories, use the following pattern: `/var/log/*/*.log`. This fetches all
 `.log` files from the subfolders of `/var/log`. It does not fetch log files from
 the `/var/log` folder itself.
-
++
 To recursively fetch all files in all subdirectories of a directory,
 using the optional `recursive_glob` settings.
-
++
 {agent} starts a harvester for each file that it finds under the specified
 paths. You can specify one path per line. Each line begins with a dash (-).
 
@@ -90,9 +90,6 @@ prevent a potential inode reuse issue.
 
 [id="input-{input-type}-clean-inactive"]
 `clean_inactive`::
-WARNING: Only use this setting if you understand that data loss is a potential
-side effect.
-+
 (duration) When this setting is specified, {agent} removes the state of a file
 after the specified period of inactivity has elapsed. The  state can only be
 removed if the file is already ignored by {agent} (the file is older than
@@ -103,16 +100,25 @@ result in {agent} resending the full content constantly because
 `clean_inactive` removes state for files that are still detected by {agent}. If
 a file is updated or appears again, the file is read from the beginning.
 +
+--
+IMPORTANT: Only use this setting if you understand that data loss is a potential
+side effect.
+
+--
++
 The `clean_inactive` setting is useful to reduce the size of the registry file,
 especially if a large amount of new files are generated every day.
 +
 This setting is also useful to prevent {agent} problems resulting
 from inode reuse on Linux.
 +
+--
 NOTE: Every time a file is renamed, the file state is updated and the counter
 for `clean_inactive` starts at 0 again.
+
+--
 +
-TIP: During testing, you might notice that the registry contains state entries
+During testing, you might notice that the registry contains state entries
 that should be removed based on the `clean_inactive` setting. This happens
 because {agent} doesn't remove the entries until it opens the registry
 again to read a different file. If you are testing the `clean_inactive` setting,
@@ -193,18 +199,24 @@ that are not completely read because they are removed from disk too early, set
 If `close_removed` is `false`, you must also set `clean.on_state_change.removed`
 to `false`.
 +
+--
 TIP: If your Windows log rotation system shows errors because it can't
 rotate files, make sure this setting is `true`.
+
+--
 +
 Default: `true`
 
 [id="input-{input-type}-close-renamed"]
 `close.on_state_change.renamed`::
-WARNING: Only use this setting if you understand that data loss is a potential
-side effect.
-+
 (boolean) If `true`, {agent} closes the file handler when a file is
 renamed. This happens, for example, when rotating files.
++
+--
+IMPORTANT: Only use this setting if you understand that data loss is a potential
+side effect.
+
+--
 +
 If `close.on_state_change.renamed` is `true` and the file is renamed or moved in
 such a way that it's no longer matched by the file patterns specified for the
@@ -215,21 +227,27 @@ Do not use this setting when `path` based `file_identity` is configured. It does
 not make sense to enable the setting, because {agent} cannot detect renames using
 path names as unique identifiers.
 +
+--
 TIP: If your Windows log rotation system shows errors because it can't
 rotate the files, set this setting to `true`.
+
+--
 +
 Default: `false` (the harvester stays open and keeps reading the file because
 it does not depend on the file name)
 
 [id="input-{input-type}-close-timeout"]
 `close.reader.after_interval`::
-WARNING: Only use this setting if you understand that data loss is a potential
-side effect. Another side effect is that multiline events might not be
-completely sent before the timeout expires.
-+
 (duration) When this setting is specified, {agent} gives every harvester a
 predefined lifetime. Regardless of where the reader is in the file, reading will
 stop after the `close.reader.after_interval` period has elapsed.
++
+--
+IMPORTANT: Only use this setting if you understand that data loss is a potential
+side effect. Another side effect is that multiline events might not be
+completely sent before the timeout expires.
+
+--
 +
 This setting can be useful for older log files when you want to spend only a
 predefined amount of time on the files. While `close.reader.after_interval` will
@@ -257,12 +275,16 @@ Default: 0 (setting is turned off)
 
 [id="input-{input-type}-close-eof"]
 `close.reader.on_eof`::
-WARNING: Only use this setting if you understand that data loss is a potential
-side effect.
 (boolean) If `true`, {agent} closes a file as soon as the end of a
 file is reached. This is useful when your files are only written once and not
 updated from time to time. For example, this happens when you are writing every
 single log event to a new file.
++
+--
+IMPORTANT: Only use this setting if you understand that data loss is a potential
+side effect.
+
+--
 +
 Default: `false`
 
@@ -271,8 +293,8 @@ Default: `false`
 Specify `file_identity` methods to suit the environment where you are collecting
 log messages.
 +
-WARNING: Changing `file_identity` methods between runs may result in
-duplicated events in the output.
+Changing `file_identity` methods between runs may result in duplicated events in
+the output.
 +
 --
 **`native`**::: Identify files based on their inodes and device ids.
@@ -289,13 +311,12 @@ file_identity.native: ~
 file_identity.path: ~
 ----
 +
-WARNING: Only use this strategy if your log files are rotated to a folder
+Only use this strategy if your log files are rotated to a folder
 outside of the scope of your input or not at all. Otherwise you end up
 with duplicated events.
 +
-WARNING: This strategy does not support renaming files.
-If an input file is renamed, {agent} will read it again if the new path
-matches the settings of the input.
+This strategy does not support renaming files. If an input file is renamed,
+{agent} will read it again if the new path matches the settings of the input.
 
 *`inode_marker`*::: If the device id changes from time to time, you must use
 this method to distinguish files. This setting is not supported on Windows.
@@ -347,11 +368,7 @@ want to send newer files.
 You can use time strings like 2h (2 hours) and 5m (5 minutes). 0 disables the
 setting. Commenting out the config has the same effect as setting it to 0.
 +
---
-IMPORTANT: You must set `ignore_older` to be greater than
-`close.on_state_change.inactive`.
-
---
+You must set `ignore_older` to be greater than `close.on_state_change.inactive`.
 +
 The files affected by this setting fall into two categories:
 +
@@ -515,10 +532,10 @@ the rotated files are named `apache.log.1`, `apache.log.2`), use the following
 configuration.
 +
 [source,yaml]
----
+----
 rotation.external.strategy.copytruncate:
   suffix_regex: \.\d$
----
+----
 
 * **Date suffix:** If the rotation date is appended to the end of the filename
 (for example, the active file is `apache.log` and the
@@ -526,9 +543,9 @@ rotated files are named `apache.log-20210526`, `apache.log-20210527`, and so on)
 use the following configuration:
 +
 [source,yaml]
----
+----
 rotation.external.strategy.copytruncate:
   suffix_regex: \-\d{6}$
   dateformat: -20060102
----
+----
 

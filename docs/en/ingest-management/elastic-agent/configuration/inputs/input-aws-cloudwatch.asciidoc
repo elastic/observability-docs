@@ -19,14 +19,24 @@ belong to one log group.
 A log stream is a sequence of log events that share the same source. Each
 separate source of logs in CloudWatch Logs makes up a separate log stream.
 
+****
+**Reviewers:** Need to figure out the minimal config that will make sense. I'm
+just guessing here. I'm not sure how much of the config we want to show.
+****
+
 [source,yaml]
 ----
 inputs:
-  - type: aws-cloudwatch
-    log_group_arn: arn:aws:logs:us-east-1:428152502467:log-group:test:*
-    scan_frequency: 1m
-    credential_profile_name: elastic-agent
-    start_position: beginning
+  - id: uniqueid
+    type: aws-cloudwatch
+    streams:
+      - id: aws-cloudwatch-aws.cloudwatch_logs-824d3c96-3aee-4938-9e77-be8144b4c18b
+        dataset: generic
+        data_stream: null
+        log_group_arn: arn:aws:logs:us-east-1:428152502467:log-group:test:*
+        scan_frequency: 1m
+        credential_profile_name: elastic-agent
+        start_position: beginning
 ----
 
 [[input-aws-cloudwatch-aws-credentials]]
@@ -34,6 +44,7 @@ inputs:
 
 To make AWS API calls, the `aws-cloudwatch` input requires AWS credentials.
 
+//TODO: Add section about AWS credentials.
 //See <<aws-credentials-config,AWS credentials settings>> for more details.
 
 To access `aws-cloudwatch`, the IAM user must have the required permissions for:
@@ -53,11 +64,10 @@ configuration.
 
 [id="input-aws-cloudwatch-api_sleep-setting"]
 `api_sleep`::
-(string) Specifies the duration for {agent} to sleep between AWS
-`FilterLogEvents` API calls inside the same collection period. The
-`FilterLogEvents` API has a quota of 5 transactions per second
-(TPS)/account/Region. Adjust this value when there are multiple {agent}s
-collecting logs from the same region and AWS account.
+(string) The duration for {agent} to sleep between AWS `FilterLogEvents` API
+calls inside the same collection period. The `FilterLogEvents` API has a quota
+of 5 transactions per second (TPS)/account/Region. Adjust this value when there
+are multiple {agent}s collecting logs from the same region and AWS account.
 +
 Default: `200ms`
 
@@ -72,15 +82,35 @@ Default: `120s`
 **Reviewers:** Is this format (duration) correct? ^^ Filebeat docs didn't say. 
 ****
 
+[id="input-aws-cloudwatch-latency-setting"]
+`latency`::
+Some AWS services send logs to CloudWatch with a latency to process larger than
+`aws-cloudwatch` input `scan_frequency`. This case, please specify a `latency`
+parameter so collection start time and end time will be shifted by the given
+latency amount.
+
+****
+**Reviewers:** This description ^^ from the Filebeat docs is confusing. Can you
+clarify what this means so I can edit it?
+****
+
 [id="input-aws-cloudwatch-log_group_arn-setting"]
 `log_group_arn`:: 
-(string) ARN of the log group to collect logs from..
+(string) ARN of the log group to collect logs from.
 
 [id="input-aws-cloudwatch-log_group_name-setting"]
 `log_group_name`::
-(string) Name of the log group to collect logs from.
+(string) Name of the log group to collect logs from. The `region_name` setting
+is required when `log_group_name` is set.
+
+[id="input-aws-cloudwatch-log_group_name_prefix-setting"]
+`log_group_name_prefix`::
+(string) The prefix for a group of log group names. The `region_name` setting is
+required when `log_group_name_prefix` is set. Do not set `log_group_name` and
+`log_group_name_prefix` at the same time.
 +
-NOTE: `region_name` is required when `log_group_name` is set.
+To configure the number of workers that will process the log groups under this
+prefix, set `number_of_workers`.
 
 [id="input-aws-cloudwatch-log_stream_prefix-setting"]
 `log_stream_prefix`::
@@ -92,37 +122,41 @@ that have names that start with this prefix.
 (list) A list of log stream names (strings) that {agent} collects log events
 from.
 
+[id="input-aws-number_of_workers-setting"]
+`number_of_workers`::
+(int) Number of workers that will process the log groups with the given
+`log_group_name_prefix`.
++
+Default: `1`
+
 [id="input-aws-cloudwatch-region_name-setting"]
 `region_name`::
-(string) Region that the specified log group belongs to.
+(string) Region that the specified log group or log group prefix belongs to.
 
 [id="input-aws-cloudwatch-scan_frequency-setting"]
 `scan_frequency`::
 (string) How often {agent} checks for new log events from the specified log
 group.
 +
-Default: `1m`
-+
-The default of `1m` means that {agent} sleeps for one minute before querying
-new logs again.
+Default: `1m` ({agent} sleeps for one minute before querying new logs again)
 
 [id="input-aws-cloudwatch-start_position-setting"]
 `start_position`::
 (string) Specifies whether this input should read log files from the
 `beginning` or from the `end`.
 +
-Default: `beginning`
-+
 * `beginning`: reads from the beginning of the log group.
 * `end`: reads only new messages from the current time minus `scan_frequency`
 going forward.
 For example, if `scan_frequency` equals to `30s` and the current timestamp is
-`2020-06-24 12:00:00`:
+`2021-06-24 12:00:00`:
 * with `start_position` set to `beginning`:
-** first iteration: startTime=0, endTime=2020-06-24 12:00:00
-** second iteration: startTime=2020-06-24 12:00:00, endTime=2020-06-24 12:00:30
+** first iteration: startTime=0, endTime=2021-06-24 12:00:00
+** second iteration: startTime=2021-06-24 12:00:00, endTime=2021-06-24 12:00:30
 * with `start_position` set to `end`:
-** first iteration: startTime=2020-06-24 11:59:30, endTime=2020-06-24 12:00:00
-** second iteration: startTime=2020-06-24 12:00:00, endTime=2020-06-24 12:00:30
+** first iteration: startTime=2021-06-24 11:59:30, endTime=2021-06-24 12:00:00
+** second iteration: startTime=2021-06-24 12:00:00, endTime=2021-06-24 12:00:30
++
+Default: `beginning`
 
 //TODO: This example is a bit hard to follow. Needs an edit.
