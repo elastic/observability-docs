@@ -18,6 +18,9 @@ The synthetics agent exposes an API for creating and running tests, including:
 `step`::        Actions within a journey that should be completed in a specific order.
                 Takes two parameters: a `name` (string) and a `callback` (function).
                 See <<synthetics-create-step>>.
+`monitor`::     [definition]
+                [note: Only relevant for the push command to create monitors in Kibana]
+                See <<monitor-use>>.
 `beforeAll`::   Runs a provided function once, before any `journey` runs.
                 If the provided function is a promise, the runner will wait for the
                 promise to resolve before invoking the `journey`.
@@ -171,6 +174,39 @@ afterAll(({ params }) => {
 ----
 
 [discrete]
+[[monitor-use]]
+== Configure monitors
+
+// Does it make sense to include this here or should it be included in
+// Run synthetic tests > Use a test suite > Send to {stack}
+// since we don't know what a push command is yet?
+
+[ Configure monitor-related fields using the Monitor DSL. ]
+
+[source,js]
+----
+import { journey, step, monitor, expect } from '@elastic/synthetics';
+
+journey('My Example Journey', ({ page, params }) => {
+  /**
+   *  Only relevant for the push command to create monitors in Kibana
+   */
+  monitor.use({
+    id: 'example-monitor',
+    schedule: 10,
+    throttling: {
+      download: 10,
+      upload: 5,
+      latency: 100,
+    },
+  });
+  step('launch application', async () => {
+    await page.goto('https://example.com');
+  });
+});
+----
+
+[discrete]
 [[synthetics-sample-test]]
 == Sample synthetic test
 
@@ -193,3 +229,4 @@ journey('Ensure placeholder is correct', ({ page }) => {
   });
 });
 ----
+

@@ -18,12 +18,14 @@ application code, <<synthetics-test-suite,use a test suite>>.
 A test suite can contain any number of journeys in any number of files using the file extensions `.journey.ts` or `.journey.js`.
 You can use the `@elastic/synthetics` package as a library to run a test suite.
 
-To test a test suite locally, start by writing your tests:
+To test a suite locally, you can scaffold the project using `@elastic/synthetics`'s `init` command:
 
-. Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
-. Create a `javascript` or `typescript` file that imports your tests (using the `.journey.ts` or `.journey.js` file extension).
-. Make sure any dependencies are defined with an `import` outside of the `journey` object.
-. Compile everything together.
+[source,sh]
+----
+npx @elastic/synthetics init <name-of-your-project>
+----
+
+Running the above command will install the synthetics agent and required dependencies. It will also create synthetics configuration file and example journey files.
 
 See an example of a test suite in the https://github.com/elastic/synthetics-demo[elastic/synthetics-demo] repository.
 The examples below show how to test that repository's `todo` directory locally.
@@ -64,7 +66,24 @@ npx @elastic/synthetics .
 [[synthetics-test-suite-send]]
 === Send to {stack}
 
-After testing locally, you can run the test suite using the Elastic Synthetics integration or {heartbeat}
+// Is the push command now the preferred way?
+// If yes, we should definitely include it here and not on its own page.
+// Should it be a tab alongside "Heartbeat" and "Elastic Agent" instead?
+
+After testing locally, you can push the monitors to the {kib} using `@elastic/synthetics`'s `push` command.
+The `push` command will bundle all your local journey files and create monitors in {kib}
+so you manage all the browser monitors from your local environment.
+
+Push journeys to {kib} using:
+
+[source,sh]
+----
+npx @elastic/synthetics push <path/to/journey-dir> --auth <api-key> --url <kibana-url> --project <id|name>
+----
+
+[ One monitor will appear on the **Monitor management** page for each journey ]
+
+Alternatively, you can use the Elastic Synthetics integration in the {kib} UI or {heartbeat}
 depending on <<uptime-set-up-choose,the approach you chose to set up>>.
 
 --
