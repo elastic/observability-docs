@@ -1,0 +1,66 @@
+[[filter-agent-list-by-tags]]
+= Filter list of Agents by tags
+
+When you install or enroll {agent} in {fleet}, you can specify a comma-separated
+list of tags to apply to the agent, then use the tags to filter the Agents list
+shown in {fleet}.
+
+Tags are useful for capturing information that is specific to the installation
+environment, such machine type, location, operating system, environment, and
+so on. Tags can be any arbitrary information that will help you filter and
+perform operations on {agent}s with the same attributes.
+
+To filter the Agents list by tag, in {kib}, go to **{fleet} > Agents** and click
+**Tags**. Select the tags to filter on. The tags are also available in the KQL
+field for autocompletion.
+
+[role="screenshot"]
+image::images/agent-tags.png[Agents list filtered to show agents with the staging tag]
+
+If you haven't applied tags to any {agent}s yet, the list will be empty.
+
+[discrete]
+[[apply-tags]]
+== Apply tags to {agent}s
+
+To apply tags, specify a comma-separated list of tags when you install or enroll
+{agent} in {fleet}. If the agent is already enrolled in {fleet}, you must
+unenroll the agent, then re-enroll it to apply tags.
+
+The following command applies the `macOS` and `staging` tags during
+installation:
+
+[source,shell]
+----
+sudo ./elastic-agent install \
+  --url=<Fleet Server host URL> \
+  --enrollment-token=<enrollment token> \
+  --tag macOS,staging
+----
+
+For the full command synopsis, refer to <<elastic-agent-install-command>> and
+<<elastic-agent-enroll-command>>.
+
+The following command applies the `docker` and `dev` tags to {agent} running in
+a Docker container:
+
+["source","yaml",subs="attributes"]
+----
+docker run \
+  --env FLEET_ENROLL=1 \
+  --env FLEET_URL=<Fleet Server host URL> \
+  --env FLEET_ENROLLMENT_TOKEN=<enrollment token> \
+  --env ELASTIC_AGENT_TAGS=docker,dev
+  --rm docker.elastic.co/beats/elastic-agent:{version}
+----
+
+For more information about running on containers, refer to the guides under
+<<install-elastic-agents-in-containers>>.
+
+[discrete]
+[[edit-or-remove-tags]]
+== Edit or remove tags
+
+Currently, there is no way to edit or remove existing tags. To change the
+tags, you must unenroll {agent}, then re-enroll it using new tags.
+
