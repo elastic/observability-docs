@@ -3,6 +3,10 @@
 [[elastic-agent-cmd-options]]
 = {agent} command reference
 
+++++
+<titleabbrev>Command reference</titleabbrev>
+++++
+
 {agent} provides commands for running {agent}, managing {fleet-server}, and
 doing common tasks.
 
@@ -166,6 +170,7 @@ elastic-agent enroll --url <string>
                      [--force]
                      [--help]
                      [--insecure ]
+                     [--tag <string>]
                      [global-flags]
 ----
 
@@ -182,14 +187,15 @@ elastic-agent enroll --fleet-server-es <string>
                      [--fleet-server-cert-key <string>]
                      [--fleet-server-es-ca <string>]
                      [--fleet-server-es-ca-trusted-fingerprint <string>] <2>
+                     [--fleet-server-es-insecure]
                      [--fleet-server-host <string>]
                      [--fleet-server-insecure-http]
                      [--fleet-server-policy <string>]
                      [--fleet-server-port <uint16>]
                      [--force]
                      [--help]
+                     [--tag <string>] 
                      [--url <string>] <3>
-                     [--fleet-server-es-insecure]
                      [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
@@ -291,6 +297,13 @@ verified. The content is encrypted, but the certificate is not verified.
 --
 +
 We strongly recommend that you use a secure connection.
+
+`--tag <string>`::
+A comma-separated list of tags to apply to {fleet}-managed {agent}s. You can
+use these tags to filter the list of agents in {fleet}.
++
+NOTE: Currently, there is no way to remove or edit existing tags. To change the
+tags, you must unenroll the {agent}, then re-enroll it using new tags.
 
 `--url <string>`::
 {fleet-server} URL to use to enroll the {agent} into {fleet}.
@@ -482,6 +495,7 @@ elastic-agent install --url <string>
                       [--force]
                       [--help]
                       [--insecure ]
+                      [--tag <string>] 
                       [global-flags]
 ----
 
@@ -506,6 +520,7 @@ elastic-agent install --fleet-server-es <string>
                       [--fleet-server-port <uint16>]
                       [--force]
                       [--help]
+                      [--tag <string>] 
                       [--url <string>] <3>
                       [--fleet-server-es-insecure]
                       [global-flags]
