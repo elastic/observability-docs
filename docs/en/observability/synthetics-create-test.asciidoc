@@ -1,43 +1,57 @@
 [[synthetics-create-test]]
 = Write a synthetic test
 
-++++
-<titleabbrev>Write a synthetic test</titleabbrev>
-++++
-
 [[synthetics-syntax]]
 
 beta[] To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
-The synthetics agent exposes an API for creating and running tests, including:
 
-[horizontal]
-`journey`::     Tests one discrete unit of functionality.
-                Takes two parameters: a `name` (string) and a `callback` (function).
-                See <<synthetics-create-journey>>.
-`step`::        Actions within a journey that should be completed in a specific order.
-                Takes two parameters: a `name` (string) and a `callback` (function).
-                See <<synthetics-create-step>>.
-`monitor`::     [definition]
-                [note: Only relevant for the push command to create monitors in Kibana]
-                See <<monitor-use>>.
-`beforeAll`::   Runs a provided function once, before any `journey` runs.
-                If the provided function is a promise, the runner will wait for the
-                promise to resolve before invoking the `journey`.
-                Takes one parameter: a `callback` (function).
-                See <<before-after>>.
-`before`::      Runs a provided function before a single `journey` runs.
-                Takes one parameter: a `callback` (function).
-                See <<before-after>>.
-`afterAll`::    Runs a provided function once, after all the `journey` runs have completed.
-                Takes one parameter: a `callback` (function).
-                See <<before-after>>.
-`after`::       Runs a provided function after a single `journey` has completed.
-                Takes one parameter: a `callback` (function).
-                See <<before-after>>.
+// The synthetics agent exposes an API for creating and running tests, including:
+
+// [horizontal]
+// `journey`::     Tests one discrete unit of functionality.
+//                 Takes two parameters: a `name` (string) and a `callback` (function).
+//                 See <<synthetics-create-journey>>.
+// `step`::        Actions within a journey that should be completed in a specific order.
+//                 Takes two parameters: a `name` (string) and a `callback` (function).
+//                 See <<synthetics-create-step>>.
+// `monitor`::     The `monitor.use` method allows users determine a monitor's configuration on a journey-by-journey basis. 
+//                 If you want two journeys to create monitors with different intervals, for example, you should call
+//                 `monitor.use` in each of them and set the `schedule` property.
+//                 [note: Only relevant for the push command to create monitors in Kibana]
+//                 See <<monitor-use>>.
+// `beforeAll`::   Runs a provided function once, before any `journey` runs.
+//                 If the provided function is a promise, the runner will wait for the
+//                 promise to resolve before invoking the `journey`.
+//                 Takes one parameter: a `callback` (function).
+//                 See <<before-after>>.
+// `before`::      Runs a provided function before a single `journey` runs.
+//                 Takes one parameter: a `callback` (function).
+//                 See <<before-after>>.
+// `afterAll`::    Runs a provided function once, after all the `journey` runs have completed.
+//                 Takes one parameter: a `callback` (function).
+//                 See <<before-after>>.
+// `after`::       Runs a provided function after a single `journey` has completed.
+//                 Takes one parameter: a `callback` (function).
+//                 See <<before-after>>.
 
 TIP: {playwright-url}[Playwright] is a browser testing library developed by Microsoft.
 It's reliable and fast and features a modern API that automatically waits for page elements to be ready.
+
+[discrete]
+[[synthetics-initialize]]
+== Initialize a synthetic project
+
+Start by creating a Node.js project.
+`@elastic/synthetics` includes an `init` command that you can use to create a template Node.js project that includes
+the synthetics agent, required dependencies, a synthetics configuration file, and example journey files:
+
+[source,sh]
+----
+npx @elastic/synthetics init <name-of-your-project>
+----
+
+Once you have a project set up, you can start writing journeys and pushing them to create monitors.
 
 [discrete]
 [[synthetics-create-journey]]
@@ -174,39 +188,6 @@ afterAll(({ params }) => {
 ----
 
 [discrete]
-[[monitor-use]]
-== Configure monitors
-
-// Does it make sense to include this here or should it be included in
-// Run synthetic tests > Use a test suite > Send to {stack}
-// since we don't know what a push command is yet?
-
-[ Configure monitor-related fields using the Monitor DSL. ]
-
-[source,js]
-----
-import { journey, step, monitor, expect } from '@elastic/synthetics';
-
-journey('My Example Journey', ({ page, params }) => {
-  /**
-   *  Only relevant for the push command to create monitors in Kibana
-   */
-  monitor.use({
-    id: 'example-monitor',
-    schedule: 10,
-    throttling: {
-      download: 10,
-      upload: 5,
-      latency: 100,
-    },
-  });
-  step('launch application', async () => {
-    await page.goto('https://example.com');
-  });
-});
-----
-
-[discrete]
 [[synthetics-sample-test]]
 == Sample synthetic test
 
@@ -230,3 +211,61 @@ journey('Ensure placeholder is correct', ({ page }) => {
 });
 ----
 
+[discrete]
+[[synthetics-inline-journey-local]]
+== Test locally
+
+While you're developing your tests, you can run tests locally to verify they work as expected before creating a monitor to run them on a regular interval.
+
+// [discrete]
+// [[synthetics-test-suite]]
+// === Use a test suite
+
+Use the `@elastic/synthetics` package as a library to run a test suite.
+
+From inside the directory containing the synthetics test suite, run the provided tests.
+By default, the `elastic-synthetics` runner will only run files matching the filename `*.journey.(ts|js)*`.
+
+[source,sh]
+----
+# Run tests on the current directory. The dot `.` indicates
+# that it should run all tests in the current directory.
+npx @elastic/synthetics .
+----
+
+[discrete]
+[[synthetics-test-inline]]
+=== Test an inline monitor
+
+To test an inline monitor's journey locally, change into your test's directory
+and pipe the journey's contents to the `npx @elastic/synthetics` command.
+
+Assume, for example, that your inline monitor includes the following code:
+
+[source,js]
+----
+step('load homepage', async () => {
+    await page.goto('https://www.elastic.co');
+});
+step('hover over products menu', async () => {
+    await page.hover('css=[data-nav-item=products]');
+});
+----
+
+To run that journey locally, you can save that code to a file and pipe the file's contents into `@elastic-synthetics`:
+
+[source,sh]
+----
+cat path/to/sample.js | npx @elastic/synthetics --inline
+----
+
+And you'll get a response like the following:
+
+[source,sh]
+----
+Journey: inline
+   ✓  Step: 'load homepage' succeeded (1831 ms)
+   ✓  Step: 'hover over products menu' succeeded (97 ms)
+
+ 2 passed (2511 ms)
+----
