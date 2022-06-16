@@ -6,37 +6,37 @@
 beta[] To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
 
-// The synthetics agent exposes an API for creating and running tests, including:
-
-// [horizontal]
-// `journey`::     Tests one discrete unit of functionality.
-//                 Takes two parameters: a `name` (string) and a `callback` (function).
-//                 See <<synthetics-create-journey>>.
-// `step`::        Actions within a journey that should be completed in a specific order.
-//                 Takes two parameters: a `name` (string) and a `callback` (function).
-//                 See <<synthetics-create-step>>.
-// `monitor`::     The `monitor.use` method allows users determine a monitor's configuration on a journey-by-journey basis. 
-//                 If you want two journeys to create monitors with different intervals, for example, you should call
-//                 `monitor.use` in each of them and set the `schedule` property.
-//                 [note: Only relevant for the push command to create monitors in Kibana]
-//                 See <<monitor-use>>.
-// `beforeAll`::   Runs a provided function once, before any `journey` runs.
-//                 If the provided function is a promise, the runner will wait for the
-//                 promise to resolve before invoking the `journey`.
-//                 Takes one parameter: a `callback` (function).
-//                 See <<before-after>>.
-// `before`::      Runs a provided function before a single `journey` runs.
-//                 Takes one parameter: a `callback` (function).
-//                 See <<before-after>>.
-// `afterAll`::    Runs a provided function once, after all the `journey` runs have completed.
-//                 Takes one parameter: a `callback` (function).
-//                 See <<before-after>>.
-// `after`::       Runs a provided function after a single `journey` has completed.
-//                 Takes one parameter: a `callback` (function).
-//                 See <<before-after>>.
-
 TIP: {playwright-url}[Playwright] is a browser testing library developed by Microsoft.
 It's reliable and fast and features a modern API that automatically waits for page elements to be ready.
+
+The synthetics agent exposes an API for creating and running tests, including:
+
+[horizontal]
+`journey`::     Tests one discrete unit of functionality.
+                Takes two parameters: a `name` (string) and a `callback` (function).
+                See <<synthetics-create-journey>>.
+`step`::        Actions within a journey that should be completed in a specific order.
+                Takes two parameters: a `name` (string) and a `callback` (function).
+                See <<synthetics-create-step>>.
+`beforeAll`::   Runs a provided function once, before any `journey` runs.
+                If the provided function is a promise, the runner will wait for the
+                promise to resolve before invoking the `journey`.
+                Takes one parameter: a `callback` (function).
+                See <<before-after>>.
+`before`::      Runs a provided function before a single `journey` runs.
+                Takes one parameter: a `callback` (function).
+                See <<before-after>>.
+`afterAll`::    Runs a provided function once, after all the `journey` runs have completed.
+                Takes one parameter: a `callback` (function).
+                See <<before-after>>.
+`after`::       Runs a provided function after a single `journey` has completed.
+                Takes one parameter: a `callback` (function).
+                See <<before-after>>.
+`monitor`::     The `monitor.use` method allows users determine a monitor's configuration on a journey-by-journey basis. 
+                If you want two journeys to create monitors with different intervals, for example, you should call
+                `monitor.use` in each of them and set the `schedule` property.
+                Note that this is only relevant when using the `push` command to create monitors in {kib}.
+                See the "Project monitors" option in <<synthetic-run-tests>>.
 
 [discrete]
 [[synthetics-initialize]]
@@ -64,7 +64,7 @@ Once you have a project set up, you can start writing journeys and pushing them 
 [[synthetics-create-journey]]
 == Create a journey
 
-Create a new file using the `.journey.ts` or `.journey.js` file extension or edit one of the template journey files.
+Create a new file using the `.journey.ts` or `.journey.js` file extension or edit one of the example journey files.
 
 A _journey_ tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
@@ -217,20 +217,16 @@ journey('Ensure placeholder is correct', ({ page }) => {
 });
 ----
 
+For more information on using `monitor`, see the "Project monitors" option in <<synthetic-run-tests>>.
+
 [discrete]
-[[synthetics-inline-journey-local]]
+[[synthetics-test-suite]]
 == Test locally
 
 While you're developing your tests, you can run tests locally to verify they work as expected before creating a monitor to run them on a regular interval.
 
-// [discrete]
-// [[synthetics-test-suite]]
-// === Use a test suite
-
-Use the `@elastic/synthetics` package as a library to run a project.
-
-From inside the directory containing the synthetics project, run the provided tests.
-By default, the `elastic-synthetics` runner will only run files matching the filename `*.journey.(ts|js)*`.
+To test all the journeys in a project, change into the directory containing the synthetics project and run the provided tests.
+By default, the `@elastic/synthetics` runner will only run files matching the filename `*.journey.(ts|js)*`.
 
 [source,sh]
 ----

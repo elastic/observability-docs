@@ -3,7 +3,7 @@
 :synthetics_version: v1.0.0-beta.26
 
 beta[] Configure each monitor directly in your test code using `monitor.use`.
-You must configure the monitor for each journey, which allows you to set different options for each monitor.
+You must configure the monitor for each journey, which allows you to set unique options for each monitor.
 For example:
 
 [source,js]
@@ -33,10 +33,10 @@ journey('Ensure placeholder is correct', ({ page, params }) => {
 });
 ----
 
-You can specfiy a default value for `schedule` and `locations` for all journeys in a global Synthetics configuration file.
+You can specify a default value for `schedule` and `locations` to be used for all journeys in a global Synthetics configuration file.
 For more details, see <<synthetics-configuration>>
 
-Here are all the available configuration options:
+Here are all the available `monitor` configuration options:
 
 `id` (`string`)::
 A unique identifier for this monitor.
@@ -47,13 +47,13 @@ A list of tags that will be sent with the monitor event. Tags are displayed in t
 `schedule` (`number`)::
 At which interval to run the test in seconds.
 `enabled` (`boolean`)::
-Enable or disable the monitor from running without deleting it.
+Enable or disable the monitor from running without deleting and recreating it.
 `locations` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/dsl/monitor.ts#L36[`Array<SyntheticsLocationsType>`])::
 Where to deploy the monitor. Monitors can be deployed in multiple locations so that you can detect differences in availability and response times across those locations.
 `throttling` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/common_types.ts#L192-L196[`ThrottlingOptions`])::
 Control the monitor's download speeds, upload speeds, and latency to simulate your application's behavior on slower or laggier networks.
 `screenshot` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/common_types.ts#L190[`ScreenshotOptions`])::
-Options include `'on'`, `'off'`, or `'only-on-failure'`.
+Control whether or not to capture screenshots. Options include `'on'`, `'off'`, or `'only-on-failure'`.
 
 // end::managed[]
 
@@ -89,7 +89,8 @@ For a list of all available configuration options, see {heartbeat-ref}/monitor-b
 
 // tag::agent[]
 
-beta[] Add a project when configuring the Elastic Synthetics integration.
+beta[] If you used {agent} to <<uptime-set-up-choose, set up monitors>>,
+add a project when configuring the Elastic Synthetics integration
 In *Monitor settings*, use the *Monitor Type* _Browser_.
 
 [role="screenshot"]

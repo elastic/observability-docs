@@ -1,31 +1,73 @@
 [[synthetic-run-tests]]
 = Create a synthetic monitor
 
-Once you've written a synthetic test, you can create a monitor to run the test on a regular interval.
+Once you've <<synthetics-create-test, written a synthetic test>>, you can create a _monitor_ to run the test on a regular interval.
 
-// There are two ways to run synthetic tests:
+[discrete]
+[[synthetic-monitor-choose]]
+== Choose an approach
 
-// * If you have more than one journey, rely on dependencies, or your tests need to live with your
-// application code, <<synthetics-test-suite,use a test suite>>.
-// * If you want to create a single journey and manage it individually, <<synthetics-inline-journey,use an inline monitor>>.
+There are three ways to create a browser monitor: project monitors, {heartbeat}, and {agent}.
+
+[discrete]
+[[synthetic-monitor-choose-project]]
+=== Project monitors
+
+beta[]
+
+Use the `@elastic/synthetics` library's `push` method to create monitors.
+Pushing your project creates a new browser monitor in {kib} for each journey in the project. This allows you to manage all browser monitors from your local environment.
+
+// pros
+This approach works best when integrated to a GitOps workflow. You can update tests and push those changes to overwrite old monitors all from your development environment. You also have the flexibility to either configure each monitor individually or use a global Synthetics configuration file to set default values to be used across all monitors in the project.
+
+// cons
+Unlike the other approaches, this method can only be used to create _browser_ monitors.
+
+[discrete]
+[[synthetic-monitor-choose-heartbeat]]
+=== {heartbeat}
+
+Use {heartbeat} to configure and create browser monitors similar to how you would set up any other type of monitor.
+
+// pros
+Read more about the benefits of this approach in <<uptime-set-up-choose-heartbeat, the setup guide's {heartbeat} section>>.
+
+// cons
+When using this approach to create multiple monitors from a project, all monitors will use a single configuration.
+
+[discrete]
+[[synthetic-monitor-choose-agent]]
+=== {agent}
+
+beta[]
+
+Use {agent} to configure and create browser monitors similar to how you would set up any other type of monitor.
+
+// pros
+Read more about the benefits of this approach in <<uptime-set-up-choose-agent, the setup guide's {agent} section>>.
+
+// cons
+When using this approach to create multiple monitors from a project, all monitors will use a single configuration.
 
 [discrete]
 [[monitor-use]]
 == Configure monitor
 
-When you're ready to create a monitor to run your tests, you'll need to set a few configuration options:
+When you're ready to create a browser monitor to run your tests, you'll need to set a few configuration options:
 
-* **Give your monitor a name.** Provide a human readable name for the monitor.
-This will appear in {kib} where you can view and manage monitors after they're created.
+// lint ignore params
+* **Give your monitor a name.** Provide a human readable name for the monitor. This will appear in {kib} where you can view and manage monitors after they're created.
 * **Set the schedule.** Specify the interval at which your tests will run.
-* **Specify where to find the tests.** This will vary based on the method you use to create a montior.
+* **Specify where to find the tests.** This will vary based on the method you use to create a monitor.
 * **Set other options as needed.** There are several other options you can set to customize your implementation including params, tags, screenshot options, throttling options, and more.
 
 --
 include::tab-widgets/uptime-monitoring/run-test-configure-widget.asciidoc[]
 --
 
-
+[discrete]
+[[monitor-create]]
 == Create monitor in {kib}
 
 After you've decided how you want to configure your monitor, you're ready to create the monitor and start collecting data.
@@ -34,33 +76,6 @@ Push the monitors to {kib} using one of the following methods:
 --
 include::tab-widgets/uptime-monitoring/run-test-suite-widget.asciidoc[]
 --
-
-// NEED TO INTEGRATE INTO THE NEW CONTENT ON THIS PAGE
-
-// [discrete]
-// [[synthetics-inline-journey]]
-// == Use an inline monitor
-
-// An inline monitor is a single journey that you manage individually.
-// When writing an inline monitor, the `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope.
-
-// To create an inline monitor, copy the steps from inside a journey and paste it into {kib} or your {heartbeat} configuration.
-
-// Inline monitors can be quick to set up, but can also be more difficult to manage.
-// Each inline monitor can contain only _one_ journey, which must be maintained directly in {kib} or in your {heartbeat} configuration file.
-
-// If you depend on external packages, have your journeys next to your code repository, or wish to embed and manage more than one journey from a single monitor configuration <<synthetics-test-suite,use a test suite>>.
-
-// [discrete]
-// [[synthetics-inline-journey-send]]
-// === Send to {stack}
-
-// After testing locally, you can copy the script into your Elastic Synthetics integration or `heartbeat.yml`
-// depending on <<uptime-set-up-choose,the approach you chose to set up>>.
-
-// --
-// include::tab-widgets/uptime-monitoring/run-test-inline-widget.asciidoc[]
-// --
 
 [discrete]
 [[synthetics-ci]]
@@ -74,3 +89,25 @@ If any of your journeys fail, the synthetics agent it will yield a non-zero exit
 You can see an example using GitHub Actions in the
 https://github.com/elastic/synthetics-demo/blob/main/.github/workflows/run-synthetics.yml[elastic/synthetics-demo] repository.
 This example sets up a job that executes the synthetics runner and tells the runner to yield results in a JUnit format.
+
+[discrete]
+[[synthetics-inline-journey]]
+== Create an inline monitor
+
+Alternatively, you can create an _inline_ monitor.
+
+An inline monitor is a single journey that you manage individually.
+Inline monitors can be quick to set up, but can also be more difficult to manage.
+Each inline monitor can contain only _one_ journey, which must be maintained directly in {kib} or in your {heartbeat} configuration file.
+
+If you depend on external packages, have your journeys next to your code repository, or wish to embed and manage more than one journey from a single monitor configuration, see <<monitor-use>> instead.
+
+// [discrete]
+// [[synthetics-inline-journey-send]]
+// === Send to {stack}
+
+When writing an inline monitor, the `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope. To create an inline monitor, copy the steps from inside a journey and paste it into your Elastic Synthetics integration or `heartbeat.yml` depending on <<uptime-set-up-choose,the approach you chose to set up>>.
+
+--
+include::tab-widgets/uptime-monitoring/run-test-inline-widget.asciidoc[]
+--
