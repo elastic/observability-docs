@@ -1,14 +1,14 @@
 [[synthetics-create-test]]
 = Write a synthetic test
 
-++++
-<titleabbrev>Write a synthetic test</titleabbrev>
-++++
-
 [[synthetics-syntax]]
 
 beta[] To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
+
+TIP: {playwright-url}[Playwright] is a browser testing library developed by Microsoft.
+It's fast, reliable, and features a modern API that automatically waits for page elements to be ready.
+
 The synthetics agent exposes an API for creating and running tests, including:
 
 [horizontal]
@@ -32,16 +32,39 @@ The synthetics agent exposes an API for creating and running tests, including:
 `after`::       Runs a provided function after a single `journey` has completed.
                 Takes one parameter: a `callback` (function).
                 See <<before-after>>.
+`monitor`::     The `monitor.use` method allows you to determine a monitor's configuration on a journey-by-journey basis.
+                If you want two journeys to create monitors with different intervals, for example, you should call
+                `monitor.use` in each of them and set the `schedule` property to different values in each.
+                Note that this is only relevant when using the `push` command to create monitors in {kib}.
+                See the "Project monitors" option in <<synthetic-run-tests>>.
 
-TIP: {playwright-url}[Playwright] is a browser testing library developed by Microsoft.
-It's reliable and fast and features a modern API that automatically waits for page elements to be ready.
+[discrete]
+[[synthetics-initialize]]
+== Initialize a synthetic project
+
+Start by installing the Elastic Synthetics agent:
+
+[source,sh]
+----
+npm install -g @elastic/synthetics
+----
+
+Then create a Node.js project using the `@elastic/synthetics` `init` command.
+This will create a template Node.js project that includes the synthetics agent, required dependencies,
+a synthetics configuration file, and example journey files:
+
+[source,sh]
+----
+npx @elastic/synthetics init <name-of-your-project>
+----
+
+Once you have a project set up, you can start writing journeys and pushing them to create monitors.
 
 [discrete]
 [[synthetics-create-journey]]
 == Create a journey
 
-Start by creating a new file using the `.journey.ts` or `.journey.js` file extension,
-importing the synthetics library, and adding a new journey.
+Create a new file using the `.journey.ts` or `.journey.js` file extension or edit one of the example journey files.
 
 A _journey_ tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
@@ -192,4 +215,58 @@ journey('Ensure placeholder is correct', ({ page }) => {
     expect(placeholderValue).toBe('What needs to be done?');
   });
 });
+----
+
+For more information on using `monitor`, see the "Project monitors" option in <<synthetic-run-tests>>.
+
+[discrete]
+[[synthetics-test-suite]]
+== Test locally
+
+As you write journeys, you can run them locally to verify they work as expected. Then, you can create monitors to run your journeys at a regular interval.
+
+To test all the journeys in a project, navigate into the directory containing the synthetics project and run the journeys in there.
+By default, the `@elastic/synthetics` runner will only run files matching the filename `*.journey.(ts|js)*`.
+
+[source,sh]
+----
+# Run tests on the current directory. The dot `.` indicates
+# that it should run all tests in the current directory.
+npx @elastic/synthetics .
+----
+
+[discrete]
+[[synthetics-test-inline]]
+=== Test an inline monitor
+
+To test an inline monitor's journey locally, pipe the inline journey into the `npx @elastic/synthetics` command.
+
+Assume, for example, that your inline monitor includes the following code:
+
+[source,js]
+----
+step('load homepage', async () => {
+    await page.goto('https://www.elastic.co');
+});
+step('hover over products menu', async () => {
+    await page.hover('css=[data-nav-item=products]');
+});
+----
+
+To run that journey locally, you can save that code to a file and pipe the file's contents into `@elastic-synthetics`:
+
+[source,sh]
+----
+cat path/to/sample.js | npx @elastic/synthetics --inline
+----
+
+And you'll get a response like the following:
+
+[source,sh]
+----
+Journey: inline
+   ✓  Step: 'load homepage' succeeded (1831 ms)
+   ✓  Step: 'hover over products menu' succeeded (97 ms)
+
+ 2 passed (2511 ms)
 ----
