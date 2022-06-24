@@ -5,31 +5,35 @@
 <titleabbrev>Synthetic tests configuration</titleabbrev>
 ++++
 
-beta[] Synthetic tests support the configuration of dynamic parameters that can be
-used in the suites. In addition, the Synthetics agent, which is built on top
-of Playwright, supports configuring browser and context options that are available
-in Playwright specific methods, for example, `ignoreHTTPSErrors`, `extraHTTPHeaders` and `viewport`. 
+:synthetics_version: v1.0.0-beta.29
 
-[discrete]
+beta[] Synthetic tests support the configuration of dynamic parameters that can be
+used in projects. In addition, the Synthetics agent, which is built on top
+of Playwright, supports configuring browser and context options that are available
+in Playwright-specific methods, for example, `ignoreHTTPSErrors`, `extraHTTPHeaders`, and `viewport`.
+
 [[synthetics-config-file]]
-== Global Synthetics Configuration
 
 Create a `synthetics.config.js` or `synthetics.config.ts` file in the root of the
 synthetics project and specify the options:
 
 [source,js]
 ----
-import { SyntheticsConfig } from "@elastic/synthetics"
+import { SyntheticsConfig } from '@elastic/synthetics'
 
 const config: SyntheticsConfig = {
   params: {
-    url: "https://www.elastic.co"
+    url: 'https://www.elastic.co'
   },
   playwrightOptions: {
     ignoreHTTPSErrors: true, // ignores all HTTPS errors during navigation
     extraHTTPHeaders: {
-      "foo": "bar" // additional HTTP headers to be sent with every request
+      'foo': 'bar' // additional HTTP headers to be sent with every request
     }
+  },
+  monitor: {
+    schedule: 10,
+    locations: [ 'us-east4-a' ],
   }
 }
 
@@ -39,6 +43,18 @@ export default config;
 The configuration file can either export an object, or a function that when
 called should return the generated configuration. To know more about configuring
 the tests based on environments, look at the <<synthetics-dynamic-configs, dynamic configuration>> documentation.
+
+[discrete]
+[[synthetics-configuration-params]]
+== `params`
+
+An object that defines any variables your tests require.
+
+[discrete]
+[[synthetics-configuration-playwright-options]]
+== `playwrightOptions`
+
+For available options, see the https://playwright.dev/docs/api[Playwright documentation].
 
 [discrete]
 [[synthetics-config-device-emulation]]
@@ -61,6 +77,23 @@ const config: SyntheticsConfig = {
 export default config;
 ----
 
+[discrete]
+[[synthetics-configuration-monitor]]
+== `monitor`
 
-NOTE: Synthetics tests configuration can only be used along with synthetics
-projects and is not available for inline suites.
+Default values to be applied to _all_ monitors when using the <<elastic-synthetics-push-command, `@elastic/synthetics` `push` command>>.
+
+`tags` (`Array<string>`)::
+A list of tags that will be sent with the monitor event. Tags are displayed in the {uptime-app} and allow you to search monitors by tag.
+`schedule` (`number`)::
+The interval (in seconds) at which the monitor should run.
+`enabled` (`boolean`)::
+Enable or disable the monitor from running without deleting and recreating it.
+`locations` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/dsl/monitor.ts#L36[`Array<SyntheticsLocationsType>`])::
+Where to deploy the monitor. Monitors can be deployed in multiple locations so that you can detect differences in availability and response times across those locations.
+`throttling` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/common_types.ts#L192-L196[`ThrottlingOptions`])::
+Control the monitor's download speeds, upload speeds, and latency to simulate your application's behavior on slower or laggier networks.
+`screenshot` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/common_types.ts#L190[`ScreenshotOptions`])::
+Control whether or not to capture screenshots. Options include `'on'`, `'off'`, or `'only-on-failure'`.
+
+For information on configuring monitors individually, see <<synthetic-run-tests>>.
