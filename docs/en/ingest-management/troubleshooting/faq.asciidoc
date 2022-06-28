@@ -221,8 +221,14 @@ token, which {kib} validates.
 [[how-are-secrets-secured]]
 == How are secrets secured when entered into integration policies or agent policies in {kib}?
 
-//This include is designed to break in 7.15 so we remember to verify that this info is still true
-include::{fleet-repo-dir}/release-notes/release-notes-7.14.asciidoc[tag=credential-storage]
+Credentials that you provide for an agent or integration policy are stored in
+{es}. They can be read by any user who has read permissions to the `.fleet-*`
+and `.kibana*` indices in {es}. By default these are the superuser,
+`fleet-server` service account tokens, and the `kibana_system` user. These
+secrets are also included in agent policies and shared with agents via {fleet}
+through TLS. When you use the {agent} installer and enroll agents in {fleet},
+the policies are stored on the host file system and, by default, can only be
+read by root.
 
 [discrete]
 [[which-es-kibana-ports-are-needed]]
