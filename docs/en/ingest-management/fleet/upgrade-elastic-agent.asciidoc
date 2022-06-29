@@ -1,15 +1,18 @@
 [[upgrade-elastic-agent]]
 = Upgrade {fleet}-managed {agent}s
 
-experimental[]
-
 ++++
 <titleabbrev>Upgrade {agent}s</titleabbrev>
 ++++
 
+TIP: Want to upgrade a standalone agent instead? See <<upgrade-standalone>>.
+
 With {fleet} upgrade capabilities, you can view and select agents that are out
 of date, and trigger selected agents to download, install, and run the new
-version.
+version. You can trigger upgrades to happen immediately, or specify a
+maintenance window during which the upgrades will occur. If your {stack}
+subscription level supports it, you can schedule upgrades to occur at a specific
+date and time.
 
 This approach simplifies the process of keeping your agents up to date. It also
 saves you time because you don’t need third-party tools or processes to
@@ -20,29 +23,138 @@ manage upgrades.
 NOTE: The upgrade feature is not supported for upgrading DEB/RPM packages or
 Docker images.
 
-To upgrade {agent} to a new version:
+To upgrade your {agent}s, go to *Management > {fleet} > Agents* in {kib}. You
+can perform the following upgrade-related actions:
 
-. In {fleet}, select **Agents**.
+[options,header]
+|===
+| User action | Result
 
-. Under **Agents**, click **Upgrade available** to see a list of agents
+|<<upgrade-an-agent>>
+|Upgrade a single agent to a specific version.
+
+|<<rolling-agent-upgrade>>
+|Do a rolling upgrade of multiple agents over a specific time period.
+
+|<<schedule-agent-upgrade>>
+|Schedule an upgrade of one or more agents to begin at a specific time.
+
+|<<view-upgrade-status>>
+|View the status of an upgrade, including upgrade metrics and agent logs.
+
+|<<abort-agent-upgrade>>
+|Stop an in-progress upgrade.
+
+|===
+
+
+[discrete]
+[[upgrade-an-agent]]
+== Upgrade a single {agent}
+
+. On the **Agents** tab, click **Upgrade available** to see a list of agents
 that you can upgrade.
 
-. Upgrade your agents:
-
-.. To upgrade a single agent, choose **Upgrade agent** from the **Actions** menu
-next to the agent you want to upgrade.
+. From the **Actions** menu next to the agent, choose **Upgrade agent**.
 +
 [role="screenshot"]
-image::images/upgrade-agents.png[Upgrade menu for updating an {agent} in {fleet}]
+image::images/upgrade-single-agent.png[Menu for upgrading a single {agent}]
 +
-The **Upgrade agent** option is grayed out when an upgrade is unavailable, or
+The **Upgrade agent** option is grayed out if an upgrade is unavailable or
 the {kib} version is lower than the agent version.
 
-.. To upgrade multiple agents, bulk select the agents and click
-**Upgrade agents**.
-+
-Unable to select multiple agents? Confirm that your subscription level supports
-selective agent binary updates in {fleet}. For more information, refer to
-{subscriptions}[{stack} subscriptions].
+. In the Upgrade agent window, select an upgrade version and click
+**Upgrade agent**.
 
-TIP: Want to upgrade a standalone agent instead? See <<upgrade-standalone>>.
+[discrete]
+[[rolling-agent-upgrade]]
+== Do a rolling upgrade of multiple {agent}s
+
+You can do rolling upgrades to avoid exhausting network resources when updating
+a large number of {agent}s.
+
+. On the **Agents** tab, select multiple agents, and click **Actions**.
+
+. From the **Actions** menu, choose to upgrade the agents.
++
+[role="screenshot"]
+image::images/rolling-agent-upgrade.png[Menu for bulk upgrading {agent}s]
+
+. In the Upgrade agents window, select an upgrade version.
+
+. Select the amount of time available for the maintenance window. The upgrades
+are spread out uniformly across this maintenance window to avoid exhausting
+network resources. 
++
+To force selected agents to upgrade immediately when the upgrade is
+triggered, select **Immediately**. Avoid using this setting for batches of more
+than 10 agents.
+
+. Upgrade the agents.
+
+[discrete]
+[[schedule-agent-upgrade]]
+== Schedule an upgrade
+
+. On the **Agents** tab, select one or more agents, and click **Actions**.
+
+. From the **Actions** menu, choose to schedule an upgrade.
++
+[role="screenshot"]
+image::images/schedule-upgrade.png[Menu for scheduling {agent} upgrades]
++
+If the schedule option is grayed out, it may not be available at your
+subscription level. For more information, refer to {subscriptions}[{stack}
+subscriptions].
+
+. In the Upgrade window, select an upgrade version.
+
+. Select a maintenance window. For more information, refer to
+<<rolling-agent-upgrade>>.
+
+. Set the date and time when you want the upgrade to begin.
+
+. Click **Schedule**.
+
+[discrete]
+[[view-upgrade-status]]
+== View upgrade status
+
+. On the **Agents** tab, when you trigger an upgrade, notice that the upgrade
+ status appears in a banner at the top of the page. Agents that are upgrading
+ have the status `Updating` until the upgrade is complete, then the status
+ changes back to `Healthy`.
++
+[role="screenshot"]
+image::images/upgrade-status.png[Screenshot of Agents tab showing upgrade status]
+
+. When upgrading many agents, you can fine tune the maintenance window by
+viewing stats and metrics about the upgrade:
++
+.. On the **Agents** tab, click the host name to view agent details.
+.. Click **View agent dashboard** to open the **[{agent}] metrics** dashboard
+//TODO: This needs more detail. I did not see any visualizations or stats
+//related to downloads. Is this capability not available yet? Should I remove
+//this steps, or is there something useful to be gleaned related to upgrades?
+
+. If the upgrade fails, view the agent logs to find the reason:
++
+.. On the **Agents** tab, click the host name to view agent details.
+.. Click **Logs** and search for failures.
++
+[role="screenshot"]
+image::images/upgrade-failure.png[Agent logs showing upgrade failure]
+
+[discrete]
+[[abort-agent-upgrade]]
+== Abort an upgrade
+
+If you need to stop an upgrade because it's stalled or consuming too many
+resources, abort the upgrade:
+
+. On the **Agents** tab, look for the banner that shows upgrade progress.
+. Click **Abort**.
+
+//REVIEWERS: What's next? How do you recover from aborting an upgrade? My agents running in
+//vagrant wouldn't update, then when I aborted, they both went offline. What happens
+//to agents that have already upgraded? Is there any rollback process?
