@@ -58,11 +58,24 @@ Once you've chosen an approach, you can begin setting up your first monitor.
 [[uptime-set-up-docker]]
 === Pull the Docker image
 
-Start by pulling the Docker image.
+Start by pulling the Docker image. There are two Docker images you can use based on the type of monitor you are setting up.
 
---
-include::tab-widgets/uptime-monitoring/set-up-docker-widget.asciidoc[]
---
+For *browser checks*, you must use the `elastic-agent-complete` Docker image to create a self-hosted {agent} node.
+This image contains the dependencies needed to run synthetic monitors.
+The standard {ecloud} or self-hosted {agent} will not work.
+
+[source,sh,subs="attributes"]
+----
+docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
+----
+
+For *lightweight HTTP/S, TCP, and ICMP checks*, you can use either the
+`elastic-agent-complete` image mentioned above or the following `elastic-agent` image:
+
+[source,sh,subs="attributes"]
+----
+docker pull docker.elastic.co/beats/elastic-agent:{version}
+----
 
 [discrete]
 [[uptime-set-up-config]]
