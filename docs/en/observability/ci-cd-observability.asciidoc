@@ -583,3 +583,89 @@ def check_service_health(service_name, service_version, error_rate_threshold, ki
      if len(obj['items']) > 0 and obj['items'][0].transactionErrorRate > error_rate_threshold:
             raise Exception("Error rate for service {} is higher than threshold {}, current value is {}".format(service_name, error_rate_threshold, obj['items'][0].transactionErrorRate))
 ----
+
+[discrete]
+[[ci-cd-github]]
+=== GitHub
+
+To configure GitHub to send traces, refer to the https://github.com/elastic/otel-export-trace-action[tracing] docs.
+In the GitHub configuration, you just need to define `OTEL_HEADERS`
+and `OTLP_ENDPOINT` secrets. Refer to https://docs.github.com/en/actions/security-guides/encrypted-secrets[encrypted-secrets] docs.
+
+[source,bash]
+----
+OTLP_ENDPOINT=elastic-apm-server.example.com:8200
+OTLP_HEADERS=Authorization=Bearer your-secret-token
+----
+
+You can now create a GitHub workflow to listen for `workflow` runs that are completed:
+
+[source,yaml]
+----
+name: OpenTelemetry Export Trace
+
+on:
+  workflow_run:
+    workflows: [pr-check]
+    types: [completed]
+
+jobs:
+  otel-export-trace:
+    name: OpenTelemetry Export Trace
+    runs-on: ubuntu-latest
+    steps:
+      - name: Export Workflow Trace
+        uses: elastic/otel-export-trace-action@latest
+        with:
+          otlpEndpoint: ${{ secrets.OTLP_ENDPOINT }}
+          otlpHeaders: ${{ secrets.OTLP_HEADERS }}
+          otelServiceName: ${{ github.repository }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          runId: ${{ github.event.workflow_run.id }}
+----
+
+Once GitHub tracing is configured, GitHub actions are
+reported in Elastic {observability}.
+
+[role="screenshot"]
+.A GitHub action execution in Elastic {observability}
+image::images/cicd-github.png[GitHub action execution]
+
+You can additionally, send traces for the test results, so far JUnit is the only
+supported test runner. In order to do so, you can configure your GitHub workflows
+that produce any JUnit output to call https://github.com/elastic/otel-upload-test-artifact-action,
+this will automatically propagate the context.
+
+[source,yaml]
+----
+name: pr-check
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          java-version: '11'
+          distribution: 'adopt'
+      - name: Build with Maven
+        run: mvn --batch-mode --update-snapshots package
+      - uses: elastic/otel-upload-test-artifact-action@latest
+        if: always()
+        continue-on-error: true
+        with:
+          jobName: "build"
+          stepName: "Build with Maven"
+          path: "target/surefire-reports/*.xml"
+          type: "junit"
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+----
+
+[role="screenshot"]
+.A GitHub action execution with test report in Elastic {observability}
+image::images/cicd-github-with-junit.png[GitHub action execution with Tests]
