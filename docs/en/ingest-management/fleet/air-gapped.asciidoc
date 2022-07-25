@@ -126,6 +126,34 @@ docker run -it -p 443:443 \
   docker.elastic.co/package-registry/distribution:{version}
 ----
 
+==== Using custom CA certificates
+
+In scenarios where you are using a custom Certificate Authority (CA), you can see errors like this:
+
+[source,json]
+---
+{"type":"log","@timestamp":"2022-03-02T09:58:36-05:00","tags":["error","plugins","fleet"],"pid":58716,"message":"Error connecting to package registry: request to https://customer.server.name:8443/categories?experimental=true&include_policy_templates=true&kibana.version=7.17.0 failed, reason: self signed certificate in certificate chain"}
+---
+
+This can be addressed by adding your CA certificate file path to the Kibana startup files by
+defining the `NODE_EXTRA_CA_CERTS` environment variable:
+
+[source,text]
+----
+NODE_EXTRA_CA_CERTS="/etc/kibana/certs/ca-cert.pem"
+----
+
+An example to run Kibana in a container with this environment variable:
+
+["source", "sh", subs="attributes"]
+----
+docker run -it -p 5601:5601 \
+  -v $(pwd)/ca-certs.pem:/etc/kibana/certs/ca-cert.pem \
+  -e NODE_EXTRA_CA_CERTS=/etc/kibana/certs/ca-cert.pem \
+  docker.elastic.co/elastic/kibana:{version}
+----
+
+
 [discrete]
 [[air-gapped-limitations]]
 == Limitations for {agent} upgrades
