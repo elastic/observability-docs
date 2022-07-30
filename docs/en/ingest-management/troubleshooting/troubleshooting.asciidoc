@@ -121,6 +121,22 @@ an external service called the {package-registry}.
 For this to work, the {kib} server must connect to `https://epr.elastic.co` on port `443`.
 
 [discrete]
+[[fleet-errors-tls]]
+== {kib} cannot connect to {package-registry} in air-gapped environments
+
+In air-gapped environments, you may encounter the following error if you're using a custom Certificate Authority (CA) that is not available to {kib}:
+
+[source,json]
+----
+{"type":"log","@timestamp":"2022-03-02T09:58:36-05:00","tags":["error","plugins","fleet"],"pid":58716,"message":"Error connecting to package registry: request to https://customer.server.name:8443/categories?experimental=true&include_policy_templates=true&kibana.version=7.17.0 failed, reason: self signed certificate in certificate chain"}
+----
+
+To fix this problem, add your CA certificate file path to the {kib} startup
+file by defining the `NODE_EXTRA_CA_CERTS` environment variable. More information
+about this in <<air-gapped-tls>> section.
+
+
+[discrete]
 [[fleet-app-crashes]]
 == {fleet} in {kib} crashes
 
