@@ -32,8 +32,8 @@ a selection of packages.
 
 There are different distributions available:
 
-* {version} (recommended): +docker.elastic.co/package-registry/distribution:{version}+ - Selection of packages from the production repository released with the {version} version of the {stack}.
-* production: `docker.elastic.co/package-registry/distribution:production` - Packages available in the production registry (https://epr.elastic.co).
+* {version}: +docker.elastic.co/package-registry/distribution:{version}+ - Selection of packages from the production repository released with the {version} version of the {stack}.
+* production (recommended): `docker.elastic.co/package-registry/distribution:production` - Packages available in the production registry (https://epr.elastic.co).
 * staging: `docker.elastic.co/package-registry/distribution:staging` - Packages available in the staging registry (https://epr-staging.elastic.co). These packages may be pending of validation.
 * snapshot: `docker.elastic.co/package-registry/distribution:snapshot` - Packages under development.
 
@@ -59,14 +59,14 @@ These images can also be used with other container runtimes compatible with Dock
 +
 ["source", "sh", subs="attributes"]
 ----
-docker pull docker.elastic.co/package-registry/distribution:{version}
+docker pull docker.elastic.co/package-registry/distribution:production
 ----
 +
 2. Save the Docker image locally:
 +
 ["source", "sh", subs="attributes"]
 ----
-docker save -o package-registry-{version}.tar docker.elastic.co/package-registry/distribution:{version}
+docker save -o package-registry-{version}.tar docker.elastic.co/package-registry/distribution:production
 ----
 +
 TIP: Check the image size to ensure that you have enough disk space. 
@@ -75,14 +75,14 @@ TIP: Check the image size to ensure that you have enough disk space.
 +
 ["source", "sh", subs="attributes"]
 ----
-docker load -i package-registry-{version}.tar
+docker load -i package-registry-production.tar
 ----
 
 4. Run the {package-registry}:
 +
 ["source", "sh", subs="attributes"]
 ----
-docker run -it -p 8080:8080 docker.elastic.co/package-registry/distribution:{version}
+docker run -it -p 8080:8080 docker.elastic.co/package-registry/distribution:production
 ----
 
 5. (Optional) You can monitor the health of your {package-registry} with
@@ -92,7 +92,7 @@ requests to the root path:
 ----
 docker run -it -p 8080:8080 \
     --health-cmd "curl -f -L http://127.0.0.1:8080/" \
-    docker.elastic.co/package-registry/distribution:{version}
+    docker.elastic.co/package-registry/distribution:production
 ----
 
 [discrete]
