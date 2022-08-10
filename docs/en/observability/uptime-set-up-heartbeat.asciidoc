@@ -1,11 +1,69 @@
-// tag::heartbeat[]
-ifeval::["{release-state}"=="unreleased"]
+[[uptime-set-up-choose-heartbeat]]
+= Use {heartbeat}
 
-Version {version} has not yet been released.
+// intro tbd
 
-endif::[]
+[discrete]
+[[uptime-set-up-docker]]
+== Pull the Docker image
 
-ifeval::["{release-state}"!="unreleased"]
+Start by pulling the Docker image.
+
+// ifeval::["{release-state}"=="unreleased"]
+
+// Version {version} has not yet been released.
+
+// endif::[]
+
+// ifeval::["{release-state}"!="unreleased"]
+
+[source,sh,subs="attributes"]
+----
+docker pull docker.elastic.co/beats/heartbeat:{version}
+----
+
+// endif::[]
+
+[discrete]
+[[uptime-set-up-config]]
+== Configure
+
+Create a `heartbeat.yml` configuration file.
+There are four possible monitor types.
+The example below shows how to configure an `http` monitor.
+
+[source,yml]
+----
+heartbeat.monitors:
+- type: http
+  id: service-status <1>
+  name: Service Status
+  service.name: my-apm-service-name
+  hosts: ["http://localhost:80/service/status"]
+  check.response.status: [200]
+  schedule: '@every 5s'
+----
+<1> Each `monitor` gets its own ID in the {uptime-app} and its own schedule entry.
+This allows tests to be run in parallel and analyzed separately.
+
+Read more about configuration options in {heartbeat-ref}/configuration-heartbeat-options.html[Configure {heartbeat} monitors].
+
+If you are setting up a *`browser`* monitor, see <<synthetics-create-test>>
+for more details on writing synthetic tests to be added to the configuration file.
+
+[discrete]
+[[uptime-set-up-connect]]
+== Connect to the {stack}
+
+After configuring the monitor, run it in Docker and connect the monitor to the {stack}.
+
+// ifeval::["{release-state}"=="unreleased"]
+
+// Version {version} has not yet been released.
+
+// endif::[]
+
+// ifeval::["{release-state}"!="unreleased"]
 You'll need to retrieve your {es} credentials for either an {heartbeat-ref}/configure-cloud-id.html[{ecloud} ID] or another {heartbeat-ref}/elasticsearch-output.html[{es} Cluster].
 
 The example below, shows how to run synthetics tests indexing data into {es}.
@@ -51,36 +109,16 @@ This may require using a custom seccomp policy with docker, which brings its own
 This is generally safe when run against sites whose content you trust,
 and with a recent version of Elastic Synthetics and Chromium.
 
-endif::[]
-// end::heartbeat[]
+// endif::[]
 
-// tag::agent[]
-ifeval::["{release-state}"=="unreleased"]
+[discrete]
+[[uptime-set-up-kibana]]
+== View in {kib}
 
-Version {version} has not yet been released.
+{heartbeat} is now sending synthetic monitoring data to the {stack}.
+Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
+set up alerts in case of test failures, and more.
 
-endif::[]
-
-ifeval::["{release-state}"!="unreleased"]
-
-beta[] To add an {agent} to {fleet}, you'll need an enrollment token and the URL of your {fleet-server}.
-You can use the default enrollment token for your policy or create new enrollment tokens as needed.
-This example uses the `elastic-agent-complete` Docker container.
-
-[source,sh,subs="attributes"]
-----
-docker run \
-  --env FLEET_ENROLL=1 \
-  --env FLEET_URL={fleet-server-host-url} \
-  --env FLEET_ENROLLMENT_TOKEN={enrollment-token} \
-  --rm docker.elastic.co/beats/elastic-agent-complete:{version}
-----
-
-For more information on running {agent} with Docker, see {fleet-guide}/elastic-agent-container.html[Run {agent} in a container] and
-{fleet-guide}/fleet-enrollment-tokens.html[{fleet} enrollment tokens].
-
-You may need to set other environment variables.
-Learn how in {fleet-guide}/agent-environment-variables.html[{agent} environment variables guide].
-
-endif::[]
-// end::agent[]
+If a test does fail (shown as `down` in the {uptime-app}), you'll be able to view the step script that failed,
+any errors, and a stack trace.
+See <<synthetics-visualize>> for more information.

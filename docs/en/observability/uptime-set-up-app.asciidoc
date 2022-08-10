@@ -1,0 +1,143 @@
+[[uptime-set-up-choose-agent]]
+= Use the {uptime-app}
+
+beta[]
+
+You can now create monitors directly in the {uptime-app}.
+To try out this beta functionality, first you will need to enable Monitor Management:
+
+. Go to **Observability** -> **Uptime**.
+. Click **Monitor Management**.
+. Read the terms and click **Enable** to start using Monitor Management.
+
+From here, you can either <<elastic-hosted-monitors,create Elastic-hosted monitors>> or <<private-locations,create a private location>>
+to run monitors from your own premises.
+
+[discrete]
+[[elastic-hosted-monitors]]
+== Create an Elastic-hosted monitor
+
+From the Monitor Management page:
+
+. Click **Add monitor**.
+. In _Monitor locations_, select one or more Elastic-hosted locations.
+. Choose a _Monitor type_ and configure the monitor as needed.
+
+If you are setting up a *Browser* synthetic monitor, see <<synthetics-create-test>>
+for more details on writing synthetic tests.
+
+[discrete]
+[[private-locations]]
+== Run a monitor on private locations
+
+Before creating your monitor, add a private location.
+
+[discrete]
+[[private-locations-fleet-agent]]
+=== Set up {fleet-server} and {agent}
+
+If want to run monitors on private locations, there are two prerequisites to complete before you can configure monitors:
+
+* *Set up {fleet-server}*: If you are using {ecloud}, {fleet-server} will already be provided and you can skip this step.
+To learn more, see <<set-up-fleet,{fleet}>>.
+* *Create a separate {fleet} policy to use for Synthetics monitors*: Generally, synthetics monitors should run on dedicated nodes.
+For more information on {fleet} policies and creating them, see {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
+
+[discrete]
+[[private-location-docker]]
+=== Pull the Docker image
+
+Start by pulling the Docker image.
+For monitors running on private locations, you _must_ use the `elastic-agent-complete`
+Docker image to create a self-hosted {agent} node. The standard {ecloud} or self-hosted
+{agent} will not work.
+
+// ifeval::["{release-state}"=="unreleased"]
+
+// Version {version} has not yet been released.
+
+// endif::[]
+
+// ifeval::["{release-state}"!="unreleased"]
+
+[source,sh,subs="attributes"]
+----
+docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
+----
+
+// endif::[]
+
+[discrete]
+[[private-locations-connect]]
+=== Connect to the {stack}
+
+After configuring the monitor, run it in Docker and connect the monitor to the {stack}.
+To add an {agent} to {fleet}, you'll need an enrollment token and the URL of your {fleet-server}.
+You can use the default enrollment token for your policy or create new enrollment tokens as needed.
+This example uses the `elastic-agent-complete` Docker container.
+
+// ifeval::["{release-state}"=="unreleased"]
+
+// Version {version} has not yet been released.
+
+// endif::[]
+
+// ifeval::["{release-state}"!="unreleased"]
+
+[source,sh,subs="attributes"]
+----
+docker run \
+  --env FLEET_ENROLL=1 \
+  --env FLEET_URL={fleet-server-host-url} \
+  --env FLEET_ENROLLMENT_TOKEN={enrollment-token} \
+  --rm docker.elastic.co/beats/elastic-agent-complete:{version}
+----
+
+// endif::[]
+
+For more information on running {agent} with Docker, see {fleet-guide}/elastic-agent-container.html[Run {agent} in a container] and
+{fleet-guide}/fleet-enrollment-tokens.html[{fleet} enrollment tokens].
+
+You may need to set other environment variables.
+Learn how in {fleet-guide}/agent-environment-variables.html[{agent} environment variables guide].
+
+[discrete]
+[[private-locations-add]]
+=== Add private location
+
+. Go to **Observability** -> **Uptime**.
+. Click **Monitor Management**.
+. Click **Private locations**.
+. Click **Add location**.
+. Give your new location a unique _Location name_ and select the _Agent policy_ you created above.
+. Click **Save**.
+
+[discrete]
+[[private-locations-config]]
+=== Configure the monitor
+
+After you have successfully added a new private location, close the _Private locations_ flyout to return
+to the Monitor Management page. From there:
+
+. Click **Add monitor**.
+. Give your monitor a unique _Monitor name_.
+. In _Monitor locations_, select your new private location, which will appear using the _Location name_
+you provided and will have a "Private" badge next to the name.
++
+image::images/private-locations-monitor-locations.png[Screenshot of Monitor locations options including a private location]
+. Choose a _Monitor type_ and configure the monitor as needed.
+
+If you are setting up a *Browser* synthetic monitor, see <<synthetics-create-test>>
+for more details on writing synthetic tests.
+
+[discrete]
+[[uptime-app-view-in-kibana]]
+== View in {kib}
+
+{agent} is now sending synthetic monitoring data to the {stack}.
+Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
+set up alerts in case of test failures, and more.
+
+If a test does fail (shown as `down` in the {uptime-app}), you'll be able to view the step script that failed,
+any errors, and a stack trace.
+See <<synthetics-visualize>> for more information.
