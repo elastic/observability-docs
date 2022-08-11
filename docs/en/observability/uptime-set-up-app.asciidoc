@@ -6,48 +6,68 @@ beta[]
 You can now create monitors directly in the {uptime-app}.
 To try out this beta functionality, first you will need to enable Monitor Management:
 
-. Go to **Observability** -> **Uptime**.
+. Go to **{observability}** -> **Uptime**.
 . Click **Monitor Management**.
-. Read the terms and click **Enable** to start using Monitor Management.
+. Review the terms and click **Enable** to start using Monitor Management.
 
-From here, you can either <<elastic-hosted-monitors,create Elastic-hosted monitors>> or <<private-locations,create a private location>>
-to run monitors from your own premises.
+From here, you can either <<global-managed-testing-infrastructure,use global managed testing infrastructure>>
+or <<private-locations,create a private location>> to run monitors from your own premises.
+
+NOTE: To use the Elastic Synthetics integration, see the https://www.elastic.co/guide/en/observability/8.3/uptime-set-up.html#uptime-set-up-choose-agent[8.3 documentation]. The Elastic Synthetics integrations is similar to the {uptime-app} approach, but contains fewer configuration options.
 
 [discrete]
-[[elastic-hosted-monitors]]
-== Create an Elastic-hosted monitor
+[[global-managed-testing-infrastructure]]
+== Use global managed testing infrastructure
 
-From the Monitor Management page:
+// Is there better language we can use to describe what it is
+// instead of what is _not_? 
+With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
+locations using the {uptime-app} the UI without having to set up {fleet},
+pull a Docker image, and install and run an agent on your machine.
 
+To add a monitor using Elastic's global managed testing infrastructure:
+
+. Go to the **Monitor Management** page.
 . Click **Add monitor**.
-. In _Monitor locations_, select one or more Elastic-hosted locations.
+. In _Monitor locations_, select one or more locations.
 . Choose a _Monitor type_ and configure the monitor as needed.
+. Click **Save monitor**.
 
-If you are setting up a *Browser* synthetic monitor, see <<synthetics-create-test>>
+If you are setting up a **Browser** synthetic monitor, see <<synthetics-create-test>>
 for more details on writing synthetic tests.
 
 [discrete]
 [[private-locations]]
 == Run a monitor on private locations
 
-Before creating your monitor, add a private location.
+Private locations allow you to run monitors from your own premises in addition to or
+instead of on Elastic's global managed testing infrastructure.
+
+// The TL;DR of what follows
+Before you create a private location, you need to set up {fleet} and {agent},
+pull a Docker image, and connect to the {stack}. Then, you can create a private location
+in the {uptime-app} UI so when you add a new monitor, the private location will be
+available in the list of _Monitor locations_.
 
 [discrete]
 [[private-locations-fleet-agent]]
 === Set up {fleet-server} and {agent}
 
+// Is this sufficient or should we copy steps for setting up
+// Fleet and Agent into this page directly?
 If want to run monitors on private locations, there are two prerequisites to complete before you can configure monitors:
 
 * *Set up {fleet-server}*: If you are using {ecloud}, {fleet-server} will already be provided and you can skip this step.
 To learn more, see <<set-up-fleet,{fleet}>>.
-* *Create a separate {fleet} policy to use for Synthetics monitors*: Generally, synthetics monitors should run on dedicated nodes.
-For more information on {fleet} policies and creating them, see {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
+* **Create an agent policy**:  For more information on agent policies and creating them,
+see {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
 
 [discrete]
 [[private-location-docker]]
 === Pull the Docker image
 
-Start by pulling the Docker image.
+Elastic provides Docker images that you can use to run monitors, which reduces the chance of problems.
+
 For monitors running on private locations, you _must_ use the `elastic-agent-complete`
 Docker image to create a self-hosted {agent} node. The standard {ecloud} or self-hosted
 {agent} will not work.
@@ -59,6 +79,8 @@ Docker image to create a self-hosted {agent} node. The standard {ecloud} or self
 // endif::[]
 
 // ifeval::["{release-state}"!="unreleased"]
+
+To pull the Docker image run:
 
 [source,sh,subs="attributes"]
 ----
@@ -74,7 +96,6 @@ docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
 After configuring the monitor, run it in Docker and connect the monitor to the {stack}.
 To add an {agent} to {fleet}, you'll need an enrollment token and the URL of your {fleet-server}.
 You can use the default enrollment token for your policy or create new enrollment tokens as needed.
-This example uses the `elastic-agent-complete` Docker container.
 
 // ifeval::["{release-state}"=="unreleased"]
 
@@ -95,7 +116,8 @@ docker run \
 
 // endif::[]
 
-For more information on running {agent} with Docker, see {fleet-guide}/elastic-agent-container.html[Run {agent} in a container] and
+For more information on running {agent} with Docker, see
+{fleet-guide}/elastic-agent-container.html[Run {agent} in a container] and
 {fleet-guide}/fleet-enrollment-tokens.html[{fleet} enrollment tokens].
 
 You may need to set other environment variables.
@@ -103,9 +125,11 @@ Learn how in {fleet-guide}/agent-environment-variables.html[{agent} environment 
 
 [discrete]
 [[private-locations-add]]
-=== Add private location
+=== Add a private location
 
-. Go to **Observability** -> **Uptime**.
+To add a new private location:
+
+. Go to **{observability}** -> **Uptime**.
 . Click **Monitor Management**.
 . Click **Private locations**.
 . Click **Add location**.
@@ -126,6 +150,7 @@ you provided and will have a "Private" badge next to the name.
 +
 image::images/private-locations-monitor-locations.png[Screenshot of Monitor locations options including a private location]
 . Choose a _Monitor type_ and configure the monitor as needed.
+. Click **Save monitor**.
 
 If you are setting up a *Browser* synthetic monitor, see <<synthetics-create-test>>
 for more details on writing synthetic tests.

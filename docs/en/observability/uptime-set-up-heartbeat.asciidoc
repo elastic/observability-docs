@@ -1,13 +1,16 @@
 [[uptime-set-up-choose-heartbeat]]
 = Use {heartbeat}
 
-// intro tbd
+{heartbeat} is a lightweight daemon that you install on a remote server to periodically
+check the status of your services and determine if they are available. Performance data is
+then gathered and reported back to {heartbeat}, where it's formatted and sent to the {stack}.
 
 [discrete]
 [[uptime-set-up-docker]]
 == Pull the Docker image
 
-Start by pulling the Docker image.
+Elastic provides Docker images that you can use to run monitors, which reduces the chance of problems.
+Start by pulling the {heartbeat} Docker image.
 
 // ifeval::["{release-state}"=="unreleased"]
 
@@ -28,7 +31,8 @@ docker pull docker.elastic.co/beats/heartbeat:{version}
 [[uptime-set-up-config]]
 == Configure
 
-Create a `heartbeat.yml` configuration file.
+Next, create a `heartbeat.yml` configuration file.
+
 There are four possible monitor types.
 The example below shows how to configure an `http` monitor.
 
@@ -48,7 +52,7 @@ This allows tests to be run in parallel and analyzed separately.
 
 Read more about configuration options in {heartbeat-ref}/configuration-heartbeat-options.html[Configure {heartbeat} monitors].
 
-If you are setting up a *`browser`* monitor, see <<synthetics-create-test>>
+If you are setting up a **`browser`** monitor, see <<synthetics-create-test>>
 for more details on writing synthetic tests to be added to the configuration file.
 
 [discrete]
@@ -103,7 +107,9 @@ Note the `--volume` option, which mounts local directories into the
 container. Here, we mount the `heartbeat.yml` from the working directory,
 into {heartbeat}'s expected location for `heartbeat.yml`.
 
-WARNING: Elastic Synthetics runs Chromium without the extra protection of its process https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox] for greater compatibility with Linux server distributions.
+WARNING: Elastic Synthetics runs Chromium without the extra protection of its process
+https://chromium.googlesource.com/chromium/src/+/master/docs/linux/sandboxing.md[sandbox]
+for greater compatibility with Linux server distributions.
 Add the `sandbox: true` option to a given browser monitor in {heartbeat} to enable sandboxing.
 This may require using a custom seccomp policy with docker, which brings its own added risks.
 This is generally safe when run against sites whose content you trust,
