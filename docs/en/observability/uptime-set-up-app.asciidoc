@@ -4,26 +4,24 @@
 beta[]
 
 You can now create monitors directly in the {uptime-app}.
-To try out this beta functionality, first you will need to enable Monitor Management:
+To try this beta functionality, first you need to enable Monitor Management:
 
 . Go to **{observability}** -> **Uptime**.
 . Click **Monitor Management**.
-. Review the terms and click **Enable** to start using Monitor Management.
+. Review the terms and conditions and click **Enable** to start using Monitor Management.
 
-From here, you can either <<global-managed-testing-infrastructure,use global managed testing infrastructure>>
+From here, you can either <<global-managed-testing-infrastructure,use Elastic's global managed testing infrastructure>>
 or <<private-locations,create a private location>> to run monitors from your own premises.
 
-NOTE: To use the Elastic Synthetics integration, see the https://www.elastic.co/guide/en/observability/8.3/uptime-set-up.html#uptime-set-up-choose-agent[8.3 documentation]. The Elastic Synthetics integrations is similar to the {uptime-app} approach, but contains fewer configuration options.
+NOTE: To use the Elastic Synthetics integration, see the https://www.elastic.co/guide/en/observability/8.3/uptime-set-up.html#uptime-set-up-choose-agent[8.3 documentation]. The Elastic Synthetics integration is similar to the {uptime-app} approach, but contains fewer configuration options.
 
 [discrete]
 [[global-managed-testing-infrastructure]]
 == Use global managed testing infrastructure
 
-// Is there better language we can use to describe what it is
-// instead of what is _not_? 
 With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
-locations using the {uptime-app} the UI without having to set up {fleet},
-pull a Docker image, and install and run an agent on your machine.
+locations using the {uptime-app} UI without having to manage your own infrastructure.
+Elastic takes care of software updates and capacity planning for you.
 
 To add a monitor using Elastic's global managed testing infrastructure:
 
@@ -33,29 +31,27 @@ To add a monitor using Elastic's global managed testing infrastructure:
 . Choose a _Monitor type_ and configure the monitor as needed.
 . Click **Save monitor**.
 
-If you are setting up a **Browser** synthetic monitor, see <<synthetics-create-test>>
+If you are setting up a **Browser** monitor, see <<synthetics-create-test>>
 for more details on writing synthetic tests.
 
 [discrete]
 [[private-locations]]
 == Run a monitor on private locations
 
-Private locations allow you to run monitors from your own premises in addition to or
-instead of on Elastic's global managed testing infrastructure.
+Private locations allow you to run monitors from your own premises.
+	
+TIP: You can run the same monitor both from Elastic's global managed infrastructure _and_ your private locations to compare results.
 
-// The TL;DR of what follows
-Before you create a private location, you need to set up {fleet} and {agent},
-pull a Docker image, and connect to the {stack}. Then, you can create a private location
-in the {uptime-app} UI so when you add a new monitor, the private location will be
-available in the list of _Monitor locations_.
+Before you create a private location, you need to set up {fleet}, and connect an agent to it.
+Then, you can create a private location in the {uptime-app} UI.
+Now, whenever you access the monitor creation page, this private location will appear in the list
+of locations to which you can deploy monitors.
 
 [discrete]
 [[private-locations-fleet-agent]]
 === Set up {fleet-server} and {agent}
 
-// Is this sufficient or should we copy steps for setting up
-// Fleet and Agent into this page directly?
-If want to run monitors on private locations, there are two prerequisites to complete before you can configure monitors:
+To deploy monitors to private locations, you must complete two prerequisites:
 
 * *Set up {fleet-server}*: If you are using {ecloud}, {fleet-server} will already be provided and you can skip this step.
 To learn more, see <<set-up-fleet,{fleet}>>.
@@ -66,7 +62,7 @@ see {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
 [[private-location-docker]]
 === Pull the Docker image
 
-Elastic provides Docker images that you can use to run monitors, which reduces the chance of problems.
+Elastic provides Docker images that you can use to run {fleet} and an {agent} more easily.
 
 For monitors running on private locations, you _must_ use the `elastic-agent-complete`
 Docker image to create a self-hosted {agent} node. The standard {ecloud} or self-hosted
@@ -93,9 +89,10 @@ docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
 [[private-locations-connect]]
 === Connect to the {stack}
 
-After configuring the monitor, run it in Docker and connect the monitor to the {stack}.
-To add an {agent} to {fleet}, you'll need an enrollment token and the URL of your {fleet-server}.
-You can use the default enrollment token for your policy or create new enrollment tokens as needed.
+Before you can create a private location, you must connect {fleet} to the {stack}.
+Then, to enroll an {agent} to {fleet}, you'll need an enrollment token and the URL of the {fleet-server}.
+
+You can use the default enrollment token for your policy or create new policies and enrollment tokens as needed.
 
 // ifeval::["{release-state}"=="unreleased"]
 
@@ -146,7 +143,7 @@ to the Monitor Management page. From there:
 . Click **Add monitor**.
 . Give your monitor a unique _Monitor name_.
 . In _Monitor locations_, select your new private location, which will appear using the _Location name_
-you provided and will have a "Private" badge next to the name.
+you provided and will have a "Private" badge next to its name.
 +
 image::images/private-locations-monitor-locations.png[Screenshot of Monitor locations options including a private location]
 . Choose a _Monitor type_ and configure the monitor as needed.
