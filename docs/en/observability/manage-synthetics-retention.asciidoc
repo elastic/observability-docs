@@ -1,41 +1,62 @@
 [[manage-synthetics-retention]]
 
-= Managing data retention
+= Manage data retention
+
+When you set up a synthetic monitor, data from the monitor is saved in
+https://www.elastic.co/guide/en/elasticsearch/reference/current/data-streams.html[{es} data streams],
+an append-only structure in {es}.
+
+There are six data streams recorded by synthetic monitors: `http`, `tcp`, `icmp`, `browser`, `browser.network`, `browser.screenshot`.
+Elastic will retain data from each data stream for some time period,
+and the default time period varies by data stream.
+If you want to reduce the amount of storage required or store data for longer,
+you can customize how long to retain data for each data stream.
 
 [discrete]
-== Overview
+== Synthetics data streams
 
-Synthetics browser monitors can require large amounts of storage, this document provides information on how synthetics stores data and how to optimize retention
-to control storage utilization. This usually means altering the retention of browser `network` and `screenshot` documents.
+There are six data streams recorded by synthetic monitors:
 
-All types of checks record 'core' metadata, such as which URL was checked, what the status of the check was, and errors that occurred. This document 
-focuses on browser checks, which tend to use much more storage than lightweight checks. 
-Browser based checks store two additional types of data beyond the core metadata; `network` documents and `screenshot` documents.
-These indices are usually many times larger than the core metadata. The relative sizes of each vary depending on the sites being 
+[options="header"]
+|===
+| Data stream | Data includes | Default retention period |
+| `http` | The URL that was checked, the status of the check, and any errors that occurred | 1 year |
+| `tcp` | The URL that was checked, the status of the check, and any errors that occurred | 1 year |
+| `icmp` | The URL that was checked, the status of the check, and any errors that occurred | 1 year |
+| `browser` | The URL that was checked, the status of the check, and any errors that occurred | 1 year |
+| `browser.screenshot` | Binary image data used to construct a screenshot and metadata with information related to de-duplicating this data | 14 days |
+| `browser.network` | Detailed metadata around requests for resources required by the pages being checked | 14 days |
+|===
+
+// preserving the text below in case we want to expand on the definitions above
+
+// `network` documents data consists of detailed metadata around requests for resources required by the pages being checked. An example would be an image, 
+// a javascript file, or a font referenced and loaded by the page under test. 
+// For each of these requests the URL, timing, headers, and other metadata are stored. While individually this metadata is small, 
+// modern websites often request hundreds of additional resources per page load, adding up to a significant amount of storage.
+
+// Screenshot data consists of binary image data used to construct a screenshot and metadata with information related to de-duplicating this data. De-duplication 
+// efficiency makes screenshot data less burdensome than network data, especially for sites that are mostly visually unchanged across test runs. 
+// De-duplication works by splitting each captured screenshot into an 8x8 grid of chunks each stored as a separate document keyed by a hash of its pixels. 
+// This means that across checks to a given site only changes to the visual representation of the site require significant additional storage. If a site has not changed
+// visually across runs the only additional storage required is the tiny `screenshot_ref` document for that image, which points to the relevant image blocks.
+
+All types of checks record core metadata.
+Browser-based checks store two additional types of data: network and screenshot documents.
+These browser-specific indices are usually many times larger than the core metadata.
+The relative sizes of each vary depending on the sites being 
 checked with network data usually being the larger of the two by a significant factor.
 
-`network` documents data consists of detailed metadata around requests for resources required by the pages being checked. An example would be an image, 
-a javascript file, or a font referenced and loaded by the page under test. 
-For each of these requests the URL, timing, headers, and other metadata are stored. While individually this metadata is small, 
-modern websites often request hundreds of additional resources per page load, adding up to a significant amount of storage.
-
-Screenshot data consists of binary image data used to construct a screenshot and metadata with information related to de-duplicating this data. De-duplication 
-efficiency makes screenshot data less burdensome than network data, especially for sites that are mostly visually unchanged across test runs. 
-De-duplication works by splitting each captured screenshot into an 8x8 grid of chunks each stored as a separate document keyed by a hash of its pixels. 
-This means that across checks to a given site only changes to the visual representation of the site require significant additional storage. If a site has not changed
-visually across runs the only additional storage required is the tiny `screenshot_ref` document for that image, which points to the relevant image blocks.
-
 [discrete]
-=== Managing the lifecycles of synthetics data streams
+== Customize data stream lifecycles 
 
-Synthetics data is recorded in Elasticsearch [data streams](https://www.elastic.co/guide/en/elasticsearch/reference/current/data-streams.html), an append-only
-structure in Elasticsearch. Synthetics data streams can be managed via the Elasticsearch API or via [Kibana index management](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-mgmt.html). 
+If Synthetics browser data streams are storing data longer than necessary,
+you can opt to retain data for a shorter period.
 
-If Synthetics browser data streams are storing data longer than necessary, users can opt to retain `screenshot` and `network_info` datasets for a shorter period than the core metadata.
-To do so, first navigate to [Kibana index management](https://www.elastic.co/guide/en/elasticsearch/reference/current/index-mgmt.html), then filter the list of data streams for
-those containing the term 'synthetics'. In the UI there will be three sorts of data stream present `synthetics-browser-*`, `synthetics-browser.network-*`, and `synthetics-browser.screenshot-*`. From this page you can retrieve the size of each data stream on disk, as well as which [index life cycle](https://www.elastic.co/guide/en/elasticsearch/reference/current/set-up-lifecycle-policy.html) is associated with it. 
+To find Synthetics data streams:
 
-To change the retention period of a given data stream simply edit the life cycle policy associated with it after ensuring that policy does not apply to addition data streams whose
-retention you do not want to change. If the data stream you wish to change shares a life cycle policy with another, [create a new ILM policy](https://www.elastic.co/guide/en/elasticsearch/reference/current/set-up-lifecycle-policy.html), then edit the relevant component template's
-index settings. When editing the component template change the `index.lifecycle.name` value to point toward your new ILM policy.  For `screenshot` documents edit the `synthetics-browser.screenshot@package` component template, for `network_info` documents edit the `synthetics-browser.network@package` template. Check that the settings have taken effect by visiting the data stream management
-page and confirming the attached life cycle policy is correct.
+. Navigate to https://www.elastic.co/guide/en/elasticsearch/reference/current/index-mgmt.html[{kib} index management].
+. Filter the list of data streams for those containing the term `synthetics`.
+.. In the UI there will be three types of browser data streams: `synthetics-browser-*`, `synthetics-browser.network-*`, and `synthetics-browser.screenshot-*`.
+
+Then, you can refer to https://www.elastic.co/guide/en/fleet/current/data-streams.html#data-streams-ilm-tutorial[Tutorial: Customize data retention for integrations] to learn how to apply a custom {ilm-init} policy to the browser data streams. 
