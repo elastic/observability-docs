@@ -96,7 +96,7 @@ These templates are loaded when the integration is installed, and are used to co
 
 [discrete]
 [[data-streams-ilm]]
-== Configure an {ilm} ({ilm-init}) policy
+== {ilm} ({ilm-init})
 
 Use the {ref}/index-lifecycle-management.html[index lifecycle
 management] ({ilm-init}) feature in {es} to manage your {agent} data stream indices as they age.
@@ -108,7 +108,20 @@ By default, these data streams use an {ilm-init} policy that matches their data 
 For example, the data stream `metrics-system.logs-*`,
 uses the metrics {ilm-init} policy as defined in the `metrics-system.logs` index template.
 
+Want to customize your index lifecycle management? See <<data-streams-ilm-tutorial>>.
+
 [discrete]
+[[data-streams-pipelines]]
+== Ingest pipelines
+
+{agent} integrations ship with a default ingest pipeline that preprocesses and enriches data before indexing.
+These pipelines should not be edited as it can break the functionality of the integration.
+
+Starting in version 8.4, all default ingest pipelines reference a non-existent and non-versioned `@custom` ingest pipeline.
+See <<data-streams-pipeline-tutorial>>.
+
+
+// [discrete]
 [[data-streams-ilm-tutorial]]
 == Tutorial: Customize data retention for integrations
 
@@ -240,3 +253,190 @@ or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover AP
 ----
 POST /metrics-system.network-production/_rollover/
 ----
+
+
+
+// ISSUES
+Closes
+https://github.com/elastic/observability-docs/issues/1936 (this issue has stakeholders)
+https://github.com/elastic/observability-docs/issues/748
+
+Related (APM)
+https://github.com/elastic/observability-docs/issues/1226
+
+
+// ------// ------// ------
+// ------// ------// ------
+pUhZTXhyoWXgH16rDCqOCMS7
+// ------// ------// ------
+
+Pipeline follows this pattern: `<type>-<dataset>@custom`.
+`@custom` pipelines will persist through upgrades
+
+Advanced options
+
+Add custom pipeline --> Takes you to Stack management > Ingest pipelines > Create pipeline
+"Apply now and rollover" to immediately take effect
+
+// ---------
+[[data-streams-pipeline-tutorial]]
+== Tutorial: Custom ingest pipeline
+
+Starting in version 8.4, all default ingest pipelines reference a non-existent and unversioned `@custom` ingest pipeline.
+
+The name of this pipeline follows the following pattern: `<type>-<dataset>@custom`.
+For example, system auth logs is `logs-system.auth@custom`.
+
+This `@custom` ingest pipeline can be used to add custom data processing, like adding fields, or obfuscating sensitive information.
+
+The `@custom` pipeline can directly contain processors or you can use the
+pipeline processor to call other pipelines that can be shared across multiple data streams or integrations.
+
+The `@custom` pipeline will persist across all version upgrades.
+
+// Learn more about ingest pipelines
+// https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html
+
+
+[discrete]
+[[data-streams-pipeline-one]]
+=== Step 1: Create an ingest pipeline
+
+First, create an ingest pipeline.
+In this example, we'll create an ingest pipeline that adds a new field to our documents.
+
+In {kib}, navigate to **Stack Management** > **Ingest Pipelines** > **Create pipeline** > **New pipeline**.
+
+Name your pipeline. We'll call this one, `add_field`.
+Then select **Add a processor**.
+
+Fill out the following information:
+
+* Processor: Set
+* Field: `test`
+* Value: `true`
+
+Click **Add**.
+
+Now click **Create pipeline**.
+
+[discrete]
+[[data-streams-pipeline-two]]
+=== Step 2: Apply the ingest pipeline
+
+You can apply a custom pipeline to an integration from the **Edit integration** workflow.
+To enter this workflow, do the following:
+
+. Navigate to **{fleet}**
+. Select the relevant Agent policy
+. Search for the integration you want to edit
+. Select **Actions** > **Edit integration**
+
+Most integrations write to multiple data streams.
+Find the first data stream you wish to edit and select **Change defaults**.
+
+Under **Advanced options** select **Add custom pipeline**.
+This will take you to the **Create pipeline** workflow in **Stack management**.
+
+Here, we'll add the ingest pipeline we created in the previous step.
+Select **Add a processor**.
+
+The processor type is "Pipeline". The pipeline name from the previous step is `add_field`.
+When you're done, click **Create pipeline** to return to the **Edit integration** page.
+
+For pipeline changes to take effect immediately, you must roll over the data stream.
+If you do not, the changes will not take effect until the next scheduled roll over.
+Select **Apply now and rollover**.
+
+****
+https://www.elastic.co/guide/en/elasticsearch/reference/current/query-dsl-exists-query.html
+You can test that your ingest pipeline is being applied with the **{kib} Dev tools**.
+For example, use an exists query to ensure the new field is being applied to documents.
+
+[source,console]
+----
+GET metrics-system.cpu-default/_search <1>
+{
+  "query": {
+    "exists": {
+      "field": "test" <2>
+    }
+  }
+}
+----
+<1> The data stream to search. In this tutorial, we've edited the `metrics-system.cpu` data stream.
+`default` is the default namespace. Update your query to match your selected namespace.
+<2> The name of the field added in the previous step.
+
+The query should return at least one document.
+****
+
+[discrete]
+[[data-streams-pipeline-three]]
+=== Step 3: Add custom mappings
+
+The `@custom` component template can be used to apply custom mappings to an integration data stream.
+
+If you've added a fields with your `@custom` pipeline, you'll want to assign them a mapping with the `@custom` component template.
+
+Under **Advanced options** select the pencil icon to edit the `@custom` component template.
+
+Define the new fields for your indexed documents.
+Select **Add field** and add the following information:
+
+* Field name: `test`
+* Field type: `Boolean`
+
+Click **Add field**.
+
+When finished, move to the **Review** page and click **Save component template** to return to the **Edit integration** workflow.
+Apply and rollover!
+
+
+****
+To verify everything worked correctly, you can use **{kib} Dev Tools**.
+For example, use the {ref}/indices-get-field-mapping.html[Get field mapping API].
+
+[source,console]
+----
+GET metrics-system.cpu-default/_mapping/field/test <1>
+----
+<1> In this tutorial, we've edited the `metrics-system.cpu` data stream.
+`default` is the default namespace. Update your query to match your selected namespace.
+
+The result should include `type: "boolean"` for the specified field.
+
+[source,json]
+----
+".ds-metrics-system.cpu-default-2022.08.10-000002": {
+  "mappings": {
+    "test": {
+      "full_name": "test",
+      "mapping": {
+        "test": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
+----
+****
+
+
+
+
+APM NOTES
+// ------// ------// ------
+// ------// ------// ------
+
+
+For metrics it can also be used to direct events to a datastream with a different dataset
+
+traces-apm.* or logs-apm.*) currently lack privileges to write to any other data streams. Attemmessage such as:
+
+failed to index event (security_exception): action [indices:admin/auto_create] is unauthorized for API key id [RzVTRIIB4facokgKjivy] of user [elastic/fleet-server] on indices [traces-apm.custom-default], this action is granted by the index privileges [auto_configure,create_index,manage,all]
+
+internal metrics (metrics-apm.internal-<namespace>) cannot be redirected to a different data stream
+
+No support for sending traces-apm.* or logs-apm.* data to a different data stream when using Fleet managed APM Server. Writing to a different data stream for metrics is possible
