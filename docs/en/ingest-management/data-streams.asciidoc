@@ -118,11 +118,17 @@ Want to customize your index lifecycle management? See <<data-streams-ilm-tutori
 that preprocesses and enriches data before indexing.
 The default pipeline should not be directly edited as changes can easily break the functionality of the integration.
 
-Starting in version 8.4, all default ingest pipelines call a non-existent and non-versioned `@custom` ingest pipeline.
-This pipeline can be edited to add custom data processing, new fields, data sanitization, and more.
+Starting in version 8.4, all default ingest pipelines call a non-existent and non-versioned "`@custom`" ingest pipeline.
+If left uncreated, this pipeline has no effect on your data. However, if added to a data stream and customized,
+this pipeline can be used for custom data processing, adding fields, sanitizing data, and more.
+
+The full name of the `@custom` pipeline follows the following pattern: `<type>-<dataset>@custom`.
+The `@custom` pipeline can directly contain processors or you can use the
+pipeline processor to call other pipelines that can be shared across multiple data streams or integrations.
+The `@custom` pipeline will persist across all version upgrades.
+
 See <<data-streams-pipeline-tutorial>> to get started.
 
-// [discrete]
 [[data-streams-ilm-tutorial]]
 == Tutorial: Customize data retention for integrations
 
@@ -440,47 +446,3 @@ The result should include `type: "boolean"` for the specified field.
   }
 }
 ----
-
-
-
-NOTES
-
-
-Starting in version 8.4, all default ingest pipelines reference a non-existent and unversioned `@custom` ingest pipeline.
-
-The name of this pipeline follows the following pattern: `<type>-<dataset>@custom`.
-For example, system auth logs is `logs-system.auth@custom`.
-
-This `@custom` ingest pipeline can be used to add custom data processing, like adding fields, or obfuscating sensitive information.
-
-The `@custom` pipeline can directly contain processors or you can use the
-pipeline processor to call other pipelines that can be shared across multiple data streams or integrations.
-
-The `@custom` pipeline will persist across all version upgrades.
-
-// Learn more about ingest pipelines
-// https://www.elastic.co/guide/en/elasticsearch/reference/current/ingest.html
-
-Pipeline follows this pattern: `<type>-<dataset>@custom`.
-`@custom` pipelines will persist through upgrades
-
-Advanced options
-
-Add custom pipeline --> Takes you to Stack management > Ingest pipelines > Create pipeline
-"Apply now and rollover" to immediately take effect
-
-
-APM NOTES
-// ------// ------// ------
-// ------// ------// ------
-
-
-For metrics it can also be used to direct events to a datastream with a different dataset
-
-traces-apm.* or logs-apm.*) currently lack privileges to write to any other data streams. Attemmessage such as:
-
-failed to index event (security_exception): action [indices:admin/auto_create] is unauthorized for API key id [RzVTRIIB4facokgKjivy] of user [elastic/fleet-server] on indices [traces-apm.custom-default], this action is granted by the index privileges [auto_configure,create_index,manage,all]
-
-internal metrics (metrics-apm.internal-<namespace>) cannot be redirected to a different data stream
-
-No support for sending traces-apm.* or logs-apm.* data to a different data stream when using Fleet managed APM Server. Writing to a different data stream for metrics is possible
