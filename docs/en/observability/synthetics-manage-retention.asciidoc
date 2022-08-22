@@ -1,5 +1,4 @@
-[[manage-synthetics-retention]]
-
+[[synthetics-manage-retention]]
 = Manage data retention
 
 When you set up a synthetic monitor, data from the monitor is saved in
@@ -13,6 +12,7 @@ If you want to reduce the amount of storage required or store data for longer,
 you can customize how long to retain data for each data stream.
 
 [discrete]
+[[synthetics-manage-retention-data-streams]]
 == Synthetics data streams
 
 There are six data streams recorded by synthetic monitors:
@@ -28,19 +28,6 @@ There are six data streams recorded by synthetic monitors:
 | `browser.network` | Detailed metadata around requests for resources required by the pages being checked | 14 days |
 |===
 
-// preserving the text below in case we want to expand on the definitions above
-
-// `network` documents data consists of detailed metadata around requests for resources required by the pages being checked. An example would be an image, 
-// a javascript file, or a font referenced and loaded by the page under test. 
-// For each of these requests the URL, timing, headers, and other metadata are stored. While individually this metadata is small, 
-// modern websites often request hundreds of additional resources per page load, adding up to a significant amount of storage.
-
-// Screenshot data consists of binary image data used to construct a screenshot and metadata with information related to de-duplicating this data. De-duplication 
-// efficiency makes screenshot data less burdensome than network data, especially for sites that are mostly visually unchanged across test runs. 
-// De-duplication works by splitting each captured screenshot into an 8x8 grid of chunks each stored as a separate document keyed by a hash of its pixels. 
-// This means that across checks to a given site only changes to the visual representation of the site require significant additional storage. If a site has not changed
-// visually across runs the only additional storage required is the tiny `screenshot_ref` document for that image, which points to the relevant image blocks.
-
 All types of checks record core metadata.
 Browser-based checks store two additional types of data: network and screenshot documents.
 These browser-specific indices are usually many times larger than the core metadata.
@@ -48,6 +35,7 @@ The relative sizes of each vary depending on the sites being
 checked with network data usually being the larger of the two by a significant factor.
 
 [discrete]
+[[synthetics-manage-retention-customize]]
 == Customize data stream lifecycles 
 
 If Synthetics browser data streams are storing data longer than necessary,
