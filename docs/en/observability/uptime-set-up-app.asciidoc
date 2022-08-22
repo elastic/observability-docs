@@ -13,7 +13,7 @@ To try this beta functionality, first you need to enable Monitor Management:
 From here, you can either <<global-managed-testing-infrastructure,use Elastic's global managed testing infrastructure>>
 or <<private-locations,create a private location>> to run monitors from your own premises.
 
-NOTE: To use the Elastic Synthetics integration, see the https://www.elastic.co/guide/en/observability/8.3/uptime-set-up.html#uptime-set-up-choose-agent[8.3 documentation]. The Elastic Synthetics integration is similar to the {uptime-app} approach, but contains fewer configuration options.
+NOTE: To use the Elastic Synthetics integration, see the https://www.elastic.co/guide/en/observability/8.3/uptime-set-up.html#uptime-set-up-choose-agent[8.3 documentation]. The Elastic Synthetics integration is similar to the {uptime-app} approach described above, but contains fewer configuration options and does not allow you to run monitors against Elastic's global managed testing locations.
 
 [discrete]
 [[global-managed-testing-infrastructure]]
@@ -57,6 +57,18 @@ To deploy monitors to private locations, you must complete two prerequisites:
 To learn more, see <<set-up-fleet,{fleet}>>.
 * **Create an agent policy**:  For more information on agent policies and creating them,
 see {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
+
+[IMPORTANT]
+====
+A private location should be set up against an agent policy that runs on a single {agent}.
+Do _not_ run the same agent policy on multiple agents being used for private locations, as you may
+end up with duplicate or missing tests. Private locations do not currently load balance tests across
+multiple {agents}.
+
+If there are multiple monitors that need to run from a private location at the same time, up to two
+will run concurrently on that {agent}. The other monitors will wait until a previous test has
+finished running and there is capacity, up to a maximum of two at the same time.
+====
 
 [discrete]
 [[private-location-docker]]
