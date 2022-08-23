@@ -192,10 +192,18 @@ step('make an API request', async () => {
 })
 ----
 
-// The Elastic Synthetics `request` parameter is similar to Playwright's
-// https://playwright.dev/docs/api/class-apirequestcontext[`APIRequestContext`], but
-// it comes built into Elastic Synthetics and doesn't have to be imported separately.
-// This reduces the code needed and allows you to make API requests in inline journeys.
+The Elastic Synthetics `request` parameter is similar to https://playwright.dev/docs/api/class-apirequestcontext[other request objects that are exposed by Playwright]
+with a few key differences:
+
+* The Elastic Synthetics `request` parameter comes built into the library so it doesn't
+have to be imported separately, which reduces the lines of code needed and allows you to
+make API requests in inline journeys.
+* The top level `request` object exposed by Elastic Synthetics has its own isolated cookie storage
+unlike Playwright's `context.request` and `page.request`, which share cookie storage
+with the corresponding https://playwright.dev/docs/api/class-browsercontext[`BrowserContext`].
+* If you want to control the creation of the `request` object, you can do so by passing options
+via <<elastic-synthetics-command, `--playwright-options`>> or
+<<synthetics-configuration, `synthetics.config.ts` file>>.
 
 NOTE: The `request` parameter is not intended to be used for writing pure API tests. Instead, it is a way to support
 writing plain HTTP requests in service of a browser-based test.
