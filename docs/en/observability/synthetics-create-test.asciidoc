@@ -1,9 +1,11 @@
 [[synthetics-create-test]]
 = Write a synthetic test
 
+beta[] 
+
 [[synthetics-syntax]]
 
-beta[] To write synthetic tests for your application, you'll need to know basic JavaScript and
+To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
 
 TIP: {playwright-url}[Playwright] is a browser testing library developed by Microsoft.
@@ -76,7 +78,7 @@ The callback provides access to fresh Playwright `page`, `params`, `browser`, an
 
 [source,js]
 ----
-journey('Journey name', ({ page, browser, context, params }) => {
+journey('Journey name', ({ page, browser, context, params, request }) => {
   // Add steps here
 });
 ----
@@ -92,6 +94,9 @@ journey('Journey name', ({ page, browser, context, params }) => {
                 For example, if you want to use a different homepage depending on the `env`
                 (`localhost` for `dev` and a URL for `prod`). See <<synthetics-params-secrets>>
                 for more information.
+`request`::     A request object that can be used to make API requests independently of the browser
+                interactions. For example, to get authentication credentials or tokens in service of a
+                browser-based test. See <<synthetics-request-param>> for more information.
 
 
 [discrete]
@@ -105,7 +110,7 @@ A basic two-step journey would look like this:
 
 [source,js]
 ----
-journey('Journey name', ({ page, browser, client, params }) => {
+journey('Journey name', ({ page, browser, client, params, request }) => {
     step('Step 1 name', () => {
       // Do something here
     });
@@ -173,6 +178,37 @@ When you're done interacting with the browser, the recorder converts the recorde
 For more details on getting started with the Synthetics Recorder, see <<synthetics-recorder>>.
 
 image::images/synthetics-create-test-script-recorder.png[Elastic Synthetics Recorder after recording a journey and clicking Export]
+
+[discrete]
+[[synthetics-request-param]]
+== Make API requests
+
+You can use the `request` parameter to make API requests independently of browser interactions.
+For example, you could retrieve a token from an HTTP endpoint and use it in a subsequent webpage request.
+
+[source,js]
+----
+step('make an API request', async () => {
+  const response = await request.get(params.url);
+  // Do something with the response
+})
+----
+
+The Elastic Synthetics `request` parameter is similar to https://playwright.dev/docs/api/class-apirequestcontext[other request objects that are exposed by Playwright]
+with a few key differences:
+
+* The Elastic Synthetics `request` parameter comes built into the library so it doesn't
+have to be imported separately, which reduces the lines of code needed and allows you to
+make API requests in inline journeys.
+* The top level `request` object exposed by Elastic Synthetics has its own isolated cookie storage
+unlike Playwright's `context.request` and `page.request`, which share cookie storage
+with the corresponding https://playwright.dev/docs/api/class-browsercontext[`BrowserContext`].
+* If you want to control the creation of the `request` object, you can do so by passing options
+via <<elastic-synthetics-command, `--playwright-options`>> or in the
+<<synthetics-configuration, `synthetics.config.ts` file>>.
+
+NOTE: The `request` parameter is not intended to be used for writing pure API tests. Instead, it is a way to support
+writing plain HTTP requests in service of a browser-based test.
 
 [discrete]
 [[before-after]]
