@@ -96,7 +96,7 @@ These templates are loaded when the integration is installed, and are used to co
 
 [discrete]
 [[data-streams-ilm]]
-== Configure an {ilm} ({ilm-init}) policy
+== {ilm} ({ilm-init})
 
 Use the {ref}/index-lifecycle-management.html[index lifecycle
 management] ({ilm-init}) feature in {es} to manage your {agent} data stream indices as they age.
@@ -108,9 +108,29 @@ By default, these data streams use an {ilm-init} policy that matches their data 
 For example, the data stream `metrics-system.logs-*`,
 uses the metrics {ilm-init} policy as defined in the `metrics-system.logs` index template.
 
+Want to customize your index lifecycle management? See <<data-streams-ilm-tutorial>>.
+
 [discrete]
+[[data-streams-pipelines]]
+== Ingest pipelines
+
+{agent} integration data streams ship with a default {ref}/ingest.html[ingest pipeline]
+that preprocesses and enriches data before indexing.
+The default pipeline should not be directly edited as changes can easily break the functionality of the integration.
+
+Starting in version 8.4, all default ingest pipelines call a non-existent and non-versioned "`@custom`" ingest pipeline.
+If left uncreated, this pipeline has no effect on your data. However, if added to a data stream and customized,
+this pipeline can be used for custom data processing, adding fields, sanitizing data, and more.
+
+The full name of the `@custom` pipeline follows the following pattern: `<type>-<dataset>@custom`.
+The `@custom` pipeline can directly contain processors or you can use the
+pipeline processor to call other pipelines that can be shared across multiple data streams or integrations.
+The `@custom` pipeline will persist across all version upgrades.
+
+See <<data-streams-pipeline-tutorial>> to get started.
+
 [[data-streams-ilm-tutorial]]
-== Tutorial: Customize data retention for integrations
+== Tutorial: Customize data retention policies
 
 This tutorial explains how to apply a custom {ilm-init} policy to an integration's data stream.
 
@@ -239,4 +259,189 @@ or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover AP
 [source,bash]
 ----
 POST /metrics-system.network-production/_rollover/
+----
+
+[[data-streams-pipeline-tutorial]]
+== Tutorial: Transform data with custom ingest pipelines
+
+This tutorial explains how to add a custom ingest pipeline to an Elastic Integration.
+Custom pipelines can be used to add custom data processing,
+like adding fields, obfuscate sensitive information, and more.
+
+**Scenario:** You have {agent}s collecting system metrics with the System integration.
+
+**Goal:** Add a custom ingest pipeline that adds a new field to each {es} document before it is indexed.
+
+[discrete]
+[[data-streams-pipeline-one]]
+=== Step 1: Create a custom ingest pipeline
+
+Create a custom ingest pipeline that will be called by the default integration pipeline.
+In this tutorial, we'll create a pipeline that adds a new field to our documents.
+
+. In {kib}, navigate to **Stack Management** -> **Ingest Pipelines** -> **Create pipeline** -> **New pipeline**.
+
+. Name your pipeline. We'll call this one, `add_field`.
+
+. Select **Add a processor**. Fill out the following information:
++
+** Processor: "Set"
+** Field: `test`
+** Value: `true`
++
+The {ref}/set-processor.html[Set processor] sets a document field and associates it with the specified value.
+
+. Click **Add**.
+
+. Click **Create pipeline**.
+
+[discrete]
+[[data-streams-pipeline-two]]
+=== Step 2: Apply your ingest pipeline
+
+Add a custom pipeline to an integration by calling it from the default ingest pipeline.
+The custom pipeline will run after the default pipeline but before the final pipeline.
+
+[discrete]
+==== Edit integration
+
+Add a custom pipeline to an integration from the **Edit integration** workflow.
+The integration must already be configured and installed before a custom pipeline can be added.
+To enter this workflow, do the following:
+
+. Navigate to **{fleet}**
+. Select the relevant {agent} policy
+. Search for the integration you want to edit
+. Select **Actions** -> **Edit integration**
+
+[discrete]
+==== Select a data stream
+
+Most integrations write to multiple data streams.
+You'll need to add the custom pipeline to each data stream individually.
+
+. Find the first data stream you wish to edit and select **Change defaults**.
+For this tutorial, find the data stream configuration titled, **Collect metrics from System instances**.
+
+. Scroll to **System CPU metrics** and under **Advanced options** select **Add custom pipeline**.
++
+This will take you to the **Create pipeline** workflow in **Stack management**.
+
+[discrete]
+==== Add the pipeline
+
+Add the pipeline you created in step one.
+
+. Select **Add a processor**. Fill out the following information:
++
+** Processor: "Pipeline"
+** Pipeline name: "add_field"
+** Value: `true`
+
+. Click **Create pipeline** to return to the **Edit integration** page.
+
+[discrete]
+==== Roll over the data stream (optional)
+
+For pipeline changes to take effect immediately, you must roll over the data stream.
+If you do not, the changes will not take effect until the next scheduled roll over.
+Select **Apply now and rollover**.
+
+After the data stream rolls over, note the name of the custom ingest pipeline.
+In this tutorial, it's `metrics-system.cpu@custom`.
+The name follows the pattern `<type>-<dataset>@custom`:
+
+* type: `metrics`
+* dataset: `system.cpu`
+* Custom ingest pipeline designation: `@custom`
+
+[discrete]
+==== Repeat
+
+Add the custom ingest pipeline to any other data streams you wish to update.
+
+[discrete]
+[[data-streams-pipeline-three]]
+=== Step 3: Test the ingest pipeline (optional)
+
+Allow time for new data to be ingested before testing your pipeline.
+In a new window, open {kib} and navigate to **{kib} Dev tools**.
+
+Use an {ref}/query-dsl-exists-query.html[exists query] to ensure that the
+new field, "test" is being applied to documents.
+
+[source,console]
+----
+GET metrics-system.cpu-default/_search <1>
+{
+  "query": {
+    "exists": {
+      "field": "test" <2>
+    }
+  }
+}
+----
+<1> The data stream to search. In this tutorial, we've edited the `metrics-system.cpu` type and dataset.
+`default` is the default namespace.
+Combining all three of these gives us a data stream name of `metrics-system.cpu-default`.
+<2> The name of the field set in step one.
+
+If your custom pipeline is working correctly, this query will return at least one document.
+
+[discrete]
+[[data-streams-pipeline-four]]
+=== Step 4: Add custom mappings
+
+Now that a new field is being set in your {es} documents, you'll want to assign a new mapping for that field.
+Use the `@custom` component template to apply custom mappings to an integration data stream.
+
+In the **Edit integration** workflow, do the following:
+
+. Under **Advanced options** select the pencil icon to edit the `@custom` component template.
+
+. Define the new field for your indexed documents. Select **Add field** and add the following information:
++
+* Field name: `test`
+* Field type: `Boolean`
+
+. Click **Add field**.
+
+. Click **Review** to fast-forward to the review step and click **Save component template** to return to the **Edit integration** workflow.
+
+. For changes to take effect immediately, select **Apply now and rollover**.
+
+[discrete]
+[[data-streams-pipeline-five]]
+=== Step 5: Test the custom mappings (optional)
+
+Allow time for new data to be ingested before testing your mappings.
+In a new window, open {kib} and navigate to **{kib} Dev tools**.
+
+Use the {ref}/indices-get-field-mapping.html[Get field mapping API] to ensure that the
+custom mapping has been applied.
+
+[source,console]
+----
+GET metrics-system.cpu-default/_mapping/field/test <1>
+----
+<1> The data stream to search. In this tutorial, we've edited the `metrics-system.cpu` type and dataset.
+`default` is the default namespace.
+Combining all three of these gives us a data stream name of `metrics-system.cpu-default`.
+
+The result should include `type: "boolean"` for the specified field.
+
+[source,json]
+----
+".ds-metrics-system.cpu-default-2022.08.10-000002": {
+  "mappings": {
+    "test": {
+      "full_name": "test",
+      "mapping": {
+        "test": {
+          "type": "boolean"
+        }
+      }
+    }
+  }
+}
 ----
