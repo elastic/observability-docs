@@ -22,7 +22,34 @@ the following privileges:
 From here, you can either <<global-managed-testing-infrastructure,use Elastic's global managed testing infrastructure>>
 or <<private-locations,create a private location>> to run monitors from your own premises.
 
-image::images/uptime-set-up-app.png[]
+++++
+<div class="imageblock">
+<img
+  src="images/uptime-set-up-app.png"
+  class="w-100"
+  alt="Diagram showing which pieces of software are used to configure monitors, create monitors, and view results when using the Uptime App. Described in detail in Diagram text description."
+  aria-details="diagram-text-app">
+</div>
+++++
+
+[[diagram-text-app]]
+[%collapsible]
+.Diagram text description
+====
+. Where to start when using the {uptime-app} depends on whether you are creating a <<monitoring-uptime,lightweight monitor>> or <<monitoring-synthetics,browser monitor>>. It also depends on whether you are using a project to manage journey code.
+    * _Option 1_: For lightweight monitors and browser monitors that are _not_ managed in a project, you can configure a new monitor in **{kib}**, specifically the **{observability} {uptime-app}**.
+        ** For browser monitors configured in the **{observability} {uptime-app}**, you must include **Inline journey code**, which can be written from scratch or generated using the <<synthetics-recorder,Synthetics recorder>>.
+    * _Option 2_: For other browser monitors, start with a **Project using @elastic/synthetics** and configure monitors using `monitor.use`.
+. How you create monitors depends on which option you chose above.
+    * If you started with _Option 1_, you'll use the {kib} UI to select the location while configuring the monitor.
+        ** Note: Because you're already logged into {kib}, you do not to provide any credentials for authentication.
+    * If you started with _Option 2_, you'll use the Elastic Synthetics library's **`push` command**. This requires an **API key and {kib} URL** to authenticate.
+. There are two types of locations you can use. (This is not dependent on the option you started with.)
+    * **Global managed infrastructure**
+    * **Private locations**
+. Regardless of the location, the monitor will send data to **{es}**.
+. **{kib}**, specifically the **{observability} {uptime-app}**, reads results from {es} and visualizes those results in the UI.
+====
 
 NOTE: To use the Elastic Synthetics integration, see the https://www.elastic.co/guide/en/observability/8.3/uptime-set-up.html#uptime-set-up-choose-agent[8.3 documentation]. The Elastic Synthetics integration is similar to the {uptime-app} approach described above, but contains fewer configuration options and does not allow you to run monitors against Elastic's global managed testing locations.
 
