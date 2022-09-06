@@ -14,8 +14,8 @@ deployed:
 == Deployed in {ecloud}
 
 To simplify the deployment of {agent}, the {fleet-server} can be
-provisioned and hosted in the {ecloud}. In this case, when the deployment is
-created, a highly available set of {fleet-server}s are automatically deployed.
+provisioned and hosted in the {ecloud}. In this case, when the deployment is created,
+a highly available set of {fleet-server}s is automatically deployed.
 
 Administrators can choose the resources allocated to the {fleet-server} and
 whether they want the {fleet-server} to be deployed in multiple availability
@@ -23,7 +23,7 @@ zones.
 
 Once deployed on {ecloud} as a service, the full life cycle of the
 {fleet-server} is managed by Elastic. {fleet-server} is scalable and highly
-available with traffic ingress load balanced across multiple instances to
+available with traffic ingress, load balanced across multiple instances to
 satisfy the scale requirements.
 
 image::images/fleet-server-cloud-deployment.png[{fleet-server} Cloud deployment model]
@@ -43,19 +43,188 @@ It’s recommended that the administrator provision multiple instances of the
 
 image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-premises deployment model]
 
+In order to correctly install the {fleet-server} on-premises, please refer to the instructions
+here: https://www.elastic.co/guide/en/fleet/current/add-a-fleet-server.html#_how_to_add_a_fleet_server
+under self-managed. Here, the operator has the option to use the organization’s own certificate to
+establish a secure connection from {fleet-server} to {es}.
+
+// [discrete]
+// [[fleet-server-HA-operations]]
+// == {fleet-server} High availability operations
+
+// {fleet-server} is stateless. Connections to the {fleet-server} therefore can be
+// load balanced as long as the {fleet-server} has capacity to accept more
+// connections. Load balancing is done on a round-robin basis.
+
+// In the {ecloud} deployment model, multiple {fleet-server}s are automatically
+// provisioned to satisfy the instance size chosen (instance sizes are modified to
+// satisfy the scale requirement). In addition, if you choose multiple
+// availability zones to address your fault-tolerance requirements, those
+// instances are also utilized to balance the load.
+
+// In an on-premises deployment, high-availability, fault-tolerance, and lifecycle
+// management of the {fleet-server} are the responsibility of the administrator.
+
 [discrete]
-[[fleet-server-HA-operations]]
-== {fleet-server} High availability operations
+[[fleet-server-on-prem-es-cloud]]
+== Deploying {fleet-server} on-premises, {es} in Cloud
 
-{fleet-server} is stateless. Connections to the {fleet-server} therefore can be
-load balanced as long as the {fleet-server} has capacity to accept more
-connections. Load balancing is done on a round-robin basis.
+In some situations the operators may have a need to aggregate the control and data plane
+traffic at the local site and have their {es} cluster managed in {ecloud}.
+These multi-site deployments are specifically useful for managed service providers or
+larger enterprises who segregate their networks.
 
-In the {ecloud} deployment model, multiple {fleet-server}s are automatically
-provisioned to satisfy the instance size chosen (instance sizes are modified to
-satisfy the scale requirement). In addition, if you choose multiple
-availability zones to address your fault-tolerance requirements, those
-instances are also utilized to balance the load.
+To accommodate these use cases you may deploy a cluster of {fleet-server}s on-premises and
+connect them back to the {ecloud} with access to {es} and {kib}.
 
-In an on-premises deployment, high-availability, fault-tolerance, and lifecycle
-management of the {fleet-server} are the responsibility of the administrator.
+// image
+
+[discrete]
+[[fleet-server-add]]
+=== Adding an on-premises {fleet-server}
+
+As mentioned in the previous sections a {fleet-server} (or a cluster of them) can be
+installed on-premises to connect back to {es} that is hosted by Elastic and
+offered as a service. The following steps describe how to add a New {fleet-server} into
+this type of deployment.
+
+[discrete]
+[[fleet-server-add-hosts]]
+==== Adding {fleet-server} Hosts
+
+. Prepare a host where the {fleet-server} will be provisioned.
+.. All agents would need to have connectivity to this host
+.. Ensure that this host also has a route to the {es} you intend to use, whether hosted by Elastic or deployed on-premises
+.. This host should meet the minimum compute resource requirements based on the maximum number of agents you intend to support in your deployment <insert link to scale compute requirements>
+. In {kib} navigate to the main {fleet} page and go to the Settings tab.
+. Under {fleet-server} hosts, click Edit hosts and add the {fleet-server} host address you intend to use. This will be the address used by the {agents} to connect to the {fleet-server}. In the example below the {fleet-server} is on the host 10.128.0.46. {fleet-server} will listen on port 8220 by default.
+
+// image
+
+[discrete]
+[[fleet-server-create-policy]]
+==== Create a {fleet-server} Policy
+A {fleet-server} policy needs to be created as a policy container to manage and configure
+all the {fleet-server} hosts. A system integration added to this policy will also allow
+monitoring of the system resources of these hosts.
+
+. Navigate to the {fleet} page within {kib} and go to the Agent policies tab
+. Click on the Create agent policy button and navigate the in product steps to configure
+.. Provide a meaningful name for the policy that would allow you to later identify this {fleet-server} (or cluster of them).
+.. Ensure you select “Collect system logs and metrics” so that the compute system hosting this {fleet-server} can be monitored (recommended)
+. Once the {fleet-server} policy has been created navigate to the policy itself and click on Add integration, there find and add the {fleet-server} integration
++
+// image
+
+. You will now have the opportunity to configure the {fleet-server}. Expand Change default, since this {fleet-server} is being deployed on-premises you need to enter the Host address, Port number 8220. In our example the {fleet-server} will be installed on the host 10.128.0.46
+. It is also recommended here that you enter the Max agents you intend to support with this {fleet-server}. This can also be modified at a later stage. This configuration will allow the {fleet-server} to handle the load and frequency of updates sent to the agent and ensure a smooth operation in a bursty environment.
++
+// image
+
+. You should now see the integration added to the policy. System will prompt you to add agents to this policy. You will also see the Add agent at the top of the page, click that and follow the in product prompts to correctly add agents to this {fleet-server} policy. You can add agents to this policy at any time. These agents are your {fleet-server}s.
++
+// image
+
+[discrete]
+[[fleet-server-generate-certificate]]
+==== Generating Certificates for the {fleet-server}
+
+For production deployments Elastic recommends configuring Transport Layer Security (TLS) to encrypt traffic between the {fleet-server}s and Elastic stack. Elastic provides a utility that streamlines creation of PEM formatted certificates, useful for this operation. This tool is bundled with {es}. Download {es} and extract to get access to this utility (https://www.elastic.co/downloads/elasticsearch)
+
+. Generate a Certificate Authority (CA) for this operation.
++
+[source,sh]
+----
+> ./bin/elasticsearch-certutil ca -pem
+----
++
+This command will create a zip file that contains the CA certificate (ca/ca.crt)  and key (ca/ca.key) required to sign the {fleet-server} certificate. Extract the zip file and store it in a secure location.
+
+. Use this CA to generate certificates for the {fleet-server}. Example below shows how that can be done using elasticsearch-certutil  for the host in the example above at 10.128.0.46:
++
+[source,sh]
+----
+> ./bin/elasticsearch-certutil cert \
+-name fleet-server \
+-ca-cert <PATH to CA>/ca/ca.crt \
+-ca-key  <PATH to CA>/ca/ca.key \ 
+-dns your.host.name \
+-ip 10.128.0.46 \
+-pem
+----
++
+This command will create another zip file that contains the {fleet-server} certificate (fleet-server/fleet-server.crt)  and key (fleet-server/fleet-server.key). Extract the zip file and store it in a secure location.
+
+. You now have all the necessary certificates to install the {fleet-server} and securely connect it to the hosted {es} instance in the cloud.
+
+[discrete]
+[[fleet-server-add-agents]]
+==== Add {fleet-server} Agents
+
+Now that the policy has been created go ahead and create agents to be added to the policy.
+These will act as {fleet-server}s in your deployment. {fleet-server} is just another Elastic agent
+in a special operating mode.
+
+. Within the {fleet-server} policy that was created, click on the Add agent and follow the in product descriptions to add a {fleet-server}.
+.. Choose the policy name for this deployment
+.. Choose your deployment model. Quick start mode will be less secure. Production mode is the fully secured mode where TLS certificates ensure a secure communication between {fleet-server} and {es}.
+.. Add the {fleet-server} host that was identified earlier. Click Add host. 
+.. A Service Token is required so that the {fleet-server} can write data to the {es} it is connected to. Click the Generate service token button and copy the token generated.
+.. Final step is to install the agent itself. Follow the instructions to download, extract and install the agent. The installation instructions are prepared and will differ  based on the deployment mode. If Production mode is desired, certificates authenticating the {fleet-server} to the {es} will be needed to complete the installation.
+.. Copy the installation instructions which are prepopulated with some of the known deployment parameters. You will need to add the relevant certificates generated in the previous section:
++
+[source,sh]
+----
+> sudo ./elastic-agent install  \ --url=https://10.128.0.46:8220 \
+  --fleet-server-es=https://<url of hosted Elasticsearch> \
+  --fleet-server-service-token=<generated service token> \
+  --fleet-server-policy=<created Fleet Server policy> \
+  --certificate-authorities=<PATH to CA>/ca/ca.crt \
+  --fleet-server-cert=<PATH to Fleet-Server>/fleet-server/fleet-server.crt \
+  --fleet-server-cert-key=<PATH to Fleet-Server>/fleet-server/fleet-server.key
+----
+
+. Once the {fleet-server} is installed, it will enroll into {fleet} and have the newly created {fleet-server} policy applied to it. You can see this on the {fleet-server} policy page:
++
+// image
++
+In addition the {fleet-server} agent will show up on the main {fleet} page as yet another agent whose life-cycle can be managed (as like other agents in the deployment):
++
+// image
+
+[discrete]
+[[fleet-server-install-agents]]
+==== Installing {agents}
+
+{agents} in this deployment now need a TLS connection to the newly installed {fleet-server} instance for control plane AND and additional secure connection to {es} to write user data. You may follow the in-product installation steps with small modifications.
+
+. A valid certificate authority is required for connectivity to the {fleet-server} that was installed in the previous sections.
+.. Copy the certs/ca.crt from the previous section to a well known location on the host machine
+. Copy the installation instructions which are prepopulated with the known deployment parameters. Additionally add the Certificate Authority option to the command line (recall that in ou example the {fleet-server} is on host 10.128.0.46 port 8220:
++
+[source,sh]
+----
+> sudo ./elastic-agent install \ 
+--url=https://10.128.0.46:8220 \ 
+--enrollment-token=<enrollment token> \ 
+--certificate-authorities=<PATH to CA>/ca/ca.crt
+----
+
+. You should now see the Elastic Agent enrolled into the {fleet}
+
+[discrete]
+[[fleet-server-default-ports]]
+== Default Port Assignments
+
+When {es} or {fleet-server} are deployed on premises, communication between certain components will take place over well defined, pre-allocated ports. In most cases the operators may need to allow access to these ports.
+
+[options,header]
+|====
+| Component Communication | Default Port
+| Elastic Agent → {fleet-server} | 8220
+| Elastic Agent → {es} | 9200
+| Elastic Agent → Logstash | 5044
+| Elastic Agent → {fleet} | 5601
+| {fleet-server} → {fleet} | 5601
+| {fleet-server} → {es} | 9200
+|====
