@@ -2,16 +2,16 @@
 = {fleet-server} deployment models
 
 Administrators deploying the {agent} have a few deployment choices
-available to satisfy their organization's requirements. {fleet-server} can be
-deployed:
+available to satisfy their organization's requirements. There are three
+options when deploying {fleet-server}:
 
-* On {ecloud}, as part of our hosted {ess}, which is managed by Elastic, or
-* On-premises and self-managed
-
+* <<deployed-in-cloud>> as part of the hosted {ess}, which is managed by Elastic
+* <<deployed-on-prem>>
+* <<fleet-server-on-prem-es-cloud>>
 
 [discrete]
 [[deployed-in-cloud]]
-== Deployed in {ecloud}
+== Deploy on {ecloud}
 
 To simplify the deployment of {agent}, the {fleet-server} can be
 provisioned and hosted in the {ecloud}. In this case, when the deployment is created,
@@ -30,7 +30,7 @@ image::images/fleet-server-cloud-deployment.png[{fleet-server} Cloud deployment 
 
 [discrete]
 [[deployed-on-prem]]
-== Deployed on-premises and self-managed
+== Deploy on-premises and self-managed
 
 {fleet-server} can be deployed on-premises and managed by the user. In this
 deployment model, the administrator is responsible for {fleet-server} deployment
@@ -67,7 +67,7 @@ establish a secure connection from {fleet-server} to {es}.
 
 [discrete]
 [[fleet-server-on-prem-es-cloud]]
-== Deploying {fleet-server} on-premises, {es} in Cloud
+== Deploy {fleet-server} on-premises and {es} on Cloud
 
 In some situations the operators may have a need to aggregate the control and data plane
 traffic at the local site and have their {es} cluster managed in {ecloud}.
@@ -79,18 +79,17 @@ connect them back to the {ecloud} with access to {es} and {kib}.
 
 // image
 
-[discrete]
-[[fleet-server-add]]
-=== Adding an on-premises {fleet-server}
+To add a new {fleet-server} in this type of deployment, you'll need to:
 
-As mentioned in the previous sections a {fleet-server} (or a cluster of them) can be
-installed on-premises to connect back to {es} that is hosted by Elastic and
-offered as a service. The following steps describe how to add a New {fleet-server} into
-this type of deployment.
+. <<fleet-server-add-hosts>>
+. <<fleet-server-create-policy>>
+. <<fleet-server-generate-certificate>>
+. <<fleet-server-add-agents>>
+. <<fleet-server-install-agents>>
 
 [discrete]
 [[fleet-server-add-hosts]]
-==== Adding {fleet-server} Hosts
+=== Add {fleet-server} hosts
 
 . Prepare a host where the {fleet-server} will be provisioned.
 .. All agents would need to have connectivity to this host
@@ -103,7 +102,8 @@ this type of deployment.
 
 [discrete]
 [[fleet-server-create-policy]]
-==== Create a {fleet-server} Policy
+=== Create a {fleet-server} policy
+
 A {fleet-server} policy needs to be created as a policy container to manage and configure
 all the {fleet-server} hosts. A system integration added to this policy will also allow
 monitoring of the system resources of these hosts.
@@ -127,7 +127,7 @@ monitoring of the system resources of these hosts.
 
 [discrete]
 [[fleet-server-generate-certificate]]
-==== Generating Certificates for the {fleet-server}
+=== Generate certificates for {fleet-server}
 
 For production deployments Elastic recommends configuring Transport Layer Security (TLS) to encrypt traffic between the {fleet-server}s and Elastic stack. Elastic provides a utility that streamlines creation of PEM formatted certificates, useful for this operation. This tool is bundled with {es}. Download {es} and extract to get access to this utility (https://www.elastic.co/downloads/elasticsearch)
 
@@ -159,7 +159,7 @@ This command will create another zip file that contains the {fleet-server} certi
 
 [discrete]
 [[fleet-server-add-agents]]
-==== Add {fleet-server} Agents
+=== Add {fleet-server} agents
 
 Now that the policy has been created go ahead and create agents to be added to the policy.
 These will act as {fleet-server}s in your deployment. {fleet-server} is just another Elastic agent
@@ -194,7 +194,7 @@ In addition the {fleet-server} agent will show up on the main {fleet} page as ye
 
 [discrete]
 [[fleet-server-install-agents]]
-==== Installing {agents}
+==== Install {agents}
 
 {agents} in this deployment now need a TLS connection to the newly installed {fleet-server} instance for control plane AND and additional secure connection to {es} to write user data. You may follow the in-product installation steps with small modifications.
 
@@ -214,9 +214,9 @@ In addition the {fleet-server} agent will show up on the main {fleet} page as ye
 
 [discrete]
 [[fleet-server-default-ports]]
-== Default Port Assignments
+== Use default port assignments
 
-When {es} or {fleet-server} are deployed on premises, communication between certain components will take place over well defined, pre-allocated ports. In most cases the operators may need to allow access to these ports.
+When {es} or {fleet-server} are deployed on-premises, communication between certain components will take place over well defined, pre-allocated ports. In most cases the operators may need to allow access to these ports.
 
 [options,header]
 |====
