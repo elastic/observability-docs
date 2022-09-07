@@ -27,6 +27,47 @@ Also see:
 [[release-notes-8.4.1]]
 == {fleet} and {agent} 8.4.1
 
+[discrete]
+[[known-issues-8.4.1]]
+=== Known issues
+
+// tag::credentials-error[]
+.Credentials error prevents {agent} from ingesting AWS logs
+[%collapsible]
+====
+
+*Details*
+
+{agent}s configured to use the AWS S3 and SQS integrations may return the
+following error:
+
+[source,shell]
+----
+sqs ReceiveMessage failed: operation error SQS: ReceiveMessage, https response
+error StatusCode: 403, RequestID: cb57783a-505f-5099-9160-23b8eea8ddbb,
+api error SignatureDoesNotMatch: Credential should be scoped to a valid region. 
+----
+
+This error was introduced by a breaking change in the AWS library.
+
+*Impact* +
+
+{agent} is unable to ingest AWS logs and some metrics. To resolve this error:
+
+* If you are using the default domain `amazonaws.com`, upgrade the AWS
+integration package to version 1.23.4 to apply the temporary fix added in
+https://github.com/elastic/integrations/pull/4103[PR #4103].
+* Otherwise, wait to upgrade until the permanent fix added by
+https://github.com/elastic/beats/pull/32921[PR #32921] is available in an
+upcoming stack release.
+
+====
+// end::credentials-error[]
+
+[discrete]
+[[bug-fixes-8.4.1]]
+=== Bug fixes
+
 There are no bug fixes for {fleet} or {agent} in this release.
 
 // end 8.4.1 relnotes
@@ -58,6 +99,12 @@ For more information, refer to {kibana-pull}135669[#135669].
 *Impact* +
 To configure `setxpack.fleet.agents.fleet_server.hosts` and `xpack.fleet.agents.elasticsearch.hosts` on the Fleet UI, avoid configuring the settings in kibana.yml.
 ====
+
+[discrete]
+[[known-issues-8.4.0]]
+=== Known issues
+
+include::release-notes-8.4.asciidoc[tag=credentials-error]
 
 [discrete]
 [[new-features-8.4.0]]
