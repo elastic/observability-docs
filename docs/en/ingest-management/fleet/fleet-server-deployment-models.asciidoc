@@ -91,12 +91,22 @@ To add a new {fleet-server} in this type of deployment, you'll need to:
 [[fleet-server-add-hosts]]
 === Add {fleet-server} hosts
 
-. Prepare a host where the {fleet-server} will be provisioned.
-.. All agents would need to have connectivity to this host
-.. Ensure that this host also has a route to the {es} you intend to use, whether hosted by Elastic or deployed on-premises
-.. This host should meet the minimum compute resource requirements based on the maximum number of agents you intend to support in your deployment <insert link to scale compute requirements>
-. In {kib} navigate to the main {fleet} page and go to the Settings tab.
-. Under {fleet-server} hosts, click Edit hosts and add the {fleet-server} host address you intend to use. This will be the address used by the {agents} to connect to the {fleet-server}. In the example below the {fleet-server} is on the host 10.128.0.46. {fleet-server} will listen on port 8220 by default.
+// What is it / why do you need it?
+Start by adding one or more {fleet-server} hosts.
+A {fleet-server} host is ___.
+
+// How do you set it up?
+To add a {fleet-server} host:
+
+. Prepare a host where the {fleet-server} will be provisioned:
+.. Ensure all agents can connect to the host.
+.. Ensure that the host also has a route to the {es} you plan to use, whether hosted by Elastic or deployed on-premises.
+.. Ensure the host meets the link[minimum compute resource requirements] based on the maximum number of agents you plan to support in your deployment.
+. In {kib} navigate to the main {fleet} page and go to the **Settings** tab.
+. Under {fleet-server} hosts, click **Edit hosts** and add the {fleet-server} host address you want to use.
+This will be the address used by the {agents} to connect to the {fleet-server}.
+In this example, {fleet-server} is on the host `10.128.0.46`.
+{fleet-server} listens on port `8220` by default.
 
 // image
 
@@ -104,32 +114,61 @@ To add a new {fleet-server} in this type of deployment, you'll need to:
 [[fleet-server-create-policy]]
 === Create a {fleet-server} policy
 
-A {fleet-server} policy needs to be created as a policy container to manage and configure
-all the {fleet-server} hosts. A system integration added to this policy will also allow
-monitoring of the system resources of these hosts.
+// What is it / why do you need it?
+To manage and configure the {fleet-server} hosts you added, you need to create a {fleet-server} policy.
+// as a policy container.
+A {fleet-server} policy is ___.
 
-. Navigate to the {fleet} page within {kib} and go to the Agent policies tab
-. Click on the Create agent policy button and navigate the in product steps to configure
-.. Provide a meaningful name for the policy that would allow you to later identify this {fleet-server} (or cluster of them).
-.. Ensure you select “Collect system logs and metrics” so that the compute system hosting this {fleet-server} can be monitored (recommended)
-. Once the {fleet-server} policy has been created navigate to the policy itself and click on Add integration, there find and add the {fleet-server} integration
+You can also use add a link[system integration] to this policy to monitor the hosts' system resources.
+
+// How do you set it up?
+To create a {fleet-server} policy:
+
+. In {kib}, navigate to the **{fleet}** page and go to the **Agent policies** tab.
+. Click on the **Create agent policy** button, then:
+.. Provide a meaningful name for the policy that will help you identify this {fleet-server} (or cluster) in the future.
+.. Ensure you select _Collect system logs and metrics_ so the compute system hosting this {fleet-server} can be monitored. (This is not required, but is highly recommended.)
+. After creating the {fleet-server} policy, navigate to the policy itself and click **Add integration**.
+. Search for and select the **{fleet-server}** integration.
+. Then click **Add {fleet-server}**.
++
+// image
+. Configure the {fleet-server}:
+.. Expand **Change default**. Because you are deploying this {fleet-server} on-premises,
+you need to enter the _Host_ address and _Port_ number, `8220`.
+(In our example the {fleet-server} will be installed on the host `10.128.0.46`.)
+.. It's recommended that you also enter the _Max agents_ you intend to support with this {fleet-server}.
+This can also be modified at a later stage.
+This will allow the {fleet-server} to handle the load and frequency of updates being sent to the agent
+and ensure a smooth operation in a bursty environment.
 +
 // image
 
-. You will now have the opportunity to configure the {fleet-server}. Expand Change default, since this {fleet-server} is being deployed on-premises you need to enter the Host address, Port number 8220. In our example the {fleet-server} will be installed on the host 10.128.0.46
-. It is also recommended here that you enter the Max agents you intend to support with this {fleet-server}. This can also be modified at a later stage. This configuration will allow the {fleet-server} to handle the load and frequency of updates sent to the agent and ensure a smooth operation in a bursty environment.
-+
-// image
-
-. You should now see the integration added to the policy. System will prompt you to add agents to this policy. You will also see the Add agent at the top of the page, click that and follow the in product prompts to correctly add agents to this {fleet-server} policy. You can add agents to this policy at any time. These agents are your {fleet-server}s.
-+
+// This is covered in "Add {fleet-server} agents" below?
+// Do we want them to do this before setting up ceritifcates?
+//
+// . You should now see the integration added to the policy.
+// To add agents to this policy, click **Add agent** and follow the prompts.
+// These agents are your {fleet-server}s.
+// You can add more agents to this policy at any time.
+// +
 // image
 
 [discrete]
 [[fleet-server-generate-certificate]]
 === Generate certificates for {fleet-server}
 
-For production deployments Elastic recommends configuring Transport Layer Security (TLS) to encrypt traffic between the {fleet-server}s and Elastic stack. Elastic provides a utility that streamlines creation of PEM formatted certificates, useful for this operation. This tool is bundled with {es}. Download {es} and extract to get access to this utility (https://www.elastic.co/downloads/elasticsearch)
+// What is it / why do you need it?
+If you are creating a production deployment, it's recommended that you configure
+Transport Layer Security (TLS) to encrypt traffic between the {fleet-server}s and {stack}
+_before_ adding agents to the {fleet-server} policy.
+
+// How do you set it up?
+Elastic provides a utility that streamlines creation of PEM formatted certificates.
+This tool, `elasticsearch-certutil`, is bundled with {es}.
+To get access, https://www.elastic.co/downloads/elasticsearch[download {es}].
+
+Then, use `elasticsearch-certutil` to generate certificates:
 
 . Generate a Certificate Authority (CA) for this operation.
 +
@@ -138,9 +177,12 @@ For production deployments Elastic recommends configuring Transport Layer Securi
 > ./bin/elasticsearch-certutil ca -pem
 ----
 +
-This command will create a zip file that contains the CA certificate (ca/ca.crt)  and key (ca/ca.key) required to sign the {fleet-server} certificate. Extract the zip file and store it in a secure location.
-
-. Use this CA to generate certificates for the {fleet-server}. Example below shows how that can be done using elasticsearch-certutil  for the host in the example above at 10.128.0.46:
+This command will create a zip file that contains the CA certificate (ca/ca.crt) and
+key (ca/ca.key) required to sign the {fleet-server} certificate.
+.. Extract the zip file and store it in a secure location.
+. Use the CA to generate certificates for the {fleet-server}.
++
+The example below shows how that can be done using `elasticsearch-certutil` for the host in the example above (`10.128.0.46`):
 +
 [source,sh]
 ----
@@ -153,25 +195,40 @@ This command will create a zip file that contains the CA certificate (ca/ca.crt)
 -pem
 ----
 +
-This command will create another zip file that contains the {fleet-server} certificate (fleet-server/fleet-server.crt)  and key (fleet-server/fleet-server.key). Extract the zip file and store it in a secure location.
-
+This command will create another zip file that contains the {fleet-server} certificate
+(fleet-server/fleet-server.crt) and key (fleet-server/fleet-server.key).
+. Extract the zip file and store it in a secure location.
 . You now have all the necessary certificates to install the {fleet-server} and securely connect it to the hosted {es} instance in the cloud.
 
 [discrete]
 [[fleet-server-add-agents]]
-=== Add {fleet-server} agents
+=== Add agents
 
-Now that the policy has been created go ahead and create agents to be added to the policy.
-These will act as {fleet-server}s in your deployment. {fleet-server} is just another Elastic agent
-in a special operating mode.
+// What is it / why do you need it?
+Now that the policy exists, you can create agents and add them to the policy.
+These agents will act as {fleet-server}s in your deployment.
+{fleet-server} is just another {agent} in a special operating mode.
 
-. Within the {fleet-server} policy that was created, click on the Add agent and follow the in product descriptions to add a {fleet-server}.
-.. Choose the policy name for this deployment
-.. Choose your deployment model. Quick start mode will be less secure. Production mode is the fully secured mode where TLS certificates ensure a secure communication between {fleet-server} and {es}.
-.. Add the {fleet-server} host that was identified earlier. Click Add host. 
-.. A Service Token is required so that the {fleet-server} can write data to the {es} it is connected to. Click the Generate service token button and copy the token generated.
-.. Final step is to install the agent itself. Follow the instructions to download, extract and install the agent. The installation instructions are prepared and will differ  based on the deployment mode. If Production mode is desired, certificates authenticating the {fleet-server} to the {es} will be needed to complete the installation.
-.. Copy the installation instructions which are prepopulated with some of the known deployment parameters. You will need to add the relevant certificates generated in the previous section:
+// How do you set it up?
+To add agents:
+
+. Return to the {fleet-server} policy. If you've navigated away from the page, here's how you can get there:
+.. In {kib} go to **{fleet}**.
+.. Switch to the **Agent policies** tab.
+.. Select the policy you created previously.
+. Click **Add agent** and follow the instructions to add a {fleet-server}.
+.. Choose the policy name for this deployment.
+.. Choose your deployment model. Quick start mode will be less secure.
+Production mode is the fully secured mode where TLS certificates ensure a secure communication between {fleet-server} and {es}.
+.. Add the {fleet-server} host that was identified earlier. Click **Add host**.
+.. A **Service Token** is required so the {fleet-server} can write data to the connected {es} instance.
+Click **Generate service token** and copy the generated token.
+.. Follow the instructions in {kib} to download, extract, and install the agent.
+The installation instructions will differ based on the deployment mode.
+If deploying in production mode, you will need certificates authenticating
+the {fleet-server} to the {es} to complete the installation.
+.. Copy the installation instructions provided in {kib}, which include some of the known deployment parameters.
+You will need to add the relevant certificates generated in the <<fleet-server-generate-certificate,previous section>>:
 +
 [source,sh]
 ----
@@ -184,11 +241,14 @@ in a special operating mode.
   --fleet-server-cert-key=<PATH to Fleet-Server>/fleet-server/fleet-server.key
 ----
 
-. Once the {fleet-server} is installed, it will enroll into {fleet} and have the newly created {fleet-server} policy applied to it. You can see this on the {fleet-server} policy page:
+. Once the {fleet-server} is installed, it will be enrolled into {fleet}
+and the newly created {fleet-server} policy will be applied to it.
+You can see this on the {fleet-server} policy page:
 +
 // image
 +
-In addition the {fleet-server} agent will show up on the main {fleet} page as yet another agent whose life-cycle can be managed (as like other agents in the deployment):
+The {fleet-server} agent will also show up on the main {fleet} page as another agent
+whose life-cycle can be managed (like other agents in the deployment):
 +
 // image
 
@@ -196,11 +256,21 @@ In addition the {fleet-server} agent will show up on the main {fleet} page as ye
 [[fleet-server-install-agents]]
 ==== Install {agents}
 
-{agents} in this deployment now need a TLS connection to the newly installed {fleet-server} instance for control plane AND and additional secure connection to {es} to write user data. You may follow the in-product installation steps with small modifications.
+// What is it / why do you need it?
+{agents} in this deployment now need a TLS connection to the newly installed {fleet-server} instance for control plane
+and additional secure connection to {es} to write user data.
+You may follow the in-product installation steps with small modifications.
 
-. A valid certificate authority is required for connectivity to the {fleet-server} that was installed in the previous sections.
-.. Copy the certs/ca.crt from the previous section to a well known location on the host machine
-. Copy the installation instructions which are prepopulated with the known deployment parameters. Additionally add the Certificate Authority option to the command line (recall that in ou example the {fleet-server} is on host 10.128.0.46 port 8220:
+// How do you set it up?
+To install {agents}:
+
+. A valid certificate authority is required for connectivity to the
+{fleet-server} that was installed in the previous sections.
+.. Copy the `certs/ca.crt` from the previous section to a well known location on the host machine.
+. Copy the installation instructions provided in {kib}, which include some of the known deployment parameters.
+Add the `--certificate-authorities` option with the relevant certificates generated in a
+<<fleet-server-generate-certificate,previous section>>.
+(This example uses the same host, `10.128.0.46`, and port, `8220`, as the previous examples.)
 +
 [source,sh]
 ----
@@ -210,7 +280,7 @@ In addition the {fleet-server} agent will show up on the main {fleet} page as ye
 --certificate-authorities=<PATH to CA>/ca/ca.crt
 ----
 
-. You should now see the Elastic Agent enrolled into the {fleet}
+. You should now see the {agent} enrolled in {fleet}.
 
 [discrete]
 [[fleet-server-default-ports]]
