@@ -77,8 +77,6 @@ speed and reliability.
 
 To create the SQS queue:
 
-//TODO: Fix typo in screen capture.
-
 . Go to the https://console.aws.amazon.com/sqs/[SQS console] and create an SQS
 queue. Create a standard SQS queue that uses the default settings.
 +
@@ -87,6 +85,7 @@ queue. Create a standard SQS queue that uses the default settings.
 Make sure you create the SQS queue in the same region as the S3 bucket.
 =====
 +
+[role="screenshot"]
 image::agent-tut-creating-a-queue.png[Screenshot of the queue creation window]
 
 . Edit the queue you created and use a JSON object to define an advanced access
@@ -139,10 +138,12 @@ the VPC flow logs and enable event notification:
 . For the event type, select **All object create events** to send a notification
 for every object creation event.
 +
+[role="screenshot"]
 image::agent-tut-configure-event-notification.png[Screenshot of event notification setting]
 
 . For the destination, select the SQS queue you just created.
 +
+[role="screenshot"]
 image::agent-tut-configure-notification-output.png[Event Notification Setting]
 
 [discrete]
@@ -161,8 +162,8 @@ To add the integration:
 [role="screenshot"]
 image::images/kibana-home.png[{kib} home page]
 
-. In the query bar, search for **AWS** and select the integration to see more
-details about it.
+. In the query bar, search for **AWS** and select the AWS integration to see
+more details about it.
 
 . Click **Add AWS**.
 
@@ -202,7 +203,9 @@ The account you specify must have at least the following privileges:
 ----
 +
 . Turn off all data collection selectors _except_
-**Collect AWS VPC flow logs from S3**, and in the **Queue URL** field, specify
+**Collect VPC flow logs from S3**.
+
+. Change defaults and in the **Queue URL** field, specify
 the URL of the SQS queue you created earlier. 
 +
 [role="screenshot"]
@@ -247,13 +250,15 @@ system and copy the installation command shown in the instructions.
 . Run the command on the host where you want to install {agent}.
 
 It takes a few minutes for {agent} to enroll in {fleet}, download the
-configuration specified in the policy, and start collecting data.
+configuration specified in the policy, and start collecting data. You can wait
+to confirm incoming data, or close the window.
 
-Here's what you've achieved so far: VPC flow logs are sent to an S3 bucket,
-which sends a notification to the SQS queue. When {agent} detects a new message
-in the queue, it uses the information in the message to retrieve flow logs from
-the S3 bucket. {agent} processes each message, parses it into fields, and then
-sends the data to {es}.
+**What have you achieved so far?**
+
+VPC flow logs are sent to an S3 bucket, which sends a notification to the SQS
+queue. When {agent} detects a new message in the queue, it uses the information
+in the message to retrieve flow logs from the S3 bucket. {agent} processes each
+message, parses it into fields, and then sends the data to {es}.
 
 image::agent-tut-one-bucket-archi.png[Current logging architecture for VPC flow logs]
 
@@ -283,25 +288,27 @@ image::agent-tut-two-buckets-archi.png[Architecture with access logging enabled]
 [[aws-elastic-agent-create-S3-bucket]]
 ==== Create a bucket and queue for S3 access logs
 
-To create the new bucket for S3 access logs:
+To create the new bucket and queue for S3 access logs:
 
 . In the https://s3.console.aws.amazon.com/s3[{aws} S3 console], click
 **Create bucket**. Give the bucket a **name** and specify the **region** where
 you want it deployed.
 +
-image::creating-a-s3-bucket.png[S3 bucket creation]
+[role="screenshot"]
+image::agent-tut-create-s3-bucket.png[Screenshot showing creation of an S3 bucket]
 
-. Follow the steps you learned earlier to create an SQS queue. Make a note of
-the queue URL because you will need it later when you configure S3 access log
-collection.
+. Follow the steps you learned earlier to create an SQS queue and edit the access
+policy (use the ARNs of the new S3 bucket and queue). Make a note of the queue
+URL because you will need it later when you configure S3 access log collection.
 
-. Configure the new S3 bucket to send notifications to the new queue when new
-objects are created (use the steps you learned earlier).
+. Configure the new S3 bucket to send notifications to the new queue when
+objects are created (follow the steps you learned earlier).
 
 . Go back to the old S3 bucket (the one that contains VPC flow logs), and under
 **Properties**, edit the **Server access logging** properties. Enable server
 access logging, and select the new bucket you created as the target bucket.
 +
+[role="screenshot"]
 image::agent-tut-enable-server-access-logging.png[Screenshot of server access logging properties]
 
 Now you're ready to edit the agent policy and configure S3 access log
@@ -318,11 +325,11 @@ S3 access logs.
 . From the main menu in {kib}, go to **{fleet} > Agents** and click the policy
 your agent is using. 
 
-. Edit the integration policy and turn on the
+. Edit the AWS integration policy and turn on the
 **Collect S3 access logs from S3** selector.
 
 . In the **Queue URL** field, enter the URL of the SQS queue you created for
-S3 access log notifications, then save your changes.
+S3 access log notifications, then save and deploy your changes.
 
 It takes a few minutes for {agent} to update its configuration and start
 collecting data.
@@ -335,8 +342,6 @@ Now that logs are streaming into {es}, you can visualize them in
 {kib}. To see the raw logs, open the main menu in {kib}, then click
 **Logs**.
 
-//TODO: figure out why log sream contains "failed to find message" under messages
-
 The AWS integration also comes with pre-built dashboards that you can use to
 visualize the data. In {kib}, open the main menu and click **Dashboard**. Search
 for `VPC Flow` and select the dashboard called
@@ -346,7 +351,7 @@ for `VPC Flow` and select the dashboard called
 image::images/agent-tut-vpcflowlog-dashboard.png[Screenshot of VPC Flow Log Overview dashboard]
 
 Next, open the dashboard called
-**[Elastic Agent AWS] S3 Server Access Log Overview**:
+**[Logs AWS] S3 Server Access Log Overview**:
 
 [role="screenshot"]
 image::images/agent-tut-s3accesslog-dashboard.png[Screenshot of S3 Server Access Log Overview dashboard]
@@ -391,14 +396,14 @@ least the following permissions:
 . From the main menu in {kib}, go to **{fleet} > Agents** and click the policy
 your agent is using. 
 
-. Edit the integration policy and turn on the **Collect billing metrics**
+. Edit the AWS integration policy and turn on the **Collect billing metrics**
 selector. You can accept the defaults.
 +
 [role="screenshot"]
 image::images/agent-tut-collect-billing-metrics.png[Screenshot of settings to collect billing metrics]
 
 . Also turn on the **Collect EC2 metrics** selector. Optionally change the
-defaults, then save your changes.
+defaults, then save and deploy your changes.
 +
 [role="screenshot"]
 image::images/agent-tut-collect-ec2-metrics.png[Screenshot of settings to collect ec2 metrics]
@@ -411,27 +416,21 @@ collecting data.
 === Step 7: Visualize AWS metrics
 
 Now that the metrics are streaming to {es}, you can visualize them in {kib}. In
-{kib}, open the main menu and click **Metrics**. Make sure to show the **{aws}**
-source and the **EC2 Instances**.
-
-//TODO: Figure out why Metrics view isn't showing anything and add screenshot
+{kib}, open the main menu and click **Infrastructure**. Make sure to show the
+**{aws}** source and the **EC2 Instances**.
 
 The AWS integration also comes with pre-built dashboards that you can use to
 visualize the data. In {kib}, open the main menu and click **Dashboard**. Search
-for EC2 and select the dashboard called **[Elastic Agent AWS] EC2 Overview**:
-
-ifeval::["{release-state}"!="released"]
-**Reviewers: This doesn't look right. I probably haven't set things up correctly.**
-endif::[]
+for EC2 and select the dashboard called **[Metrics AWS] EC2 Overview**:
 
 [role="screenshot"]
 image::images/agent-tut-ec2-overview-dashboard.png[Screenshot of Billing Overview dashboard]
 
 To track your billings on {aws}, open the
-**[Elastic Agent AWS] Billing Overview** dashboard:
+**[Metrics AWS] Billing Overview** dashboard:
 
 [role="screenshot"]
 image::images/agent-tut-billing-dashboard.png[Screenshot of Billing Overview dashboard]
 
 Congratulations! You have completed the tutorial. To try other tutorials in this
-serives, visit the <<observability-tutorials>> page.
+series, visit the <<observability-tutorials>> page.
