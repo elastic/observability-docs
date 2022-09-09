@@ -139,12 +139,12 @@ the VPC flow logs and enable event notification:
 for every object creation event.
 +
 [role="screenshot"]
-image::agent-tut-configure-event-notification.png[Screenshot of event notification setting]
+image::agent-tut-configure-event-notification.png[Screenshot of the event notification creation window]
 
 . For the destination, select the SQS queue you just created.
 +
 [role="screenshot"]
-image::agent-tut-configure-notification-output.png[Event Notification Setting]
+image::agent-tut-configure-notification-output.png[Screenshot of event notification destination settings]
 
 [discrete]
 [[aws-elastic-agent-add-aws-integration]]
@@ -160,7 +160,7 @@ To add the integration:
 . Go to the {kib} home page and click **Add integrations**.
 +
 [role="screenshot"]
-image::images/kibana-home.png[{kib} home page]
+image::images/kibana-home.png[Screenshot of the {kib} home page]
 
 . In the query bar, search for **AWS** and select the AWS integration to see
 more details about it.
@@ -179,7 +179,7 @@ other ways to provide AWS credentials. To learn more, refer to the
 {integrations-docs}/aws[{aws} integration] documentation.
 +
 [role="screenshot"]
-image::images/agent-tut-aws-credentials.png[Screenshot showing the VPC flow configuration with credentials specified]
+image::images/agent-tut-aws-credentials.png[Screenshot of the VPC flow configuration with credentials specified]
 +
 The account you specify must have at least the following privileges:
 +
@@ -209,7 +209,7 @@ The account you specify must have at least the following privileges:
 the URL of the SQS queue you created earlier. 
 +
 [role="screenshot"]
-image::images/agent-tut-config-vpc-logs.png[Screenshot showing the VPC flow configuration with credentials specified]
+image::images/agent-tut-config-vpc-logs.png[Screenshot of the VPC flow configuration with the Queue URL specified]
 
 . Click **Save and continue**. This step takes a minute or two to complete. When
 it's done, you'll have an agent policy that contains the AWS configuration you
@@ -260,7 +260,7 @@ queue. When {agent} detects a new message in the queue, it uses the information
 in the message to retrieve flow logs from the S3 bucket. {agent} processes each
 message, parses it into fields, and then sends the data to {es}.
 
-image::agent-tut-one-bucket-archi.png[Current logging architecture for VPC flow logs]
+image::agent-tut-one-bucket-archi.png[Diagram of the current logging architecture for VPC flow logs]
 
 [discrete]
 [[aws-elastic-agent-collect-s3-access-logs]]
@@ -282,7 +282,7 @@ older S3 bucket to generate access logs.
 
 When you're done, your monitoring architecture will look like this:
 
-image::agent-tut-two-buckets-archi.png[Architecture with access logging enabled]
+image::agent-tut-two-buckets-archi.png[Diagram of the logging architecture with access logging enabled]
 
 [discrete]
 [[aws-elastic-agent-create-S3-bucket]]
@@ -294,8 +294,14 @@ To create the new bucket and queue for S3 access logs:
 **Create bucket**. Give the bucket a **name** and specify the **region** where
 you want it deployed.
 +
+[IMPORTANT]
+=====
+Make sure you create the S3 bucket and SQS queue (next step) in the same region
+as the bucket containing VPC flow logs.
+=====
++
 [role="screenshot"]
-image::agent-tut-create-s3-bucket.png[Screenshot showing creation of an S3 bucket]
+image::agent-tut-create-s3-bucket.png[Screenshot of the S3 bucket creation window]
 
 . Follow the steps you learned earlier to create an SQS queue and edit the access
 policy (use the ARNs of the new S3 bucket and queue). Make a note of the queue
@@ -348,13 +354,13 @@ for `VPC Flow` and select the dashboard called
 **[Logs AWS] VPC Flow Log Overview**:
 
 [role="screenshot"]
-image::images/agent-tut-vpcflowlog-dashboard.png[Screenshot of VPC Flow Log Overview dashboard]
+image::images/agent-tut-vpcflowlog-dashboard.png[Screenshot of the VPC Flow Log Overview dashboard]
 
 Next, open the dashboard called
 **[Logs AWS] S3 Server Access Log Overview**:
 
 [role="screenshot"]
-image::images/agent-tut-s3accesslog-dashboard.png[Screenshot of S3 Server Access Log Overview dashboard]
+image::images/agent-tut-s3accesslog-dashboard.png[Screenshot of the S3 Server Access Log Overview dashboard]
 
 [discrete]
 [[aws-elastic-agent-collect-metrics]]
@@ -365,7 +371,8 @@ metrics from AWS CloudWatch using **GetMetricData** API for {aws} services.
 Specifically you'll learn how to stream and process billing and EC2 metrics.
 
 IMPORTANT: Extra AWS charges on CloudWatch API requests may be generated if you
-configure the AWS integration to collect metrics.
+configure the AWS integration to collect metrics. To learn more, refer to the
+https://aws.amazon.com/cloudwatch/pricing/[Amazon CloudWatch pricing] page.
 
 . Make sure the {aws} account used to collect metrics from CloudWatch has at
 least the following permissions:
@@ -406,7 +413,7 @@ image::images/agent-tut-collect-billing-metrics.png[Screenshot of settings to co
 defaults, then save and deploy your changes.
 +
 [role="screenshot"]
-image::images/agent-tut-collect-ec2-metrics.png[Screenshot of settings to collect ec2 metrics]
+image::images/agent-tut-collect-ec2-metrics.png[Screenshot of settings to collect EC2 metrics]
 
 It takes a few minutes for {agent} to update its configuration and start
 collecting data.
@@ -424,13 +431,13 @@ visualize the data. In {kib}, open the main menu and click **Dashboard**. Search
 for EC2 and select the dashboard called **[Metrics AWS] EC2 Overview**:
 
 [role="screenshot"]
-image::images/agent-tut-ec2-overview-dashboard.png[Screenshot of Billing Overview dashboard]
+image::images/agent-tut-ec2-overview-dashboard.png[Screenshot of the EC2 Overview dashboard]
 
 To track your AWS billing, open the
 **[Metrics AWS] Billing Overview** dashboard:
 
 [role="screenshot"]
-image::images/agent-tut-billing-dashboard.png[Screenshot of Billing Overview dashboard]
+image::images/agent-tut-billing-dashboard.png[Screenshot of the Billing Overview dashboard]
 
 Congratulations! You have completed the tutorial. To try other tutorials in this
 series, visit the <<observability-tutorials>> page.
