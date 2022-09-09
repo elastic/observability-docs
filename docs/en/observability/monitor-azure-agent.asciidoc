@@ -1,0 +1,209 @@
+[[monitor-azure-elastic-agent]]
+== Monitor Microsoft Azure with {agent}
+
+****
+**New to Elastic?** Follow the steps in our {estc-welcome}/getting-started-observability.html[getting started guide] instead
+of the steps described here. Return to this tutorial after you've learned the
+basics.
+
+**Using the native Azure integration from the marketplace?** Refer to
+<<monitor-azure-native>>.
+****
+
+In this tutorial, you’ll learn how to deploy {agent} and monitor your Azure
+infrastructure with Elastic {observability}.
+
+[discrete]
+[[azure-elastic-agent-what-you-learn]]
+=== What you'll learn
+
+You'll learn how to:
+
+- Create an Azure service principal with permissions to read monitoring data.
+- Collect Azure platform logs.
+- Collect virtual machine logs and metrics.
+- Visualize the logs and infrastructure metrics in {kib}.
+
+//TODO: Refine this list ^^ after deciding which integrations to enable.
+
+[discrete]
+[[azure-collect-metrics]]
+=== Step 1: Create an Azure service principal
+
+In this step, you create an Azure service principal and then grant them access
+to use the Azure Monitor REST API.
+
+The https://docs.microsoft.com/en-us/rest/api/monitor/[Azure Monitor REST API]
+allows you to get insights into your Azure resources using different operations.
+To access the Azure Monitor REST API, you need to use the Azure Resource Manager
+authentication model. Therefore, you must authenticate all requests with Azure
+Active Directory (Azure AD). You can create the service principal using the
+https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-service-principal-portal[Azure portal] or
+https://docs.microsoft.com/en-us/powershell/azure/create-azure-service-principal-azureps?view=azps-2.7.0[Azure PowerShell].
+Then, you need to grant access permission, which is detailed
+https://docs.microsoft.com/en-us/azure/role-based-access-control/built-in-roles[here].
+This tutorial shows how to use the Azure portal.
+
+[discrete]
+==== Create an Azure service principal
+
+. Go to the https://portal.azure.com/[Azure Management Portal]. Search and click
+on **Azure Active Directory**.
++
+image:monitor-azure-search-active-directory.png[Search and click on Azure
+Active Directory]
++
+. Click on **App registrations** in the navigation pane of the selected Active
+Directory and then click on **New registration**.
++
+image:monitor-azure-click-app-registration.png[Click on App registrations]
++
+. Type the name of your application (this tutorial uses `monitor-azure`) and
+click on **Register** (leave all the other options with the default value).
++
+image:monitor-azure-register-app.png[Register an application]
++
+Copy the **Application (client) ID**, and save it for future reference.
+This id is required to configure {metricbeat} to connect to your Azure account.
++
+. Click on **Certificates & secrets**. Then, click on **New client secret** to
+create a new security key.
++
+image:monitor-azure-click-client-secret.png[Click on new client secret]
++
+. Type a key description and select a key duration in the expire list.
+Click on **Add** to create a client secret. The next page will display the key
+value under the **Value** field. Copy the secret and save it (along with your
+Client ID) for future reference.
++
+[IMPORTANT]
+====
+This is your only chance to copy this value. You can't retrieve the
+key value after you leave the page.
+====
+
+[discrete]
+==== Grant access permission for your service principal
+
+After creating the Azure service principal, you need to grant it the correct
+permission. You need `Reader` permission to configure {agent} to monitor
+your services.
+
+. On Azure Portal, search and click on **Subscriptions**.
++
+image:monitor-azure-search-subscriptions.png[Search and click on Subscriptions]
++
+. In the Subscriptions page, click on your subscription.
+. Click on **Access control (IAM)** in the subscription navigation pane.
+. Click on **Add** and select **Add role assignment**.
+. Select the **Reader** role.
+. In the **Select** field, type the description name of the configured service
+principal (`monitor-azure`).
++
+image:monitor-azure-add-role-assignment.png[Add role assignment]
++
+. Select the application and click on save to grant the service principal
+access to your subscription.
+
+[discrete]
+[[elastic-agent-add-azure-integration]]
+=== Step 2: Install the Azure ??? integration
+
+//QUESTION: Which integration or integrations should we tell users to install?
+//Is there one integration that includes everything (like there is for AWS)?
+// If just the billing integration, we should explain that the intgration collects
+//usage data and forecast information for the specified subscription.
+
+In this step, you install the ??? integration in {kib}. The ??? integration
+contains inputs for collecting a variety of logs and metrics from Azure. You’ll
+start out by configuring the integration to collect billing metrics. After you
+get that working, you’ll learn how ???.
+
+To add the integration: 
+
+. Go to the {kib} home page and click **Add integrations**.
++
+[role="screenshot"]
+image::images/kibana-home.png[Screenshot of the {kib} home page]
+
+. In the query bar, search for **???** and select the ??? integration to see
+more details about it.
+
+. Click **Add ???**.
+
+. Configure the integration name and optionally add a description.
++
+TIP: If you don't see options for configuring the integration, you're probably
+in a workflow designed for new deployments. Follow the steps, then return to
+this tutorial when you're ready to configure the integration.
+
+. ADD CONFIGURATION STEPS HERE
++
+[NOTE]
+====
+You can find the `tenant_id` in the main Azure Active Directory page.
+You can find the `subscription_id` in the main Subscriptions page.
+====
+//Settings to configure: <client_id>, <client_secret>, <tenant_id>, and
+//<subscription_id>, period (24h or multiples for 24h), refresh list interval (600s)
+
+. Click **Save and continue**. This step takes a minute or two to complete. When
+it's done, you'll have an agent policy that contains the Azure configuration you
+just specified.
+
+A popup should appear that prompts you to **Add {agent} to your hosts**.
+
+[discrete]
+[[aws-elastic-agent-install]]
+=== Step 3: Install and run an {agent} on your machine
+
+You can install {agent} on any host that can access the Azure account and forward
+events to {es}.
+
+. In the popup, click **Add {agent} to your hosts** to open the **Add agent**
+flyout.
++
+--
+TIP: If you accidentally closed the popup, go to **{fleet} -> Agents**, then
+click **Add agent** to access the installation instructions.
+
+--
++
+The **Add agent** flyout has two options: **Enroll in {fleet}** and **Run
+standalone**. The default is to enroll the agents in {fleet}, as this reduces
+the amount of work on the person managing the hosts by providing a centralized
+management tool in {kib}.
+
+. The enrollment token you need should already be selected.
++
+NOTE: The enrollment token is specific to the {agent} policy that you just
+created. When you run the command to enroll the agent in {fleet}, you will pass
+in the enrollment token.
+
+. To download, install, and enroll the {agent}, select your host operating
+system and copy the installation command shown in the instructions.
+
+. Run the command on the host where you want to install {agent}.
+
+It takes a few minutes for {agent} to enroll in {fleet}, download the
+configuration specified in the policy, and start collecting data. You can wait
+to confirm incoming data, or close the window.
+
+**What have you achieved so far?**
+
+//ADD DESCRIPTION AND DIAGRAM HERE
+
+[discrete]
+[[azure-elastic-agent-visualize-metrics]]
+=== Step 4: Visualize Azure billing metrics
+
+. Finally, log into {kib} and open the **[Azure Billing] Billing overview**
+dashboard. Keep in mind it collects data every 24 hours.
+
+//TODO: Add screen capture here.
+
+[discrete]
+[[azure-elastic-agent-collect-xyz]]
+=== Step 5: Collect something else....
+
+//TODO: Add steps for collecting other metrics and logs.
