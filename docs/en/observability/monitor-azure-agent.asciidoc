@@ -19,10 +19,10 @@ infrastructure with Elastic {observability}.
 
 You'll learn how to:
 
-- Create an Azure service principal with permissions to read monitoring data.
-- Collect Azure platform logs.
-- Collect virtual machine logs and metrics.
-- Visualize the logs and infrastructure metrics in {kib}.
+* Create an Azure service principal with permissions to read monitoring data.
+* Collect Azure billing metrics.
+* Collect Azure platform logs.
+* Visualize the logs and infrastructure metrics in {kib}.
 
 //TODO: Refine this list ^^ after deciding which integrations to enable.
 
@@ -47,39 +47,47 @@ This tutorial shows how to use the Azure portal.
 [discrete]
 ==== Create an Azure service principal
 
-. Go to the https://portal.azure.com/[Azure Management Portal]. Search and click
-on **Azure Active Directory**.
+//QUESTION: Is this still the recommended way to control access? I see this
+//note on the Azure page for app registrations, but I don't know if it's
+//relevant: "Starting June 30th, 2020 we will no longer add any new features to
+//Azure Active Directory Authentication Library (ADAL) and Azure AD Graph. We
+//will continue to provide technical support and security updates but we will no
+//longer provide feature updates. Applications will need to be upgraded to
+//Microsoft Authentication Library (MSAL) and Microsoft Graph." (The link points)
+
+//TODO: Decide whether remaining screen captures are necessary (I've removed
+//both of them because they will take extra time to maintain over time.)
+
+. Go to the https://portal.azure.com/[Azure Management Portal]. Search for and
+select **Azure Active Directory**.
+
+. In the navigation pane, select **App registrations** and then click
+**New registration**.
+
+. Type the name of your application (this tutorial uses
+`agent-tut-azure`) and click **Register** (accept the default
+values for other settings).
 +
-image:monitor-azure-search-active-directory.png[Search and click on Azure
-Active Directory]
+[role="screenshot"]
+image::images/agent-tut-azure-register-app.png[Screenshot of the application registration]
 +
-. Click on **App registrations** in the navigation pane of the selected Active
-Directory and then click on **New registration**.
+Copy the **Application (client) ID** and save it for later. This ID is
+required to configure {agent} to connect to your Azure account.
 +
-image:monitor-azure-click-app-registration.png[Click on App registrations]
+. In the navigation pane, select **Certificates & secrets**, and then click
+**New client secret** to create a new security key.
 +
-. Type the name of your application (this tutorial uses `monitor-azure`) and
-click on **Register** (leave all the other options with the default value).
-+
-image:monitor-azure-register-app.png[Register an application]
-+
-Copy the **Application (client) ID**, and save it for future reference.
-This id is required to configure {metricbeat} to connect to your Azure account.
-+
-. Click on **Certificates & secrets**. Then, click on **New client secret** to
-create a new security key.
-+
-image:monitor-azure-click-client-secret.png[Click on new client secret]
-+
-. Type a key description and select a key duration in the expire list.
-Click on **Add** to create a client secret. The next page will display the key
-value under the **Value** field. Copy the secret and save it (along with your
-Client ID) for future reference.
+[role="screenshot"]
+image::images/agent-tut-azure-click-client-secret.png[Screenshot of adding a new client secret]
+
+. Type a description of the secret and select an expiration. Click **Add** to
+create the client secret. Under **Value**, copy the secret value and save it
+(along with your client ID) for later.
 +
 [IMPORTANT]
 ====
-This is your only chance to copy this value. You can't retrieve the
-key value after you leave the page.
+This is your only chance to copy the secret value. You can't retrieve this
+value after you leave this page!
 ====
 
 [discrete]
@@ -89,35 +97,43 @@ After creating the Azure service principal, you need to grant it the correct
 permission. You need `Reader` permission to configure {agent} to monitor
 your services.
 
-. On Azure Portal, search and click on **Subscriptions**.
+//TODO: Decide whether we want to document all these steps. It costs us to
+//maintain them, but maybe with minimal screen captures it's not that hard. It
+//is easier than expecting the user to go to the Azure docs from the tutorial.
+
+. In the Azure Portal, search for and select **Subscriptions**.
+. In the Subscriptions page, click the name of your subscription.
+. In the navigation pane, select **Access control (IAM)**.
+. Click **Add** and select **Add role assignment**.
+. On the **Roles** tab, select the **Reader** role, then click **Next**.
+. On the **Members** tab, assign access to **User, group, or service principal**.
+. Click **Select members**, then search for and select the principal you created
+earlier.
+. For the description, enter the name of your service principal.
+. Click **Next** to review the role assignment:
 +
-image:monitor-azure-search-subscriptions.png[Search and click on Subscriptions]
-+
-. In the Subscriptions page, click on your subscription.
-. Click on **Access control (IAM)** in the subscription navigation pane.
-. Click on **Add** and select **Add role assignment**.
-. Select the **Reader** role.
-. In the **Select** field, type the description name of the configured service
-principal (`monitor-azure`).
-+
-image:monitor-azure-add-role-assignment.png[Add role assignment]
-+
-. Select the application and click on save to grant the service principal
-access to your subscription.
+[role="screenshot"]
+image::images/agent-tut-azure-add-role-assignment.png[Screen capture of adding a role assignment]
+
+. Click **Review + assign** to grant the service principal access to your
+subscription.
+
+//TODO: Beats tutorial needs to be updated, too, because these steps ^^ have
+//changed in the Azure Portal UI.
+
+//REVIEWERS: I'm starting with metrics collection instead of logs because it seems easier than
+//and might give users a better sense of accomplishment right away. We can
+//reconsider this after we get the logging section written (I still don't know)
+//all the details involved there.
 
 [discrete]
 [[elastic-agent-add-azure-integration]]
-=== Step 2: Install the Azure ??? integration
+=== Step 2: Install the Azure Billing Metrics integration
 
-//QUESTION: Which integration or integrations should we tell users to install?
-//Is there one integration that includes everything (like there is for AWS)?
-// If just the billing integration, we should explain that the intgration collects
-//usage data and forecast information for the specified subscription.
+In this step, you install the Azure Billing Metrics integration in {kib} to
+collect usage details and forecast information about your subscription.
 
-In this step, you install the ??? integration in {kib}. The ??? integration
-contains inputs for collecting a variety of logs and metrics from Azure. You’ll
-start out by configuring the integration to collect billing metrics. After you
-get that working, you’ll learn how ???.
+//TODO: Probably need to add more detail here.
 
 To add the integration: 
 
@@ -126,26 +142,36 @@ To add the integration:
 [role="screenshot"]
 image::images/kibana-home.png[Screenshot of the {kib} home page]
 
-. In the query bar, search for **???** and select the ??? integration to see
-more details about it.
+. In the query bar, search for **Azure Billing** and select the Azure Billing
+Metrics integration to see more details about it.
 
-. Click **Add ???**.
+. Click **Add Azure Billing Metrics**.
 
-. Configure the integration name and optionally add a description.
+. Under Integration settings, configure the integration name and optionally add
+a description.
 +
 TIP: If you don't see options for configuring the integration, you're probably
 in a workflow designed for new deployments. Follow the steps, then return to
 this tutorial when you're ready to configure the integration.
 
-. ADD CONFIGURATION STEPS HERE
+. Specify values for all the required fields:
 +
-[NOTE]
-====
-You can find the `tenant_id` in the main Azure Active Directory page.
-You can find the `subscription_id` in the main Subscriptions page.
-====
-//Settings to configure: <client_id>, <client_secret>, <tenant_id>, and
-//<subscription_id>, period (24h or multiples for 24h), refresh list interval (600s)
+[role="screenshot"]
+image::images/agent-tut-azure-integration-settings.png[Screenshot of integration settings for Azure]
++
+[horizontal]
+**Client ID**::
+The Application (client) ID that you copied earlier when you created the service
+principal. 
+
+**Client secret**:: The secret value that you copied earlier.
+
+**Tenant ID**:: The tenant ID listed on the main Azure Active Directory Page.
+
+**Subscription ID**:: The subscription ID listed on the main Subscriptions page.
+
+. Make sure the **Collect Azure Billing metrics** selector is turned on, and
+optionally change the default period to a multiple of 24h.
 
 . Click **Save and continue**. This step takes a minute or two to complete. When
 it's done, you'll have an agent policy that contains the Azure configuration you
@@ -189,21 +215,32 @@ It takes a few minutes for {agent} to enroll in {fleet}, download the
 configuration specified in the policy, and start collecting data. You can wait
 to confirm incoming data, or close the window.
 
-**What have you achieved so far?**
-
-//ADD DESCRIPTION AND DIAGRAM HERE
-
 [discrete]
 [[azure-elastic-agent-visualize-metrics]]
 === Step 4: Visualize Azure billing metrics
 
-. Finally, log into {kib} and open the **[Azure Billing] Billing overview**
-dashboard. Keep in mind it collects data every 24 hours.
+Now that the metrics are streaming to {es}, you can visualize them in {kib}. In
+Kibana, open the main menu and click **Dashboard**. Search for Azure Billing and
+select the dashboard called **[Azure Billing] Billing Overview**.
 
-//TODO: Add screen capture here.
+//TODO: Add screen capture.
+
+//REVIEWERS: I'm not getting any forecast or usage data.
+
+Keep in mind {agent} collects data every 24 hours.
 
 [discrete]
-[[azure-elastic-agent-collect-xyz]]
-=== Step 5: Collect something else....
+[[azure-elastic-agent-collect-xyz-logs]]
+=== Step 5: Collect ??? logs
 
-//TODO: Add steps for collecting other metrics and logs.
+//TODO: Add steps for collecting logs. I need  more detail.
+//about what to configure here.
+
+[discrete]
+[[azure-elastic-agent-collect-xyz-metrics]]
+=== Step 6: Visualize Azure ??? logs
+
+//TODO: Add steps for collecting other metrics and logs. I need  more detail.
+//about what to configure here.
+
+
