@@ -1,121 +1,34 @@
-[[deployment-models]]
-= {fleet-server} deployment models
+[[add-fleet-server-mixed]]
+= Deploy {fleet-server} on-premises and {es} on Cloud
 
-There are three approaches you can take when deploying {fleet-server}:
-
-* <<deployed-in-cloud>> as part of the hosted {ess}, which is managed by Elastic
-* <<deployed-on-prem>>
-* <<fleet-server-on-prem-es-cloud>>
-
-Read more about each to choose the best approach for your situation.
+// intro
 
 [discrete]
-[[deployed-in-cloud]]
-== Deploy on {ecloud}
+[[add-fleet-server-mixed-compatibility]]
+== Compatibility and prerequisites
 
-// What is it...
-To simplify the deployment of {agent}, {fleet-server} can be provisioned and
-hosted on {ecloud}. In this case, when the deployment is created,
-a highly available set of {fleet-server}s is automatically deployed.
+{fleet-server} is compatible with the following Elastic products:
 
-// This approach might be right for you if...
-// ...
+* {stack} 7.13 or later
+** For version compatibility: {es} >= {fleet-server} >= {agent} (except for
+bugfix releases)
+** {kib} should be on the same minor version as {es}
 
-// This approach might not be right for you if...
-// ...
-
-image::images/fleet-server-cloud-deployment.png[{fleet-server} Cloud deployment model]
-
-// text description?
-
-You can choose the resources allocated to each {fleet-server} and whether you want
-each {fleet-server} to be deployed in multiple availability zones.
-
-// How to
-To install {fleet-server} on-premises, go to <<_how_to_add_a_fleet_server>> and click the
-*{ess}* tab. Once deployed on {ecloud} as a service, the full life cycle of {fleet-server}
-is managed by Elastic. {fleet-server} is scalable, highly available with traffic ingress,
-and load balanced across multiple instances to satisfy the scale requirements.
-
-[discrete]
-[[deployed-on-prem]]
-== Deploy on-premises and self-managed
-
-// What is it...
-Alternatively, you can deploy {fleet-server} on-premises and managed it yourself.
-In this deployment model, you are responsible for {fleet-server} deployment
-and lifecycle management.
-
-// This approach might be right for you if...
-This mode of operation works well if you need to satisfy data governance requirements
-or you want agents to only have access to a private segmented network.
-
-// This approach might not be right for you if...
-// ...
-
-It’s recommended that you provision multiple instances of the {fleet-server} and
-use a load balancer to better scale the deployment.
-
-image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-premises deployment model]
-
-// text description?
-
-// How to
-To install {fleet-server} on-premises, go to <<_how_to_add_a_fleet_server>> and click the
-*Self-managed* tab. In these instructions, you have the option to use the organization's own
-certificate to establish a secure connection from {fleet-server} to {es}.
-
-// [discrete]
-// [[fleet-server-HA-operations]]
-// == {fleet-server} High availability operations
-
-// {fleet-server} is stateless. Connections to the {fleet-server} therefore can be
-// load balanced as long as the {fleet-server} has capacity to accept more
-// connections. Load balancing is done on a round-robin basis.
-
-// In the {ecloud} deployment model, multiple {fleet-server}s are automatically
-// provisioned to satisfy the instance size chosen (instance sizes are modified to
-// satisfy the scale requirement). In addition, if you choose multiple
-// availability zones to address your fault-tolerance requirements, those
-// instances are also utilized to balance the load.
-
-// In an on-premises deployment, high-availability, fault-tolerance, and lifecycle
-// management of the {fleet-server} are the responsibility of the administrator.
-
-[discrete]
-[[fleet-server-on-prem-es-cloud]]
-== Deploy {fleet-server} on-premises and {es} on Cloud
-
-// What is it...
-Another approach is to aggregate the control and data plane traffic at the local
-site and have your {es} cluster managed in {ecloud}.
-
-// This approach might be right for you if...
-These multi-site deployments are useful for managed service providers or
-larger enterprises who segregate their networks.
-
-To accommodate these use cases you may deploy a cluster of {fleet-server}s on-premises and
-connect them back to the {ecloud} with access to {es} and {kib}.
-
-// This approach might not be right for you if...
-// ...
-
-image::images/fleet-server-on-prem-es-cloud.png[{fleet-server} on-premise and {es} on Cloud deployment model]
-
-// text description?
-
-// How to
-To add a new {fleet-server} in this type of deployment, you'll need to:
-
-. <<fleet-server-add-hosts>>
-. <<fleet-server-create-policy>>
-. <<fleet-server-generate-certificate>>
-. <<fleet-server-add-agents>>
-. <<fleet-server-install-agents>>
+* {ece} 2.9 or later--allows you to use a hosted {fleet-server} on {ecloud}.
++
+--
+** Requires additional wildcard domains and certificates (which normally only
+cover `*.cname`, not `*.*.cname`). This enables us to provide the URL for
+{fleet-server} of `https://.fleet.`.
+** The deployment template must contain an {integrations-server} node.
+--
++
+For more information about hosting {fleet-server} on {ece}, refer to
+{ece-ref}/ece-manage-integrations-server.html[Manage your {integrations-server}].
 
 [discrete]
 [[fleet-server-add-hosts]]
-=== Add {fleet-server} hosts
+== Add {fleet-server} hosts
 
 // What is it / why do you need it?
 Start by adding one or more {fleet-server} hosts.
@@ -138,7 +51,7 @@ In this example, {fleet-server} is on the host `10.128.0.46`.
 
 [discrete]
 [[fleet-server-create-policy]]
-=== Create a {fleet-server} policy
+== Create a {fleet-server} policy
 
 // What is it / why do you need it?
 To manage and configure the {fleet-server} hosts you added, you need to create a {fleet-server} policy.
@@ -183,7 +96,7 @@ and ensure a smooth operation in a bursty environment.
 
 [discrete]
 [[fleet-server-generate-certificate]]
-=== Generate certificates for {fleet-server}
+== Generate certificates for {fleet-server}
 
 // What is it / why do you need it?
 If you are creating a production deployment, it's recommended that you configure
@@ -229,7 +142,7 @@ This command will create another zip file that contains the {fleet-server} certi
 
 [discrete]
 [[fleet-server-add-agents]]
-=== Add agents
+== Add agents
 
 // What is it / why do you need it?
 Now that the policy exists, you can create agents and add them to the policy.
@@ -281,7 +194,7 @@ whose life-cycle can be managed (like other agents in the deployment):
 
 [discrete]
 [[fleet-server-install-agents]]
-==== Install {agents}
+== Install {agents}
 
 // What is it / why do you need it?
 {agents} in this deployment now need a TLS connection to the newly installed {fleet-server} instance for control plane
@@ -308,20 +221,3 @@ Add the `--certificate-authorities` option with the relevant certificates genera
 ----
 
 . You should now see the {agent} enrolled in {fleet}.
-
-[discrete]
-[[fleet-server-default-ports]]
-== Use default port assignments
-
-When {es} or {fleet-server} are deployed on-premises, communication between certain components will take place over well defined, pre-allocated ports. In most cases the operators may need to allow access to these ports.
-
-[options,header]
-|====
-| Component Communication | Default Port
-| Elastic Agent → {fleet-server} | 8220
-| Elastic Agent → {es} | 9200
-| Elastic Agent → Logstash | 5044
-| Elastic Agent → {fleet} | 5601
-| {fleet-server} → {fleet} | 5601
-| {fleet-server} → {es} | 9200
-|====
