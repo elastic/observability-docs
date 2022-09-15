@@ -1,8 +1,11 @@
 [[add-fleet-server-on-prem]]
 = Deploy on-premises and self-managed
 
-To deploy a self-managed {fleet-server}, you install an {agent} and enroll it in
-an agent policy containing the {fleet-server} integration.
+To deploy a self-managed {fleet-server}, you need to: 
+
+* Satisfy all <<add-fleet-server-on-prem-compatibility,compatibility requirements and prerequisites>>
+* Add hosts including <<add-fleet-server-on-prem-hosts,{fleet-server} hosts and {es} hosts>>
+* Install an {agent} and enroll it in an agent policy containing the {fleet-server} integration to <<add-fleet-server-on-prem-add-server,Add {fleet-server}>>
 
 NOTE: You can install only a single {agent} per host, which means you cannot run
 {fleet-server} and another {agent} on the same host unless you deploy a
@@ -32,13 +35,31 @@ For more information about hosting {fleet-server} on {ece}, refer to
 {ece-ref}/ece-manage-integrations-server.html[Manage your {integrations-server}].
 
 [discrete]
-[[add-fleet-server-on-prem-set-up]]
-== Setup
+[[add-fleet-server-on-prem-hosts]]
+== Add hosts
 
-. In {kib}, go to **Management > {fleet} > Settings**. For more information
-about these settings, see {fleet-guide}/fleet-settings.html[{fleet} settings].
+// What is it / why do you need it?
+Start by adding one or more {fleet-server} hosts.
+A {fleet-server} host is a URLs your {agent}s will use to connect to a {fleet-server}.
+
+// Prereqs
+{fleet-server} hosts should meet the following requirements:
+
+* All agents can connect to the host.
+* The host also has a route to the {es} you plan to use, whether hosted by Elastic
+or deployed on-premises.
+// Need link to "minimum compute resource requirements"
+* The host meets the minimum compute resource requirements based on the maximum number
+of agents you plan to support in your deployment.
+
+// How do you set it up?
+To add a {fleet-server} host:
+
+. In {kib}, go to *Management* -> *{fleet}* -> *Settings*.
+For more information about these settings, see
+{fleet-guide}/fleet-settings.html[{fleet} settings].
 // lint ignore fleet-server
-. Under **Fleet Server hosts**, click **Edit hosts** and specify one or more host
+. Under *Fleet Server hosts*, click *Edit hosts* and specify one or more host
 URLs your {agent}s will use to connect to {fleet-server}. For example,
 `https://192.0.2.1:8220`, where `192.0.2.1` is the host IP where you will
 install {fleet-server}. Save and apply your settings.
@@ -54,44 +75,75 @@ managed outside of {fleet}).
 
 . Save and apply the settings.
 
-. Click the **Agents** tab and follow the in-product instructions to add a
-{fleet} server:
+[discrete]
+[[add-fleet-server-on-prem-add-server]]
+== Add {fleet-server}
+
+// What is it / why do you need it?
+// Prereqs
+
+// How do you set it up?
+Next, you'll add the {fleet-server}:
+
+. Click the **Agents** tab.
+. Click *Add {fleet-server}*.
+. This will open in-product instructions to add a {fleet} server using 
+one of two options: *Quick Start* or *Advanced*.
+* Use *Quick Start* if you want {fleet} to generate a
+{fleet-server} policy and enrollment token for you. The {fleet-server} policy
+will include a {fleet-server} integration plus a system integration for
+monitoring {agent}. This option generates self-signed certificates and is 
+*not* recommended for production use cases.
 +
 [role="screenshot"]
 image::images/add-fleet-server.png[In-product instructions for adding a {fleet-server}]
 
-**Notes:**
-
-* Choose **Quick Start** if you want {fleet} to generate a
-{fleet-server} policy and enrollment token for you. The {fleet-server} policy
-will include a {fleet-server} integration plus a system integration for
-monitoring {agent}. This option generates self-signed certificates and is not
-recommended for production use cases.
-* Choose **Advanced** if you want to either:
-** Use your own {fleet-server} policy. You can create a new {fleet-server}
+* Use *Advanced* if you want to either:
+** *Use your own {fleet-server} policy.* You can create a new {fleet-server}
 policy or select an existing one. Alternatively you can
 {fleet-guide}/create-a-policy-no-ui.html[create a {fleet-server} policy without using the UI],
-and select the policy here.
-** Use your own TLS certificates to encrypt traffic between {agent}s and
-{fleet-server}. To learn how to generate certs, refer to
+and then select the policy here.
+** *Use your own TLS certificates.* TLS certificates encrypt traffic between
+{agent}s and {fleet-server}. To learn how to generate certs, refer to
 {fleet-guide}/secure-connections.html[Configure SSL/TLS for self-managed {fleet-server}s].
-* It's recommended you generate a unique service token for each
-{fleet-server}. For other ways to generate service tokens, see
-{ref}/service-tokens-command.html[`elasticsearch-service-tokens`].
-* If you are providing your own certificates:
-** Before running the `install` command, make sure you replace the values in
++
+[NOTE]
+====
+If you are providing your own certificates:
+
+* Before running the `install` command, make sure you replace the values in
 angle brackets. 
-** Note that the URL specified by `--url` must match the DNS name used to
+* Note that the URL specified by `--url` must match the DNS name used to
 generate the certificate specified by `--fleet-server-cert`.
-* The `install` command installs the {agent} as a managed service and enrolls it
+====
++
+// image ?
+
+. Then, use the code provided in the in-product instructions to install the {agent}.
++
+[NOTE]
+====
+The `install` command installs the {agent} as a managed service and enrolls it
 in a {fleet-server} policy. For more {fleet-server} commands, see
 {fleet-guide}/elastic-agent-cmd-options.html[{agent} command reference].
+====
 
-If installation is successful, you'll see confirmation that {fleet-server}
+. If installation is successful, you'll see confirmation that {fleet-server}
 connected. Click **Continue enrolling Elastic Agent** to begin enrolling your
 agents in {fleet-server}.
 
-NOTE: If you're unable to add a {fleet}-managed agent, click the **Agents** tab
+[NOTE]
+====
+It's recommended you generate a unique service token for each
+{fleet-server}. For other ways to generate service tokens, see
+{ref}/service-tokens-command.html[`elasticsearch-service-tokens`].
+====
+
+[discrete]
+[[add-fleet-server-on-prem-troubleshoot]]
+== Troubleshooting
+
+If you're unable to add a {fleet}-managed agent, click the **Agents** tab
 and confirm that the agent running {fleet-server} is healthy.
 
 [discrete]
