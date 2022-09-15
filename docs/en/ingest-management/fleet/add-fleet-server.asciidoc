@@ -2,10 +2,8 @@
 = Add a {fleet-server}
 
 To use {fleet} for central management, a <<fleet-server,{fleet-server}>> must
-be running and accessible to your hosts. This page describes how to add a
-{fleet-server} to an {ecloud} or self-managed deployment.
-
-There are three approaches you can take when deploying {fleet-server}:
+be running and accessible to your hosts. There are three approaches you can take
+when deploying {fleet-server}:
 
 * <<deployed-in-cloud>> as part of the hosted {ess}, which is managed by Elastic
 * <<deployed-on-prem>>
@@ -24,17 +22,23 @@ a highly available set of {fleet-server}s is automatically deployed.
 
 // Benefits
 This approach might be right for you if you want to reduce on-prem compute,
-and you'd like Elastic to take care of provisioning and life cycle management of your deployment.
+and you'd like Elastic to take care of provisioning and life cycle management of
+your deployment.
+
+With this approach, multiple {fleet-server}s are automatically provisioned to satisfy
+the instance size chosen (instance sizes are modified to satisfy the scale requirement).
+You can also choose the resources allocated to each {fleet-server} and whether you want
+each {fleet-server} to be deployed in multiple availability zones.
+If you choose multiple availability zones to address your fault-tolerance
+requirements, those instances are also utilized to balance the load.
 
 // Limitations
-This approach might not be right for you if you have restrictions on connectivity to the internet.
+This approach might not be right for you if you have restrictions on connectivity
+to the internet.
 
 // How to
-With this approach, you can choose the resources allocated to each {fleet-server}
-and whether you want each {fleet-server} to be deployed in multiple availability zones.
 Once deployed on {ecloud} as a service, the full life cycle of {fleet-server}
-is managed by Elastic. {fleet-server} is scalable, highly available with traffic ingress,
-and load balanced across multiple instances to satisfy the scale requirements.
+is managed by Elastic.
 
 For step-by-step instructions, go to <<add-fleet-server-cloud>>.
 
@@ -48,8 +52,8 @@ image::images/fleet-server-cloud-deployment.png[{fleet-server} Cloud deployment 
 
 // What is it...
 Alternatively, you can deploy {fleet-server} on-premises and managed it yourself.
-In this deployment model, you are responsible for {fleet-server} deployment
-and lifecycle management.
+In this deployment model, you are responsible for high-availability, fault-tolerance,
+and lifecycle management of {fleet-server}.
 
 // Benefits
 This approach might be right for you if you would like to limit the control plane traffic
@@ -80,6 +84,8 @@ image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-premises dep
 // What is it...
 Another approach is to aggregate the control and data plane traffic at the local
 site and have your {es} cluster managed in {ecloud}.
+In this deployment model, you are responsible for high-availability, fault-tolerance,
+and lifecycle management of {fleet-server}.
 
 // Benefits
 This approach might be right for you if you would like to limit the control plane traffic
@@ -91,7 +97,7 @@ This approach might not be right for you if you don't want to manage the life-cy
 of an extra compute resource in your environment for {fleet-server} to reside on.
 
 // How to
-To accommodate these use cases you may deploy a cluster of {fleet-server}s on-premises and
+In this approach, you can deploy a cluster of {fleet-server}s on-premises and
 connect them back to the {ecloud} with access to {es} and {kib}.
 
 For step-by-step instructions, go to <<add-fleet-server-mixed>>.
@@ -99,24 +105,6 @@ For step-by-step instructions, go to <<add-fleet-server-mixed>>.
 image::images/fleet-server-on-prem-es-cloud.png[{fleet-server} on-premise and {es} on Cloud deployment model]
 
 // text description?
-
-// [discrete]
-// [[fleet-server-HA-operations]]
-// == {fleet-server} High availability operations
-
-// {fleet-server} is stateless. Connections to the {fleet-server} therefore can be
-// load balanced as long as the {fleet-server} has capacity to accept more
-// connections. Load balancing is done on a round-robin basis.
-
-// In the {ecloud} deployment model, multiple {fleet-server}s are automatically
-// provisioned to satisfy the instance size chosen (instance sizes are modified to
-// satisfy the scale requirement). In addition, if you choose multiple
-// availability zones to address your fault-tolerance requirements, those
-// instances are also utilized to balance the load.
-
-// In an on-premises deployment, high-availability, fault-tolerance, and lifecycle
-// management of the {fleet-server} are the responsibility of the administrator.
-
 
 // [discrete]
 // [[fleet-server-default-ports]]
