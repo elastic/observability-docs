@@ -274,24 +274,12 @@ In order to enable hints one need to add the `hints.enabled: true` in the provid
 ----
 providers:
   kubernetes:
-    node: "kind-control-plane"
+    node: ${NODE_NAME}
     hints.enabled: true
 ----
 
 Then ensure that the proper volumes and volumeMounts are added properly. These sections are already defined in the
 provided kubernetes manifest, so it's only required to uncomment these sections.
-
-In order to enable hints one need to add the `hints.enabled: true` in the provider's configuration, ie:
-
-[source,yaml]
-----
-providers:
-  kubernetes:
-    node: "kind-control-plane"
-    hints.enabled: true
-----
-
-In order to enable hints one need to add the `hints.enabled: true` in the provider's configuration, ie:
 
 [source,yaml]
 ----
@@ -308,7 +296,7 @@ volumes:
 Along with these sections an init container is required which is responsible for downloading the hints' templates.
 The init container is already defined, so uncomment the respective section:
 
-[source,yaml]
+["source", "yaml", subs="attributes"]
 ----
 initContainers:
 - name: k8s-templates-downloader
@@ -318,7 +306,7 @@ initContainers:
     - -c
     - >-
       mkdir -p /etc/elastic-agent/inputs.d &&
-      wget -O - https://github.com/elastic/elastic-agent/archive/8.5.0.tar.gz | tar xz -C /etc/elastic-agent/inputs.d --strip=5 "elastic-agent-main/deploy/kubernetes/elastic-agent-standalone/templates.d"
+      wget -O - https://github.com/elastic/elastic-agent/archive/{branch}.tar.gz | tar xz -C /etc/elastic-agent/inputs.d --strip=5 "elastic-agent-main/deploy/kubernetes/elastic-agent-standalone/templates.d"
   volumeMounts:
     - name: external-inputs
       mountPath: /etc/elastic-agent/inputs.d
