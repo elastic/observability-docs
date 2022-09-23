@@ -21,10 +21,11 @@ You'll learn how to:
 
 * Create an Azure service principal with permissions to read monitoring data.
 * Collect Azure billing metrics.
-* Collect Azure platform logs.
+* Collect Azure activity logs.
 * Visualize the logs and infrastructure metrics in {kib}.
 
-//TODO: Refine this list ^^ after deciding which integrations to enable.
+//TODO: Depending on how much work is involved here, we might also want to show
+//Active Directory logs (sign-in and audit logs).
 
 [discrete]
 [[azure-collect-metrics]]
@@ -65,7 +66,7 @@ select **Azure Active Directory**.
 **New registration**.
 
 . Type the name of your application (this tutorial uses
-`agent-tut-azure`) and click **Register** (accept the default
+`ingest-tutorial-monitor-azure`) and click **Register** (accept the default
 values for other settings).
 +
 [role="screenshot"]
@@ -223,24 +224,45 @@ Now that the metrics are streaming to {es}, you can visualize them in {kib}. In
 Kibana, open the main menu and click **Dashboard**. Search for Azure Billing and
 select the dashboard called **[Azure Billing] Billing Overview**.
 
-//TODO: Add screen capture.
+[role="screenshot"]
+image::images/agent-tut-azure-billing-dashboard.png[Screenshot of Azure billing overview dashboard]
 
-//REVIEWERS: I'm not getting any forecast or usage data.
+//REVIEWERS: As you can see, the dashboard is not displaying any forecast data.
+//Does the service principal need to have the Billing Reader role? Just the
+//Reader role? Or both?
 
 Keep in mind {agent} collects data every 24 hours.
 
 [discrete]
-[[azure-elastic-agent-collect-xyz-logs]]
-=== Step 5: Collect ??? logs
+[[azure-elastic-agent-collect-azure-activity-logs]]
+=== Step 5: Collect Azure activity logs
 
-//TODO: Add steps for collecting logs. I need  more detail.
-//about what to configure here.
+In this step, you configure the Azure Logs integration to collect activity logs.
+Azure activity logs provide information about subscription-level events, such as
+when a resource is modified and who modified it, and when virtual machines are
+started (or fail to start).
+
+Before you can configure the integration, though, you need to export your
+activity logs to an Azure event hub.
+
+//QUESTION: What is required here? Do I need to do all the stuff described here
+//to create an event hub? https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create
+//Do I need to export activity logs to the event hub by using the legacy collection method?
+//These docs are confusing. It's really not clear what steps I need to perform here:
+//https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log
+
+//COMMENT: Since the setup for activity logs is very different from active
+//directory logs, should we show both?
+
+[discrete]
+[[azure-elastic-agent-collect-azure-active-directory-logs]]
+=== Step 5: Collect Azure Active Directory logs
+
 
 [discrete]
 [[azure-elastic-agent-collect-xyz-metrics]]
-=== Step 6: Visualize Azure ??? logs
+=== Step 6: Visualize Azure activity logs
 
-//TODO: Add steps for collecting other metrics and logs. I need  more detail.
-//about what to configure here.
+
 
 
