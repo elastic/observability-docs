@@ -2,23 +2,23 @@
 = Add a {fleet-server}
 
 To use {fleet} for central management, a <<fleet-server,{fleet-server}>> must
-be running and accessible to your hosts. There are three approaches you can take
+be running and accessible to your hosts. There are a few approaches you can take
 when deploying {fleet-server}:
 
-* <<deployed-in-cloud>> as part of the hosted {ess}, which is managed by Elastic
-* <<deployed-on-prem>>
-* <<fleet-server-on-prem-es-cloud>>
+* <<deployed-in-cloud>> as part of the hosted {ess}. Elastic manages both {fleet-server} and {es}.
+* <<deployed-on-prem>> to work with {es} running on-premises. You self-manage both {fleet-server} and {es}.
+* <<fleet-server-on-prem-es-cloud>>. You manage {fleet-server} and Elastic manages {es}.
 
 Read more about each to choose the best approach for your situation.
 
 [discrete]
 [[deployed-in-cloud]]
-== Deploy on {ecloud}
+== Provision {fleet-server} on {ecloud}
 
 // What is it...
-To simplify the deployment of {agent}, {fleet-server} can be provisioned and
-hosted on {ecloud}. In this case, when the deployment is created,
-a highly available set of {fleet-server}s is automatically deployed.
+{fleet-server} can be provisioned and hosted on {ecloud}. In this case,
+when the deployment is created, a highly available set of {fleet-server}s
+is automatically deployed.
 
 // Benefits
 This approach might be right for you if you want to reduce on-prem compute,
@@ -37,21 +37,16 @@ This approach might not be right for you if you have restrictions on connectivit
 to the internet.
 
 // How to
-Once deployed on {ecloud} as a service, the full life cycle of {fleet-server}
-is managed by Elastic.
-
 For step-by-step instructions, go to <<add-fleet-server-cloud>>.
 
 image::images/fleet-server-cloud-deployment.png[{fleet-server} Cloud deployment model]
 
-// text description?
-
 [discrete]
 [[deployed-on-prem]]
-== Deploy on-premises and self-managed
+== Deploy {fleet-server} on-premises
 
 // What is it...
-Alternatively, you can deploy {fleet-server} on-premises and managed it yourself.
+Alternatively, you can deploy {fleet-server} on-premises and manage it yourself.
 In this deployment model, you are responsible for high-availability, fault-tolerance,
 and lifecycle management of {fleet-server}.
 
@@ -62,28 +57,26 @@ For example, you might take this approach if you need to satisfy data governance
 or you want agents to only have access to a private segmented network.
 
 // Limitations
-This approach might not be right for you if you don't want to manage the life-cycle
+This approach might not be right for you if you don't want to manage the life cycle
 of your Elastic environment and instead would like that to be handled by Elastic.
 
 // How to
 When using this approach, it's recommended that you provision multiple instances of
 the {fleet-server} and use a load balancer to better scale the deployment.
-You also have the option to use the organization's own certificate to establish a
+You also have the option to use your organization's certificate to establish a
 secure connection from {fleet-server} to {es}.
 
 For step-by-step instructions, go to <<add-fleet-server-on-prem>>.
 
 image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-premises deployment model]
 
-// text description?
-
 [discrete]
 [[fleet-server-on-prem-es-cloud]]
-== Deploy {fleet-server} on-premises and {es} on Cloud
+== Deploy {fleet-server} on-premises to work with a hosted {ess}
 
 // What is it...
-Another approach is to aggregate the control and data plane traffic at the local
-site and have your {es} cluster managed in {ecloud}.
+Another approach is to deploy a cluster of {fleet-server}s on-premises and
+connect them back to the {ecloud} with access to {es} and {kib}.
 In this deployment model, you are responsible for high-availability, fault-tolerance,
 and lifecycle management of {fleet-server}.
 
@@ -93,18 +86,13 @@ out of your data center. For example, you might take this approach if you are a
 managed service provider or a larger enterprise that segregates its networks.
 
 // Limitations
-This approach might not be right for you if you don't want to manage the life-cycle
+This approach might not be right for you if you don't want to manage the life cycle
 of an extra compute resource in your environment for {fleet-server} to reside on.
 
 // How to
-In this approach, you can deploy a cluster of {fleet-server}s on-premises and
-connect them back to the {ecloud} with access to {es} and {kib}.
-
 For step-by-step instructions, go to <<add-fleet-server-mixed>>.
 
 image::images/fleet-server-on-prem-es-cloud.png[{fleet-server} on-premise and {es} on Cloud deployment model]
-
-// text description?
 
 // [discrete]
 // [[fleet-server-default-ports]]
