@@ -24,8 +24,9 @@ You'll learn how to:
 * Collect Azure activity logs.
 * Visualize the logs and infrastructure metrics in {kib}.
 
-//TODO: Depending on how much work is involved here, we might also want to show
-//Active Directory logs (sign-in and audit logs).
+//NOTE: Active directory logs are harder to capture because they require a
+//permission level my Azure user doesn't have. Will try capturing activity logs
+//for now and see how that goes.
 
 [discrete]
 [[azure-collect-metrics]]
@@ -235,20 +236,59 @@ Keep in mind {agent} collects data every 24 hours.
 [[azure-elastic-agent-collect-azure-activity-logs]]
 === Step 5: Collect Azure activity logs
 
-In this step, you configure the Azure Logs integration to collect activity logs.
 Azure activity logs provide information about subscription-level events, such as
 when a resource is modified and who modified it, and when virtual machines are
-started (or fail to start).
+started (or fail to start). In this step, you configure Azure to export activity
+logs to an Azure event hub, then you configure the Azure Logs integration to
+read logs from the event hub and send them to {es}.
 
-Before you can configure the integration, though, you need to export your
-activity logs to an Azure event hub.
+//Note: Related content about creating event hub is here: https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create
 
-//QUESTION: What is required here? Do I need to do all the stuff described here
-//to create an event hub? https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create
-//Do I need to export activity logs to the event hub by using the legacy collection method?
-//These docs are confusing. It's really not clear what steps I need to perform here:
-//https://learn.microsoft.com/en-us/azure/azure-monitor/essentials/activity-log
+==== Create an event hub for your logs
 
+Azure Event Hubs is a data streaming platform and event ingestion service that
+you use to store Azure logs before sending them to {es}. 
+
+Typically you create an event hub for each group of logs you want to collect.
+For example, imagine that you want to collect logs from the Azure Monitor
+service and the Active Directory service. Rather than sending all logs to a
+single event hub, you create an event hub for each service.
+
+//INSERT DIAGRAM
+
+This setup is more efficient than using a single event hub for all logs because
+it ensures that you publish only the logs expected by the downstream
+integration. This approach saves bandwidth and compute resources because it
+avoids unnecessary log processing, and it prevents integrations from
+inadvertently creating duplicates. For high-volume deployments, you might even
+want to have a dedicated event hub for each data stream.
+
+For this tutorial, however, you create a single event hub for activity logs
+collected by the Azure Monitor service.
+
+To create an Azure event hub:
+
+. Create a resource group and namespace as described in
+https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create[Quickstart: Create an event hub using Azure portal],
+or identify an existing resource group and namespace to use.
+
+. In the namespace, create an new event hub.
+
+//QUESTION: Is this true? Do we assume users have already created this?
+
+==== Configure diagnostic settings to send logs to the event hub
+
+Diagnostic settings is an azure component. Every service that creates logs comes
+with diagnostic settings. It is reponsible for exporting logs and metrics to an
+external destination. 
+
+User who wants to build integration needs to configure diagnostic settings. You can tell to export ProvisionLogs, RiskyUser, UserRiskEvents and send somewhere. It’s like a bridge.
+
+Send to an event hub. 
+Next, you configure diagnostic settings to send the logs for your resource
+to the event hub.
+
+==== Configure the Azure Logs integration to collect activity logs
 
 
 [discrete]
