@@ -13,19 +13,79 @@
 
 This section summarizes the changes in each release.
 
+* <<release-notes-8.4.2>>
 * <<release-notes-8.4.1>>
 * <<release-notes-8.4.0>>
-
 
 Also see:
 
 * {kibana-ref}/release-notes.html[{kib} release notes]
 * {beats-ref}/release-notes.html[{beats} release notes]
 
+// begin 8.4.2 relnotes
+
+[[release-notes-8.4.2]]
+== {fleet} and {agent} 8.4.2
+
+[discrete]
+[[bug-fixes-8.4.2]]
+=== Bug fixes
+
+{fleet}::
+* Apply fixes for package policy upgrade API with multiple ids {kibana-pull}140069[#140069]
+* Improve performance for many integration policies {kibana-pull}139648[#139648]
+
+{agent}::
+* No bug fixes for this release
+
+// end 8.4.2 relnotes
+
 // begin 8.4.1 relnotes
 
 [[release-notes-8.4.1]]
 == {fleet} and {agent} 8.4.1
+
+[discrete]
+[[known-issues-8.4.1]]
+=== Known issues
+
+// tag::credentials-error[]
+.Credentials error prevents {agent} from ingesting AWS logs
+[%collapsible]
+====
+
+*Details*
+
+{agent}s configured to use the AWS integration may return an error similar to the following:
+
+[source,shell]
+----
+sqs ReceiveMessage failed: operation error SQS: ReceiveMessage, https response
+error StatusCode: 403, RequestID: cb57783a-505f-5099-9160-23b8eea8ddbb,
+api error SignatureDoesNotMatch: Credential should be scoped to a valid region. 
+----
+
+This error was introduced by a breaking change in the AWS library.
+
+*Impact* +
+
+{agent} is unable to ingest AWS logs and some metrics. To resolve this error:
+
+* If you are using the default domain `amazonaws.com`, upgrade the AWS
+integration package to version 1.23.4 to apply the temporary fix added in
+https://github.com/elastic/integrations/pull/4103[PR #4103]. If this does not
+solve your problem, set the AWS region (either from an environment variable,
+credentials or instance profile) where {agent} is running.
+* Otherwise, wait to upgrade until the permanent fix added by
+https://github.com/elastic/beats/pull/32921[PR #32921] is available in an
+upcoming stack release.
+
+====
+// end::credentials-error[]
+
+[discrete]
+[[bug-fixes-8.4.1]]
+=== Bug fixes
 
 There are no bug fixes for {fleet} or {agent} in this release.
 
@@ -58,6 +118,12 @@ For more information, refer to {kibana-pull}135669[#135669].
 *Impact* +
 To configure `setxpack.fleet.agents.fleet_server.hosts` and `xpack.fleet.agents.elasticsearch.hosts` on the Fleet UI, avoid configuring the settings in kibana.yml.
 ====
+
+[discrete]
+[[known-issues-8.4.0]]
+=== Known issues
+
+include::release-notes-8.4.asciidoc[tag=credentials-error]
 
 [discrete]
 [[new-features-8.4.0]]
