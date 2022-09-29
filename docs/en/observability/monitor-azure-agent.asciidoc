@@ -244,62 +244,147 @@ read logs from the event hub and send them to {es}.
 
 //Note: Related content about creating event hub is here: https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create
 
+[discrete]
+[[azure-elastic-agent-create-event-hub]]
 ==== Create an event hub for your logs
 
-Azure Event Hubs is a data streaming platform and event ingestion service that
-you use to store Azure logs before sending them to {es}. 
-
-Typically you create an event hub for each group of logs you want to collect.
-For example, imagine that you want to collect logs from the Azure Monitor
-service and the Active Directory service. Rather than sending all logs to a
-single event hub, you create an event hub for each service.
-
-//INSERT DIAGRAM
-
-This setup is more efficient than using a single event hub for all logs because
-it ensures that you publish only the logs expected by the downstream
-integration. This approach saves bandwidth and compute resources because it
-avoids unnecessary log processing, and it prevents integrations from
-inadvertently creating duplicates. For high-volume deployments, you might even
-want to have a dedicated event hub for each data stream.
-
-For this tutorial, however, you create a single event hub for activity logs
-collected by the Azure Monitor service.
+https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-about[Azure Event Hubs]
+is a data streaming platform and event ingestion service that you use to store
+in-flight Azure logs before sending them to {es}. For this tutorial, you create
+a single event hub because you are collecting logs from one service: the Azure
+Monitor service.
 
 To create an Azure event hub:
 
-. Create a resource group and namespace as described in
-https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create[Quickstart: Create an event hub using Azure portal],
-or identify an existing resource group and namespace to use.
+. Log into the Azure portal.
+. Create a resource group, event hub namespace, and event hub for your logs. To
+learn how, refer to
+https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create[Quickstart: Create an event hub using Azure portal]
+in the Azure documentation:
+. Make a note of the event hub name because you will need it later.
 
-. In the namespace, create an new event hub.
+//REVIEWERS: Do we have any recommendations for naming conventions for the
+//resource group, event name, etc?
 
-//QUESTION: Is this true? Do we assume users have already created this?
+****
+**When do I need more than one event hub?**
 
+Typically you create an event hub for each service you want to monitor. For
+example, imagine that you want to collect active directory logs from the Azure
+Monitor service and signin and audit logs from the Active Directory service.
+Rather than sending all logs to a single event hub, you create an event hub for
+each service:
+
+image::images/agent-tut-azure-event-hub-diagram.png[Diagram that shows an event hub for active directory logs and an event hub for activity logs]
+
+This setup is more efficient than using a single event hub for all logs because
+it:
+
+* Ensures that you publish only the logs expected by the downstream
+integration. 
+* Saves bandwidth and compute resources because inputs only need to process
+relevant logs, rather than processing all the logs for all your monitored
+services, then discarding unneeded logs.
+* Avoids duplicates that might result from multiple inputs inadvertently reading
+and processing the same logs.
+
+For high-volume deployments, you might even want to have a dedicated event hub for each data stream.
+****
+
+[discrete]
+[[azure-elastic-agent-configure-azure-diagnostics]]
 ==== Configure diagnostic settings to send logs to the event hub
 
-Diagnostic settings is an azure component. Every service that creates logs comes
-with diagnostic settings. It is reponsible for exporting logs and metrics to an
-external destination. 
+Every Azure service that creates logs has diagnostic settings that allow you to
+export logs and metrics to an external destination. In this step, you configure
+the Azure Monitor service to export activity logs to the event hub you created
+earlier.
 
-User who wants to build integration needs to configure diagnostic settings. You can tell to export ProvisionLogs, RiskyUser, UserRiskEvents and send somewhere. It’s like a bridge.
+To configure diagnostic settings for the Azure Monitor service:
 
-Send to an event hub. 
-Next, you configure diagnostic settings to send the logs for your resource
-to the event hub.
+. Log into the Azure portal and go to **Home -> Monitor**.
+. In the navigation page, select **Activity log** then click
+**Export Activity Logs**.
+. Click **Add diagnostic setting** and enter a name for the diagnostic setting.
+. In the list of log categories, select the logs you want to export. For this
+tutorial, select ____.
+. Under Destination details, select **Stream to an event hub** and select the
+event hub namespace you created earlier.
+. Save your changes.
 
+//REVIEWERS: Which logs should we tell users to colllect ^^. 
+
+[discrete]
+[[azure-elastic-agent-configure-logs-integration]]
 ==== Configure the Azure Logs integration to collect activity logs
 
+Now that activity logs are streaming into the event hub, you can configure
+the Azure activity log integration to ingest the logs.
+
+To add the integration: 
+
+. Go to the {kib} home page and click **Add integrations**.
+
+. In the query bar, search for **Azure activity logs** and select the Azure
+activity Logs integration to see more details about it.
+
+. Click **Add Azure activity logs**.
+
+. Under Integration settings, configure the integration name and optionally add
+a description.
+
+. Specify values for all the required fields:
++
+[role="screenshot"]
+image::images/agent-tut-azure-activity-log-settings.png[Screenshot of integration settings for Azure activity logs]
++
+[horizontal]
+**Eventhub**:: The name of the event hub you created earlier.
+
+**Connection String**:: The connection string primary key for the event hub. To
+learn how to find the connection string, refer to
+https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string[Get an Event Hubs connection string]
+in the Azure documentation.
+
+**Storage account**:: The name of a blob storage account that {agent} can use
+to store, retrieve, and update offset and state information. You can create a
+new storage account, or use an existing one.
+//REVIEWERS: Is this true? I'm tending towards not telling users how to create
+//a blob storage account because I think Azure users would all ready know how
+//to do that. Maybe I should put this as a prereq though?
+
+**Storage account key**:: A valid access key defined for the storage account.
+
+. Make sure the **Collect Azure activity logs** selector is turned on.
+
+. Add the integration to the agent policy that contains your billing metrics
+integration, then click **Save and continue**. This step takes a minute or two
+to complete. When it's done, you'll have an agent policy that contains the Azure
+activity logs configuration you just specified plus configuration that you added
+earlier.
 
 [discrete]
-[[azure-elastic-agent-collect-azure-active-directory-logs]]
-=== Step 5: Collect Azure Active Directory logs
+[[azure-elastic-agent-visualize-azure-logs]]
+=== Step 5: Visualize Azure activity logs
 
+Now that logs are streaming into {es}, you can visualize them in {kib}. To see
+the raw logs, open the main menu in {kib}, then click **Logs**. Notice that you
+can filter on a specific data stream. This example uses
+`data_stream.dataset : "azure.activitylogs"` to show Azure activity logs:
 
-[discrete]
-[[azure-elastic-agent-collect-xyz-metrics]]
-=== Step 6: Visualize Azure activity logs
+[role="screenshot"]
+image::images/agent-tut-azure-activity-logs.png[Screenshot of Logs app showing Azure activity logs]
 
+//REVIEWERS: The "failed to find message" messages are not a good look, but I
+//don't know how to fix them.
 
+The Azure activity logs integration also comes with pre-built dashboards that
+you can use to visualize the data. In {kib}, open the main menu and click
+**Dashboard**. Search for Azure activity and select the dashboard called
+**[Logs Azure] User Activity**:
 
+[role="screenshot"]
+image::images/agent-tut-azure-activity-logs-dashboard.png[Screenshot of Azure activity logs dashboard]
 
+Congratulations! You have completed the tutorial. To try other tutorials in this
+series, visit the <<observability-tutorials>> page.
