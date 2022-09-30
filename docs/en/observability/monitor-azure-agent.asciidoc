@@ -24,10 +24,6 @@ You'll learn how to:
 * Collect Azure activity logs.
 * Visualize the logs and infrastructure metrics in {kib}.
 
-//NOTE: Active directory logs are harder to capture because they require a
-//permission level my Azure user doesn't have. Will try capturing activity logs
-//for now and see how that goes.
-
 [discrete]
 [[azure-collect-metrics]]
 === Step 1: Create an Azure service principal
@@ -49,18 +45,7 @@ This tutorial shows how to use the Azure portal.
 [discrete]
 ==== Create an Azure service principal
 
-//QUESTION: Is this still the recommended way to control access? I see this
-//note on the Azure page for app registrations, but I don't know if it's
-//relevant: "Starting June 30th, 2020 we will no longer add any new features to
-//Azure Active Directory Authentication Library (ADAL) and Azure AD Graph. We
-//will continue to provide technical support and security updates but we will no
-//longer provide feature updates. Applications will need to be upgraded to
-//Microsoft Authentication Library (MSAL) and Microsoft Graph." (The link points)
-
-//TODO: Decide whether remaining screen captures are necessary (I've removed
-//both of them because they will take extra time to maintain over time.)
-
-. Go to the https://portal.azure.com/[Azure Management Portal]. Search for and
+. Go to the https://portal.azure.com/[Microsoft Azure Portal]. Search for and
 select **Azure Active Directory**.
 
 . In the navigation pane, select **App registrations** and then click
@@ -99,16 +84,13 @@ After creating the Azure service principal, you need to grant it the correct
 permission. You need `Reader` permission to configure {agent} to monitor
 your services.
 
-//TODO: Decide whether we want to document all these steps. It costs us to
-//maintain them, but maybe with minimal screen captures it's not that hard. It
-//is easier than expecting the user to go to the Azure docs from the tutorial.
-
 . In the Azure Portal, search for and select **Subscriptions**.
 . In the Subscriptions page, click the name of your subscription.
 . In the navigation pane, select **Access control (IAM)**.
 . Click **Add** and select **Add role assignment**.
 . On the **Roles** tab, select the **Reader** role, then click **Next**.
-. On the **Members** tab, assign access to **User, group, or service principal**.
+. On the **Members** tab, select the option to assign access to
+**User, group, or service principal**.
 . Click **Select members**, then search for and select the principal you created
 earlier.
 . For the description, enter the name of your service principal.
@@ -120,24 +102,13 @@ image::images/agent-tut-azure-add-role-assignment.png[Screen capture of adding a
 . Click **Review + assign** to grant the service principal access to your
 subscription.
 
-//TODO: Verify that Billing Reader is required here ^^ and not just the Reader role.
-
-//TODO: Beats tutorial needs to be updated, too, because these steps ^^ have
-//changed in the Azure Portal UI.
-
-//REVIEWERS: I'm starting with metrics collection instead of logs because it seems easier than
-//and might give users a better sense of accomplishment right away. We can
-//reconsider this after we get the logging section written (I still don't know)
-//all the details involved there.
-
 [discrete]
 [[elastic-agent-add-azure-integration]]
 === Step 2: Install the Azure Billing Metrics integration
 
-In this step, you install the Azure Billing Metrics integration in {kib} to
-collect usage details and forecast information about your subscription.
-
-//TODO: Probably need to add more detail here.
+In this step, you install the Azure Billing Metrics integration in {kib}. This
+integration contains an input for collecting metrics, such as Azure usage
+details and forecast information, about your subscription.
 
 To add the integration: 
 
@@ -158,11 +129,11 @@ TIP: If you don't see options for configuring the integration, you're probably
 in a workflow designed for new deployments. Follow the steps, then return to
 this tutorial when you're ready to configure the integration.
 
-. Specify values for all the required fields:
+. Specify values for all the required fields. For more information about these
+settings, refer to the {integrations-docs}/azure_billing[Azure Billing Metrics]
+documentation.
 +
-[role="screenshot"]
-image::images/agent-tut-azure-integration-settings.png[Screenshot of integration settings for Azure]
-+
+--
 [horizontal]
 **Client ID**::
 The Application (client) ID that you copied earlier when you created the service
@@ -173,9 +144,15 @@ principal.
 **Tenant ID**:: The tenant ID listed on the main Azure Active Directory Page.
 
 **Subscription ID**:: The subscription ID listed on the main Subscriptions page.
+--
++
+[role="screenshot"]
+image::images/agent-tut-azure-integration-settings.png[Screenshot of integration settings for Azure]
 
 . Make sure the **Collect Azure Billing metrics** selector is turned on, and
 optionally change the default period to a multiple of 24h.
+
+. Accept the defaults to create a new agent policy. 
 
 . Click **Save and continue**. This step takes a minute or two to complete. When
 it's done, you'll have an agent policy that contains the Azure configuration you
@@ -236,13 +213,13 @@ Keep in mind {agent} collects data every 24 hours.
 [[azure-elastic-agent-collect-azure-activity-logs]]
 === Step 5: Collect Azure activity logs
 
-Azure activity logs provide information about subscription-level events, such as
-when a resource is modified and who modified it, and when virtual machines are
-started (or fail to start). In this step, you configure Azure to export activity
-logs to an Azure event hub, then you configure the Azure Logs integration to
-read logs from the event hub and send them to {es}.
+Azure activity logs provide insight into the operations performed on resources
+in your subscription, such as when and who modified resources, and when virtual
+machines were started (or failed to start).
 
-//Note: Related content about creating event hub is here: https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create
+In this step, you configure Azure to export activity logs to an Azure event hub,
+then you configure the Azure Logs integration to read logs from the event hub
+and send them to {es}.
 
 [discrete]
 [[azure-elastic-agent-create-event-hub]]
@@ -256,26 +233,31 @@ Monitor service.
 
 To create an Azure event hub:
 
-. Log into the Azure portal.
-. Create a resource group, event hub namespace, and event hub for your logs. To
-learn how, refer to
-https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-create[Quickstart: Create an event hub using Azure portal]
-in the Azure documentation:
-. Make a note of the event hub name because you will need it later.
-
-//REVIEWERS: Do we have any recommendations for naming conventions for the
-//resource group, event name, etc?
+. Go to the Azure portal.
+. Search for and select **Event Hubs**.
+. Click **Create** and create a new Event Hubs namespace. You'll need to create
+a new resource group, or choose an existing one.
+. Enter the required settings for the namespace and click **Review + create**.
++
+[role="screenshot"]
+image::images/agent-tut-azure-create-eventhub.png[Screenshot of window for creating an event hub namespace]
+. Click **Create** to deploy the resource.
+. In the new namespace, click **+ Event Hub** and enter a name for the event
+hub.
+. Click **Review + create**, and then click **Create** to deploy the resource. 
+. Make a note of the namespace and event hub name because you will need them
+later.
 
 ****
 **When do I need more than one event hub?**
 
 Typically you create an event hub for each service you want to monitor. For
-example, imagine that you want to collect active directory logs from the Azure
-Monitor service and signin and audit logs from the Active Directory service.
+example, imagine that you want to collect activity logs from the Azure
+Monitor service plus signin and audit logs from the Active Directory service.
 Rather than sending all logs to a single event hub, you create an event hub for
 each service:
 
-image::images/agent-tut-azure-event-hub-diagram.png[Diagram that shows an event hub for active directory logs and an event hub for activity logs]
+image::images/agent-tut-azure-event-hub-diagram.png[Diagram that shows an event hub for Active Directory logs and an event hub for activity logs]
 
 This setup is more efficient than using a single event hub for all logs because
 it:
@@ -295,15 +277,6 @@ For high-volume deployments, you might even want to have a dedicated event hub f
 [[azure-elastic-agent-configure-azure-diagnostics]]
 ==== Configure diagnostic settings to send logs to the event hub
 
-// QUESTION: Are these steps correct? The current (not updated) integration docs
-// send users to this link for steps, but TBH these docs are confusing:
-// https://docs.microsoft.com/en-us/azure/azure-monitor/platform/activity-log-export
-
-// I was able to follow these steps to get logs for my own user account, but
-// not sure if I missed something along the way.
-
-//TODO: Look more closely at Maurizio's updates to the integration docs.
-
 Every Azure service that creates logs has diagnostic settings that allow you to
 export logs and metrics to an external destination. In this step, you configure
 the Azure Monitor service to export activity logs to the event hub you created
@@ -311,17 +284,17 @@ earlier.
 
 To configure diagnostic settings for the Azure Monitor service:
 
-. Log into the Azure portal and go to **Home -> Monitor**.
-. In the navigation page, select **Activity log** then click
+. Go to the Azure portal and go to **Home -> Monitor**.
+. In the navigation page, select **Activity log**, and then click
 **Export Activity Logs**.
-. Click **Add diagnostic setting** and enter a name for the diagnostic setting.
-. In the list of log categories, select the logs you want to export. For this
-tutorial, select ____.
+. Select your subscription and click **Add diagnostic setting**.
+. Enter a name for the diagnostic setting.
+. In the list of log categories, select the logs you want to export.
 . Under Destination details, select **Stream to an event hub** and select the
-event hub namespace you created earlier.
-. Save your changes.
-
-//REVIEWERS: Which logs should we tell users to colllect ^^. 
+namespace and event hub you created earlier. For example:
+[role="screenshot"]
+image::images/agent-tut-azure-log-categories.png[Screenshot of Azure diagnostic settings showing Administrative, Security, ServiceHealth, and Alert logs categories selected]
+. Save the diagnostic settings.
 
 [discrete]
 [[azure-elastic-agent-configure-logs-integration]]
@@ -335,7 +308,7 @@ To add the integration:
 . Go to the {kib} home page and click **Add integrations**.
 
 . In the query bar, search for **Azure activity logs** and select the Azure
-activity Logs integration to see more details about it.
+activity logs integration to see more details about it.
 
 . Click **Add Azure activity logs**.
 
@@ -343,35 +316,43 @@ activity Logs integration to see more details about it.
 a description.
 
 . Specify values for all the required fields. For more information about these
-settings, refer to the {integrations-docs}/activitylogs[Azure activity logs].
+settings, refer to the {integrations-docs}/activitylogs[Azure activity logs]
+documentation.
++
+--
+[horizontal]
+**Eventhub**:: The name of the event hub you created earlier.
+
+**Connection String**:: The connection string primary key of the event hub. To
+learn how to get the connection string, refer to
+https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string[Get an Event Hubs connection string]
+in the Azure documentation.
++
+TIP: Instead of copying the connection string from the RootManageSharedAccessKey
+policy, you should create a new shared access policy (with permission to listen)
+and copy the connection string from the new policy.
+
+**Storage account**:: The name of a blob storage account that {agent} can use
+to store information about logs consumed by the agent. You can use the same
+storage account container for all integrations.
+
+**Storage account key**:: A valid access key defined for the storage account.
+--
 +
 [role="screenshot"]
 image::images/agent-tut-azure-activity-log-settings.png[Screenshot of integration settings for Azure activity logs]
+
+. Make sure the **Collect Azure activity logs from Event Hub** selector is
+turned on.
+
+. Under **Existing hosts**, select the agent policy that created earlier.
+
+. Save and deploy the integration.
 +
-[horizontal]
-**Eventhub**:: The name of the main event hub.
-
-**Connection String**:: The connection string primary key of the event hub. To
-learn how to find the connection string, refer to
-https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string[Get an Event Hubs connection string]
-in the Azure documentation.
-
-**Storage account**:: The name of a blob storage account that {agent} can use
-to store, retrieve, and update offset and state information. You can create a
-new storage account, or use an existing one.
-//REVIEWERS: Is this true? I'm tending towards not telling users how to create
-//a blob storage account because I think Azure users would all ready know how
-//to do that. Maybe I should put this as a prereq though?
-
-**Storage account key**:: A valid access key defined for the storage account.
-
-. Make sure the **Collect Azure activity logs** selector is turned on.
-
-. Add the integration to the agent policy that contains your billing metrics
-integration, then click **Save and continue**. This step takes a minute or two
-to complete. When it's done, you'll have an agent policy that contains the Azure
-activity logs configuration you just specified plus configuration that you added
-earlier.
+This step takes a minute or two to complete. When it's done, you'll have an
+agent policy that contains the Azure activity logs configuration plus the
+billing metrics configuration. The deployed {agent} will pick up the policy
+change and start sending Azure activity logs to {es}.
 
 [discrete]
 [[azure-elastic-agent-visualize-azure-logs]]
@@ -384,9 +365,6 @@ can filter on a specific data stream. This example uses
 
 [role="screenshot"]
 image::images/agent-tut-azure-activity-logs.png[Screenshot of Logs app showing Azure activity logs]
-
-//REVIEWERS: The "failed to find message" messages are not a good look, but I
-//don't know how to fix them.
 
 The Azure activity logs integration also comes with pre-built dashboards that
 you can use to visualize the data. In {kib}, open the main menu and click
