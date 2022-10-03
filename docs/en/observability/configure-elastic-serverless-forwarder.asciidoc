@@ -1,0 +1,247 @@
+:aws: AWS
+
+[[configure-elastic-serverless-forwarder]]
+= Configure Elastic Serverless Forwarder
+
+// add overview context i.e. what is created on deployment, what needs to be done next, contextualise and link to sample config
+
+[[lambda-permissions-policies]]
+== Permissions and policies
+
+A Lambda function's execution role is an {aws} Identity and Access Management (IAM) role that grants the function permission to access {aws} services and resources. This role is automatically created when the function is deployed and Lambda assumes this role when the function is invoked.
+
+You can view the execution role associated with your function from the **Configuration -> Permissions** section. By default this role starts with the name **serverlessrepo-elastic-se-ElasticServerlessForward-**. When the role is created, a custom policy is added to grant Lambda minimum permissions to be able to use the configured SQS queue, S3 buckets, Kinesis data stream, CloudWatch Logs log groups, Secrets manager (if using), and SQS replay queue.
+
+// check custom policy i.e. when and by whom
+
+The Lambda function is granted the following `ManagedPolicyArns` permissions. These are automatically added by default if relevant to the Events configuration:
+
+[source, bash]
+----
+arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
+arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
+----
+
+In addition to these basic permissions, the following permissions are added:
+// <!-- how? by whom?-->:
+
+* For SQS queue resources specified in the `SQS_CONTINUE_URL` and `SQS_REPLAY_URL` environment variables, the following action is allowed:
+
+  `sqs:SendMessage`
+
+* For S3 bucket resources specified in the `S3_CONFIG_FILE` environment variable, the following action is allowed on the S3 buckets' config file object key:
+
+  `s3:GetObject`
+
+* For every S3 bucket resource that SQS queues are receiving notifications from, the following action is allowed on the S3 buckets:
+
+  `s3:ListBucket`
+
+* For every S3 bucket resource that SQS queues are receiving notifications from, the following action is allowed on the S3 buckets' keys:
+
+  `s3:GetObject`
+
+* For every Secret Manager secret that you want to refer in the yaml configuration file, the following action is allowed
+// <!-- more detail? cf. on what above-->:
+
+  `secretsmanager:GetSecretValue`
+
+* For every decrypt key that's not the default one used to encrypt your Secret Manager secrets with, the following action is allowed:
+
+  `kms:Decrypt`
+
+* If any CloudWatch Logs log groups are set as Lambda inputs, the following actions are allowed for the resource
+
+  `arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:*:*`:
+  `logs:DescribeLogGroups`
+
+[[lambda-policy-cloudwatch]]
+=== Lambda resource-based policy for CloudWatch Logs subscription filter input
+
+For CloudWatch Logs subscription filter log group resources that you want to use as triggers of the Lambda function, the following is allowed as a resource-based policy in separate Policy statements:
+
+[source, yaml]
+----
+  * Principal: logs.%AWS_REGION%.amazonaws.com
+  * Action: lambda:InvokeFunction
+  * Source ARN: arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:*
+----
+
+[[sample-s3-config-file]]
+== Sample S3 config file
+
+Elastic Serverless Forwarder requires a `config.yaml` file to be uploaded to an S3 bucket and referenced by the `S3_CONFIG_FILE` environment variable.
+
+Save the following yaml content as `config.yaml` and fill in the correct parameters:
+
+[source, yaml]
+----
+
+inputs:
+  - type: "s3-sqs"
+    id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+  - type: "sqs"
+    id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+  - type: "kinesis-data-stream"
+    id: "arn:aws:kinesis:%REGION%:%ACCOUNT%:stream/%STREAMNAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+  - type: "cloudwatch-logs"
+    id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:*"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+  - type: "cloudwatch-logs"
+    id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:log-stream:%LOG_STREAM_NAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+----
+
+[[s3-config-file-fields]]
+=== Fields
+
+//convert to table?
+
+`inputs.[]`:
+
+A list of inputs (i.e. triggers) for the Elastic Serverless Forwarder Lambda function.
+
+`inputs.[].type`:
+
+The type of trigger input (`cloudwatch-logs`, `kinesis-data-stream`, `sqs` and `s3-sqs` are currently supported).
+
+`inputs.[].id`:
+
+The ARN of the trigger input according to the type. Multiple input entries can have different unique ids with the same type.
+Inputs of type `cloudwatch-logs` accept both CloudWatch Logs Log Group and CloudWatch Logs Log Stream ARNs.
+
+`inputs.[].outputs`:
+
+A list of outputs (i.e. forwarding targets) for the Elastic Serverless Forwarder Lambda function. Only one output can be defined per type.
+
+`inputs.[].outputs.[].type`:
+
+The type of the forwarding target output (currently only `elasticsearch` supported).
+
+`inputs.[].outputs.[].args`:
+Custom init arguments for the specified forwarding target output.
+
+For `elasticsearch` the following arguments are supported:
+
+  * `args.elasticsearch_url`: Url of elasticsearch endpoint in the format `http(s)://domain.tld:port`. Mandatory when `args.cloud_id` is not provided. Will take precedence over `args.cloud_id` if both are defined.
+  * `args.cloud_id`: Cloud ID of elasticsearch endpoint. Mandatory when `args.elasticsearch_url` is not provided. Will be ignored if `args.elasticsearch_url` is defined as well.
+  * `args.username`: Username of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
+  * `args.password` Password of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
+  * `args.api_key`:  Api key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will take precedence over `args.username`/`args.password` if both are defined.
+  * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the Elasticsearch cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your config.yaml file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
+  * `args.batch_max_actions`: Maximum number of actions to send in a single bulk request. Default value: 500.
+  * `args.batch_max_bytes`: Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
+
+[[use-secretes-manager]]
+== Use {aws} Secrets Manager
+
+{aws} Secrets Manager enables you to replace hardcoded credentials in your code, including passwords, with an API call to Secrets Manager to retrieve the secret programmatically. For more info, refer to the https://docs.aws.amazon.com/secretsmanager/index.html[{aws} Secrets Manager documentation].
+
+There are 2 types of secrets that can be used:
+
+- SecretString (plain text or key/value pairs)
+- SecretBinary
+
+The following code shows API calls to {aws} Secrets Manager:
+
+[source, yaml]
+----
+inputs:
+  - type: "s3-sqs"
+    id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          elasticsearch_url: "arn:aws:secretsmanager:eu-central-1:123456789:secret:es_url"
+          username: "arn:aws:secretsmanager:eu-west-1:123456789:secret:es_secrets:username"
+          password: "arn:aws:secretsmanager:eu-west-1:123456789:secret:es_secrets:password"
+          es_datastream_name: "logs-generic-default"
+----
+
+To use a **plain text** or **binary** secret, note the following format for the ARN:
+
+[source, yaml]
+----
+arn:aws:secretsmanager:AWS_REGION:AWS_ACCOUNT_ID:secret:SECRET_NAME
+----
+
+In order to use a **key/value** pair secret, you need to provide the key at the end of the arn, as per:
+
+[source, yaml]
+----
+arn:aws:secretsmanager:AWS_REGION:AWS_ACCOUNT_ID:secret:SECRET_NAME:SECRET_KEY
+----
+
+[NOTE]
+====
+* Secrets from different regions are supported, but the only version currently retrieved for a secret is `AWSCURRENT`.
+* You cannot use the same secret for both plain text and key/value pairs.
+* Secrets are case-sensitive.
+* Any typo or misconfiguration in the config file will be ignored (or exceptions raised) and secrets will not be retrieved.
+* Keys must exist in the {aws} Secrets Manager.
+* Empty values for a given key are not allowed.
+====

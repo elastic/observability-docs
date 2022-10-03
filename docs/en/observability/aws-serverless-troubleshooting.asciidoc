@@ -1,0 +1,26 @@
+[[aws-serverless-troubleshooting]]
+= Troubleshooting and error handling
+
+== Error handling
+
+There are two kind of errors that can occur during execution of the Lambda function:
+
+. Errors _before_ the ingestion phase begins
+. Errors _during_ the ingestion phase
+
+=== Errors before ingestion
+For errors that occur before ingestion begins (1), the function will return a failure. These errors are mostly due to misconfiguration, incorrect permissions for AWS resources, etc. Most importantly, when an error occurs at this stage we don’t have any status for events that are ingested, so there’s no requirement to keep data, and the function can fail safely. In the case of SQS messages and Kinesis data stream records, both will go back into the queue and trigger the function again with the same payload.
+
+=== Errors during ingestion
+For errors that occur during ingestion (2), the situation is different. We do have a status for *N* failed events out of *X* total events; if we fail the whole function then all *X* events will be processed again. While the *N* failed ones could potentially succeed, the remaining *X-N* will definitely fail, because the data streams are append-only (the function would attempt to recreate already ingested documents using the same document ID).
+
+So the Lambda function won't return a failure for errors during ingestion; instead, the payload of the event that failed to be ingested will be sent to a replay SQS queue. The replay SQS queue is automatically set up by the Lambda deployment automatically. The replay SQS queue is not set as an Event Source Mapping for the Lambda function by default, which means you can investigate and consume (or not) the message as preferred.
+
+You can temporarily set the replay SQS queue as an Event Source Mapping for the Lambda function, which means messages in the queue will be consumed by the Lambda and ingestion retried for transient failures. If the failure persists, the affected log entry will be moved to a DLQ after three retries.
+
+Every other error that occurs during the execution of the Lambda function is silently ignored, and reported to the APM server if instrumentation is enabled.
+
+=== Execution timeout
+There is a grace period of 2 minutes before the timeout of the Lambda function where no more ingestion will occur. Instead, during this grace period the Lambda will collect and handle any unprocessed payloads in the batch of the input used as trigger.
+
+For CloudWatch Logs event, Kinesis data stream, S3 SQS Event Notifications and direct SQS message payload inputs, the unprocessed batch will be sent to the SQS continuing queue.
