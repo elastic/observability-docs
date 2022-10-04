@@ -1,21 +1,35 @@
 :aws: AWS
 
+<!-- lint disable SAR -->
+<!-- lint disable sar -->
+<!-- lint disable SSM -->
+<!-- lint disable ssm -->
+<!-- lint disable KMS -->
+<!-- lint disable kms -->
+<!-- lint disable ARNs -->
+<!-- lint disable arns -->
+<!-- lint disable yaml -->
+<!-- lint disable Cloudwatch -->
+<!-- lint disable cloudwatch -->
+<!-- lint disable cloudformation -->
+
+
 [[deploy-elastic-serverless-forwarder]]
 = Deploy Elastic Serverless Forwarder
 
 To deploy Elastic Serverless Forwarder, you must perform the following two steps:
 
-. Add {aws} integration in Kibana.
+. Add {aws} integration in {kib}.
 . Deploy function from {aws} SAR (Serverless Application Repository).
 
 
 [[aws-serverless-forwarder-deploy-kibana]]
-== Add {aws} integration in Kibana
+== Add {aws} integration in {kib}
 
-. Go to **Integrations** in Kibana and search for {aws} (or select the **{aws}** category to filter the list).
+. Go to **Integrations** in {kib} and search for {aws} (or select the **{aws}** category to filter the list).
 . Click the {aws} integration, select **Settings** and click **Install {aws} assets** to install all the {aws} integration assets.
 
-Adding integrations from Kibana provides appropriate pre-built dashboards, ingest node configurations, and other assets that help you get the most out of the data you ingest. For more information, refer to the https://docs.elastic.co/en/integrations[Integrations documentation].
+Adding integrations from {kib} provides appropriate pre-built dashboards, ingest node configurations, and other assets that help you get the most out of the data you ingest. For more information, refer to the https://docs.elastic.co/en/integrations[Integrations documentation].
 
 // add screenshot?
 
@@ -36,8 +50,11 @@ There are several deployment methods available via {aws} SAR:
 . Select **Browse serverless app repository**.
 . Select **Public applications**.
 . Search for **elastic-serverless-forwarder** and select it from results.
++
+image::images/aws-serverless-forwarder-create-function.png[Create Elastic Serverless Forwarder Lambda function within SAR]
++
 . Complete the **Application settings** as follows:
-    * `ElasticServerlessForwarderS3ConfigFile` set the value of the S3 url in the format `s3://bucket-name/config-file-name` to the configuration file for your deployment of Elastic Serverless Forwarder - this will populate the `S3_CONFIG_FILE` environment variable of the deployed Lambda.
+    * `ElasticServerlessForwarderS3ConfigFile` set the value of the S3 URL in the format `s3://bucket-name/config-file-name` to the configuration file for your deployment of Elastic Serverless Forwarder - this will populate the `S3_CONFIG_FILE` environment variable of the deployed Lambda.
     * `ElasticServerlessForwarderSSMSecrets` add a comma delimited list of {aws} SSM Secrets ARNs referenced in the config yaml file (if any).
     * `ElasticServerlessForwarderKMSKeys` add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets referenced in the config yaml file (if any).
     * `ElasticServerlessForwarderSQSEvents` add a comma delimited list of Direct SQS queues ARNs to set as event triggers for the Lambda (if any).

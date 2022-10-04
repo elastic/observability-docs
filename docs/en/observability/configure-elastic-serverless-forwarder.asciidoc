@@ -1,5 +1,13 @@
 :aws: AWS
 
+<!-- lint disable ARNs -->
+
+<!-- lint disable arn -->
+
+<!-- lint disable yaml -->
+
+<!-- lint disable elasticsearch -->
+
 [[configure-elastic-serverless-forwarder]]
 = Configure Elastic Serverless Forwarder
 
@@ -23,7 +31,7 @@ arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
 arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
 ----
 
-In addition to these basic permissions, the following permissions are added:
+In addition to these basic permissions, the following permissions are added when the function is created:
 // <!-- how? by whom?-->:
 
 * For SQS queue resources specified in the `SQS_CONTINUE_URL` and `SQS_REPLAY_URL` environment variables, the following action is allowed:
@@ -187,11 +195,11 @@ Custom init arguments for the specified forwarding target output.
 
 For `elasticsearch` the following arguments are supported:
 
-  * `args.elasticsearch_url`: Url of elasticsearch endpoint in the format `http(s)://domain.tld:port`. Mandatory when `args.cloud_id` is not provided. Will take precedence over `args.cloud_id` if both are defined.
+  * `args.elasticsearch_url`: URL of elasticsearch endpoint in the format `http(s)://domain.tld:port`. Mandatory when `args.cloud_id` is not provided. Will take precedence over `args.cloud_id` if both are defined.
   * `args.cloud_id`: Cloud ID of elasticsearch endpoint. Mandatory when `args.elasticsearch_url` is not provided. Will be ignored if `args.elasticsearch_url` is defined as well.
   * `args.username`: Username of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
   * `args.password` Password of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
-  * `args.api_key`:  Api key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will take precedence over `args.username`/`args.password` if both are defined.
+  * `args.api_key`:  API key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will take precedence over `args.username`/`args.password` if both are defined.
   * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the Elasticsearch cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your config.yaml file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
   * `args.batch_max_actions`: Maximum number of actions to send in a single bulk request. Default value: 500.
   * `args.batch_max_bytes`: Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
@@ -241,7 +249,7 @@ arn:aws:secretsmanager:AWS_REGION:AWS_ACCOUNT_ID:secret:SECRET_NAME:SECRET_KEY
 * Secrets from different regions are supported, but the only version currently retrieved for a secret is `AWSCURRENT`.
 * You cannot use the same secret for both plain text and key/value pairs.
 * Secrets are case-sensitive.
-* Any typo or misconfiguration in the config file will be ignored (or exceptions raised) and secrets will not be retrieved.
+* Any configuration error or typo in the config file will be ignored (or exceptions raised) and secrets will not be retrieved.
 * Keys must exist in the {aws} Secrets Manager.
 * Empty values for a given key are not allowed.
 ====

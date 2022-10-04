@@ -44,7 +44,7 @@ NOTE: Note that you should escape the opening square bracket (`[`) in the regula
 
 `inputs.[].multiline.type` defines which aggregation method to use. The default is `pattern`. The other options are `count`, which enables you to aggregate a constant number of lines, and `while_pattern`, which aggregates lines by pattern without matching options.
 
-`inputs.[].multiline.pattern` differs from the patterns supported by Logstash. See https://docs.python.org/3.9/library/re.html#regular-expression-syntax[Python's 3.9 regular expression syntax] for a list of supported regexp patterns. Depending on how you configure other multiline options, lines that match the specified regular expression are considered either continuations of a previous line or the start of a new multiline event.
+`inputs.[].multiline.pattern` differs from the patterns supported by {ls}. See https://docs.python.org/3.9/library/re.html#regular-expression-syntax[Python's 3.9 regular expression syntax] for a list of supported regexp patterns. Depending on how you configure other multiline options, lines that match the specified regular expression are considered either continuations of a previous line or the start of a new multiline event.
 
 `inputs.[].multiline.negate` defines whether the pattern is negated. The default is `false`. This setting works only with `pattern` and `while_pattern` types.
 
@@ -59,7 +59,7 @@ NOTE: Note that you should escape the opening square bracket (`[`) in the regula
 | `false`                    | `before`             | Consecutive lines that don’t match the pattern are prepended to the next line that does match.    | image:images/true-before-multi.png[Lines a c b d e b become "acb" and "deb"]
 |===
 
-NOTE: The `after` setting is equivalent to `previous` in https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html[Logstash], and `before` is equivalent to `next`.
+NOTE: The `after` setting is equivalent to `previous` in https://www.elastic.co/guide/en/logstash/current/plugins-codecs-multiline.html[{ls}], and `before` is equivalent to `next`.
 
 `inputs.[].multiline.flush_pattern` specifies a regular expression, in which the current multiline will be flushed from memory, ending the multiline-message. Works only with `pattern` type.
 
@@ -163,7 +163,7 @@ NOTE: Note that you should escape the opening square bracket (`[`) in the regula
 
 [[aws-serverless-multiline-timestamps]]
 === Timestamps
-Activity logs from services such as Elasticsearch typically begin with a timestamp, followed by information on the specific activity, as in this example:
+Activity logs from services such as {es} typically begin with a timestamp, followed by information on the specific activity, as in this example:
 
 [source, shell]
 ----
@@ -184,7 +184,7 @@ multiline:
 
 This configuration uses the `negate: true` and `match: after` settings to specify that any line that does not match the specified pattern belongs to the previous line.
 
-NOTE: You need to escape the first opening square bracket (`[`) in the regular expression, as it has a special meaning as metacharacters used for specifying a character class, which is a set of characters that you wish to match (as used further in the same regular expression). Then we have to escape the backslash (`\`) used for escaping the opening square bracket since we are not using raw string. The final result `^\\[` will produce the regular expression to be compiled properly.
+NOTE: Note that you should escape the opening square bracket (`[`) in the regular expression, because it specifies a character class i.e. a set of characters that you wish to match. You also have to escape the backslash (`\`) used for escaping the opening square bracket as raw strings are not used. Thus, `^\\[` will produce the required regular expression upon compiling.
 
 [[aws-serverless-multiline-application-events]]
 === Application events
