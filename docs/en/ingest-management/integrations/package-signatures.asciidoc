@@ -1,4 +1,49 @@
-[role="exclude",id="package-signatures"]
+[[package-signatures]]
 = Package signatures
 
-coming[8.4.0]
+All integration packages published by Elastic have package signatures that
+prevent malicious attackers from tampering with package content. When you
+install an Elastic integration, {kib} downloads the package and verifies the
+package signature against a public key. If the package is unverified, you can
+choose to force install it. However, it's strongly recommended that you avoid
+installing unverified packages unless they are from trusted sources.
+
+[discrete]
+[[why-verify-packages]]
+== Why is package verification necessary?
+
+Integration packages contain instructions, such as ILM policies, transforms, and
+mappings, that can significantly modify the structure of your {es} indices.
+Relying solely on HTTPS DNS name validation to prove provenance of the package
+is not a safe practice. A determined attacker could forge a certificate and
+serve up packages intended to disrupt the target.
+
+Installing verified packages ensures that your integration software has not been
+corrupted or otherwise tampered with.
+
+[discrete]
+== Open questions for reviewers:
+
+- How do users verify Elastic packages when installing them through the API? Do
+they need to download Elastic's GPG key from
+https://artifacts.elastic.co/GPG-KEY-elasticsearch and store it on disk? What
+else?
+- What if a key has to be invalidated in the future? Do we need to document
+how/when/why to provide an alternative public key? Would users provide the
+file path in kibana.yml (through the
+xpack.fleet.packageVerification.gpgKeyPath setting)? Do we need to worry about
+documenting this now?
+- Can users trust all packages that aren't flagged as "unverified," or are there
+some situations where they won't see the flag or be prompted to force install?
+- Is there some way for 3rd party contributors to sign their packages so they
+won't get flagged as "unverified"?
+- What actions, if any, should Kibana users take when they see that a package is
+unverified? If it's a package published by Elastic, should they try reinstalling
+or upgrading it?
+- Can anyone who has access to the integrations UI install unverified packages?
+Or does it require additional privileges?
+- Is there anything else missing from this topic that we need to cover? Like how
+to download a signing key and verify a package?
+- Does this change affect the air gapped docs at
+https://www.elastic.co/guide/en/fleet/current/air-gapped.html?
+
