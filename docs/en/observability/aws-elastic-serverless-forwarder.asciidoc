@@ -2,11 +2,15 @@
 
 [[aws-elastic-serverless-forwarder]]
 = Elastic Serverless Forwarder
+
 // should we expand titleabbrev to AWS or Amazon Web Services Elastic Serverless Forwarder? What is correct nomenclature?
 
 ++++
 <titleabbrev>AWS Elastic Serverless Forwarder</titleabbrev>
 ++++
+
+:keywords: serverless
+:description: The Elastic Serverless Forwarder is an Amazon Web Services ({aws}) Lambda function that ships logs from your {aws} environment to Elastic.
 
 The Elastic Serverless Forwarder is an Amazon Web Services ({aws}) Lambda function that ships logs from your {aws} environment to Elastic.
 
@@ -20,6 +24,7 @@ The Elastic Serverless Forwarder can forward {aws} data to self-managed or cloud
 - Amazon CloudWatch Logs subscription filters
 - Direct Amazon SQS message payload
 
+[role="screenshot"]
 image::aws-serverless-lambda-flow.png[AWS Lambda flow]
 
 The Lambda deployment sets up an SQS queue automatically. This is used to trigger a new function invocation that Lambda uses to continue from exactly where the last function run was terminated. By default a Lambda function runs for a maximum of 15 minutes. When processing event data there’s a possibility that the function may be exited by {aws} in the middle of processing. The function handles this scenario gracefully by keeping track of the last offset processed.
@@ -82,28 +87,13 @@ You can set up separate CloudWatch Logs groups for each type of log. The `es_dat
 
 - <<configure-elastic-serverless-forwarder,Configure Elastic Serverless Forwarder>>
 
-- <<aws-serverless-use-tags-filters,Use tags and filters>>
-
-- <<aws-serverless-json-content,JSON content discovery>>
-
-- <<aws-serverless-manage-multiline-messages,Manage multiline messages>>
-
-- <<aws-serverless-route-service-logs,Route AWS service logs>>
+- <<aws-serverless-transform>>
 
 - <<aws-serverless-troubleshooting,Troubleshooting>>
 
 :leveloffset: -2
 include::deploy-elastic-serverless-forwarder.asciidoc[leveloffset=+3]
-
 include::configure-elastic-serverless-forwarder.asciidoc[leveloffset=+3]
-
-include::aws-serverless-use-tags-filters.asciidoc[leveloffset=+3]
-
-include::aws-serverless-json-content.asciidoc[leveloffset=+3]
-
-include::aws-serverless-manage-multiline-messages.asciidoc[leveloffset=+3]
-
-include::aws-serverless-route-service-logs.asciidoc[leveloffset=+3]
-
+include::aws-serverless-transform.asciidoc[leveloffset=+3]
 include::aws-serverless-troubleshooting.asciidoc[leveloffset=+3]
 :leveloffset: +2

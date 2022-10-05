@@ -1,15 +1,11 @@
 :aws: AWS
 
-<!-- lint disable ARNs -->
-
-<!-- lint disable arn -->
-
-<!-- lint disable yaml -->
-
-<!-- lint disable elasticsearch -->
-
 [[configure-elastic-serverless-forwarder]]
 = Configure Elastic Serverless Forwarder
+
+++++
+<titleabbrev>Configure</titleabbrev>
+++++
 
 // add overview context i.e. what is created on deployment, what needs to be done next, contextualise and link to sample config
 
@@ -18,9 +14,9 @@
 
 A Lambda function's execution role is an {aws} Identity and Access Management (IAM) role that grants the function permission to access {aws} services and resources. This role is automatically created when the function is deployed and Lambda assumes this role when the function is invoked.
 
-You can view the execution role associated with your function from the **Configuration -> Permissions** section. By default this role starts with the name **serverlessrepo-elastic-se-ElasticServerlessForward-**. When the role is created, a custom policy is added to grant Lambda minimum permissions to be able to use the configured SQS queue, S3 buckets, Kinesis data stream, CloudWatch Logs log groups, Secrets manager (if using), and SQS replay queue.
+When you provide the ARNs of {aws} resources the forwarder will interact with, the Cloudformation template will create the correct IAM role with the appropriate IAM policies.
 
-// check custom policy i.e. when and by whom
+You can view the execution role associated with your function from the **Configuration -> Permissions** section. By default this role starts with the name **serverlessrepo-elastic-se-ElasticServerlessForward-**. When the role is created, a custom policy is added to grant Lambda minimum permissions to be able to use the configured SQS queue, S3 buckets, Kinesis data stream, CloudWatch Logs log groups, Secrets manager (if using), and SQS replay queue.
 
 The Lambda function is granted the following `ManagedPolicyArns` permissions. These are automatically added by default if relevant to the Events configuration:
 
@@ -31,8 +27,7 @@ arn:aws:iam::aws:policy/service-role/AWSLambdaKinesisExecutionRole
 arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
 ----
 
-In addition to these basic permissions, the following permissions are added when the function is created:
-// <!-- how? by whom?-->:
+In addition to these basic permissions, the following permissions are added when the function is created by the Cloudformation template of the function:
 
 * For SQS queue resources specified in the `SQS_CONTINUE_URL` and `SQS_REPLAY_URL` environment variables, the following action is allowed:
 
@@ -200,7 +195,7 @@ For `elasticsearch` the following arguments are supported:
   * `args.username`: Username of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
   * `args.password` Password of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
   * `args.api_key`:  API key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will take precedence over `args.username`/`args.password` if both are defined.
-  * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the Elasticsearch cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your config.yaml file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
+  * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your config.yaml file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
   * `args.batch_max_actions`: Maximum number of actions to send in a single bulk request. Default value: 500.
   * `args.batch_max_bytes`: Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
 
@@ -253,3 +248,29 @@ arn:aws:secretsmanager:AWS_REGION:AWS_ACCOUNT_ID:secret:SECRET_NAME:SECRET_KEY
 * Keys must exist in the {aws} Secrets Manager.
 * Empty values for a given key are not allowed.
 ====
+
+[[aws-serverless-route-service-logs]]
+== Route AWS service logs
+
+For `S3 SQS Event Notifications` inputs, the Elastic Serverless Forwarder supports automatic routing of several AWS service logs to the corresponding https://docs.elastic.co/en/integrations[integration data streams] for further processing and storage in the {es} cluster.
+
+[[aws-serverless-automatic-routing]]
+=== Automatic routing
+Elastic Serverless Forwarder supports automatic routing of the following logs to the corresponding default integration data stream:
+
+* AWS CloudTrail (`aws.cloudtrail`)
+* Amazon CloudWatch (`aws.cloudwatch_logs`)
+* Elastic Load Balancing (`aws.elb_logs`)
+* AWS Network Firewall (`aws.firewall_logs`)
+* Amazon VPC Flow (`aws.vpcflow`)
+* AWS Web Application Firewall (`aws.waf`)
+
+For these use cases, setting the `es_datastream_name` field in the configuration file is optional.
+
+For most other use cases, you will need to set the `es_datastream_name` field in the configuration file to route the data to a specific data stream or index. This value should be set in the following use cases:
+
+- You want to write the data to a specific index, alias, or custom data stream, and not to the default integration data stream. This can help some users to use existing {es} assets like index templates, ingest pipelines, or dashboards, that are already set up and connected to business processes.
+- When using `Kinesis Data Stream`, `CloudWatch Logs subscription filter` or `Direct SQS message payload` inputs. Only the `S3 SQS Event Notifications` input method supports automatic routing to default integration data streams for several AWS service logs.
+- When using `S3 SQS Event Notifications` but where the log type is something **other than** AWS CloudTrail (`aws.cloudtrail`), Amazon CloudWatch Logs (`aws.cloudwatch_logs`), Elastic Load Balancing (`aws.elb_logs`), AWS Network Firewall (`aws.firewall_logs`), Amazon VPC Flow (`aws.vpcflow`), and AWS Web Application Firewall (`aws.waf`).
+
+If the `es_datastream_name` is not specified, and the log cannot be matched with any of the above AWS services, then the dataset will be set to `generic` and the namespace set to `default`, pointing to the data stream name `logs-generic-default`.
