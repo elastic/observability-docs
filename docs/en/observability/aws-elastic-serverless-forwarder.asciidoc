@@ -8,7 +8,6 @@
 ++++
 <titleabbrev>AWS Elastic Serverless Forwarder</titleabbrev>
 ++++
-
 :keywords: serverless
 :description: The Elastic Serverless Forwarder is an Amazon Web Services ({aws}) Lambda function that ships logs from your {aws} environment to Elastic.
 
@@ -19,15 +18,15 @@ The Elastic Serverless Forwarder is an Amazon Web Services ({aws}) Lambda functi
 = Overview
 The Elastic Serverless Forwarder can forward {aws} data to self-managed or cloud-hosted Elastic environments. It supports the following inputs:
 
-- Amazon S3 SQS (Simple Queue Service) event notifications
+- Amazon S3 (via SQS (Simple Queue Service) event notifications)
 - Amazon Kinesis Data Streams
 - Amazon CloudWatch Logs subscription filters
-- Direct Amazon SQS message payload
+- Amazon SQS message payload
 
 [role="screenshot"]
 image::aws-serverless-lambda-flow.png[AWS Lambda flow]
 
-The Lambda deployment sets up an SQS queue automatically. This is used to trigger a new function invocation that Lambda uses to continue from exactly where the last function run was terminated. By default a Lambda function runs for a maximum of 15 minutes. When processing event data there’s a possibility that the function may be exited by {aws} in the middle of processing. The function handles this scenario gracefully by keeping track of the last offset processed.
+The Lambda deployment sets up a persistent SQS queue automatically. This is used to trigger a new function invocation that Lambda uses to continue from exactly where the last function run was terminated. By default a Lambda function runs for a maximum of 15 minutes. When processing event data there’s a possibility that the function may be exited by {aws} in the middle of processing. The function handles this scenario gracefully by keeping track of the last offset processed.
 
 Any exception or fail scenarios related to ingestion are handled by Lambda gracefully using a replay queue. Data in the replay queue is stored as individual events. Lambda keeps track of any failed events and writes them to a replay queue that can then be consumed by adding an additional SQS trigger via Lambda.
 
@@ -35,23 +34,15 @@ You can use the <<sample-s3-config-file,config.yaml>> file to configure the serv
 
 The Lambda function also supports writing directly to an index, alias, or custom data stream. This enables existing {es} users to re-use index templates, ingest pipelines, or dashboards that are already created and connected to business processes.
 
-The best way to get started is to install the appropriate https://docs.elastic.co/en/integrations[integrations] via {kib}. These integrations include pre-built dashboards, ingest node configurations, and other assets that help you get the most out of the data you ingest. The integrations use https://www.elastic.co/guide/en/elasticsearch/reference/current/data-streams.html[data streams] with specific https://www.elastic.co/blog/an-introduction-to-the-elastic-data-stream-naming-scheme[naming conventions] that provide you with more granular controls and flexibility on managing data ingestion.
+The best way to get started is to install the appropriate integration assets via {kib}. These integration assets include pre-built dashboards, ingest node configurations, and other assets that help you get the most out of the data you ingest. The integrations use https://www.elastic.co/guide/en/elasticsearch/reference/current/data-streams.html[data streams] with specific https://www.elastic.co/blog/an-introduction-to-the-elastic-data-stream-naming-scheme[naming conventions] that provide you with more granular controls and flexibility on managing data ingestion.
 
 [discrete]
 [[aws-serverless-forwarder-inputs]]
 = Inputs
 
 [discrete]
-[[aws-serverless-forwarder-inputs-direct]]
-== Direct Amazon SQS message payload
-
-The Lambda function can ingest logs contained within the payload of an Amazon SQS body record and send them to Elastic. The SQS queue serves as a trigger for the Lambda function. When a new record gets written to an SQS queue, the Lambda function triggers.
-
-You can set up a separate SQS queue for each type of log. The config parameter for {es} output `es_datastream_name` is mandatory. If this value is set to an {es} data stream, the type of log must be correctly defined with configuration parameters. A single configuration file can have many input sections, pointing to different SQS queues that match specific log types.
-
-[discrete]
 [[aws-serverless-forwarder-inputs-s3]]
-== Amazon S3 SQS Event Notifications
+== Amazon S3 (via SQS event notifications)
 
 The Lambda function can ingest logs contained in an Amazon Simple Storage Service (S3) bucket through an SQS notification (`s3:ObjectCreated`) and send them to Elastic. The SQS queue serves as a trigger for the Lambda function. When a new log file is written to an S3 bucket and meets the criteria (as configured including prefix/suffix), an SQS notification is generated that triggers the Lambda function.
 
@@ -79,6 +70,15 @@ The Lambda function can ingest logs contained in the message payload of CloudWat
 
 You can set up separate CloudWatch Logs groups for each type of log. The `es_datastream_name` parameter in the config file is mandatory. If this value is set to an {es} data stream, the type of log must be correctly defined with configuration parameters. A single configuration file can have many input sections, pointing to different CloudWatch Logs groups that match specific log types.
 
+
+[discrete]
+[[aws-serverless-forwarder-inputs-direct]]
+== Amazon SQS message payload
+
+The Lambda function can ingest logs contained within the payload of an Amazon SQS body record and send them to Elastic. The SQS queue serves as a trigger for the Lambda function. When a new record gets written to an SQS queue, the Lambda function triggers.
+
+
+You can set up a separate SQS queue for each type of log. The config parameter for {es} output `es_datastream_name` is mandatory. If this value is set to an {es} data stream, the type of log must be correctly defined with configuration parameters. A single configuration file can have many input sections, pointing to different SQS queues that match specific log types.
 [discrete]
 [[aws-serverless-forwarder-get-started]]
 = Get started

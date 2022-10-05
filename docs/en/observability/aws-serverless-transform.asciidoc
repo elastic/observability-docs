@@ -1,15 +1,21 @@
 :aws: AWS
 
 [[aws-serverless-transform]]
-= Transform
-
-// is there a better more verbose title?
+= Transform AWS data
 
 ++++
 <titleabbrev>Transform</titleabbrev>
 ++++
+:keywords: serverless
+:description: Transform your AWS data as it is collected from Amazon Web Services ({aws}).
 
-// add overview context for Transform topics?
+You can transform or enrich data from {aws} as it is parsed by the Elastic Serverless Forwarder. This includes examples such as using tags and filters to organise your data and exclude specific messages, automatically discovering and collecting JSON content, and managing multiline messages effectively.
+
+- <<aws-serverless-use-tags-filters>>
+
+- <<aws-serverless-json-content>>
+
+- <<aws-serverless-manage-multiline-messages>>
 
 [[aws-serverless-use-tags-filters]]
 == Use tags and filters
@@ -96,8 +102,6 @@ No flags are used when the regular expression is compiled. Please refer to https
 [[aws-serverless-json-content]]
 == JSON content discovery
 
-// where should this topic connect from i.e. what is best context / lead in?
-
 The Elastic Serverless Forwarder is able to automatically discover JSON content in the payload of an input and collect the JSON objects contained in the payload.
 
 The JSON objects can either be on a single line or spanning multiple lines. In the second case, the Elastic Serverless Forwarder expects different JSON objects spanning multiple lines to be separated by a newline delimiter.
@@ -114,7 +118,7 @@ To change this configuration option, set `inputs.[].json_content_type` to one of
 - **ndjson**: indicates that the content of a single item in the input payload is a valid NDJSON format. Multiple single JSON objects formatted on a single line should be separated by a newline delimiter. With this setting each line will be decoded as JSON object, which improves the parsing performance.
 - **disabled**: instructs the Elastic Serverless Forwarder not to attempt any automatic JSON content discovery and instead treat the content as plain text, which improves the parsing performance.
 
-NOTE: There is no need to configure the json content type when <<expanding-events-from-json-object-lists>>, unless you have single JSON objects that span more than 1000 lines.
+NOTE: There is no need to configure the JSON content type when <<expanding-events-from-json-object-lists>>, unless you have single JSON objects that span more than 1000 lines.
 
 [[expanding-events-from-json-object-lists]]
 === Expanding events from JSON object lists
@@ -138,7 +142,7 @@ inputs:
 
 You can define `inputs.[].expand_event_list_from_field` as a string with the value of a key in the JSON that contains a list of elements that must be sent as events instead of the encompassing JSON.
 
-NOTE: When [Routing AWS Service Logs](#routing-aws-service-logs), any value set for the `expand_event_list_from_field` configuration parameter will be ignored, because this will be automatically handled by the Elastic Serverless Forwarder.
+NOTE: When <<aws-serverless-route-service-logs, routing service logs>>, any value set for the `expand_event_list_from_field` configuration parameter will be ignored, because this will be automatically handled by the Elastic Serverless Forwarder.
 
 === Example
 
