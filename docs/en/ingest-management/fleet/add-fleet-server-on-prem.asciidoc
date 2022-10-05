@@ -1,9 +1,16 @@
 [[add-fleet-server-on-prem]]
 = Deploy on-premises and self-managed
 
+To use {fleet} for central management, a <<fleet-server,{fleet-server}>> must
+be running and accessible to your hosts. Deploying {fleet-server} on-premises
+to work with {es} running on-premises is one of <<add-a-fleet-server,several approaches>>
+to setting up {fleet-server}.
+
+image::images/fleet-server-on-prem-deployment.png[{fleet-server} on-premises deployment model]
+
 To deploy a self-managed {fleet-server}, you need to: 
 
-* Satisfy all <<add-fleet-server-on-prem-compatibility,compatibility requirements and prerequisites>>
+* Satisfy all <<add-fleet-server-on-prem-compatibility,compatibility requirements>> and <<add-fleet-server-on-prem-prereq,prerequisites>>
 * Add hosts including <<add-fleet-server-on-prem-hosts,{fleet-server} hosts and {es} hosts>>
 * <<add-fleet-server-on-prem-add-server,Add {fleet-server}>> by installing an {agent} and enrolling it in an agent policy containing the {fleet-server} integration
 
@@ -38,17 +45,26 @@ For more information about hosting {fleet-server} on {ece}, refer to
 [[add-fleet-server-on-prem-prereq]]
 == Prerequisites
 
-include::add-fleet-server-mixed.asciidoc[tag=cert-prereq]
+// tag::cert-prereq[]
+Before setting up {fleet-server} using this approach, you will need a
+Certificate Authority (CA) certificate to configure Transport Layer Security (TLS)
+to encrypt traffic between the {fleet-server}s and {stack}.
+
+If your organization already uses the {stack}, you may already have a CA certificate. If you do not have a CA certificate, you can read more
+about generating one in <<secure-connections>>.
+
+NOTE: This is not required when testing and iterating using the *Quick start* option, but should always be used for production deployments.
+
+// end::cert-prereq[]
 
 [discrete]
 [[add-fleet-server-on-prem-hosts]]
 == Add {fleet-server} hosts
 
-// What is it / why do you need it?
+// tag::fleet-server-host-prereq[]
 Start by adding one or more {fleet-server} hosts.
 A {fleet-server} host is a URL your {agent}s will use to connect to a {fleet-server}.
 
-// Prereqs
 {fleet-server} hosts should meet the following requirements:
 
 * All agents can connect to the host.
@@ -56,15 +72,16 @@ A {fleet-server} host is a URL your {agent}s will use to connect to a {fleet-ser
 or deployed on-premises.
 * The host meets the <<scaling-recommendations,minimum compute resource requirements>> based on the maximum number
 of agents you plan to support in your deployment.
+// end::fleet-server-host-prereq[]
 
-// How do you set it up?
+// tag::add-fleet-server-host[]
 To add a {fleet-server} host:
 
 . In {kib}, go to *Management* -> *{fleet}* -> *Settings*.
 For more information about these settings, see
 {fleet-guide}/fleet-settings.html[{fleet} settings].
-// lint ignore fleet-server
-. Under *Fleet Server hosts*, click *Edit hosts* and specify one or more host
+
+. Under *{fleet-server} hosts*, click *Edit hosts* and specify one or more host
 URLs your {agent}s will use to connect to {fleet-server}. For example,
 `https://192.0.2.1:8220`, where `192.0.2.1` is the host IP where you will
 install {fleet-server}. Save and apply your settings.
@@ -73,8 +90,11 @@ TIP: If the **Edit hosts** option is grayed out, {fleet-server} hosts
 are configured outside of {fleet}. For more information, refer to
 {kibana-ref}/fleet-settings-kb.html[{fleet} settings in {kib}].
 
+// end::add-fleet-server-host[]
+
+// Update up Elasticsearch host (not used in the third deployment model
 . Update the {es} hosts in the **Outputs** table:
-.. Find the _default_ row where the _Type_ set to _Elasticsearch_.
+.. Find the _default_ row where the _Type_ is set to _Elasticsearch_.
 .. Click the pencil icon in the _Actions_ column.
 .. Update the _Hosts_ field to specify one or more {es} URLs where {agent}s
 will send data. For example, `https://192.0.2.0:9200`.
@@ -88,16 +108,14 @@ NOTE: Skip this step if you've started the {stack} with security enabled
 [[add-fleet-server-on-prem-add-server]]
 == Add {fleet-server}
 
-// What is it / why do you need it?
 A {fleet-server} is an {agent} that is enrolled in a {fleet-server} policy.
 The policy configures the agent to operate in a special mode to serve as a {fleet-server} in your deployment.
 
-// How do you set it up?
 To add a {fleet-server}:
 
 . Click the **Agents** tab.
 . Click *Add {fleet-server}*.
-. This will open in-product instructions to add a {fleet} server using 
+. This will open in-product instructions to add a {fleet-server} using 
 one of two options: *Quick Start* or *Advanced*.
 * Use *Quick Start* if you want {fleet} to generate a
 {fleet-server} policy and enrollment token for you. The {fleet-server} policy
@@ -106,7 +124,7 @@ monitoring {agent}. This option generates self-signed certificates and is
 *not* recommended for production use cases.
 +
 [role="screenshot"]
-image::images/add-fleet-server.png[In-product instructions for adding a {fleet-server}]
+image::images/add-fleet-server.png[In-product instructions for adding a {fleet-server} in quick start mode]
 
 * Use *Advanced* if you want to either:
 ** *Use your own {fleet-server} policy.* {fleet-server} policies manage
@@ -129,7 +147,8 @@ angle brackets.
 generate the certificate specified by `--fleet-server-cert`.
 ====
 +
-// image ?
+[role="screenshot"]
+image::images/add-fleet-server-advanced.png[In-product instructions for adding a {fleet-server} in advanced mode]
 
 . Then, use the in-product instructions to install the {agent}.
 +
@@ -141,7 +160,7 @@ in a {fleet-server} policy. For more {fleet-server} commands, see
 ====
 
 . If installation is successful, you'll see confirmation that {fleet-server}
-connected. Click **Continue enrolling Elastic Agent** to begin enrolling your
+connected. Click **Continue enrolling {agent}** to begin enrolling your
 agents in {fleet-server}.
 
 [NOTE]
