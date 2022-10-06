@@ -26,9 +26,9 @@ The Elastic Serverless Forwarder can forward {aws} data to self-managed or cloud
 [role="screenshot"]
 image::aws-serverless-lambda-flow.png[AWS Lambda flow]
 
-The Lambda deployment sets up a persistent SQS queue automatically. This is used to trigger a new function invocation that Lambda uses to continue from exactly where the last function run was terminated. By default a Lambda function runs for a maximum of 15 minutes. When processing event data there’s a possibility that the function may be exited by {aws} in the middle of processing. The function handles this scenario gracefully by keeping track of the last offset processed.
+The Lambda deployment sets up an SQS _Continuing queue_ automatically. This is used to trigger a new function invocation that Lambda uses to continue from exactly where the last function run was terminated. By default a Lambda function runs for a maximum of 15 minutes. When processing event data there’s a possibility that the function may be exited by {aws} in the middle of processing. The function handles this scenario gracefully by keeping track of the last offset processed.
 
-Any exception or fail scenarios related to ingestion are handled by Lambda gracefully using a replay queue. Data in the replay queue is stored as individual events. Lambda keeps track of any failed events and writes them to a replay queue that can then be consumed by adding an additional SQS trigger via Lambda.
+Any exception or fail scenarios related to ingestion are handled by Lambda gracefully using a _Replay queue_. Data in the replay queue is stored as individual events. Lambda keeps track of any failed events and writes them to a replay queue that can then be consumed by adding an additional SQS trigger via Lambda.
 
 You can use the <<sample-s3-config-file,config.yaml>> file to configure the service for each input type, including information such as SQS queue ARN and {es} connection details. You can create multiple input sections within the configuration file to map different inputs to specific log types.
 
