@@ -1,12 +1,34 @@
 [[package-signatures]]
 = Package signatures
 
+coming[8.5]
+
 All integration packages published by Elastic have package signatures that
 prevent malicious attackers from tampering with package content. When you
 install an Elastic integration, {kib} downloads the package and verifies the
 package signature against a public key. If the package is unverified, you can
 choose to force install it. However, it's strongly recommended that you avoid
-installing unverified packages unless they are from trusted sources.
+installing unverified packages.
+
+IMPORTANT: By installing an unverified package, you acknowledge that you
+assume any risk involved.
+
+To force installation of an unverified package:
+
+//TODO: Need to verify this info when package verification is available
+//in the build.
+
+* When using the {integrations} UI, you'll be prompted to confirm that you want
+to install the unverified integration. Click **Install anyway** to force
+installation.
+
+* When using the {fleet} API, if you attempt to install an unverified package,
+you'll see a 400 response code with a verification failed message. To force
+installation, set the URL parameter `ignoreUnverified=true`. For more
+information, refer to <<fleet-api-docs>>.
+
+After installation, unverified {integrations} are flagged on the
+**Installed integrations** tab of the {integrations} UI.
 
 [discrete]
 [[why-verify-packages]]
@@ -22,27 +44,41 @@ Installing verified packages ensures that your integration software has not been
 corrupted or otherwise tampered with.
 
 [discrete]
+[[what-does-unverified-mean]]
+== What does it mean for a package to be unverified?
+
+Here are some situations where an integration package will fail verification
+during installation:
+
+* The package zip file on the Elastic server has been tampered with.
+* The user has been maliciously redirected to a fake Elastic package registry.
+* The public Elastic key has been compromised, and Elastic has signed packages
+with an updated key.
+
+Here are some reasons why an integration might be flagged as unverified after
+installation:
+
+* The integration package failed verification, but was force installed.
+* The integration package was installed before {fleet} added support for package
+signature verification.
+
+[discrete]
+[[what-if-key-changes]]
+== What if the Elastic key changes in the future?
+
+In the unlikely event that the Elastic signing key changes in the future, any
+verified integration packages will continue to show as verified until new
+packages are installed or existing ones are upgraded. If this happens, you can
+set the `xpack.fleet.packageVerification.gpgKeyPath` setting in the `kibana.yml`
+configuration file to use the new key. 
+
+//REVIEWERS: Who is updating the docs at
+// https://www.elastic.co/guide/en/kibana/master/fleet-settings-kb.html to show
+//the package verification setting?
+
+
+[discrete]
 == Open questions for reviewers:
 
-- How do users verify Elastic packages when installing them through the API? Do
-they need to download Elastic's GPG key from
-https://artifacts.elastic.co/GPG-KEY-elasticsearch and store it on disk? What
-else?
-- What if a key has to be invalidated in the future? Do we need to document
-how/when/why to provide an alternative public key? Would users provide the
-file path in kibana.yml (through the
-xpack.fleet.packageVerification.gpgKeyPath setting)? Do we need to worry about
-documenting this now?
-- Can users trust all packages that aren't flagged as "unverified," or are there
-some situations where they won't see the flag or be prompted to force install?
-- Is there some way for 3rd party contributors to sign their packages so they
-won't get flagged as "unverified"?
-- What actions, if any, should Kibana users take when they see that a package is
-unverified? If it's a package published by Elastic, should they try reinstalling
-or upgrading it?
-- Can anyone who has access to the integrations UI install unverified packages?
-Or does it require additional privileges?
-- Is there anything else missing from this topic that we need to cover? Like how
-to download a signing key and verify a package?
 - Does this change affect the https://www.elastic.co/guide/en/fleet/current/air-gapped.html[air gapped docs]?
 
