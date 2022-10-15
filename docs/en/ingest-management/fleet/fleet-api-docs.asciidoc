@@ -86,17 +86,17 @@ Example response:
   }
 }
 ----
-<1> Make a note of the policy ID. You'll need the policy ID to add package
+<1> Make a note of the policy ID. You'll need the policy ID to add integration
 policies.
 
 [discrete]
-[[create-package-policy-api]]
-== Create package policy
+[[create-integration-policy-api]]
+== Create integration policy
 
-To create a package policy (also known as an integration policy) and add it an 
+To create a integration policy (also known as an package policy) and add it an 
 existing agent policy, call `POST /api/fleet/package_policies`.
 
-This cURL example creates a package policy for Nginx and adds it to the
+This cURL example creates a integration policy for Nginx and adds it to the
 agent policy created in the previous example:
 
 [source,shell]
@@ -111,7 +111,7 @@ curl --request POST \
   "policy_id": "2b820230-4b54-11ed-b107-4bfe66d759e4",
   "package": {
     "name": "nginx",
-    "version": "1.5.1"
+    "version": "1.5.0"
   },
   "inputs": {
     "nginx-logfile": {
@@ -145,9 +145,9 @@ from the Dev Tools console.
 . Configure the integration settings and select which agent policy to use.
 . Click **Preview API request**.
 +
-If you're creating the package policy for a new agent policy, the preview
+If you're creating the integration policy for a new agent policy, the preview
 shows two requests: one to create the agent policy, and another to create the
-package policy.
+integration policy.
 
 . Click **Open in Console** and run the request (or requests).
 
@@ -155,6 +155,194 @@ package policy.
 integration, go to **Integrations**, select an {agent} integration, and click
 **API reference**.
 ****
+
+Example response (truncated for readability):
+
+[source,shell]
+----
+{
+   "item" : {
+      "created_at" : "2022-10-15T00:41:28.594Z",
+      "created_by" : "1282607447",
+      "enabled" : true,
+      "id" : "92f33e57-3165-4dcd-a1d5-f01c8ffdcbcd",
+      "inputs" : [
+         {
+            "enabled" : true,
+            "policy_template" : "nginx",
+            "streams" : [
+               {
+                  "compiled_stream" : {
+                     "exclude_files" : [
+                        ".gz$"
+                     ],
+                     "ignore_older" : "72h",
+                     "paths" : [
+                        "/var/log/nginx/access.log*"
+                     ],
+                     "processors" : [
+                        {
+                           "add_locale" : null
+                        }
+                     ],
+                     "tags" : [
+                        "test"
+                     ]
+                  },
+                  "data_stream" : {
+                     "dataset" : "nginx.access",
+                     "type" : "logs"
+                  },
+                  "enabled" : true,
+                  "id" : "logfile-nginx.access-92f33e57-3165-4dcd-a1d5-f01c8ffdcbcd",
+                  "release" : "ga",
+                  "vars" : {
+                     "ignore_older" : {
+                        "type" : "text",
+                        "value" : "72h"
+                     },
+                     "paths" : {
+                        "type" : "text",
+                        "value" : [
+                           "/var/log/nginx/access.log*"
+                        ]
+                     },
+                     "preserve_original_event" : {
+                        "type" : "bool",
+                        "value" : false
+                     },
+                     "processors" : {
+                        "type" : "yaml"
+                     },
+                     "tags" : {
+                        "type" : "text",
+                        "value" : [
+                           "test"
+                        ]
+                     }
+                  }
+               },
+               {
+                  "compiled_stream" : {
+                     "exclude_files" : [
+                        ".gz$"
+                     ],
+                     "ignore_older" : "72h",
+                     "multiline" : {
+                        "match" : "after",
+                        "negate" : true,
+                        "pattern" : "^\\d{4}\\/\\d{2}\\/\\d{2} "
+                     },
+                     "paths" : [
+                        "/var/log/nginx/error.log*"
+                     ],
+                     "processors" : [
+                        {
+                           "add_locale" : null
+                        }
+                     ],
+                     "tags" : [
+                        "test"
+                     ]
+                  },
+                  "data_stream" : {
+                     "dataset" : "nginx.error",
+                     "type" : "logs"
+                  },
+                  "enabled" : true,
+                  "id" : "logfile-nginx.error-92f33e57-3165-4dcd-a1d5-f01c8ffdcbcd",
+                  "release" : "ga",
+                  "vars" : {
+                     "ignore_older" : {
+                        "type" : "text",
+                        "value" : "72h"
+                     },
+                     "paths" : {
+                        "type" : "text",
+                        "value" : [
+                           "/var/log/nginx/error.log*"
+                        ]
+                     },
+                     "preserve_original_event" : {
+                        "type" : "bool",
+                        "value" : false
+                     },
+                     "processors" : {
+                        "type" : "yaml"
+                     },
+                     "tags" : {
+                        "type" : "text",
+                        "value" : [
+                           "test"
+                        ]
+                     }
+                  }
+               }
+            ],
+            "type" : "logfile"
+         },
+         ...
+         {
+            "enabled" : true,
+            "policy_template" : "nginx",
+            "streams" : [
+               {
+                  "compiled_stream" : {
+                     "hosts" : [
+                        "http://127.0.0.1:80"
+                     ],
+                     "metricsets" : [
+                        "stubstatus"
+                     ],
+                     "period" : "10s",
+                     "server_status_path" : "/nginx_status"
+                  },
+                  "data_stream" : {
+                     "dataset" : "nginx.stubstatus",
+                     "type" : "metrics"
+                  },
+                  "enabled" : true,
+                  "id" : "nginx/metrics-nginx.stubstatus-92f33e57-3165-4dcd-a1d5-f01c8ffdcbcd",
+                  "release" : "ga",
+                  "vars" : {
+                     "period" : {
+                        "type" : "text",
+                        "value" : "10s"
+                     },
+                     "server_status_path" : {
+                        "type" : "text",
+                        "value" : "/nginx_status"
+                     }
+                  }
+               }
+            ],
+            "type" : "nginx/metrics",
+            "vars" : {
+               "hosts" : {
+                  "type" : "text",
+                  "value" : [
+                     "http://127.0.0.1:80"
+                  ]
+               }
+            }
+         }
+      ],
+      "name" : "nginx-demo-123",
+      "namespace" : "default",
+      "package" : {
+         "name" : "nginx",
+         "title" : "Nginx",
+         "version" : "1.5.0"
+      },
+      "policy_id" : "d625b2e0-4c21-11ed-9426-31f0877749b7",
+      "revision" : 1,
+      "updated_at" : "2022-10-15T00:41:28.594Z",
+      "updated_by" : "1282607447",
+      "version" : "WzI5OTAsMV0="
+   }
+}
+----
+
 
 [discrete]
 [[get-enrollment-token-api]]
