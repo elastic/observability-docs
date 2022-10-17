@@ -16,7 +16,7 @@ The Elastic Serverless Forwarder is an Amazon Web Services ({aws}) Lambda functi
 [discrete]
 [[aws-serverless-forwarder-overview]]
 = Overview
-The Elastic Serverless Forwarder can forward {aws} data to self-managed or cloud-hosted Elastic environments. It supports the following inputs:
+The Elastic Serverless Forwarder can forward {aws} data to cloud-hosted or self-managed Elastic environments. It supports the following inputs:
 
 - Amazon S3 (via SQS event notifications)
 - Amazon Kinesis Data Streams
@@ -28,7 +28,7 @@ image::aws-serverless-lambda-flow.png[AWS Lambda flow]
 
 The Lambda deployment sets up an SQS _Continuing queue_ automatically to ensure no data is lost. By default a Lambda function runs for a maximum of 15 minutes so it's possible that {aws} may exit the function in the middle of processing event data. The function handles this scenario by keeping track of the last offset processed. When the queue triggers a new function invocation, Lambda will start where the last function run stopped.
 
-Any exception or fail scenarios related to ingestion are handled by Lambda gracefully using a _Replay queue_. Data in the replay queue is stored as individual events. Lambda keeps track of any failed events and writes them to a replay queue that can then be consumed by adding an additional SQS trigger via Lambda.
+Lambda uses a _Replay queue_ to handle any ingestion-related exception or fail scenarios. Data in the replay queue is stored as individual events. Lambda keeps track of any failed events and writes them to a replay queue that can then be consumed by adding an additional SQS trigger via Lambda.
 
 You can use the <<sample-s3-config-file,config.yaml>> file to configure the service for each input type, including information such as SQS queue ARN and {es} connection details. You can create multiple input sections within the configuration file to map different inputs to specific log types.
 
@@ -44,7 +44,7 @@ The Lambda function also supports writing directly to an index, alias, or custom
 
 The Lambda function can ingest logs contained in an Amazon Simple Storage Service (S3) bucket through a Simple Queue Service (SQS) notification (`s3:ObjectCreated`) and send them to Elastic. The SQS queue serves as a trigger for the Lambda function. When a new log file is written to an S3 bucket and meets the criteria (as configured including prefix/suffix), an SQS notification is generated that triggers the Lambda function.
 
-You can set up separate SQS queues for each type of log (`aws.vpcflow`, `aws.cloudtrail`, `aws.waf`, for example). A single configuration file can have many input sections, pointing to different SQS queues that match specific log types. The `es_datastream_name` parameter in the config file is optional. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs.
+You can set up separate SQS queues for each type of log (for example, `aws.vpcflow`, `aws.cloudtrail`, `aws.waf`). A single configuration file can have many input sections, pointing to different SQS queues that match specific log types. The `es_datastream_name` parameter in the config file is optional. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs.
 
 For other log types, you can optionally set the `es_datastream_name` value in the configuration file according to the naming convention of the {es} data stream and integration.  If the `es_datastream_name` is not specified, and the log cannot be matched with any of the above {aws} services, then the dataset will be set to `generic` and the namespace set to `default`, pointing to the data stream name `logs-generic-default`.
 
@@ -56,7 +56,7 @@ NOTE: You must set a visibility timeout of `910` seconds for any SQS queues you 
 [[aws-serverless-forwarder-inputs-kinesis]]
 == Amazon Kinesis Data Streams
 
-The Lambda function can ingest logs contained in the payload of a Kinesis Data Stream record and send them to Elastic. The Kinesis Data Stream serves as a trigger for the Lambda function. When a new record gets written to a Kinesis Data Stream, the Lambda function triggers.
+The Lambda function can ingest logs contained in the payload of a Kinesis Data Stream record and send them to Elastic. The Kinesis Data Stream serves as a trigger for the Lambda function. When a new record gets written to a Kinesis Data Stream, it triggers the Lambda function.
 
 You can set up separate Kinesis Data Streams for each type of log. The `es_datastream_name` parameter in the config file is mandatory. If this value is set to an {es} data stream, the type of log must be correctly defined with configuration parameters. A single configuration file can have many input sections, pointing to different data streams that match specific log types.
 
