@@ -41,25 +41,28 @@ Review important information about the {fleet} and {agent} 8.5.0 release.
 //{agent}::
 //* add info
 
-//[discrete]
-//[[breaking-changes-8.5.0]]
-//=== Breaking changes
+[discrete]
+[[breaking-changes-8.5.0]]
+=== Breaking changes
 
-//Breaking changes can prevent your application from optimal operation and
-//performance. Before you upgrade, review the breaking changes, then mitigate the
-//impact to your application.
+Breaking changes can prevent your application from optimal operation and
+performance. Before you upgrade, review the breaking changes, then mitigate the
+impact to your application.
 
-//[discrete]
-//[[breaking-PR#]]
-//.Short description
-//[%collapsible]
-//====
-//*Details* +
-//<Describe new behavior.> For more information, refer to {kibana-pull}PR[#PR].
+[discrete]
+[[breaking-PR1709]]
+.{fleet-server} now rejects certificates signed with SHA-1
+[%collapsible]
+====
+*Details* +
+With the upgrade to Go 1.18, {fleet-server} now rejects certificates signed with
+SHA-1. For more information, refer to the Go 1.18
+https://tip.golang.org/doc/go1.18#sha1[release notes].
 
-//*Impact* +
-//<Describe how users should mitigate the change.> For more information, refer to {fleet-guide}/fleet-server.html[Fleet Server].
-//====
+*Impact* +
+Do not sign certificates with SHA-1. If you are using old certificates signed
+with SHA-1, update them now.
+====
 
 //[discrete]
 //[[known-issues-8.5.0]]
@@ -95,34 +98,59 @@ Review important information about the {fleet} and {agent} 8.5.0 release.
 //{agent}::
 //* add info
 
-//[discrete]
-//[[new-features-8.5.0]]
-//=== New features
+[discrete]
+[[new-features-8.5.0]]
+=== New features
 
-//The 8.5.0 release adds the following new and notable features.
+The 8.5.0 release adds the following new and notable features.
 
-//{fleet}::
-//* add info
+{fleet}::
+* Adds agent activity flyout {kibana-pull}140510[#140510]
+* Adds a new event toggle to capture terminal output in endpoint {kibana-pull}139421[#139421]
+* Makes batch actions asynchronous {kibana-pull}138870[#138870]
+* Adds ability to tag integration assets {kibana-pull}137184[#137184]
+* Adds support for input only packages {kibana-pull}140035[#140035]
 
-//{agent}::
-//* add info
-
-//[discrete]
-//[[enhancements-8.5.0]]
-//=== Enhancements
-
-//{fleet}::
-//* add info
+{fleet-server}::
+* Log redacted config when config updates {fleet-server-issue}1626[#1626] {fleet-server-pull}1671[#1671]
 
 //{agent}::
 //* add info
 
-//[discrete]
-//[[bug-fixes-8.5.0]]
-//=== Bug fixes
+[discrete]
+[[enhancements-8.5.0]]
+=== Enhancements
 
-//{fleet}::
+{fleet}::
+* Adds toggle for experimental synthetic `_source` support in {fleet} data streams {kibana-pull}140132[#140132]
+* Enhances the package policy API to create or update a package policy API with a simplified way to define inputs {kibana-pull}139420[#139420]
+* Support new subscription and license fields {kibana-pull}137799[#137799]
+
+//{agent}::
 //* add info
+
+[discrete]
+[[bug-fixes-8.5.0]]
+=== Bug fixes
+
+{fleet}::
+* Refresh search results when clearing category filter {kibana-pull}142853[#142853]
+* Respect `default_field: false` when generating index settings {kibana-pull}142277[#142277]
+* Fixes repeated debug logs when bundled package directory does not exist {kibana-pull}141660[#141660]
+
+{fleet-server}::
+* Fixes a race condition between the unenroller goroutine and the main
+goroutine for the coordinator monitor {fleet-server-issue}1738[#1738]
+* Removes events from agent checkin body {fleet-server-issue}1774[#1774]
+* Improves authc debug logging {fleet-server-pull}1870[#1870]
+* Adds error detail to catch-all HTTP error response {fleet-server-pull}1854[#1854]
+* Fixes issue where errors were ignored when written to {es} {fleet-server-pull}1896[#1896]
+* Updates `apikey.cache_hit` log field name to match convention {fleet-server-pull}1900[#1900]
+* Custom server limits are no longer ignored when default limits are loaded {fleet-server-issue}1841[#1841] {fleet-server-pull}1912[#1912]
+//REVIEWERS: Is this correct? ^^ Was "LoadServerLimits will not overwrite specified limits when loading default/agent number specified values" which makes no sense to me.
+* Use separate rate limiters for internal and external API listeners {fleet-server-issue}1859[#1859] {fleet-server-pull}1904[#1904]
+//REVIEWERS: This ^^ description does not explain why this is important to users. Can we say something like: "Use separate rate limiters for internal and external API listeners to prevent Fleet Server from shutting down under load."
+* Fixes `fleet.migration.total` log key overlap {fleet-server-pull}1951[#1951]
 
 //{agent}::
 //* add info
