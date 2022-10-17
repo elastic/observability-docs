@@ -7,27 +7,159 @@
 <titleabbrev>Deploy</titleabbrev>
 ++++
 :keywords: serverless
-:description: Deploy the Elastic Serverless Forwarder using Kibana and Amazon's Serverless Application Repository (SAR).
+:description: Deploy the Elastic Serverless Forwarder using Kibana and the AWS Serverless Application Repository (SAR).
 
-To deploy Elastic Serverless Forwarder, you must perform the following two steps:
+To deploy Elastic Serverless Forwarder, you have to:
 
-. Add {aws} integration in {kib}.
-. Deploy function from {aws} SAR (Serverless Application Repository).
+* <<aws-serverless-forwarder-deploy-kibana>>
+* <<sample-s3-config-file>>
+* <<aws-serverless-forwarder-deploy-sar>>
+
+NOTE: This page describes the basic steps required to deploy Elastic Serverless Forwarder — for additional detail on configuration topics such as permissions and automatic routing, see <<configure-elastic-serverless-forwarder>>; for additional detail on parsing and enriching data, see <<aws-serverless-transform>>.
 
 [[aws-serverless-forwarder-deploy-kibana]]
-== Add {aws} integration in {kib}
+== Install {aws} integration assets in {kib}
 
 . Go to **Integrations** in {kib} and search for {aws} (or select the **{aws}** category to filter the list).
-. Click the {aws} integration, select **Settings** and click **Install {aws} assets** to install all the {aws} integration assets.
+. Click the {aws} integration, select **Settings** and click **Install {aws} assets** and confirm to install all the {aws} integration assets.
 
-Adding integrations from {kib} provides appropriate pre-built dashboards, ingest node configurations, and other assets that help you get the most out of the data you ingest. For more information, refer to the https://docs.elastic.co/en/integrations[Integrations documentation].
+[role="screenshot"]
+image::images/aws-serverless-forwarder-install-assets.png[Find and install AWS integration assets in {kib}]
 
-// add screenshot?
+Adding integrations from {kib} provides appropriate pre-built dashboards, ingest node configurations, and other assets that help you get the most out of the data you ingest. The integrations use https://www.elastic.co/guide/en/elasticsearch/reference/current/data-streams.html[data streams] with specific https://www.elastic.co/blog/an-introduction-to-the-elastic-data-stream-naming-scheme[naming conventions] that provide you with more granular controls and flexibility on managing data ingestion.
+
+[[sample-s3-config-file]]
+== Create and upload `config.yaml` to S3 bucket
+
+Elastic Serverless Forwarder requires a `config.yaml` file to be uploaded to an S3 bucket and referenced by the `S3_CONFIG_FILE` environment variable.
+
+Save the following YAML content as `config.yaml` and edit as required before uploading to an S3 bucket. You should remove any inputs you are not using, and ensure you have entered the correct URLs and credentials as per the inline comments.
+
+[source, yaml]
+----
+
+inputs:
+  - type: "s3-sqs"
+    id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+  - type: "sqs"
+    id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+  - type: "kinesis-data-stream"
+    id: "arn:aws:kinesis:%REGION%:%ACCOUNT%:stream/%STREAMNAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+  - type: "cloudwatch-logs"
+    id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:*"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+  - type: "cloudwatch-logs"
+    id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:log-stream:%LOG_STREAM_NAME%"
+    outputs:
+      - type: "elasticsearch"
+        args:
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          elasticsearch_url: "http(s)://domain.tld:port"
+          cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
+          # either api_key or username/password, api_key takes precedence
+          api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
+          username: "username"
+          password: "password"
+          es_datastream_name: "logs-generic-default"
+          batch_max_actions: 500
+          batch_max_bytes: 10485760
+----
+
+[[s3-config-file-fields]]
+=== Fields
+
+//convert to description list?
+
+`inputs.[]`:
+
+A list of inputs (i.e. triggers) for the Elastic Serverless Forwarder Lambda function.
+
+`inputs.[].type`:
+
+The type of trigger input (`cloudwatch-logs`, `kinesis-data-stream`, `sqs` and `s3-sqs` are currently supported).
+
+`inputs.[].id`:
+
+The ARN of the trigger input according to the type. Multiple input entries can have different unique ids with the same type.
+Inputs of type `cloudwatch-logs` accept both CloudWatch Logs Log Group and CloudWatch Logs Log Stream ARNs.
+
+`inputs.[].outputs`:
+
+A list of outputs (i.e. forwarding targets) for the Elastic Serverless Forwarder Lambda function. Only one output can be defined per type.
+
+`inputs.[].outputs.[].type`:
+
+The type of the forwarding target output (currently only `elasticsearch` supported).
+
+`inputs.[].outputs.[].args`:
+Custom init arguments for the specified forwarding target output.
+
+For `elasticsearch` the following arguments are supported:
+
+  * `args.elasticsearch_url`: URL of elasticsearch endpoint in the format `http(s)://domain.tld:port`. Mandatory when `args.cloud_id` is not provided. Will take precedence over `args.cloud_id` if both are defined.
+  * `args.cloud_id`: Cloud ID of elasticsearch endpoint. Mandatory when `args.elasticsearch_url` is not provided. Will be ignored if `args.elasticsearch_url` is defined as well.
+  * `args.username`: Username of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
+  * `args.password` Password of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
+  * `args.api_key`:  API key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will take precedence over `args.username`/`args.password` if both are defined.
+  * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your `config.yaml` file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
+  * `args.batch_max_actions`: Maximum number of actions to send in a single bulk request. Default value: 500.
+  * `args.batch_max_bytes`: Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
 
 [[aws-serverless-forwarder-deploy-sar]]
-== Deploy elastic-serverless-forwarder from SAR
+== Deploy `elastic-serverless-forwarder` from Serverless Application Repository
 
-There are several deployment methods available via {aws} SAR:
+There are several deployment methods available via the {aws} Serverless Application Repository:
 
 * <<aws-serverless-forwarder-deploy-console>>
 * <<aws-serverless-forwarder-deploy-cloudformation>>
@@ -46,14 +178,14 @@ There are several deployment methods available via {aws} SAR:
 image::images/aws-serverless-forwarder-create-function.png[Create Elastic Serverless Forwarder Lambda function within SAR]
 +
 . Complete the **Application settings** as follows:
-    * `ElasticServerlessForwarderS3ConfigFile` set the value of the S3 URL in the format `s3://bucket-name/config-file-name` to the configuration file for your deployment of Elastic Serverless Forwarder - this will populate the `S3_CONFIG_FILE` environment variable of the deployed Lambda.
-    * `ElasticServerlessForwarderSSMSecrets` add a comma delimited list of {aws} SSM Secrets ARNs referenced in the config yaml file (if any).
-    * `ElasticServerlessForwarderKMSKeys` add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets referenced in the config yaml file (if any).
-    * `ElasticServerlessForwarderSQSEvents` add a comma delimited list of Direct SQS queues ARNs to set as event triggers for the Lambda (if any).
-    * `ElasticServerlessForwarderS3SQSEvents` add a comma delimited list of S3 SQS Event Notifications ARNs to set as event triggers for the Lambda (if any).
-    * `ElasticServerlessForwarderKinesisEvents` add a comma delimited list of Kinesis Data Stream ARNs to set as event triggers for the Lambda (if any).
-    * `ElasticServerlessForwarderCloudWatchLogsEvents` add a comma delimited list of Cloudwatch Logs Log Groups ARNs to set subscription filters on the Lambda (if any).
-    * `ElasticServerlessForwarderS3Buckets` add a comma delimited list of S3 buckets ARNs that are sources for the S3 SQS Event Notifications (if any).
+    * `ElasticServerlessForwarderS3ConfigFile`: Set the value of the S3 URL in the format `s3://bucket-name/config-file-name` to the configuration file for your deployment of Elastic Serverless Forwarder. This will populate the `S3_CONFIG_FILE` environment variable of the deployed Lambda.
+    * `ElasticServerlessForwarderSSMSecrets`: Add a comma delimited list of {aws} SSM Secrets ARNs referenced in the `config.yaml` file (if any).
+    * `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets referenced in the `config.yaml` file (if any).
+    * `ElasticServerlessForwarderSQSEvents`: Add a comma delimited list of Direct SQS queues ARNs to set as event triggers for the Lambda (if any).
+    * `ElasticServerlessForwarderS3SQSEvents`: Add a comma delimited list of S3 SQS Event Notifications ARNs to set as event triggers for the Lambda (if any).
+    * `ElasticServerlessForwarderKinesisEvents`: Add a comma delimited list of Kinesis Data Stream ARNs to set as event triggers for the Lambda (if any).
+    * `ElasticServerlessForwarderCloudWatchLogsEvents`: Add a comma delimited list of Cloudwatch Logs log group ARNs to set subscription filters on the Lambda (if any).
+    * `ElasticServerlessForwarderS3Buckets`: Add a comma delimited list of S3 bucket ARNs that are sources for the S3 SQS Event Notifications (if any).
 . Click **Deploy** once your settings have been added.
 . On the Applications page for **serverlessrepo-elastic-serverless-forwarder**, click **Deployments**.
 . Refresh the **Deployment history** until you see the `Create complete` status update.
@@ -79,7 +211,7 @@ aws serverlessrepo list-application-versions --application-id arn:aws:serverless
 ----
 +
 
-. Save the following yaml content as `sar-application.yaml` and fill in the correct parameters:
+. Save the following YAML content as `sar-application.yaml` and fill in the correct parameters:
 +
 [source, yaml]
 ----

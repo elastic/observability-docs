@@ -31,35 +31,24 @@ arn:aws:iam::aws:policy/service-role/AWSLambdaSQSQueueExecutionRole
 
 In addition to these basic permissions, the following permissions are added when the function is created by the Cloudformation template of the function:
 
-* For SQS queue resources specified in the `SQS_CONTINUE_URL` and `SQS_REPLAY_URL` environment variables, the following action is allowed:
+* For SQS queue resources specified in the `SQS_CONTINUE_URL` and `SQS_REPLAY_URL` environment variables, the following action is allowed: `sqs:SendMessage`
 
-  `sqs:SendMessage`
+* For S3 bucket resources specified in the `S3_CONFIG_FILE` environment variable, the following action is allowed on the S3 buckets' config file object key: `s3:GetObject`
 
-* For S3 bucket resources specified in the `S3_CONFIG_FILE` environment variable, the following action is allowed on the S3 buckets' config file object key:
+* For every S3 bucket resource sending notifications to SQS queues, the following action is allowed on the S3 buckets: `s3:ListBucket`
 
-  `s3:GetObject`
+* For every S3 bucket resource sending notifications to SQS queues, the following action is allowed on the S3 buckets' keys: `s3:GetObject`
 
-* For every S3 bucket resource that SQS queues are receiving notifications from, the following action is allowed on the S3 buckets:
+* For every Secret Manager secret that you want to refer in the `config.yaml` file, the following action is allowed: `secretsmanager:GetSecretValue`
 
-  `s3:ListBucket`
-
-* For every S3 bucket resource that SQS queues are receiving notifications from, the following action is allowed on the S3 buckets' keys:
-
-  `s3:GetObject`
-
-* For every Secret Manager secret that you want to refer in the yaml configuration file, the following action is allowed
 // <!-- more detail? cf. on what above-->:
 
-  `secretsmanager:GetSecretValue`
+* Excepting the default key used to encrypt your Secret Manager secrets with, the following action is allowed for every decrypt key: `kms:Decrypt`
 
-* For every decrypt key that's not the default one used to encrypt your Secret Manager secrets with, the following action is allowed:
+* If any CloudWatch Logs log groups are set as Lambda inputs, the following actions are allowed for the resource:
 
-  `kms:Decrypt`
-
-* If any CloudWatch Logs log groups are set as Lambda inputs, the following actions are allowed for the resource
-
-  `arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:*:*`:
-  `logs:DescribeLogGroups`
+** `arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:*:*`
+** `logs:DescribeLogGroups`
 
 [[lambda-policy-cloudwatch]]
 === Lambda resource-based policy for CloudWatch Logs subscription filter input
@@ -197,7 +186,7 @@ For `elasticsearch` the following arguments are supported:
   * `args.username`: Username of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
   * `args.password` Password of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
   * `args.api_key`:  API key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will take precedence over `args.username`/`args.password` if both are defined.
-  * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your config.yaml file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
+  * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your `config.yaml` file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
   * `args.batch_max_actions`: Maximum number of actions to send in a single bulk request. Default value: 500.
   * `args.batch_max_bytes`: Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
 
@@ -246,7 +235,7 @@ arn:aws:secretsmanager:AWS_REGION:AWS_ACCOUNT_ID:secret:SECRET_NAME:SECRET_KEY
 * Secrets from different regions are supported, but the only version currently retrieved for a secret is `AWSCURRENT`.
 * You cannot use the same secret for both plain text and key/value pairs.
 * Secrets are case-sensitive.
-* Any configuration error or typo in the config file will be ignored (or exceptions raised) and secrets will not be retrieved.
+* Any configuration error or typo in the `config.yaml` file will be ignored (or exceptions raised) and secrets will not be retrieved.
 * Keys must exist in the {aws} Secrets Manager.
 * Empty values for a given key are not allowed.
 ====
