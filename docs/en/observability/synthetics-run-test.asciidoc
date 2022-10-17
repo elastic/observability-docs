@@ -11,27 +11,6 @@ You can either:
 * <<synthetics-inline-journey>> to create a new monitor in the {uptime-app} UI
 and copy simple journey code into its configuration.
 
-image::images/uptime-set-up-app-browser.png[Diagram showing which pieces of software are used to configure monitors, create monitors, and view results when using the Uptime App. Described in detail in Diagram text description.]
-
-[[diagram-text-app-browser]]
-[%collapsible]
-.Diagram text description
-====
-. There are two possible places to start:
-    * *Project monitors*: Create a **Project using @elastic/synthetics** using `elastic-synthetics init`.
-      Then, add and configure journeys.
-    * *Inline monitors*: Configure a new monitor in **{kib}**, specifically the **{observability} {uptime-app}**.
-. How you create monitors depends on which option you chose above.
-    * If you started with _Project monitors_, you'll use the Elastic Synthetics library's **`push` command**.
-      This requires an **API key and {kib} URL** to authenticate.
-    * If you started with _Inline monitors_, you'll use the {kib} UI to select the location while configuring the monitor.
-. There are two types of locations you can use.
-    * **Global managed infrastructure**
-    * **Private locations**
-. The monitor will send data to **{es}** regardless of its location.
-. **{kib}**, specifically the **{observability} {uptime-app}**, reads results from {es} and visualizes those results in the UI.
-====
-
 [discrete]
 [[synthetic-monitor-choose-project]]
 == Use project monitors
@@ -46,7 +25,11 @@ Besides saving time through automation, a GitOps workflow allows users to take a
 
 Project monitors also allow teams to configure individual monitors through code. Instead of using {kib} to update a monitor's schedule, for example, you can set a `schedule` directly in your journey. That `schedule` will be used when pushing the journey to {kib}.
 
+image::images/create-browser-monitor-project-monitors.png[]
+
+[discrete]
 [[monitor-use]]
+=== Configure monitor
 When you're ready to create a browser monitor to run your tests, you'll need to set a few configuration options:
 
 // lint ignore params
@@ -97,7 +80,7 @@ include::synthetics-configuration.asciidoc[tag=monitor-config-options]
 
 [discrete]
 [[monitor-create]]
-== Create monitor in {kib}
+=== Create monitor
 
 // tag::push-instructions[]
 After setting configuration options, use the `push` command to create monitors and start collecting data.
@@ -136,7 +119,9 @@ An inline browser monitor is a single journey that you manage individually.
 Inline monitors can be quick to set up, but can also be more difficult to manage.
 Each inline browser monitor can contain only _one_ journey, which must be maintained directly in {kib} or in your {heartbeat} configuration file.
 
-If you depend on external packages, have your journeys next to your code repository, or wish to embed and manage more than one journey from a single monitor configuration, see <<monitor-use>> instead.
+image::images/create-browser-monitor-ui.png[]
+
+If you depend on external packages, have your journeys next to your code repository, or wish to embed and manage more than one journey from a single monitor configuration, see <<synthetic-monitor-choose-project>> instead.
 
 When writing an inline browser monitor, the `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope. 
 

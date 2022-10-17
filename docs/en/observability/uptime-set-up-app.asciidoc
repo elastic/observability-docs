@@ -3,13 +3,7 @@
 
 beta[]
 
-There are two ways you can create and manage lightweight monitors in the {uptime-app}:
-
-* Using the *{uptime-app}*'s Monitor Management UI.
-* Using YAML files to create lightweight *project monitors*.
-
-And, you can run those monitors on <<global-managed-testing-infrastructure,Elastic's global managed testing infrastructure>>
-or <<private-locations,create a private location>> to run monitors from your own premises.
+// intro
 
 ++++
 <div class="imageblock">
@@ -47,7 +41,9 @@ NOTE: To use the Elastic Synthetics integration, see the https://www.elastic.co/
 == Prerequisites
 
 You can now create monitors directly in the {uptime-app}.
-To try this beta functionality, first you need to enable Monitor Management:
+
+// tag::prereq[]
+To try this beta functionality, first you need to enable Monitor Management in {kib}:
 
 . Go to **{observability}** -> **Uptime**.
 . Click **Monitor Management**.
@@ -62,66 +58,42 @@ the following privileges:
 * {ref}/security-privileges.html#privileges-list-indices[Indices privileges] for `synthetics-*`: `view_index_metadata`, `create_doc`, `auto_configure`
 ======
 
-[discrete]
-[[global-managed-testing-infrastructure]]
-== Use global managed testing infrastructure
+You should also decide where you want to run the monitors before getting started:
 
-With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
-locations without having to manage your own infrastructure.
-Elastic takes care of software updates and capacity planning for you.
+* *Elastic's global managed testing infrastructure*:
+  With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
+  locations without having to manage your own infrastructure.
+  Elastic takes care of software updates and capacity planning for you.
+* *Private locations*:
+  to run monitors from your own premises
+// end::prereq[]
 
-You can configure and create monitors using the {uptime-app} UI or alongside
-project monitors using the Elastic Synthetics library.
-
---
-include::tab-widgets/uptime-monitoring/uptime-set-up-widget.asciidoc[]
---
-
-[discrete]
 [[private-locations]]
-== Run a monitor on private locations
-
---
-include::synthetics-private-location.asciidoc[tag=intro]
---
+*If you would like to run monitors on a private location*, you will need to
+create a private location before continuing. For step-by-step instructions,
+see <<synthetics-private-location>>.
 
 [discrete]
-[[private-locations-fleet-agent]]
-=== Set up {fleet-server} and {agent}
+[[uptime-set-up-app-add-monitors]]
+== Add monitors
 
-include::synthetics-private-location.asciidoc[tag=fleet-agent]
+include::tab-widgets/uptime-monitoring/uptime-set-up-content.asciidoc[tag=ui]
 
-[discrete]
-[[private-location-docker]]
-=== Pull the Docker image
+[NOTE]
+.Private locations
+====
+After you <<synthetics-private-location>> you'll see your new private location
+in the list of _Monitor locations_. The new private location will have the
+_Location name_ you provided and a "Private" badge next to its name.
 
-include::synthetics-private-location.asciidoc[tag=docker]
-
-[discrete]
-[[private-locations-connect]]
-=== Connect to the {stack}
-
-include::synthetics-private-location.asciidoc[tag=connect]
-
-[discrete]
-[[private-locations-add]]
-=== Add a private location
-
-include::synthetics-private-location.asciidoc[tag=add]
-
-[discrete]
-[[private-locations-config]]
-=== Configure the monitor
-
-After you have successfully added a new private location, close the _Private locations_ flyout to return
-to the Monitor Management page. From there:
-
-include::tab-widgets/uptime-monitoring/uptime-set-up-private-widget.asciidoc[]
+image::images/private-locations-monitor-locations.png[Screenshot of Monitor locations options including a private location]
+====
 
 [discrete]
 [[uptime-app-view-in-kibana]]
 == View in {kib}
 
+// tag::next[]
 {agent} is now sending synthetic monitoring data to the {stack}.
 Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
 set up alerts in case of test failures, and more.
@@ -129,3 +101,4 @@ set up alerts in case of test failures, and more.
 If a test does fail (shown as `down` in the {uptime-app}), you'll be able to view the step script that failed,
 any errors, and a stack trace.
 See <<synthetics-visualize>> for more information.
+// end::next[]
