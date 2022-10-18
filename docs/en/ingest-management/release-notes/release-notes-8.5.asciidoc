@@ -57,29 +57,31 @@ with SHA-1, update them now.
 The 8.5.0 release adds the following new and notable features.
 
 {fleet}::
-* Adds agent activity flyout {kibana-pull}140510[#140510]
-* Adds a new event toggle to capture terminal output in endpoint {kibana-pull}139421[#139421]
-* Makes batch actions asynchronous {kibana-pull}138870[#138870]
-* Adds ability to tag integration assets {kibana-pull}137184[#137184]
-* Adds support for input only packages {kibana-pull}140035[#140035]
+* Add agent activity flyout {kibana-pull}140510[#140510]
+* Add a new event toggle to capture terminal output in endpoint {kibana-pull}139421[#139421]
+* Make batch actions asynchronous {kibana-pull}138870[#138870]
+* Add ability to tag integration assets {kibana-pull}137184[#137184]
+* Add support for input-only packages {kibana-pull}140035[#140035]
 
 {fleet-server}::
 * Log redacted config when config updates {fleet-server-issue}1626[#1626] {fleet-server-pull}1671[#1671]
 
-//{agent}::
-//* add info
+{agent}::
+* Add `lumberjack` input type to the {filebeat} spec {agent-pull}959[#959]
+* Add support for hints-based autodiscovery in Kubernetes provider {agent-pull}698[#698]
+* Improve logging during upgrades {agent-pull}1287[#1287]
 
 [discrete]
 [[enhancements-8.5.0]]
 === Enhancements
 
 {fleet}::
-* Adds toggle for experimental synthetic `_source` support in {fleet} data streams {kibana-pull}140132[#140132]
-* Enhances the package policy API to create or update a package policy API with a simplified way to define inputs {kibana-pull}139420[#139420]
+* Add toggle for experimental synthetic `_source` support in {fleet} data streams {kibana-pull}140132[#140132]
+* Enhance the package policy API to create or update a package policy API with a simplified way to define inputs {kibana-pull}139420[#139420]
 * Support new subscription and license fields {kibana-pull}137799[#137799]
 
-//{agent}::
-//* add info
+{agent}::
+* Improve logging of {fleet} check-in errors and only report the local state as degraded after two consecutive failed check-ins {agent-issue}1154[#1154] {agent-pull}1477[#1477]
 
 [discrete]
 [[bug-fixes-8.5.0]]
@@ -88,24 +90,27 @@ The 8.5.0 release adds the following new and notable features.
 {fleet}::
 * Refresh search results when clearing category filter {kibana-pull}142853[#142853]
 * Respect `default_field: false` when generating index settings {kibana-pull}142277[#142277]
-* Fixes repeated debug logs when bundled package directory does not exist {kibana-pull}141660[#141660]
+* Fix repeated debug logs when bundled package directory does not exist {kibana-pull}141660[#141660]
 
 {fleet-server}::
-* Fixes a race condition between the unenroller goroutine and the main
+* Fix a race condition between the unenroller goroutine and the main
 goroutine for the coordinator monitor {fleet-server-issue}1738[#1738]
-* Removes events from agent checkin body {fleet-server-issue}1774[#1774]
-* Improves authc debug logging {fleet-server-pull}1870[#1870]
-* Adds error detail to catch-all HTTP error response {fleet-server-pull}1854[#1854]
-* Fixes issue where errors were ignored when written to {es} {fleet-server-pull}1896[#1896]
-* Updates `apikey.cache_hit` log field name to match convention {fleet-server-pull}1900[#1900]
+* Remove events from agent check-in body {fleet-server-issue}1774[#1774]
+* Improve authc debug logging {fleet-server-pull}1870[#1870]
+* Add error detail to catch-all HTTP error response {fleet-server-pull}1854[#1854]
+* Fix issue where errors were ignored when written to {es} {fleet-server-pull}1896[#1896]
+* Update `apikey.cache_hit` log field name to match convention {fleet-server-pull}1900[#1900]
 * Custom server limits are no longer ignored when default limits are loaded {fleet-server-issue}1841[#1841] {fleet-server-pull}1912[#1912]
-//REVIEWERS: Is this correct? ^^ Was "LoadServerLimits will not overwrite specified limits when loading default/agent number specified values" which makes no sense to me.
 * Use separate rate limiters for internal and external API listeners {fleet-server-issue}1859[#1859] {fleet-server-pull}1904[#1904]
-//REVIEWERS: This ^^ description does not explain why this is important to users. Can we say something like: "Use separate rate limiters for internal and external API listeners to prevent Fleet Server from shutting down under load."
-* Fixes `fleet.migration.total` log key overlap {fleet-server-pull}1951[#1951]
+* Fix `fleet.migration.total` log key overlap {fleet-server-pull}1951[#1951]
 
-//{agent}::
-//* add info
+{agent}::
+* Fix a panic caused by a race condition when installing the {agent} {agent-issue}806[#806] {agent-pull}823[#823]
+* Use the {agent} configuration directory as the root of the `inputs.d` folder {agent-issue}663[#663] {agent-pull}840[#840]
+* Fix unintended reset of source URI when downloading components {agent-pull}1252[#1252]
+* Create separate status reporter for local-only events so that degraded {fleet} check-ins no longer affect health of successful {fleet} check-ins {agent-issue}1157[#1157] {agent-pull}1285[#1285]
+* Add success log message after previous check-in failures {agent-pull}1327[#1327]
+* Fix docker provider `add_fields` processors {agent-pull}1420[#1420]
 
 // end 8.5.0 relnotes
 
