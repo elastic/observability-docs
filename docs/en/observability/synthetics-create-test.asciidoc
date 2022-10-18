@@ -247,6 +247,34 @@ afterAll(({ params }) => {
 ----
 
 [discrete]
+[[synthetics-import-packages]]
+== Import NPM packages
+
+You can import and use other NPM packages inside journey code.
+Refer to the example below using the external NPM package `is-positive`:
+
+[source,js]
+----
+import { journey, step, monitor, expect } from '@elastic/synthetics';
+import isPositive from 'is-positive';
+
+journey('bundle test', ({ page, params }) => {
+  step('check if positive', () => {
+    expect(isPositive(4)).toBe(true);
+  });
+});
+----
+
+When you <<synthetic-run-tests,create a monitor>> from a journey that uses
+external NPM packages, those packages will be bundled along with the
+journey code when the `push` command is invoked.
+
+However there are some limitations when using external packages:
+	
+* Bundled journeys after compression should not be more than 800 Kilobytes.
+* Native node modules will not work as expected due to platform inconsistency.
+
+[discrete]
 [[synthetics-sample-test]]
 == Sample synthetic test
 
