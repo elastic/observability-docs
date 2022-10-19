@@ -207,6 +207,8 @@ with the corresponding https://playwright.dev/docs/api/class-browsercontext[`Bro
 via <<elastic-synthetics-command, `--playwright-options`>> or in the
 <<synthetics-configuration, `synthetics.config.ts` file>>.
 
+For a full example that shows how to use the `request` object, refer to the https://github.com/elastic/synthetics-demo/blob/main/advanced-examples/journeys/api-requests.journey.ts[Elastic Synthetics demo repository].
+
 NOTE: The `request` parameter is not intended to be used for writing pure API tests. Instead, it is a way to support
 writing plain HTTP requests in service of a browser-based test.
 
@@ -243,6 +245,34 @@ afterAll(({ params }) => {
   // Actions to take
 });
 ----
+
+[discrete]
+[[synthetics-import-packages]]
+== Import NPM packages
+
+You can import and use other NPM packages inside journey code.
+Refer to the example below using the external NPM package `is-positive`:
+
+[source,js]
+----
+import { journey, step, monitor, expect } from '@elastic/synthetics';
+import isPositive from 'is-positive';
+
+journey('bundle test', ({ page, params }) => {
+  step('check if positive', () => {
+    expect(isPositive(4)).toBe(true);
+  });
+});
+----
+
+When you <<synthetic-run-tests,create a monitor>> from a journey that uses
+external NPM packages, those packages will be bundled along with the
+journey code when the `push` command is invoked.
+
+However there are some limitations when using external packages:
+	
+* Bundled journeys after compression should not be more than 800 Kilobytes.
+* Native node modules will not work as expected due to platform inconsistency.
 
 [discrete]
 [[synthetics-sample-test]]
