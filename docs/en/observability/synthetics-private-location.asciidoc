@@ -6,24 +6,23 @@ IMPORTANT: This is only relevant to monitors created using the {uptime-app} or p
 beta[]
 
 Private locations allow you to run monitors from your own premises.
-	
-Before you create a private location, you need to set up {fleet}, and connect an agent to it.
-Then, you can create a private location in the {uptime-app} UI.
-Now, whenever you access the monitor creation page, this private location will appear in the list
-of locations to which you can deploy monitors.
+Before running a monitor on a private location, you'll need to:
 
-TIP: You can run the same monitor both from Elastic's global managed infrastructure _and_ your private locations to compare results.
+* <<synthetics-private-location-fleet-agent>>.
+* <<synthetics-private-location-connect,Connect {fleet} to the {stack}>> and enroll an {agent} in {fleet}.
+// The agent will be used to run the monitors in your private locations.
+* <<synthetics-private-location-add>> in the {uptime-app} UI.
 
 [discrete]
 [[synthetics-private-location-fleet-agent]]
 == Set up {fleet-server} and {agent}
 
-To deploy monitors to private locations, you must complete two prerequisites:
+Start by setting up {fleet-server} and {agent}:
 
 * *Set up {fleet-server}*: If you are using {ecloud}, {fleet-server} will already be provided and you can skip this step.
-To learn more, see <<set-up-fleet,{fleet}>>.
-* **Create an agent policy**:  For more information on agent policies and creating them,
-see {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
+To learn more, refer to <<set-up-fleet,{fleet}>>.
+* **Create an agent policy**: For more information on agent policies and creating them,
+refer to {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
 
 [IMPORTANT]
 ====
@@ -32,17 +31,19 @@ Do _not_ run the same agent policy on multiple agents being used for private loc
 end up with duplicate or missing tests. Private locations do not currently load balance tests across
 multiple {agents}.
 
-If there are multiple monitors that need to run from a private location at the same time, up to two
-will run concurrently on that {agent}. The other monitors will wait until a previous test has
-finished running and there is capacity, up to a maximum of two at the same time.
+Any private location can only run two tests simultaneously.
+As a result, if more than two tests are assigned to a particular private location, there may be a small delay to run them.
 ====
 
 [discrete]
+[[synthetics-private-location-connect]]
+== Connect to the {stack}
+
+After setting up {fleet}, you'll connect {fleet} to the {stack}
+and enroll an {agent} in {fleet}.
+
 [[synthetics-private-location-docker]]
-== Pull the Docker image
-
 Elastic provides Docker images that you can use to run {fleet} and an {agent} more easily.
-
 For monitors running on private locations, you _must_ use the `elastic-agent-complete`
 Docker image to create a self-hosted {agent} node. The standard {ecloud} or self-hosted
 {agent} will not work.
@@ -64,14 +65,13 @@ docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
 
 endif::[]
 
-[discrete]
-[[synthetics-private-location-connect]]
-== Connect to the {stack}
+Then enroll and run an {agent}.
+You'll need an enrollment token and the URL of the {fleet-server}. 
+You can use the default enrollment token for your policy or create new policies
+and {fleet-guide}/fleet-enrollment-tokens.html[enrollment tokens] as needed.
 
-Before you can create a private location, you must connect {fleet} to the {stack}.
-Then, to enroll an {agent} to {fleet}, you'll need an enrollment token and the URL of the {fleet-server}.
-
-You can use the default enrollment token for your policy or create new policies and enrollment tokens as needed.
+For more information on running {agent} with Docker, refer to
+{fleet-guide}/elastic-agent-container.html[Run {agent} in a container].
 
 ifeval::["{release-state}"=="unreleased"]
 
@@ -100,18 +100,17 @@ The `elastic-agent-complete` Docker image requires additional capabilities to op
 `NET_RAW` and `SETUID` are enabled on the container.
 ====
 
-For more information on running {agent} with Docker, see
-{fleet-guide}/elastic-agent-container.html[Run {agent} in a container] and
-{fleet-guide}/fleet-enrollment-tokens.html[{fleet} enrollment tokens].
-
+[NOTE]
+====
 You may need to set other environment variables.
 Learn how in {fleet-guide}/agent-environment-variables.html[{agent} environment variables guide].
+====
 
 [discrete]
 [[synthetics-private-location-add]]
 == Add a private location
 
-To add a new private location:
+When the {agent} is running you can add a new private location in {kib}:
 
 . Go to **{observability}** -> **Uptime**.
 . Click **Monitor Management**.
@@ -124,7 +123,9 @@ To add a new private location:
 [[synthetics-private-location-next]]
 == Next steps
 
-Now you will can add monitors to your private location in the {uptime-app} or using the Elastic Synthetics libray's `push` method. 
+Now you can add monitors to your private location in the {uptime-app} or using the Elastic Synthetics library's `push` method:
 
 * For lightweight monitors, refer to <<uptime-set-up-choose-agent>> or <<uptime-set-up-choose-project-monitors>>.
 * For browser monitors, refer to <<synthetic-run-tests>>.
+
+TIP: You can run the same monitor both from Elastic's global managed infrastructure _and_ your private locations to compare results.
