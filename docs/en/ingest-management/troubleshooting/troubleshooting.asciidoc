@@ -349,6 +349,28 @@ Note that the diagnostics bundle is intended for debugging purposes only, its st
 IMPORTANT: The configuration files in the archive may have credentials in *plain text*.
 These will need to be manually redacted before the archive is shared.
 
+<<<<<<< HEAD
+=======
+The diagnostics command is also able to collect `pprof` data in the archive if the `--pprof` flag is added when collecting the diagnostic.
+
+To collect the `pprof` data:
+- Enable/add `agent.monitoring.pprof.enabled: true` to `elastic-agent.yml`
+- Restart the {agent}
+
+If `agent.monitoring.http.buffer.enabled` is set to `true`, the archive will also contain recent metrics from the {agent} and {beats} processes.
+
+[source,shell]
+----
+elastic-agent diagnostics collect --pprof
+----
+
+By default this command takes a little more than 30 seconds to run because it collects 30 seconds trace and profile information from the {agent} and all underlying {beats}.
+To change the duration of the trace and profile data, set the `--pprof-duration` flag.
+
+To set the timeout value for the collection command, use the `--timeout` flag. The timeout defaults to 30 seconds + `pprof-duration`.
+Use this flag to increase the timeout if the diagnostics command times out before creating the archive.
+
+>>>>>>> 3778b149 ([DOCS] Diagnostic Pprof (#2289))
 [discrete]
 [[not-installing-no-logs-in-terminal]]
 == Some problems occur so early that insufficient logging is available
