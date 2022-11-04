@@ -77,10 +77,6 @@ The following table illustrates the {fleet} user actions available to different 
 |{y}
 |{n}
 
-|<<apply-a-policy,Add, remove, upgrade, or reassign agents to a policy>>
-|{y}
-|{n}
-
 |<<policy-edit-or-delete,Edit or delete an integration>>
 |{y}
 |{n}
@@ -104,16 +100,19 @@ The following table illustrates the {fleet} user actions available to different 
 
 To manage your {agent}s and the data they collect, create a new policy:
 
-. Log in to {kib} and go to *Management* > *{fleet}*.
+. In {kib}, go to **Management -> {fleet}**.
 
-. In {fleet}, click *Agent policies* > *Create agent policy*.
+. In {fleet}, click **Agent policies -> Create agent policy**.
 Name your policy. All other fields are optional and can be modified later.
 By default, each policy enables the _system_ integration, which collects system information and metrics.
 +
 [role="screenshot"]
 image::images/create-agent-policy.png[{fleet} in {kib}]
-
-. Click *Create agent policy*.
++
+. Create the agent policy:
+* To use the UI, click **Create agent policy**.
+* beta[] To use the {fleet} API, click **Preview API request** and run the
+request.
 
 Also see <<create-a-policy-no-ui>>.
 
@@ -124,19 +123,33 @@ Also see <<create-a-policy-no-ui>>.
 Policies consist of one or more integrations.
 To add a new integration to a policy:
 
-. In {fleet}, click *Agent policies*.
+. In {fleet}, click **Agent policies**.
 Click the name of the policy you want to add an integration to.
 
-. Click *Add integration*.
+. Click **Add integration**.
 
 . Search for and select an integration.
-Name the integration, and add any required configuration variables.
 
-. Click *Save integration* to save the integration policy as a part of the larger {agent} {policy}.
-{fleet} will distribute this new {policy} to all {agent}s that are enrolled with it.
+. Click **Add <Integration>**.
+
+. Name the integration and add any required configuration variables.
++
+NOTE: Integration policy names must be globally unique across all agent
+policies.
+
+. Save the integration policy as part of the larger {agent} {policy}:
++
+--
+* To use the UI, click **Save and continue**.
+* beta[] To use the {fleet} API, click **Preview API request** and run the
+request.
+--
+
+{fleet} distributes this new {policy} to all {agent}s that are enrolled in the
+{agent} {policy}.
 
 After the {policy} has finished applying, the selected integration will be running on the host
-and communicating with the {agent}!
+and communicating with the {agent}.
 
 [discrete]
 [[apply-a-policy]]
@@ -145,7 +158,7 @@ and communicating with the {agent}!
 You can apply policies to one or more {agent}s.
 To apply a policy:
 
-. In {fleet}, click *Agents*.
+. In {fleet}, click **Agents**.
 
 . Select the {agent}s you want to assign to the new policy.
 +
@@ -159,7 +172,7 @@ Unable to select multiple agents? Confirm that your subscription level supports
 selective agent policy reassignment in {fleet}. For more information, refer to
 {subscriptions}[{stack} subscriptions].
 
-. Select the {agent} policy from the dropdown list, and click *Assign policy*.
+. Select the {agent} policy from the dropdown list, and click **Assign policy**.
 
 The {agent} status indicator and {agent} logs indicate that the policy is being applied.
 It may take a few minutes for the policy change to complete before the {agent} status updates to "Healthy".
@@ -171,11 +184,11 @@ It may take a few minutes for the policy change to complete before the {agent} s
 Integrations can easily be reconfigured or deleted.
 To edit or delete an integration policy:
 
-. In {fleet}, click *Agent policies*.
+. In {fleet}, click **Agent policies**.
 Click the name of the policy you want to edit or delete.
 
 . Search or scroll to a specific integration.
-Open the *Actions* menu and select *Edit integration* or *Delete integration*.
+Open the **Actions** menu and select **Edit integration** or **Delete integration**.
 +
 Editing or deleting an integration is permanent and cannot be undone.
 If you make a mistake, you can always re-configure or re-add an integration.
@@ -188,14 +201,14 @@ Any saved changes are immediately distributed and applied to all {agent}s enroll
 
 Policy definitions are stored in a plain-text YAML file that can be downloaded or copied to another policy:
 
-. In {fleet}, click *Agent policies*.
+. In {fleet}, click **Agent policies**.
 Click the name of the policy you want to copy or download.
 
-. To copy a policy, click *Actions* > *Copy policy*.
+. To copy a policy, click **Actions -> Copy policy**.
 Name the new policy, and provide a description.
 The exact policy definition is copied to the new policy.
 +
-Alternatively, view and download the policy definition by clicking *Actions* > *View policy*.
+Alternatively, view and download the policy definition by clicking **Actions -> View policy**.
 
 [discrete]
 [[policy-main-settings]]
@@ -204,12 +217,12 @@ Alternatively, view and download the policy definition by clicking *Actions* > *
 You can change high-level configurations like a policy's name, description, default namespace,
 and agent monitoring status as necessary:
 
-. In {fleet}, click *Agent policies*.
+. In {fleet}, click **Agent policies**.
 Click the name of the policy you want to edit or delete.
 
-. Click the *Settings* tab, make changes, and click *Save changes*
+. Click the **Settings** tab, make changes, and click **Save changes**
 +
-Alternatively, click *Delete policy* to delete the policy.
+Alternatively, click **Delete policy** to delete the policy.
 Existing data is not deleted.
 Any agents assigned to a policy must be unenrolled or assigned to a different policy before a policy can be deleted.
 
@@ -221,14 +234,14 @@ Assuming your {subscriptions}[{stack} subscription level] supports per-policy
 outputs, you can change the output of a policy to send data to a different
 output.
 
-. In {fleet}, click *Settings* and view the list of available outputs.
-If necessary, click *Add output* to add a new output with the settings you
+. In {fleet}, click **Settings** and view the list of available outputs.
+If necessary, click **Add output** to add a new output with the settings you
 require. For more information, refer to <<output-settings>>.
 
-. Click *Agent policies*.
-Click the name of the policy you want to change, then click *Settings*.
+. Click **Agent policies**.
+Click the name of the policy you want to change, then click **Settings**.
 
-. Set *Output for integrations* and (optionally) *Output for agent monitoring*
+. Set **Output for integrations** and (optionally) **Output for agent monitoring**
 to use a different output, for example, {ls}. You might need to scroll down to
 see these options.
 +

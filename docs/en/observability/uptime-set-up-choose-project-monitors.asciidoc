@@ -1,0 +1,95 @@
+[[uptime-set-up-choose-project-monitors]]
+= Use project monitors
+
+beta[]
+
+To create lightweight monitors using project monitors,
+you'll configure monitors in an external Node.js project and
+use the `@elastic/synthetics` library’s `push` command to create monitors in {kib}.
+
+image:images/uptime-set-up-project-monitors.png[]
+
+// add text description
+
+This is one of <<uptime-set-up,three approaches>> you can use to set up a lightweight monitor.
+
+[discrete]
+[[uptime-set-up-prereq-project-monitors]]
+== Prerequisites
+
+// tag::prereq[]
+To try this beta functionality, first you need to enable Monitor Management in {kib}:
+
+. Go to **{observability}** -> **Uptime**.
+. Click **Monitor Management**.
+. Review the terms and conditions and click **Enable** to start using Monitor Management.
+
+[IMPORTANT]
+======
+To enable Monitor Management, you must be logged into {kib} as a user with
+the following privileges:
+
+* {ref}/security-privileges.html#privileges-list-cluster[Cluster privileges]: `monitor`, `read_ilm`, `read_pipeline`, and at least one of `manage_own_api_key`, `manage_security`, or `manage_api_key`
+* {ref}/security-privileges.html#privileges-list-indices[Indices privileges] for `synthetics-*`: `view_index_metadata`, `create_doc`, `auto_configure`
+======
+
+You should also decide where you want to run the monitors before getting started:
+
+* *Elastic's global managed testing infrastructure*:
+  With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
+  locations without having to manage your own infrastructure.
+  Elastic takes care of software updates and capacity planning for you.
+* *Private locations*: Private locations allow you to run monitors from your own premises.
+  To use private locations will must create a private location before continuing.
+  For step-by-step instructions, refer to <<synthetics-private-location>>.
+// end::prereq[]
+
+[discrete]
+[[uptime-set-up-project-monitors-add]]
+== Add monitors
+
+To use a YAML file and the Elastic Synthetics library to add a
+lightweight monitor:
+
+. You'll need a project using `@elastic/synthetics`. You can use an existing project where you manage browser monitors, or you can create a new project using `elastic-synthetics init`.
+. Add one or more `.yml` files to the project.
+. Configure monitors in the `.yml` files. For example:
+
+```yml
+heartbeat.monitors:
+- type: http
+  id: elastic-http
+  name: Elastic HTTP check
+  urls: ["https://elastic.co"]
+  schedule: "@every 60s"
+  tags: ["org:elastic"]
+- type: tcp
+  id: elastic-tcp
+  name: Elastic TCP check
+  hosts: ["elastic.co"]
+  schedule: "@every 60s"
+  tags: ["org:elastic"]
+```
+
+[IMPORTANT]
+====
+*This functionality is still in beta and not all {heartbeat} configuration options are supported.* If you attempt to push a project monitor with a configuration option that is not supported, the push will fail with an error.
+====
+
+include::synthetics-run-test.asciidoc[tag=push-instructions]
+
+[NOTE]
+====
+If you've <<synthetics-private-location,added a private location>>,
+you can `push` to that private location.
+
+To list available private locations,
+run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>>
+with the {kib} URL for the deployment from which to fetch available locations.
+====
+
+[discrete]
+[[uptime-app-view-in-kibana-project]]
+== View in {kib}
+
+include::uptime-set-up-app.asciidoc[tag=next]
