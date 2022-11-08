@@ -11,23 +11,58 @@ The `inputs` section of the `elastic-agent.yml` file specifies how {agent}
 locates and processes input data.
 
 By default {agent} collects system metrics, such as CPU, memory, network, and
-file system metrics, and sends them to the default output. For example:
+file system metrics, and sends them to the default output. For example, to define the datastream for `cpu` metrics, this is the configuration:
+
 
 [source,yaml]
--------------------------------------------------------------------------------------
-inputs:
-  - type: system/metrics
-    data_stream.namespace: default
-    use_output: default
-    streams:
-      - metricset: cpu
-        data_stream.dataset: system.cpu
-      - metricset: memory
-        data_stream.dataset: system.memory
-      - metricset: network
-        data_stream.dataset: system.network
-      - metricset: filesystem
-        data_stream.dataset: system.filesystem
--------------------------------------------------------------------------------------
+-----------------------------------------------------------------------
+- name: system-metrics
+  type: system/metrics
+  use_output: default
+  meta:
+    package:
+      name: system
+      version: 0.10.9
+  data_stream:
+    namespace: default
+  streams:
+    - data_stream:
+        dataset: system.cpu
+        type: metrics
+      metricsets:
+        - cpu
+      period: 10s
+      cpu.metrics:
+        - percentages
+        - normalized_percentages
+-----------------------------------------------------------------------
 
-If `use_output` is not specified, the `default` output is used.
+Each input can have several fields:
+
+[horizontal]
+`name`:: User defined name for the input.
+
+`type`:: A generic type describing the data.
+
+`use_output`::
+The name of the `output` to use. If not specified, `default` will be used.
+
+`meta.package`:: Package specification.
+
+`data_stream`::
+
+`namespace`:::
+A user defined namespace.
+`dataset`:::
+A user defined dataset. It can contain anything that makes sense to signify the source of the data.
+`type`:::
+The type of the data stream.
+
+`metricsets`::
+Enabled module metricsets.
++
+In the {metricbeat-ref}/metricbeat-module-system.html[System module] there are several options. The `cpu` is just one of them. Its fields can be configured.
+
+
+
+
