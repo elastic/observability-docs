@@ -1,0 +1,84 @@
+[[synthetics-project-monitors]]
+// lint ignore params
+= Working with project monitors
+
+++++
+<titleabbrev>Working with project monitors</titleabbrev>
+++++
+
+beta[]
+
+Projects are the most powerful and sophisticated way to configure synthetic monitors in the Elastic Stack. Projects let you define your infrastructure as code, more commonly known as IaaC or git-ops. With project monitors you organize your YAML configuration and Javascript/Typescript defined monitors on the filesystem, use Git for version control, and deploy via a CLI tool, usually executed on a CI/CD platform.
+
+
+== Getting started
+
+Working with projects requires working with the Elastic Synthetics CLI tool, which
+can be invoked via the `npx @elastic/synthetics` command. Before getting started
+you'll need to install Node.js; the `npx` command is provided by node, downloading
+the `@elastic/synthetics` NPM module if not yet available on your system.
+
+Run `npx @elastic/synthetics -h` to display the help menu and confirm your
+system is setup correctly
+
+It is highly recommended to use an https://cloud.elastic.co/[Elastic Cloud] deployment with this tutorial.
+If you wish to use a self-managed deployment, please read the <<synthetics-private-location>> docs first, and setup a private location with Fleet before proceeding.
+
+We'll start by creating our first project, run the command below to create a new 
+project named `projects-test` in the current directory.
+
+`npx @elastic/synthetics init projects-test`
+
+Then, follow the prompts on screen to setup the correct default variables for your project.
+When complete, set the `SYNTHETICS_API_KEY` environment variable in your terminal, which is used
+for authentication with your Elastic Stack. You will most likely want to set this permanently. 
+This is done differently for https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7.2#saving-changes-to-environment-variables[Powershell] and https://unix.stackexchange.com/a/117470[Bash].
+
+Let's pause for a moment and examine the key files and directories inside your project. 
+
+* `journeys` contains the `.yaml`, `.ts` and `.js` files defining your monitors.
+* `synthetics.config.ts` contains settings for your project
+* `package.json` contains NPM settings for your project. Learn more in the https://docs.npmjs.com/about-packages-and-modules[NPM documentation].
+* `.github` contains sample Github actions workflow files for use with Github Actions.
+
+While inside our project directory we can do two things with the `npx @elastic/synthetics` command:
+
+* Run browser based monitors defined in `.ts` and `.js` files)
+* Push configurations to 
+
+Let's try running the example journeys in the `journeys` folder by executing the following command.
+
+`npx @elastic/synthetics journeys`
+
+Will run the browser journeys locally.
+
+Next, let's try pushing our journeys to our Elastic deployment by running the following command
+from inside your project.
+
+`npx @elastic/synthetics push`
+
+Now, visit the Uptime UI in Kibana, you should see your newly pushed monitors running, and their
+config settings visible under the 'Monitor Management' section.
+
+You've now setup a project, run monitors locally, and pushed them remotely to an Elastic Stack instance.
+
+== Recommended workflow
+
+Now that you have a working project, let's cover operationalizing it. You'll want to version control all
+files in git. If your project is not already in a version controlled directory add it now, and push it to
+your git host.
+
+While it can be convenient, especially when setting up a new project, to run the `push` command directly
+from your workstation, it's generally considered inadvisable to do so in a production environment. 
+Our recommended best practice is to:
+
+1. Develop and test changes locally
+2. Create a pull request for all config changes
+3. Have your CI service automatically very the PR by running `npx @elastic/synthetics .`
+4. Have a human approve the pull request
+5. Merge the pull request
+6. Have your CI service automatically deploy the change by running `npx @elastic/synthetics push` after merge.
+
+Given the considerable differences in CI systems and Git hosts the implementation of these steps is
+mostly left as an exercise to the reader. We do include a sample Github configuration in the `.github` 
+folder in your generated project.
