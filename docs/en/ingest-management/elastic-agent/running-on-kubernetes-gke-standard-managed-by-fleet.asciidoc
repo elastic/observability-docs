@@ -41,40 +41,6 @@ Generally `kube-state-metrics` runs a `Deployment` and is accessible via a servi
 service within the cluster.
 
 [discrete]
-== Kubernetes deploy manifests
-
-With {fleet}, each agent enrolls in a policy defined in {kib} and stored in
-{es}. The policy specifies how to collect observability data from the services
-to be monitored. The {agent} connects to a trusted {fleet-server} instance
-to retrieve the policy and report agent events.
-
-We recommend using {fleet} management because it makes the management and
-upgrade of agents' integrations considerably easier.
-
-On Kubernetes, we suggest deploying {agent} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
-to ensure that there is a running instance on each node of the cluster.
-These instances are used to retrieve metrics from the host, such as system metrics, container stats,
-and metrics from all the services running on top of Kubernetes.
-
-In addition, one of the Pods in the DaemonSet will constantly hold a _leader lock_ which makes it responsible for
-handling cluster-wide monitoring.
-Find more information about leader election configuration options at <<kubernetes_leaderelection-provider, leader election provider>>.
-This instance is used to retrieve metrics that are unique for the whole
-cluster, such as Kubernetes events or
-https://github.com/kubernetes/kube-state-metrics[kube-state-metrics].
-
-
-Default namespace of deployment is `kube-system` . To change
-the namespace, modify the manifest file.
-
-To download the manifest file, run:
-
-["source", "sh", subs="attributes"]
-------------------------------------------------
-curl -L -O https://raw.githubusercontent.com/elastic/elastic-agent/{branch}/deploy/kubernetes/elastic-agent-managed-kubernetes.yaml
-------------------------------------------------
-
-[discrete]
 == Configure a Fleet policy
 
 In order for the Agents to enable the proper inputs, they need to be enrolled to the proper policy.
@@ -86,6 +52,14 @@ the https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration].
 
 [discrete]
 == Enroll Elastic Agent to Fleet
+
+With {fleet}, each agent enrolls in a policy defined in {kib} and stored in
+{es}. The policy specifies how to collect observability data from the services
+to be monitored. The {agent} connects to a trusted {fleet-server} instance
+to retrieve the policy and report agent events.
+
+We recommend using {fleet} management because it makes the management and
+upgrade of agents' integrations considerably easier.
 
 {agent} is enrolled to a running {fleet-server} using `FLEET_URL` parameter.
 The `FLEET_ENROLLMENT_TOKEN` parameter is used to connect {agent} to a
@@ -124,9 +98,31 @@ Refer to <<agent-environment-variables>> for all available options.
 ****
 ====
 
-
 [discrete]
-== Deploy
+== Deploy kubernetes manifests
+
+On Kubernetes, we suggest deploying {agent} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+to ensure that there is a running instance on each node of the cluster.
+These instances are used to retrieve metrics from the host, such as system metrics, container stats,
+and metrics from all the services running on top of Kubernetes.
+
+In addition, one of the Pods in the DaemonSet will constantly hold a _leader lock_ which makes it responsible for
+handling cluster-wide monitoring.
+Find more information about leader election configuration options at <<kubernetes_leaderelection-provider, leader election provider>>.
+This instance is used to retrieve metrics that are unique for the whole
+cluster, such as Kubernetes events or
+https://github.com/kubernetes/kube-state-metrics[kube-state-metrics].
+
+
+Default namespace of deployment is `kube-system` . To change
+the namespace, modify the manifest file.
+
+To download the manifest file, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+curl -L -O https://raw.githubusercontent.com/elastic/elastic-agent/{branch}/deploy/kubernetes/elastic-agent-managed-kubernetes.yaml
+------------------------------------------------
 
 To deploy {agent} on Kubernetes, run:
 
