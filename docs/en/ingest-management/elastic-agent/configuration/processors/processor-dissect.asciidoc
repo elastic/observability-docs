@@ -59,6 +59,7 @@ and `?`.
 
 See <<conditions>> for a list of supported conditions.
 
+[discrete]
 [[dissect-example]]
 == Dissect example
 
@@ -74,14 +75,14 @@ For this example, imagine that an application generates the following messages:
 "789 - App02 - Database is refreshing tables"
 ----
 
-Use the `dissect` processor to split each message into two fields, for example,
-`service.name` and `service.status`:
+Use the `dissect` processor to split each message into three fields, for example, `service.pid`,
+`service.name`, and `service.status`:
 
 [source,yaml]
 ----
 processors:
   - dissect:
-      tokenizer: '"%{pid|integer} - %{service.name} - %{service.status}"'
+      tokenizer: '"%{service.pid|integer} - %{service.name} - %{service.status}"'
       field: "message"
       target_prefix: ""
 ----
