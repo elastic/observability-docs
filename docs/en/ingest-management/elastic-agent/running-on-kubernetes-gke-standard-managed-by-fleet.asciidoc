@@ -14,23 +14,31 @@ released, so no Docker image is currently available for this version.
 endif::[]
 
 [discrete]
+== Important Notes:
+
+On managed Kubernetes solutions like GKE, {agent} has no access several data sources. Find below the list of
+the non available data:
+
+1. Metrics from https://kubernetes.io/docs/concepts/overview/components/#control-plane-components[Kubernetes control plane]
+components are not available. Consequently metrics are not available for `kube-scheduler` and `kube-controller-manager`.
+In this regard, the respective dashboards will not be populated with data.
+2. Audit logs are available only on Kubernetes master nodes as well, hence cannot be collected by {agent}.
+
+Also note that the documentation page only applies to Standard GKE and not Autopilot. Autopilot support is a work in progress
+at the time of writing these docs.
+
+[discrete]
 == Prerequisites
 
 Kube-state-metrics is not deployed by default in Kubernetes GKE!
 
-Data_streams with the `state_` prefix require ` `kube-state-metrics` library to be present
+Data_streams with the `state_` prefix require `kube-state-metrics` to be present.
 
-. In order to install kube-state-metrics follow
-the instructions for its deployment are available https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[here].
+In order to install kube-state-metrics follow the instructions for its deployment are available
+https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[here].
 Generally `kube-state-metrics` runs a `Deployment` and is accessible via a service called `kube-state-metrics` on
 `kube-system` namespace, which will be the service to use in our configuration of agent
 service within the cluster.
-
-`Kube-state-metrics` is not deployed by default in Kubernetes GKE. In order to install `kube-state-metrics` follow
-the instructions for its deployment https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[here].
-Generally `kube-state-metrics` runs a `Deployment` and is accessible via a service called `kube-state-metrics` on
-`kube-system` namespace, which will be the service to use in our configuration.
-
 
 [discrete]
 == Kubernetes deploy manifests
@@ -41,9 +49,9 @@ to be monitored. The {agent} connects to a trusted {fleet-server} instance
 to retrieve the policy and report agent events.
 
 We recommend using {fleet} management because it makes the management and
-upgrade of agents considerably easier.
+upgrade of agents' integrations considerably easier.
 
-On Kubernetes, deploy {agent} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+On Kubernetes, we suggest deploying {agent} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
 to ensure that there is a running instance on each node of the cluster.
 These instances are used to retrieve metrics from the host, such as system metrics, container stats,
 and metrics from all the services running on top of Kubernetes.
@@ -67,7 +75,17 @@ curl -L -O https://raw.githubusercontent.com/elastic/elastic-agent/{branch}/depl
 ------------------------------------------------
 
 [discrete]
-== Settings
+== Configure a Fleet policy
+
+In order for the Agents to enable the proper inputs, they need to be enrolled to the proper policy.
+For achieving Kubernetes observability, one need to create a policy and enable the Kubernetes integration.
+
+Refer to <<create-a-policy>> to learn how to enable
+the https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration].
+
+
+[discrete]
+== Enroll Elastic Agent to Fleet
 
 {agent} is enrolled to a running {fleet-server} using `FLEET_URL` parameter.
 The `FLEET_ENROLLMENT_TOKEN` parameter is used to connect {agent} to a
@@ -83,17 +101,7 @@ change the following parameters in the manifest file:
   value: "https://fleet-server_url:port"
 - name: FLEET_ENROLLMENT_TOKEN
   value: "token"
-- name: FLEET_SERVER_POLICY_ID
-  value: "fleet-server-policy" <1>
-- name: KIBANA_HOST
-  value: ""
-- name: KIBANA_FLEET_USERNAME
-  value: ""
-- name: KIBANA_FLEET_PASSWORD
-  value: ""
 ------------------------------------------------
-<1> To learn how to create a policy, refer <<create-a-policy-no-ui>>.
-
 
 // Begin collapsed section
 [%collapsible]
@@ -109,13 +117,6 @@ include::configuration/env/shared-env.asciidoc[tag=fleet-url]
 
 include::configuration/env/shared-env.asciidoc[tag=fleet-enrollment-token]
 
-include::configuration/env/shared-env.asciidoc[tag=fleet-server-policy-id]
-
-include::configuration/env/shared-env.asciidoc[tag=kibana-host]
-
-include::configuration/env/shared-env.asciidoc[tag=kibana-fleet-username]
-
-include::configuration/env/shared-env.asciidoc[tag=kibana-fleet-password]
 |===
 
 Refer to <<agent-environment-variables>> for all available options.
@@ -126,12 +127,6 @@ Refer to <<agent-environment-variables>> for all available options.
 
 [discrete]
 == Deploy
-
-If planning to deploy `state_*` datasets of Kubernetes package,
-https://github.com/kubernetes/kube-state-metrics#usage[kube-state-metrics] needs to be already deployed
-in the cluster. If `kube-state-metrics` is not already running, deploy it now (see the
-https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[Kubernetes
-deployment] docs).
 
 To deploy {agent} on Kubernetes, run:
 
@@ -155,7 +150,7 @@ NOTE: You might need to adjust https://kubernetes.io/docs/concepts/configuration
 in the `elastic-agent-managed-kubernetes.yaml` manifest. Container resource usage depends on the number of data streams
 and the environment size.
 
-{agent}s should be enrolled to {fleet} and users should be able to deploy the Kubernetes package accordingly.
+{agent}s should be enrolled to {fleet} and users should be able to see Kubernetes data flowing to Elastic accordingly.
 This can be confirmed in {kib} under {fleet}  / Agents section.
 
 
@@ -169,9 +164,7 @@ leader election strategy and instead run a dedicated, standalone {agent} instanc
 a Deployment in addition to the DaemonSet.
 
 [discrete]
-== Important Notes:
+== Verify installation
 
-On managed Kubernetes solutions like GKE, {agent} has no access to collect metrics from the https://kubernetes.io/docs/concepts/overview/components/#control-plane-components[Kubernetes control plane]
-components, like `kube-scheduler` and `kube-controller-manager`, that are scheduled on Kubernetes master nodes.
-
-Audit logs are available only on Kubernetes master nodes as well, hence cannot be collected by {agent}.
+After Agents are successfully enrolled one can navigate to the `[Metrics Kubernetes] Cluster Overview`
+dashboard and start exploring the incoming data as well build their own visualisations and dashboards.
