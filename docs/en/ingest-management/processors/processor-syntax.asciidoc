@@ -1,59 +1,58 @@
 [[processor-syntax]]
 = Processor syntax
 
-To define a processor, you specify the processor name, an optional condition,
-and a set of parameters:
+Specify a list of one or more processors:
+
+* When configuring processors in the standalone {agent} configuration file, put
+this list under the `processors` setting.
+* When using the Integrations UI in {kib}, put this list in the **Processors**
+field.
+
+Each processor begins with a dash (-) and includes the processor name, an
+optional <<conditions,condition>>, and a set of parameters to pass to the
+processor:
 
 [source,yaml]
 ------
-processors:
-  - <processor_name>:
-      when:
-        <condition>
-      <parameters>
+- <processor_name>:
+    when:
+      <condition>
+    <parameters>
 
-  - <processor_name>:
-      when:
-        <condition>
-      <parameters>
-
-...
+- <processor_name>:
+    when:
+      <condition>
+    <parameters>
 ------
 
-Where:
 
-* `<name>` is the processor name.
-* `<condition>` is an optional <<conditions,condition>>. If the
-condition is present, the action is executed only if the condition is
-fulfilled. If no condition is set, the action is always executed.
-* `<parameters>` is the list of parameters to pass to the processor.
+If a <<conditions,condition>> is specified, it must be met in order for the
+processor to run. If no condition is specified, the processor always runs.
 
-You can accomplish complex conditional processing by using the if-then-else
-processor configuration. This allows multiple processors to be executed based on
-a single condition.
+To accomplish complex conditional processing, use the if-then-else processor
+configuration. This configuration allows you to run multiple processors based on
+a single condition. For example:
 
 [source,yaml]
 ----
-processors:
-  - if:
-      <condition>
-    then: <1>
-      - <processor_name>:
-          <parameters>
-      - <processor_name>:
-          <parameters>
-      ...
-    else: <2>
-      - <processor_name>:
-          <parameters>
-      - <processor_name>:
-          <parameters>
-      ...
+- if:
+    <condition>
+  then: <1>
+    - <processor_name>:
+        <parameters>
+    - <processor_name>:
+        <parameters>
+    ...
+  else: <2>
+    - <processor_name>:
+        <parameters>
+    - <processor_name>:
+        <parameters>
 ----
 <1> `then` must contain a single processor or a list of one or more processors
-to execute when the condition evaluates to true.
+to execute when the condition is `true`.
 <2> `else` is optional. It can contain a single processor or a list of
-processors to execute when the conditional evaluates to false.
+processors to execute when the condition is `false`.
 
 [discrete]
 [[processor-conditions]]
@@ -80,7 +79,6 @@ The supported conditions are:
 * <<processor-condition-or, `or`>>
 * <<processor-condition-and, `and`>>
 * <<processor-condition-not, `not`>>
-
 
 [discrete]
 [[processor-condition-equals]]

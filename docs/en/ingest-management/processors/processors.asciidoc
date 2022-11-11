@@ -1,50 +1,51 @@
 [[elastic-agent-processor-configuration]]
 = Define processors
 
-//TODO: This whole section needs work. We need to describe processors more
-//generically now that they can be defined in several different places:
-//Beats, standalone agent config, integrations config, etc.
+//REVIEWERS: I think we need to define "processors." Here's my first shot.
+//I think we also need to make it clear that these are different from the
+//processors defined in ingest pipelines. Should we qualify the name?
 
-Use processors in the {agent} configuration to process events before they are
-sent to the configured output. {agent} supports processors that:
+Processors are lightweight processing components that you can use to parse,
+filter, transform, and enrich data at the source. For example, you can use
+processors to:
 
 * reduce the number of exported fields
 * enhance events with additional metadata
 * perform additional processing and decoding
+* sanitize data
 
 Each processor receives an event, applies a defined action to the event, and
 returns the event. If you define a list of processors, they are executed in the
-order they are defined in the {agent} configuration file.
+order they are defined.
 
 [source,yaml]
--------
+----
 event -> processor 1 -> event1 -> processor 2 -> event2 ...
--------
+----
 
 [discrete]
 [[where-valid]]
 == Where are processors valid?
 
-Processors are valid:
+The processors described in this section are valid:
 
-* At the top-level in the configuration. The processor is applied to all data
-collected by {agent}.
-* Under a specific input. The processor is applied to the data
-collected for that input. For example:
-+
-[source,yaml]
-------
-- type: <input_type>
-  processors:
-    - <processor_name>:
-        when:
-          <condition>
-        <parameters>
-...
-------
-+
-Similarly, you can define processors under the `input` section of the
-configuration.
+* Under integration settings in the Integrations UI in {kib}.
+* Under input configuration settings for standalone {agent}s. You can define
+processors that apply to all inputs defined in the configuration, or specific
+inputs.
+
+[discrete]
+[[how-different]]
+== How are {agent} processors different from {ls} plugins or ingest pipelines?
+
+Logstash plugins and ingest pipelines both require you to send data to another
+system for processing. Processors, on the other hand, allow you to apply
+processing logic at the source. This means that you can filter out data you
+don't want to send across the connection, and you can spread some of the
+processing load across host systems running on edge nodes.
+
+//REVIEWERS: I'm just spitballing here, but I think we need to describe the
+//difference. What is missing?
 
 include::processor-syntax.asciidoc[leveloffset=+1]
 
