@@ -7,18 +7,18 @@
 
 experimental[]
 
-The `decode_xml_wineventlog` processor decodes Windows Event Log data in XML format that is stored under the `field`
-key. It outputs the result into the `target_field`.
+The `decode_xml_wineventlog` processor decodes Windows Event Log data in XML
+format that is stored under the `field` key. It outputs the result into the
+`target_field`.
 
-The output fields will be the same as the
-{winlogbeat-ref}/exported-fields-winlog.html#_winlog[winlogbeat winlog fields].
+//REVIEWERS: This is winlogbeat specific. Should we cover it in the agent docs?
 
 The supported configuration options are:
 
 `field`:: (Required) Source field containing the XML. Defaults to `message`.
 
 `target_field`:: (Required) The field under which the decoded XML will be
-written. To merge the decoded XML fields into the root of the event specify
+written. To merge the decoded XML fields into the root of the event, specify
 `target_field` with an empty string (`target_field: ""`). The default value is
 `winlog`.
 
@@ -26,8 +26,9 @@ written. To merge the decoded XML fields into the root of the event specify
 exist in the event are overwritten by keys from the decoded XML object. The
 default value is `true`.
 
-`map_ecs_fields`:: (Optional) A boolean that specifies whether to map additional ECS
-fields when possible. Note that ECS field keys are placed outside of `target_field`. The default value is `true`.
+`map_ecs_fields`:: (Optional) A boolean that specifies whether to map additional
+ECS fields when possible. Note that ECS field keys are placed outside of
+`target_field`. The default value is `true`.
 
 `ignore_missing`:: (Optional) If `true` the processor will not return an error
 when a specified field does not exist. Defaults to `false`.
@@ -39,7 +40,6 @@ Example:
 
 [source,yaml]
 -------------------------------------------------------------------------------
-processors:
   - decode_xml_wineventlog:
       field: event.original
       target_field: winlog
