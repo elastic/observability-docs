@@ -1,0 +1,175 @@
+[[running-on-eks-managed-by-fleet]]
+= Run {agent} on Amazon EKS managed by {fleet}
+
+Use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
+retrieve cluster metrics.
+
+TIP: Running {ecloud} on Kubernetes? Refer to {eck-ref}/k8s-elastic-agent-fleet.html[Run {elastic-agent} on ECK].
+
+ifeval::["{release-state}"=="unreleased"]
+
+However, version {version} of {agent} has not yet been
+released, so no Docker image is currently available for this version.
+
+endif::[]
+
+[discrete]
+== Important Notes:
+
+On managed Kubernetes solutions like EKS, {agent} has no access to several data sources. Find below the list of the non available data:
+
+1. Metrics from https://kubernetes.io/docs/concepts/overview/components/#control-plane-components[Kubernetes control plane]
+components are not available. Consequently metrics are not available for `kube-scheduler` and `kube-controller-manager` components.
+In this regard, the respective **dashboards** will not be populated with data.
+2. **Audit logs** are available only on Kubernetes master nodes as well, hence cannot be collected by {agent}.
+3. On Amazon EKS `orchestrator.cluster.name` field is not populated. This field is used as a cluster selector for default Kubernetes dashboards, shipped with https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration].
++
+In this regard, you can use https://www.elastic.co/guide/en/beats/filebeat/current/add-fields.html[`add_fields` processor] to set `orchestrator.cluster.name` and `orchestrator.cluster.url` fields in order to add those fields for each https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration]'s component:
+[source,yaml]
+.Processors
+------------------------------------------------
+  - add_fields:
+      target: orchestrator.cluster
+      fields:
+        name: clusterName
+        url: clusterURL
+------------------------------------------------
+
+[discrete]
+== Prerequisites
+
+`kube-state-metrics` is not deployed by default in Amazon EKS!
+
+Data_streams with the `state_` prefix require `kube-state-metrics` to be present.
+
+In order to install `kube-state-metrics` follow the instructions for its deployment, that are available
+https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[here].
+Generally `kube-state-metrics` runs a `Deployment` and is accessible via a service called `kube-state-metrics` on
+`kube-system` namespace, which will be the service to use in agent configuration.
+
+[discrete]
+== 1. Configure a Fleet policy
+
+In order for the Agents to enable the proper inputs, they need to be enrolled to the proper policy.
+For achieving Kubernetes observability, one need to create a policy and enable the Kubernetes integration.
+
+Refer to <<create-a-policy>> to learn how to enable
+the https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration].
+
+[discrete]
+== 2. Enroll Elastic Agent to Fleet
+
+With {fleet}, each agent enrolls in a policy defined in {kib} and stored in
+{es}. The policy specifies how to collect observability data from the services
+to be monitored. The {agent} connects to a trusted {fleet-server} instance
+to retrieve the policy and report agent events.
+
+We recommend using {fleet} management because it makes the management and
+upgrade of agents' integrations considerably easier.
+
+{agent} is enrolled to a running {fleet-server} using `FLEET_URL` parameter.
+The `FLEET_ENROLLMENT_TOKEN` parameter is used to connect {agent} to a
+specific {agent} policy.
+To learn how to get an enrollment token from {fleet}, see <<fleet-enrollment-tokens>>.
+
+// forces a unique ID so that settings can be included multiple times on the same page
+:type: k8s-eks
+
+To specify different destination/credentials,
+change the following parameters in the manifest file:
+
+[source,yaml]
+------------------------------------------------
+- name: FLEET_URL
+  value: "https://fleet-server_url:port"
+- name: FLEET_ENROLLMENT_TOKEN
+  value: "token"
+------------------------------------------------
+
+// Begin collapsed section
+[%collapsible]
+.Configuration details
+====
+****
+
+[cols="2*<a"]
+|===
+| Settings | Description
+
+include::configuration/env/shared-env.asciidoc[tag=fleet-url]
+
+include::configuration/env/shared-env.asciidoc[tag=fleet-enrollment-token]
+
+|===
+
+Refer to <<agent-environment-variables>> for all available options.
+
+****
+====
+
+[discrete]
+== 3. Deploy kubernetes manifests
+
+On Kubernetes, we suggest deploying {agent} as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+to ensure that there is a running instance on each node of the cluster.
+These instances are used to retrieve metrics from the host, such as system metrics, container stats,
+and metrics from all the services running on top of Kubernetes.
+
+In addition, one of the Pods in the DaemonSet will constantly hold a _leader lock_ which makes it responsible for
+handling cluster-wide monitoring.
+Find more information about leader election configuration options at <<kubernetes_leaderelection-provider, leader election provider>>.
+This instance is used to retrieve metrics that are unique for the whole
+cluster, such as Kubernetes events or
+https://github.com/kubernetes/kube-state-metrics[kube-state-metrics].
+
+
+Default namespace of deployment is `kube-system` . To change
+the namespace, modify the manifest file.
+
+To download the manifest file, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+curl -L -O https://raw.githubusercontent.com/elastic/elastic-agent/{branch}/deploy/kubernetes/elastic-agent-managed-kubernetes.yaml
+------------------------------------------------
+
+To deploy {agent} on Kubernetes, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+kubectl create -f elastic-agent-managed-kubernetes.yaml
+------------------------------------------------
+
+To check the status, run:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+$ kubectl get pod -n kube-system -l app=elastic-agent
+
+NAME                  READY   STATUS    RESTARTS   AGE
+elastic-agent-hrjbg   1/1     Running   0          12m
+elastic-agent-olpsd   1/1     Running   0          12m
+------------------------------------------------
+
+NOTE: You might need to adjust https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[resource limits] of the elastic-agent container
+in the `elastic-agent-managed-kubernetes.yaml` manifest. Container resource usage depends on the number of data streams
+and the environment size.
+
+{agent}s should be enrolled to {fleet} and users should be able to see Kubernetes data flowing to Elastic accordingly.
+This can be confirmed in {kib} under {fleet}  / Agents section.
+
+
+[discrete]
+== Deploying {agent} to collect cluster-level metrics in large clusters
+
+The size and the number of nodes in a Kubernetes cluster can be fairly large at times,
+and in such cases the Pod that will be collecting cluster level metrics might face performance
+issues due to resources limitations. In this case users might consider to avoid using the
+leader election strategy and instead run a dedicated, standalone {agent} instance using
+a Deployment in addition to the DaemonSet.
+
+[discrete]
+== Verify installation
+
+After Agents are successfully enrolled one can navigate to Kibana under **Analytics** > **Dashboards** > `[Metrics Kubernetes] Cluster Overview`
+dashboard and start exploring the incoming data as well build their own visualisations and dashboards.
