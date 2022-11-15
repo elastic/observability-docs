@@ -21,7 +21,7 @@ makes sense to your use case or company.
 
 [discrete]
 [[data-streams-naming-scheme]]
-== Data stream naming scheme
+= Data stream naming scheme
 
 {agent} uses the Elastic data stream naming scheme to name data streams.
 The naming scheme splits data into different streams based on the following components:
@@ -78,14 +78,14 @@ All of the juicy details are available in {ref}/data-streams.html[{es} Data stre
 
 [discrete]
 [[data-streams-data-view]]
-== {data-sources-cap}
+= {data-sources-cap}
 
 When searching your data in {kib}, you can use a {kibana-ref}/data-views.html[{data-source}]
 to search across all or some of your data streams.
 
 [discrete]
 [[data-streams-index-templates]]
-== Index templates
+= Index templates
 
 An index template is a way to tell {es} how to configure an index when it is created.
 For data streams, the index template configures the stream's backing indices as they are created.
@@ -96,7 +96,7 @@ These templates are loaded when the integration is installed, and are used to co
 
 [discrete]
 [[data-streams-ilm]]
-== {ilm} ({ilm-init})
+= Index lifecycle management ({ilm-init})
 
 Use the {ref}/index-lifecycle-management.html[index lifecycle
 management] ({ilm-init}) feature in {es} to manage your {agent} data stream indices as they age.
@@ -112,7 +112,7 @@ Want to customize your index lifecycle management? See <<data-streams-ilm-tutori
 
 [discrete]
 [[data-streams-pipelines]]
-== Ingest pipelines
+= Ingest pipelines
 
 {agent} integration data streams ship with a default {ref}/ingest.html[ingest pipeline]
 that preprocesses and enriches data before indexing.
@@ -141,7 +141,7 @@ Specifically, apply the built-in `90-days-default` {ilm-init} policy so that dat
 
 [discrete]
 [[data-streams-ilm-one]]
-=== Step 1: View data streams
+== Step 1: View data streams
 
 The **Data Streams** view in {kib} shows you the data streams,
 index templates, and {ilm-init} policies associated with a given integration.
@@ -156,7 +156,7 @@ image::images/data-stream-info.png[Data streams info]
 
 [discrete]
 [[data-streams-ilm-two]]
-=== Step 2: Create a component template
+== Step 2: Create a component template
 
 For your changes to continue to be applied in future versions,
 you must put all custom index settings into a component template.
@@ -197,7 +197,7 @@ image::images/create-component-template.png[Create component template]
 
 [discrete]
 [[data-streams-ilm-three]]
-=== Step 3: Clone and modify the existing index template
+== Step 3: Clone and modify the existing index template
 
 Now that you've created a component template,
 you need to create an index template to apply the changes to the correct data stream.
@@ -223,7 +223,7 @@ image::images/create-index-template.png[Create index template]
 
 [discrete]
 [[data-streams-ilm-four]]
-=== Step 4: Roll over the data stream (optional)
+== Step 4: Roll over the data stream (optional)
 
 To confirm that the data stream is now using the new index template and {ilm-init} policy,
 you can either repeat <<data-streams-ilm-one,step one>>, or navigate to **{dev-tools-app}** and run the following:
@@ -274,7 +274,7 @@ like adding fields, obfuscate sensitive information, and more.
 
 [discrete]
 [[data-streams-pipeline-one]]
-=== Step 1: Create a custom ingest pipeline
+== Step 1: Create a custom ingest pipeline
 
 Create a custom ingest pipeline that will be called by the default integration pipeline.
 In this tutorial, we'll create a pipeline that adds a new field to our documents.
@@ -297,13 +297,13 @@ The {ref}/set-processor.html[Set processor] sets a document field and associates
 
 [discrete]
 [[data-streams-pipeline-two]]
-=== Step 2: Apply your ingest pipeline
+== Step 2: Apply your ingest pipeline
 
 Add a custom pipeline to an integration by calling it from the default ingest pipeline.
 The custom pipeline will run after the default pipeline but before the final pipeline.
 
 [discrete]
-==== Edit integration
+=== Edit integration
 
 Add a custom pipeline to an integration from the **Edit integration** workflow.
 The integration must already be configured and installed before a custom pipeline can be added.
@@ -315,7 +315,7 @@ To enter this workflow, do the following:
 . Select **Actions** -> **Edit integration**
 
 [discrete]
-==== Select a data stream
+=== Select a data stream
 
 Most integrations write to multiple data streams.
 You'll need to add the custom pipeline to each data stream individually.
@@ -328,7 +328,7 @@ For this tutorial, find the data stream configuration titled, **Collect metrics 
 This will take you to the **Create pipeline** workflow in **Stack management**.
 
 [discrete]
-==== Add the pipeline
+=== Add the pipeline
 
 Add the pipeline you created in step one.
 
@@ -341,7 +341,7 @@ Add the pipeline you created in step one.
 . Click **Create pipeline** to return to the **Edit integration** page.
 
 [discrete]
-==== Roll over the data stream (optional)
+=== Roll over the data stream (optional)
 
 For pipeline changes to take effect immediately, you must roll over the data stream.
 If you do not, the changes will not take effect until the next scheduled roll over.
@@ -356,13 +356,13 @@ The name follows the pattern `<type>-<dataset>@custom`:
 * Custom ingest pipeline designation: `@custom`
 
 [discrete]
-==== Repeat
+=== Repeat
 
 Add the custom ingest pipeline to any other data streams you wish to update.
 
 [discrete]
 [[data-streams-pipeline-three]]
-=== Step 3: Test the ingest pipeline (optional)
+== Step 3: Test the ingest pipeline (optional)
 
 Allow time for new data to be ingested before testing your pipeline.
 In a new window, open {kib} and navigate to **{kib} Dev tools**.
@@ -390,7 +390,7 @@ If your custom pipeline is working correctly, this query will return at least on
 
 [discrete]
 [[data-streams-pipeline-four]]
-=== Step 4: Add custom mappings
+== Step 4: Add custom mappings
 
 Now that a new field is being set in your {es} documents, you'll want to assign a new mapping for that field.
 Use the `@custom` component template to apply custom mappings to an integration data stream.
@@ -412,7 +412,7 @@ In the **Edit integration** workflow, do the following:
 
 [discrete]
 [[data-streams-pipeline-five]]
-=== Step 5: Test the custom mappings (optional)
+== Step 5: Test the custom mappings (optional)
 
 Allow time for new data to be ingested before testing your mappings.
 In a new window, open {kib} and navigate to **{kib} Dev tools**.
