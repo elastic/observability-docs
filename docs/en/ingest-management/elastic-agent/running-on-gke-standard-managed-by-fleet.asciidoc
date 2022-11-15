@@ -1,5 +1,5 @@
-[[running-on-eks-managed-by-fleet]]
-= Run {agent} on Amazon EKS managed by {fleet}
+[[running-on-gke-standard-managed-by-fleet]]
+= Run {agent} on GKE standard managed by {fleet}
 
 Use {agent} https://www.docker.elastic.co/r/beats/elastic-agent[Docker images] on Kubernetes to
 retrieve cluster metrics.
@@ -16,30 +16,22 @@ endif::[]
 [discrete]
 == Important Notes:
 
-On managed Kubernetes solutions like EKS, {agent} has no access to several data sources. Find below the list of the non available data:
+On managed Kubernetes solutions like GKE, {agent} has no access to several data sources. Find below the list of
+the non available data:
 
 1. Metrics from https://kubernetes.io/docs/concepts/overview/components/#control-plane-components[Kubernetes control plane]
-components are not available. Consequently metrics are not available for `kube-scheduler` and `kube-controller-manager` components.
+components are not available. Consequently metrics are not available for `kube-scheduler` and `kube-controller-manager`
+components.
 In this regard, the respective **dashboards** will not be populated with data.
 2. **Audit logs** are available only on Kubernetes master nodes as well, hence cannot be collected by {agent}.
-3. On Amazon EKS `orchestrator.cluster.name` and `orchestrator.cluster.url` fields are not populated. `orchestrator.cluster.name` field is used as a cluster selector for default Kubernetes dashboards, shipped with https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration].
-+
-In this regard, you can use https://www.elastic.co/guide/en/beats/filebeat/current/add-fields.html[`add_fields` processor] to add `orchestrator.cluster.name` and `orchestrator.cluster.url` fields for each https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration]'s component:
-+
-[source,yaml]
-.Processors configuration
-------------------------------------------------
-- add_fields:
-    target: orchestrator.cluster
-    fields:
-      name: clusterName
-      url: clusterURL
-------------------------------------------------
+
+Also note that the documentation page only applies to Standard GKE and not Autopilot. **Autopilot support** is a work in progress
+at the time of writing these docs.
 
 [discrete]
 == Prerequisites
 
-`kube-state-metrics` is not deployed by default in Amazon EKS!
+`kube-state-metrics` is not deployed by default in Kubernetes GKE!
 
 Data_streams with the `state_` prefix require `kube-state-metrics` to be present.
 
@@ -56,6 +48,7 @@ For achieving Kubernetes observability, one need to create a policy and enable t
 
 Refer to <<create-a-policy>> to learn how to enable
 the https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration].
+
 
 [discrete]
 == 2. Enroll Elastic Agent to Fleet
@@ -74,7 +67,7 @@ specific {agent} policy.
 To learn how to get an enrollment token from {fleet}, see <<fleet-enrollment-tokens>>.
 
 // forces a unique ID so that settings can be included multiple times on the same page
-:type: k8s-eks
+:type: k8s-gke
 
 To specify different destination/credentials,
 change the following parameters in the manifest file:
