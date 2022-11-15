@@ -50,7 +50,7 @@ In the https://s3.console.aws.amazon.com/s3[{aws} S3 console], click on *Create
 bucket*. Give the bucket a *name* and specify the *region* in which you want it
 deployed.
 
-image::creating-a-s3-bucket.png[S3 bucket creation]
+image::images/creating-a-s3-bucket.png[S3 bucket creation]
 
 [discrete]
 [[aws-step-two]]
@@ -74,7 +74,7 @@ queue whenever new logs are present in the S3 bucket. Go to the https://eu-centr
 =====
 Make sure that the queue is created in the same region as the S3 bucket.
 =====
-image::creating-a-queue.png[Queue Creation]
+image::images/creating-a-queue.png[Queue Creation]
 
 Create a standard SQS queue and edit the access policy by using a JSON object to
 define an advanced access policy:
@@ -121,11 +121,11 @@ created and click *Create event notification*.
 
 Specify that you want to send a notification on every object creation event.
 
-image::configure-event-notification.png[Event Notification Setting]
+image::images/configure-event-notification.png[Event Notification Setting]
 
 Set the destination as the SQS queue you just created.
 
-image::configure-notification-output.png[Event Notification Setting]
+image::images/configure-notification-output.png[Event Notification Setting]
 
 [discrete]
 [[aws-step-four]]
@@ -228,14 +228,14 @@ Start {filebeat} to collect the logs.
 
 Here's what we've achieved so far:
 
-image::one-bucket-archi.png[Current Architecture]
+image::images/one-bucket-archi.png[Current Architecture]
 
 Now, let's configure the `s3access` fileset.
 The goal here is to be able to monitor how people access the bucket we
 created. To do this, we'll create another bucket and another queue.
 The new architecture will look like this:
 
-image::two-buckets-archi.png[Architecture with Access Logging Enabled]
+image::images/two-buckets-archi.png[Architecture with Access Logging Enabled]
 
 Create a new S3 bucket and SQS queue. Ensure that the event notifications on the new bucket are enabled,
 and that it's sending notifications to the new queue.
@@ -244,7 +244,7 @@ Now go back to the first bucket, and go to *Properties* > *Server access
 logging*. Specify that you want to ship the access logs to the bucket you most recently
 created.
 
-image::Server-Access-Logging.png[Enabling Server Access Logging]
+image::images/Server-Access-Logging.png[Enabling Server Access Logging]
 
 Copy the URL of the queue you created. Edit the `modules.d/aws.yml`file with
 the following configurations.
@@ -291,7 +291,7 @@ Now that the logs are being shipped to {es} we can visualize them in
 {kib}. To see the raw logs, open the main menu in {kib}, then click
 **Logs**:
 
-image::EC2-logs.png[EC2 logs in the Logs UI]
+image::images/EC2-logs.png[EC2 logs in the Logs UI]
 
 // lint ignore filebeat
 The filesets we used in the previous steps also come with pre-built dashboards
@@ -299,7 +299,7 @@ that you can use to visualize the data. In {kib}, open the main menu and click
 **Dashboard**. Search for S3 and select the dashboard called:
 **[Filebeat AWS] S3 Server Access Log Overview**:
 
-image::S3-Server-Access-Logs.png[S3 Server Access Log Overview]
+image::images/S3-Server-Access-Logs.png[S3 Server Access Log Overview]
 
 This gives you an overview of how your S3 buckets are being accessed.
 
@@ -418,7 +418,7 @@ Now that the metrics are being streamed to {es} we can visualize them in
 {kib}. In {kib}, open the main menu and click
 **Infrastructure**. Make sure to show the **{aws}** source and the **EC2 Instances**:
 
-image::EC2-instances.png[Your EC2 Infrastructure]
+image::images/EC2-instances.png[Your EC2 Infrastructure]
 
 // lint ignore metricbeat
 The metricsets we used in the previous steps also comes with pre-built dashboard
@@ -426,10 +426,10 @@ that you can use to visualize the data. In {kib}, open the main menu and click
 **Dashboard**. Search for EC2 and select the dashboard called: **[Metricbeat
 AWS] EC2 Overview**:
 
-image::ec2-dashboard.png[EC2 Overview]
+image::images/ec2-dashboard.png[EC2 Overview]
 
 // lint ignore metricbeat
 If you want to track your billings on {aws}, you can also check the
 **[Metricbeat AWS] Billing Overview** dashboard:
 
-image::aws-billing.png[Billing Overview]
+image::images/aws-billing.png[Billing Overview]

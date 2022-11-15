@@ -1,187 +1,86 @@
 [[synthetic-run-tests]]
-= Create a browser monitor
+= Create a synthetic monitor
 
 beta[]
 
-Once you've <<synthetics-create-test, written a synthetic test>>,
-you can create a _monitor_ to run the test at a regular interval.
-You can either:
-
-* <<synthetic-monitor-choose-project>> to create monitors from an external source.
-* <<synthetics-inline-journey>> to create a new monitor by copying simple journey
-code into its configuration as an inline script.
+Once you've <<synthetics-create-test, written a synthetic test>>, you can create a _monitor_ to run the test at a regular interval.
 
 [discrete]
-[[browser-monitor-prereq]]
-== Prerequisites
+[[synthetic-monitor-choose]]
+== Choose an approach
 
-include::uptime-set-up-choose-project-monitors.asciidoc[tag=prereq]
+There are three ways to create a browser monitor: project monitors, {heartbeat}, and {agent}.
 
-// add text description
+[discrete]
+[[synthetic-monitor-choose-heartbeat]]
+=== {heartbeat}
+
+Use {heartbeat} to configure and create browser monitors similar to how you would set up any other type of monitor.
+
+// pros
+Read more about the benefits of this approach in <<uptime-set-up-choose-heartbeat, the setup guide's {heartbeat} section>>.
+
+// cons
+When using this approach to create multiple monitors from a project, all monitors will use a single configuration.
 
 [discrete]
 [[synthetic-monitor-choose-project]]
-== Use project monitors
+=== Project monitors
 
-When you use the `@elastic/synthetics` library's `push` command to create monitors,
-a new browser monitor is created in {kib} for each journey in your project.
-Using the `push` command allows you to manage all browser monitors using a GitOps workflow.
+Use the `@elastic/synthetics` library's `push` command to create monitors.
+Pushing your project creates a new browser monitor in {kib} for each journey in the project. Using the `push` command allows you to manage all browser monitors using a GitOps workflow.
+
 Alternatively, you could keep monitors in sync directly from your local development environment.
 
+// pros
 We recommend users adopt a GitOps workflow when using project monitors because it allows teams to keep their monitors in sync with their project's `main` branch.
 Besides saving time through automation, a GitOps workflow allows users to take advantage of PR reviews and checks that could validate journeys even before they are merged.
 
 Project monitors also allow teams to configure individual monitors through code. Instead of using {kib} to update a monitor's schedule, for example, you can set a `schedule` directly in your journey. That `schedule` will be used when pushing the journey to {kib}.
 
-image::images/create-browser-monitor-project-monitors.png[]
+To configure default settings, you can use a global Synthetics configuration file.
+
+// cons
+Unlike the other approaches, this method can only be used to create _browser_ monitors.
+
+[discrete]
+[[synthetic-monitor-choose-agent]]
+=== {agent}
+
+Use {agent} to configure and create browser monitors similarly to how you would set up any other type of monitor.
+
+// pros
+Read more about the benefits of this approach in <<uptime-set-up-choose-agent, the setup guide's {agent} section>>.
+
+// cons
+When using this approach to create multiple monitors from a project, all monitors will use a single configuration.
 
 [discrete]
 [[monitor-use]]
-=== Configure monitor
+== Configure monitor
+
 When you're ready to create a browser monitor to run your tests, you'll need to set a few configuration options:
 
 // lint ignore params
 * **Give your monitor a name.** Provide a human readable name and a unique ID for the monitor. This will appear in {kib} where you can view and manage monitors after they're created.
 * **Set the schedule.** Specify the interval at which your tests will run.
-* **Specify where the monitors should run.** You can run monitors on Elastic's global managed testing infrastructure
-or <<synthetics-private-location,create a private location>> to run monitors from your own premises.
+* **Specify where to find the tests.** This will vary based on the method you use to create a monitor.
 * **Set other options as needed.** There are several other options you can set to customize your implementation including params, tags, screenshot options, throttling options, and more.
 
-Configure each monitor directly in your test code using `monitor.use`.
-The `monitor` API allows you to set unique options for each journey's monitor directly through code.
-For example:
-
-[source,js]
-----
-import { journey, step, monitor, expect } from '@elastic/synthetics';
-
-journey('Ensure placeholder is correct', ({ page, params }) => {
-  monitor.use({
-    id: 'example-monitor',
-    schedule: 10,
-    throttling: {
-      download: 10,
-      upload: 5,
-      latency: 100,
-    },
-  });
-  step('Load the demo page', async () => {
-    await page.goto('https://elastic.github.io/synthetics-demo/');
-  });
-  step('Assert placeholder text', async () => {
-    const placeholderValue = await page.getAttribute(
-      'input.new-todo',
-      'placeholder'
-    );
-    expect(placeholderValue).toBe('What needs to be done?');
-  });
-});
-----
-
-For each journey, you can specify its `schedule` and the `locations` in which it runs.
-When those options are not set, Synthetics will use the default values in the global configuration file.
-For more details, see <<synthetics-configuration>>.
-
-Here are all the available `monitor` configuration options:
-
-include::synthetics-configuration.asciidoc[tag=monitor-config-options]
+--
+include::tab-widgets/uptime-monitoring/run-test-configure-widget.asciidoc[]
+--
 
 [discrete]
 [[monitor-create]]
-=== Create monitor
+== Create monitor in {kib}
 
-// tag::push-instructions[]
-After setting configuration options, use the `push` command to create monitors and start collecting data.
-To create monitors, run:
+After you've decided how you want to configure your monitor, you're ready to create the monitor and start collecting data.
+Push the monitors to {kib} using one of the following methods:
 
-[source,sh]
-----
-npx @elastic/synthetics push --auth <api-key> --url <kibana-url> --project <id|name>
-----
-
-To generate an API key:
-
-. Go to **Monitor Management** in the {uptime-app}.
-. Click **API Keys**.
-. Click **Generate API key**.
-
-image::images/synthetics-monitor-management-api-key.png[API Keys tooltip on the Uptime app's Monitor Management page]
-
-NOTE: If you are pushing to a <<synthetics-private-location,private location>>, you must use an API key generated in 8.4 or higher.
-
-For more details on using the `push` command, see <<elastic-synthetics-push-command>>.
-// end::push-instructions[]
-
-One monitor will appear on the **Monitor management** page for each journey,
-and you'll manage all the browser monitors from your local environment.
-
-
-[discrete]
-[[synthetics-inline-journey]]
-== Use the {uptime-app} UI
-
-Alternatively, you can create a browser monitor using an _inline script_ in the {uptime-app}.
-
-An inline browser monitor is a single journey that you manage individually.
-Inline monitors can be quick to set up, but can also be more difficult to manage.
-Each inline browser monitor can contain only _one_ journey, which must be maintained directly in {kib}.
-
-image::images/create-browser-monitor-ui.png[]
-
-// add text description
-
-If you depend on external packages, have your journeys next to your code repository, or wish to embed and manage more than one journey from a single monitor configuration, see <<synthetic-monitor-choose-project>> instead.
-
-When writing an inline browser monitor, the `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope. 
-
-To create a new monitor:
-
-. Go to **Monitor Management** in the {uptime-app}.
-. Click *Add monitor*.
-. Give your monitor a _Monitor name_.
-. Select one or more _Monitor locations_.
-+
-[NOTE]
-====
-If you've <<synthetics-private-location,added a private location>>,
-you'll see your new private location in the list of _Monitor locations_.
-The new private location will have the _Location name_ you provided and
-a "Private" badge next to its name.
-
-image::images/private-locations-monitor-locations.png[Screenshot of Monitor locations options including a private location]
-====
-
-. Select the _Monitor Type_ *Browser*.
-. Set the _Frequency_.
-+
-[role="screenshot"]
-image::images/uptime-app-add-monitor-browser.png[Monitor management options when adding a new browser monitor.]
-
-. Add steps to the *Inline script* code block directly.
-The `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope.
-You cannot `import` any dependencies when using inline browser monitors.
-+
-[role="screenshot"]
-image::images/uptime-app-inline-script.png[Configure a synthetic monitor using an inline script in Elastic {fleet}]
-+
-[NOTE]
-====
-Alternatively, you can use the *Script recorder* option.
-You'll use the Elastic Synthetics Recorder to generate a synthetic test by interacting with
-a web page and exporting journey code that reflects all the actions you took.
-For more information, refer to <<synthetics-recorder>>.
-====
-
-. Click *Advanced Browser options* to see more ways to configure your monitor.
-+
-** Use the *Synthetics agent options* to provide fine-tuned configuration for the synthetics agent.
-Read more about available options in <<synthetics-command-reference>>.
-** Use *Throttling options* to control the monitor's network speed.
-You can control the monitor's download and upload speeds and its latency to simulate your application's behavior on slower or laggier networks.
-** Use *Data stream settings* to configure additional Data Stream options.
-
-. (Optional) Click *Run test* to verify that the test is valid.
-. Click *Save monitor*.
+--
+include::tab-widgets/uptime-monitoring/run-test-suite-widget.asciidoc[]
+--
 
 [discrete]
 [[synthetics-ci]]
@@ -195,3 +94,25 @@ If any of your journeys fail, the synthetics agent it will yield a non-zero exit
 You can see an example using GitHub Actions in the
 https://github.com/elastic/synthetics-demo/blob/main/.github/workflows/run-synthetics.yml[elastic/synthetics-demo] repository.
 This example sets up a job that executes the synthetics runner and tells the runner to yield results in a JUnit format.
+
+[discrete]
+[[synthetics-inline-journey]]
+== Create an inline monitor
+
+Alternatively, you can create an _inline_ monitor.
+
+An inline monitor is a single journey that you manage individually.
+Inline monitors can be quick to set up, but can also be more difficult to manage.
+Each inline monitor can contain only _one_ journey, which must be maintained directly in {kib} or in your {heartbeat} configuration file.
+
+If you depend on external packages, have your journeys next to your code repository, or wish to embed and manage more than one journey from a single monitor configuration, see <<monitor-use>> instead.
+
+// [discrete]
+// [[synthetics-inline-journey-send]]
+// === Send to {stack}
+
+When writing an inline monitor, the `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope. To create an inline monitor, copy the steps from inside a journey and paste them into your Elastic Synthetics integration or `heartbeat.yml` depending on <<uptime-set-up-choose,the approach you chose to set up>>.
+
+--
+include::tab-widgets/uptime-monitoring/run-test-inline-widget.asciidoc[]
+--
