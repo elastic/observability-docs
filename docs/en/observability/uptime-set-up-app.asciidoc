@@ -3,19 +3,8 @@
 
 beta[]
 
-You can create lightweight monitors directly in the {uptime-app} UI in {kib}.
-
-image::images/uptime-set-up-app.png[Diagram showing which pieces of software are used to configure monitors, create monitors, and view results when using the Uptime App. Described in detail in Diagram text description.]
-
-// add text description
-
-This is one of <<uptime-set-up,three approaches>> you can use to set up a lightweight monitor.
-
-[discrete]
-[[uptime-set-up-prereq]]
-== Prerequisites
-
-To try this beta functionality, first you need to enable Monitor Management in {kib}:
+You can now create monitors directly in the {uptime-app}.
+To try this beta functionality, first you need to enable Monitor Management:
 
 . Go to **{observability}** -> **Uptime**.
 . Click **Monitor Management**.
@@ -30,22 +19,48 @@ the following privileges:
 * {ref}/security-privileges.html#privileges-list-indices[Indices privileges] for `synthetics-*`: `view_index_metadata`, `create_doc`, `auto_configure`
 ======
 
-You should also decide where you want to run the monitors before getting started:
+From here, you can either <<global-managed-testing-infrastructure,use Elastic's global managed testing infrastructure>>
+or <<private-locations,create a private location>> to run monitors from your own premises.
 
-[[private-locations]]
-* *Elastic's global managed testing infrastructure*:
-  With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
-  locations without having to manage your own infrastructure.
-  Elastic takes care of software updates and capacity planning for you.
-* *Private locations*: Private locations allow you to run monitors from your own premises.
-  To use private locations will must create a private location before continuing.
-  For step-by-step instructions, refer to <<synthetics-private-location>>.
+++++
+<div class="imageblock">
+<img
+  src="images/uptime-set-up-app.png"
+  class="w-100"
+  alt="Diagram showing which pieces of software are used to configure monitors, create monitors, and view results when using the Uptime App. Described in detail in Diagram text description."
+  aria-details="diagram-text-app">
+</div>
+++++
+
+[[diagram-text-app]]
+[%collapsible]
+.Diagram text description
+====
+. Where to start when using the {uptime-app} depends on whether you are creating a <<monitoring-uptime,lightweight monitor>> or <<monitoring-synthetics,browser monitor>>. It also depends on whether you are using a project to manage journey code.
+    * _Option 1_: For lightweight monitors and browser monitors that are _not_ managed in a project, you can configure a new monitor in **{kib}**, specifically the **{observability} {uptime-app}**.
+        ** For browser monitors configured in the **{observability} {uptime-app}**, you must include **Inline journey code**, which can be written from scratch or generated using the <<synthetics-recorder,Synthetics recorder>>.
+    * _Option 2_: For other browser monitors, create a **Project using @elastic/synthetics** using `elastic-synthetics init`. Then, add journey code and configure monitors using `monitor.use`.
+. How you create monitors depends on which option you chose above.
+    * If you started with _Option 1_, you'll use the {kib} UI to select the location while configuring the monitor.
+    * If you started with _Option 2_, you'll use the Elastic Synthetics library's **`push` command**. This requires an **API key and {kib} URL** to authenticate.
+. There are two types of locations you can use.
+    * **Global managed infrastructure**
+    * **Private locations**
+. The monitor will send data to **{es}** regardless of its location.
+. **{kib}**, specifically the **{observability} {uptime-app}**, reads results from {es} and visualizes those results in the UI.
+====
+
+NOTE: To use the Elastic Synthetics integration, see the https://www.elastic.co/guide/en/observability/8.3/uptime-set-up.html#uptime-set-up-choose-agent[8.3 documentation]. The Elastic Synthetics integration is similar to the {uptime-app} approach described above, but contains fewer configuration options and does not allow you to run monitors against Elastic's global managed testing locations.
 
 [discrete]
-[[uptime-set-up-app-add-monitors]]
-== Add monitors
+[[global-managed-testing-infrastructure]]
+== Use global managed testing infrastructure
 
-To use the {uptime-app}'s Monitor Management UI to add a lightweight monitor:
+With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
+locations using the {uptime-app} UI without having to manage your own infrastructure.
+Elastic takes care of software updates and capacity planning for you.
+
+To add a monitor using Elastic's global managed testing infrastructure:
 
 . Go to the **Monitor Management** page.
 . Click **Add monitor**.
@@ -53,27 +68,163 @@ To use the {uptime-app}'s Monitor Management UI to add a lightweight monitor:
 . Choose a _Monitor type_ and configure the monitor as needed.
 . Click **Save monitor**.
 
-image::uptime-set-up-ui.asciidoc.png[Add monitor UI in {kib} in the Uptime App's Monitor Management]
+Alternatively, if you are setting up a **Browser** monitor, you can use Elastic Synthetics `push` command
+to create monitors from a Node.js project that contains one or more synthetic journeys.
 
-[NOTE]
+See <<synthetics-create-test>> for details on writing synthetic tests and
+<<synthetic-monitor-choose-project>> for how to create monitors using the `push` command.
+
+[discrete]
+[[private-locations]]
+== Run a monitor on private locations
+
+Private locations allow you to run monitors from your own premises.
+	
+TIP: You can run the same monitor both from Elastic's global managed infrastructure _and_ your private locations to compare results.
+
+Before you create a private location, you need to set up {fleet}, and connect an agent to it.
+Then, you can create a private location in the {uptime-app} UI.
+Now, whenever you access the monitor creation page, this private location will appear in the list
+of locations to which you can deploy monitors.
+
+[discrete]
+[[private-locations-fleet-agent]]
+=== Set up {fleet-server} and {agent}
+
+To deploy monitors to private locations, you must complete two prerequisites:
+
+* *Set up {fleet-server}*: If you are using {ecloud}, {fleet-server} will already be provided and you can skip this step.
+To learn more, see <<set-up-fleet,{fleet}>>.
+* **Create an agent policy**:  For more information on agent policies and creating them,
+see {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
+
+[IMPORTANT]
 ====
-If you've <<synthetics-private-location,added a private location>>,
-you'll see your new private location in the list of _Monitor locations_.
-The new private location will have the _Location name_ you provided and
-a "Private" badge next to its name.
+A private location should be set up against an agent policy that runs on a single {agent}.
+Do _not_ run the same agent policy on multiple agents being used for private locations, as you may
+end up with duplicate or missing tests. Private locations do not currently load balance tests across
+multiple {agents}.
 
+If there are multiple monitors that need to run from a private location at the same time, up to two
+will run concurrently on that {agent}. The other monitors will wait until a previous test has
+finished running and there is capacity, up to a maximum of two at the same time.
+====
+
+[discrete]
+[[private-location-docker]]
+=== Pull the Docker image
+
+Elastic provides Docker images that you can use to run {fleet} and an {agent} more easily.
+
+For monitors running on private locations, you _must_ use the `elastic-agent-complete`
+Docker image to create a self-hosted {agent} node. The standard {ecloud} or self-hosted
+{agent} will not work.
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+To pull the Docker image run:
+
+[source,sh,subs="attributes"]
+----
+docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
+----
+
+endif::[]
+
+[discrete]
+[[private-locations-connect]]
+=== Connect to the {stack}
+
+Before you can create a private location, you must connect {fleet} to the {stack}.
+Then, to enroll an {agent} to {fleet}, you'll need an enrollment token and the URL of the {fleet-server}.
+
+You can use the default enrollment token for your policy or create new policies and enrollment tokens as needed.
+
+ifeval::["{release-state}"=="unreleased"]
+
+Version {version} has not yet been released.
+
+endif::[]
+
+ifeval::["{release-state}"!="unreleased"]
+
+[source,sh,subs="attributes"]
+----
+docker run \
+  --env FLEET_ENROLL=1 \
+  --env FLEET_URL={fleet-server-host-url} \
+  --env FLEET_ENROLLMENT_TOKEN={enrollment-token} \
+  --cap-add=NET_RAW
+  --cap-add=SETUID
+  --rm docker.elastic.co/beats/elastic-agent-complete:{version}
+----
+
+endif::[]
+
+[IMPORTANT]
+====
+The `elastic-agent-complete` Docker image requires additional capabilities to operate correctly. Ensure
+`NET_RAW` and `SETUID` are enabled on the container.
+====
+
+For more information on running {agent} with Docker, see
+{fleet-guide}/elastic-agent-container.html[Run {agent} in a container] and
+{fleet-guide}/fleet-enrollment-tokens.html[{fleet} enrollment tokens].
+
+You may need to set other environment variables.
+Learn how in {fleet-guide}/agent-environment-variables.html[{agent} environment variables guide].
+
+[discrete]
+[[private-locations-add]]
+=== Add a private location
+
+To add a new private location:
+
+. Go to **{observability}** -> **Uptime**.
+. Click **Monitor Management**.
+. Click **Private locations**.
+. Click **Add location**.
+. Give your new location a unique _Location name_ and select the _Agent policy_ you created above.
+. Click **Save**.
+
+[discrete]
+[[private-locations-config]]
+=== Configure the monitor
+
+After you have successfully added a new private location, close the _Private locations_ flyout to return
+to the Monitor Management page. From there:
+
+. Click **Add monitor**.
+. Give your monitor a unique _Monitor name_.
+. In _Monitor locations_, select your new private location, which will appear using the _Location name_
+you provided and will have a "Private" badge next to its name.
++
 image::images/private-locations-monitor-locations.png[Screenshot of Monitor locations options including a private location]
-====
+. Choose a _Monitor type_ and configure the monitor as needed.
+. Click **Save monitor**.
+
+Alternatively, if you are setting up a **Browser** monitor, you can use Elastic Synthetics `push` command
+to create monitors from a Node.js project that contains one or more synthetic journeys.
+
+NOTE: If you are pushing to a <<private-locations,private location>>, you must use an API key generated in 8.4 or higher.
+
+See <<synthetics-create-test>> for details on writing synthetic tests and
+<<synthetic-monitor-choose-project>> for how to create monitors using the `push` command.
 
 [discrete]
 [[uptime-app-view-in-kibana]]
 == View in {kib}
 
-// tag::next[]
+{agent} is now sending synthetic monitoring data to the {stack}.
 Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
 set up alerts in case of test failures, and more.
 
 If a test does fail (shown as `down` in the {uptime-app}), you'll be able to view the step script that failed,
 any errors, and a stack trace.
 See <<synthetics-visualize>> for more information.
-// end::next[]

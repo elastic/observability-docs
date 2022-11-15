@@ -1,0 +1,76 @@
+[[running-on-kubernetes-managed-by-fleet]]
+= Run {agent} on Kubernetes managed by {fleet}
+
+:manifest: https://raw.githubusercontent.com/elastic/elastic-agent/{branch}/deploy/kubernetes/elastic-agent-managed-kubernetes.yaml
+
+
+== What you need
+
+- https://kubernetes.io/docs/tasks/tools/[kubectl installed].
+
+- {es} for storing and searching your data, and {kib} for visualizing and managing it.
++
+--
+include::{observability-docs-root}/docs/en/shared/spin-up-the-stack/widget.asciidoc[]
+--
+
+
+include::deploy-kube-state-metrics.asciidoc[]
+
+include::download-elastic-agent.asciidoc[]
+
+
+
+[discrete]
+== Step 3: Connect to the {stack}
+
+{agent} is enrolled to a running {fleet-server} using `FLEET_URL` parameter. The `FLEET_ENROLLMENT_TOKEN` parameter is used to connect {agent} to a specific {agent} policy. To specify different destination/credentials, change the following parameters in the manifest file:
+
+[source,yaml]
+------------------------------------------------
+- name: FLEET_URL
+  value: "https://fleet-server_url:port" <1>
+- name: FLEET_ENROLLMENT_TOKEN
+  value: "token" <2>
+- name: FLEET_SERVER_POLICY_ID
+  value: "fleet-server-policy" <3>
+- name: KIBANA_HOST
+  value: "" <4>
+- name: KIBANA_FLEET_USERNAME
+  value: "" <5>
+- name: KIBANA_FLEET_PASSWORD
+  value: "" <6>
+------------------------------------------------
+<1> URL to enroll the {fleet-server} into. You can find it in {kib}. Select *Management -> {fleet} -> Fleet Settings*, and copy the {fleet-server} host URL.
+<2> The token to use for enrollment. Close the flyout panel and select *Enrollment tokens*. Find the Agent policy you want to enroll {agent} into, and display and copy the secret token. To learn how to create a policy, refer to <<create-a-policy-no-ui>>.
+<3> The policy ID for {fleet-server} to use on itself.
+<4> The {kib} host.
+<5> The basic authentication username used to connect to {kib} and retrieve a `service_token` to enable {fleet}.
+<6> The basic authentication password used to connect to {kib} and retrieve a `service_token` to enable {fleet}.
+
+Refer to <<agent-environment-variables>> for all available options.
+
+
+include::agent-tolerations.asciidoc[]
+
+include::deploy-elastic-agent.asciidoc[]
+
+
+== Step 6: View your data in {kib}
+
+. Launch {kib}:
++
+--
+include::{shared-path}/open-kibana/widget.asciidoc[]
+--
+
+. You can check if your {agent} is enrolled to {fleet} by going to *Management -> {fleet} -> Agents*.
++
+image::images/fleet-agents.png[Fleet {agents}]
+
+. You can see data flowing in by going to *Analytics -> Discover* and selecting the index `+metrics-*+`, or even more specific, `+metrics-kubernetes.*+`.
+
+. You can see predefined dashboards by selecting *Analytics->Dashboard*, or by <<view-integration-assets,installing assets through an integration>>.
+
+
+:manifest:
