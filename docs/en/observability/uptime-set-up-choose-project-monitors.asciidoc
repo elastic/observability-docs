@@ -1,23 +1,24 @@
-[[uptime-set-up-choose-project-monitors]]
-= Use project monitors
+[[synthetics-get-started-project]]
+= Create monitors with project monitors
+
+++++
+<titleabbrev>Use project monitors</titleabbrev>
+++++
 
 beta[]
 
-To create lightweight monitors using project monitors,
-you'll configure monitors in an external Node.js project and
-use the `@elastic/synthetics` library’s `push` command to create monitors in {kib}.
+Projects are the most powerful and sophisticated way to configure synthetic monitors in the Elastic Stack. Projects let you define your infrastructure as code, more commonly known as IaaC or git-ops. With project monitors you organize your YAML configuration and Javascript/Typescript defined monitors on the filesystem, use Git for version control, and deploy via a CLI tool, usually executed on a CI/CD platform.
+
+// combine these diagrams
 
 image:images/uptime-set-up-project-monitors.png[]
 
+image::images/create-browser-monitor-project-monitors.png[]
 // add text description
 
-This is one of <<uptime-set-up,three approaches>> you can use to set up a lightweight monitor.
-
 [discrete]
-[[uptime-set-up-prereq-project-monitors]]
 == Prerequisites
 
-// tag::prereq[]
 To try this beta functionality, first you need to enable Monitor Management in {kib}:
 
 . Go to **{observability}** -> **Uptime**.
@@ -33,7 +34,27 @@ the following privileges:
 * {ref}/security-privileges.html#privileges-list-indices[Indices privileges] for `synthetics-*`: `view_index_metadata`, `create_doc`, `auto_configure`
 ======
 
-You should also decide where you want to run the monitors before getting started:
+Working with projects requires working with the Elastic Synthetics CLI tool, which
+can be invoked via the `npx @elastic/synthetics` command. Before getting started
+you'll need to:
+
+. Install https://nodejs.dev/en/[Node.js]
+. Install the package:
++
+[source,sh]
+----
+npm install -g @elastic/synthetics
+----
+. To display the help menu and confirm your system is setup correctly, run:
++
+[source,sh]
+----
+npx @elastic/synthetics -h
+----
+
+[NOTE]
+====
+You can run monitors on one or both of the following:
 
 * *Elastic's global managed testing infrastructure*:
   With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
@@ -42,41 +63,61 @@ You should also decide where you want to run the monitors before getting started
 * *Private locations*: Private locations allow you to run monitors from your own premises.
   To use private locations will must create a private location before continuing.
   For step-by-step instructions, refer to <<synthetics-private-location>>.
-// end::prereq[]
+====
+
 
 [discrete]
-[[uptime-set-up-project-monitors-add]]
-== Add monitors
+== Create a project
 
-To use a YAML file and the Elastic Synthetics library to add a
-lightweight monitor:
+Start by creating your first project. Run the command below to create a new 
+project named `projects-test` in the current directory.
 
-. You'll need a project using `@elastic/synthetics`. You can use an existing project where you manage browser monitors, or you can create a new project using `elastic-synthetics init`.
-. Add one or more `.yml` files to the project.
-. Configure monitors in the `.yml` files. For example:
+[source,sh]
+----
+npx @elastic/synthetics init projects-test
+----
 
-```yml
-heartbeat.monitors:
-- type: http
-  id: elastic-http
-  name: Elastic HTTP check
-  urls: ["https://elastic.co"]
-  schedule: "@every 60s"
-  tags: ["org:elastic"]
-- type: tcp
-  id: elastic-tcp
-  name: Elastic TCP check
-  hosts: ["elastic.co"]
-  schedule: "@every 60s"
-  tags: ["org:elastic"]
-```
+Then, follow the prompts on screen to setup the correct default variables for your project.
+When complete, set the `SYNTHETICS_API_KEY` environment variable in your terminal, which is used
+for authentication with your Elastic Stack. You will most likely want to set this permanently. 
+This is done differently for https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7.2#saving-changes-to-environment-variables[Powershell] and https://unix.stackexchange.com/a/117470[Bash].
 
-[IMPORTANT]
-====
-*This functionality is still in beta and not all {heartbeat} configuration options are supported.* If you attempt to push a project monitor with a configuration option that is not supported, the push will fail with an error.
-====
+Then, take a look at key files and directories inside your project:
 
-include::synthetics-run-test.asciidoc[tag=push-instructions]
+* `journeys` is where you'll add `.yaml`, `.ts`, and `.js` files defining your monitors. When you create a new project, this directory will contain files defining sample monitors.
+* `synthetics.config.ts` contains settings for your project. When you create a new project, it will contain some basic configuration options that you can customize later.
+* `package.json` contains NPM settings for your project. Learn more in the https://docs.npmjs.com/about-packages-and-modules[Synthetic tests configuration].
+* `.github` contains sample Github actions workflow files for use with Github Actions.
+
+[discrete]
+== Connect to the {stack}
+
+While inside the project directory you can do two things with the `npx @elastic/synthetics` command:
+
+* Test browser-based monitors locally. To run all journeys defined in `.ts` and `.js` files:
++
+[source,sh]
+----
+npx @elastic/synthetics journeys
+----
+* Push all monitor configurations to an Elastic deployment. Run the following command from inside your project:
++
+[source,sh]
+----
+npx @elastic/synthetics push --auth <api-key> --url <kibana-url> --project <id|name>
+----
+
+To generate an API key:
+
+. Go to **Monitor Management** in the {uptime-app}.
+. Click **API Keys**.
+. Click **Generate API key**.
+
+image::images/synthetics-monitor-management-api-key.png[API Keys tooltip on the Uptime app's Monitor Management page]
+
+NOTE: If you are pushing to a <<synthetics-private-location,private location>>, you must use an API key generated in 8.4 or higher.
+
+For more details on using the `push` command, refer to <<elastic-synthetics-push-command>>.
 
 [NOTE]
 ====
@@ -88,8 +129,45 @@ run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` co
 with the {kib} URL for the deployment from which to fetch available locations.
 ====
 
+One monitor will appear on the **Monitor management** page for each journey,
+and you'll manage all the browser monitors from your local environment.
+
 [discrete]
-[[uptime-app-view-in-kibana-project]]
 == View in {kib}
 
-include::uptime-set-up-app.asciidoc[tag=next]
+Then, go to the {uptime-app} in Kibana. You should see your newly pushed monitors running. You can also go to the *Monitor Management* page to see the monitors' configuration settings.
+
+// Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
+// set up alerts in case of test failures, and more.
+
+// If a test does fail (shown as `down` in the {uptime-app}), you'll be able to view the step script that failed,
+// any errors, and a stack trace.
+// See <<synthetics-visualize>> for more information.
+
+[discrete]
+== Recommended workflow
+
+After your project is set up, there are some best practices you can implement to manage project monitors effectively.
+
+First, it's recommended that you version control all files in git. If your project is not already in a version controlled directory add it now, and push it to your git host.
+
+While it can be convenient to run the `push` command directly from your workstation,
+especially when setting up a new project, it is not recommended for production environments.
+
+Instead, we recommended that you:
+
+1. Develop and test changes locally
+2. Create a pull request for all config changes
+3. Have your CI service automatically verify the PR by running `npx @elastic/synthetics .`
+4. Have a human approve the pull request
+5. Merge the pull request
+6. Have your CI service automatically deploy the change by running `npx @elastic/synthetics push` after changes are merged
+
+The exact implementation details will depend on the CI system and Git host you use. 
+You can reference the sample Github configuration file that is included in the `.github`
+directory when you create a new project.
+
+[discrete]
+== Next steps
+
+Learn how to configure <<synthetics-lightweight,lightweight monitors>> and <<synthetics-create-test,browser monitors>>.

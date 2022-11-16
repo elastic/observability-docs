@@ -1,0 +1,60 @@
+[[synthetics-monitor-use]]
+= Configure individual browser monitors
+
+++++
+<titleabbrev>Configure individual monitors</titleabbrev>
+++++
+
+When you're ready to create a browser monitor to run your tests, you'll need to set a few configuration options:
+
+* **Give your monitor a name.** Provide a human readable name and a unique ID for the monitor. This will appear in {kib} where you can view and manage monitors after they're created.
+* **Set the schedule.** Specify the interval at which your tests will run.
+* **Specify where the monitors should run.** You can run monitors on Elastic's global managed testing infrastructure
+or <<synthetics-private-location,create a private location>> to run monitors from your own premises.
+* **Set other options as needed.** There are several other options you can set to customize your implementation including params, tags, screenshot options, throttling options, and more.
+
+Configure each monitor directly in your test code using `monitor.use`.
+The `monitor` API allows you to set unique options for each journey's monitor directly through code.
+For example:
+
+[source,js]
+----
+import { journey, step, monitor, expect } from '@elastic/synthetics';
+
+journey('Ensure placeholder is correct', ({ page, params }) => {
+  monitor.use({
+    id: 'example-monitor',
+    schedule: 10,
+    throttling: {
+      download: 10,
+      upload: 5,
+      latency: 100,
+    },
+  });
+  step('Load the demo page', async () => {
+    await page.goto('https://elastic.github.io/synthetics-demo/');
+  });
+  step('Assert placeholder text', async () => {
+    const placeholderValue = await page.getAttribute(
+      'input.new-todo',
+      'placeholder'
+    );
+    expect(placeholderValue).toBe('What needs to be done?');
+  });
+});
+----
+
+For each journey, you can specify its `schedule` and the `locations` in which it runs.
+When those options are not set, Synthetics will use the default values in the global configuration file.
+For more details, see <<synthetics-configuration>>.
+
+[discrete]
+== Next steps
+
+Once you've <<synthetics-create-test, written a synthetic test>>,
+you can create a _monitor_ to run the test at a regular interval.
+You can either:
+
+* <<synthetics-get-started-project>> to create monitors from an external source.
+* <<synthetics-get-started-ui>> to create a new monitor by copying simple journey
+code into its configuration as an inline script.

@@ -38,29 +38,7 @@ The synthetics agent exposes an API for creating and running tests, including:
                 If you want two journeys to create monitors with different intervals, for example, you should call
                 `monitor.use` in each of them and set the `schedule` property to different values in each.
                 Note that this is only relevant when using the `push` command to create monitors in {kib}.
-                See the "Project monitors" option in <<synthetic-run-tests>>.
-
-[discrete]
-[[synthetics-initialize]]
-== Initialize a synthetic project
-
-Start by installing the Elastic Synthetics agent:
-
-[source,sh]
-----
-npm install -g @elastic/synthetics
-----
-
-Then create a Node.js project using the `@elastic/synthetics` `init` command.
-This will create a template Node.js project that includes the synthetics agent, required dependencies,
-a synthetics configuration file, and example journey files:
-
-[source,sh]
-----
-npx @elastic/synthetics init <name-of-your-project>
-----
-
-Once you have a project set up, you can start writing journeys and pushing them to create monitors.
+                See the "Project monitors" option in <<synthetics-get-started-project>>.
 
 [discrete]
 [[synthetics-create-journey]]
@@ -164,20 +142,15 @@ See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getA
 <2> Use the assertion library provided by the Synthetics agent to look for the
 expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
 
-[discrete]
-[[synthetics-create-test-script-recorder]]
-=== Synthetics Recorder
-
-beta[]
-
-If you want to generate code by interacting with a web page directly, you can use the Synthetics Recorder.
+[NOTE]
+====
+If you want to generate code by interacting with a web page directly, you can use the *Synthetics Recorder*.
 
 The recorder launches a https://www.chromium.org/Home/[Chromium browser] that will listen to each interaction you have with the web page and record them internally using Playwright.
 When you're done interacting with the browser, the recorder converts the recorded actions into JavaScript code that you can use with Elastic Synthetics or {heartbeat}.
 
 For more details on getting started with the Synthetics Recorder, see <<synthetics-recorder>>.
-
-image::images/synthetics-create-test-script-recorder.png[Elastic Synthetics Recorder after recording a journey and clicking Export]
+====
 
 [discrete]
 [[synthetics-request-param]]
@@ -265,7 +238,7 @@ journey('bundle test', ({ page, params }) => {
 });
 ----
 
-When you <<synthetic-run-tests,create a monitor>> from a journey that uses
+When you <<synthetics-get-started-project,create a monitor>> from a journey that uses
 external NPM packages, those packages will be bundled along with the
 journey code when the `push` command is invoked.
 
@@ -298,10 +271,10 @@ journey('Ensure placeholder is correct', ({ page }) => {
 });
 ----
 
-For more information on using `monitor`, see the "Project monitors" option in <<synthetic-run-tests>>.
+For more information on using `monitor`, see the "Project monitors" option in <<synthetics-get-started-project>>.
 
 [discrete]
-[[synthetics-test-suite]]
+[[synthetics-test-locally]]
 == Test locally
 
 As you write journeys, you can run them locally to verify they work as expected. Then, you can create monitors to run your journeys at a regular interval.
@@ -351,3 +324,4 @@ Journey: inline
 
  2 passed (2511 ms)
 ----
+
