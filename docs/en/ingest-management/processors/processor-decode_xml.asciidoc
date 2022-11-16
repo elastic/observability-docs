@@ -8,17 +8,20 @@
 The `decode_xml` processor decodes XML data that is stored under the `field`
 key. It outputs the result into the `target_field`.
 
+[discrete]
+== Example
+
 This example demonstrates how to decode an XML string contained in the `message`
 field and write the resulting fields into the root of the document. Any fields
 that already exist are overwritten.
 
 [source,yaml]
--------
+----
   - decode_xml:
       field: message
       target_field: ""
       overwrite_keys: true
--------
+----
 
 By default any decoding errors that occur stop the processing chain, and the
 error is added to the `error.message` field. To ignore all errors and continue
@@ -26,29 +29,29 @@ to the next processor, set `ignore_failure: true`. To specifically ignore
 failures caused by `field` not existing, set `ignore_missing: true`.
 
 [source,yaml]
--------
+----
   - decode_xml:
       field: example
       target_field: xml
       ignore_missing: true
       ignore_failure: true
--------
+----
 
 By default the names of all keys converted from XML are converted to lowercase.
 To disable this behavior, set `to_lower: false`, for example:
 
 [source,yaml]
--------
+----
   - decode_xml:
       field: message
       target_field: xml
       to_lower: false
--------
+----
 
 Example XML input:
 
 [source,xml]
--------------------------------------------------------------------------------
+----
 <catalog>
   <book seq="1">
     <author>William H. Gaddis</author>
@@ -56,12 +59,12 @@ Example XML input:
     <review>One of the great seminal American novels of the 20th century.</review>
   </book>
 </catalog>
--------------------------------------------------------------------------------
+----
 
 Will produce the following output:
 
 [source,json]
--------------------------------------------------------------------------------
+----
 {
 	"xml": {
 		"catalog": {
@@ -74,10 +77,11 @@ Will produce the following output:
 		}
 	}
 }
--------------------------------------------------------------------------------
+----
 
 
-The supported configuration options are:
+[discrete]
+== Configuration settings
 
 `field`:: (Required) Source field containing the XML. Defaults to `message`.
 

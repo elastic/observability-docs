@@ -7,40 +7,13 @@
 
 experimental[]
 
-[float]
-== Configuration
+The `syslog` processor parses RFC 3146 and/or RFC 5424 formatted syslog messages.
 
-The `syslog` processor parses RFC 3146 and/or RFC 5424 formatted syslog messages
-that are stored under the `field` key.
-
-The supported configuration options are:
-
-`field`:: (Required) Source field containing the syslog message. Defaults to `message`.
-
-`format`:: (Optional) The syslog format to use, `rfc3164`, or `rfc5424`. To automatically
-detect the format from the log entries, set this option to `auto`. The default is `auto`.
-
-`timezone`:: (Optional) IANA time zone name(e.g. `America/New York`) or a
-fixed time offset (e.g. +0200) to use when parsing syslog timestamps that do not contain
-a time zone. `Local` may be specified to use the machine's local time zone. Defaults to `Local`.
-
-`overwrite_keys`:: (Optional) A boolean that specifies whether keys that already
-exist in the event are overwritten by keys from the syslog message. The
-default value is `true`.
-
-`ignore_missing`:: (Optional) If `true` the processor will not return an error
-when a specified field does not exist. Defaults to `false`.
-
-`ignore_failure`:: (Optional) Ignore all errors produced by the processor.
-Defaults to `false`.
-
-`tag`:: (Optional) An identifier for this processor. Useful for debugging.
-
-Example:
+[discrete]
+== Example
 
 [source,yaml]
 -------------------------------------------------------------------------------
-processors:
   - syslog:
       field: message
 -------------------------------------------------------------------------------
@@ -90,7 +63,31 @@ Will produce the following output:
 }
 -------------------------------------------------------------------------------
 
-[float]
+[discrete]
+== Configuration settings
+
+`field`:: (Required) Source field containing the syslog message. Defaults to `message`.
+
+`format`:: (Optional) The syslog format to use: `rfc3164` or `rfc5424`. To automatically
+detect the format from the log entries, set this option to `auto`. The default is `auto`.
+
+`timezone`:: (Optional) IANA time zone name (for example, `America/New York`) or a
+fixed time offset (for example, `+0200`) to use when parsing syslog timestamps that do not contain
+a time zone. `Local` may be specified to use the machine's local time zone. Defaults to `Local`.
+
+`overwrite_keys`:: (Optional) A boolean that specifies whether keys that already
+exist in the event are overwritten by keys from the syslog message. The
+default value is `true`.
+
+`ignore_missing`:: (Optional) If `true` the processor does not return an error
+when a specified field does not exist. Defaults to `false`.
+
+`ignore_failure`:: (Optional) Ignore all errors produced by the processor.
+Defaults to `false`.
+
+`tag`:: (Optional) An identifier for this processor. Useful for debugging.
+
+[discrete]
 == Timestamps
 
 The RFC 3164 format accepts the following forms of timestamps:
@@ -103,13 +100,13 @@ The RFC 3164 format accepts the following forms of timestamps:
   ** `2003-10-11T22:14:15-06:00`
   ** `2003-10-11T22:14:15.123456-06:00`
 
-*Note*: The local timestamp (for example, `Jan 23 14:09:01`) that accompanies an
-RFC 3164 message lacks year and time zone information. The time zone will be enriched
-using the `timezone` configuration option, and the year will be enriched using the
-{beatname_uc} system's local time (accounting for time zones). Because of this, it is possible
-for messages to appear in the future. An example of when this might happen is logs
-generated on December 31 2021 are ingested on January 1 2022. The logs would be enriched
-with the year 2022 instead of 2021.
+NOTE: The local timestamp (for example, `Jan 23 14:09:01`) that accompanies an
+RFC 3164 message lacks year and time zone information. The time zone will be
+enriched using the `timezone` configuration option, and the year will be
+enriched using the system's local time (accounting for time zones). Because of
+this, it is possible for messages to appear in the future. For example, this
+might happen if logs generated on December 31 2021 are ingested on January
+1 2022. The logs would be enriched with the year 2022 instead of 2021.
 
 The RFC 5424 format accepts the following forms of timestamps:
 
@@ -121,45 +118,13 @@ The RFC 5424 format accepts the following forms of timestamps:
 
 Formats with an asterisk (*) are a non-standard allowance.
 
-[float]
+[discrete]
 == Structured Data
 
 For RFC 5424-formatted logs, if the structured data cannot be parsed according
 to RFC standards, the original structured data text will be prepended to the message
 field, separated by a space.
 
-//REVIEWERS: Is the following section true?
-
-[float]
-== Metrics
-
-Internal metrics are available to assist with debugging efforts. The metrics
-are served from the metrics HTTP endpoint (for example: `http://localhost:5066/stats`)
-and are found under `processor.syslog.[instance ID]` or `processor.syslog.[tag]-[instance ID]`
-if a *tag* is provided.
-
-//Commented out because this reference points to beats docs.
-//See <<http-endpoint>> for more information on configuration the metrics HTTP endpoint.
-
-For example, here are metrics from a processor with a *tag* of `log-input` and an *instance ID* of `1`:
-
-[source,json]
--------------------------------------------------------------------------------
-{
-  "processor": {
-    "syslog": {
-      "log-input-1": {
-        "failure": 10,
-        "missing": 0,
-        "success": 3
-      }
-    }
-  }
-}
--------------------------------------------------------------------------------
-
-`failure`:: Measures the number of occurrences where a message was unable to be parsed.
-
-`missing`:: Measures the number of occurrences where an event was missing the required input field.
-
-`success`:: Measures the number of successfully parsed syslog messages.
+//REVIEWERs: Removed the section about internal metrics returned by the HTTP
+//endpoint because I don't think this info is relevant when using integrations
+//and elastic agent, but let me know if I need to add it back in. 

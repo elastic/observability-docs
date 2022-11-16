@@ -8,7 +8,8 @@
 The `rename` processor specifies a list of fields to rename. Under the `fields`
 key, each entry contains a `from: old-key` and a `to: new-key` pair, where:
 
-* `from` is the original field name. It's supported to use `@metadata.` prefix for `from` and rename keys in the event metadata instead of event fields.
+* `from` is the original field name. It's supported to use the `@metadata.`
+prefix for `from`, and rename keys in the event metadata instead of event fields.
 * `to` is the target field name
 
 The `rename` processor cannot be used to overwrite fields. To overwrite fields
@@ -22,9 +23,11 @@ scalar values results in an {es} error at ingest time. The assignment `{"c": 1,
 assigned a scalar value. To prevent this conflict, rename `c` to `c.value`
 before assigning values.
 
+[discrete]
+== Example
+
 [source,yaml]
 -------
-processors:
   - rename:
       fields:
         - from: "a.g"
@@ -33,10 +36,14 @@ processors:
       fail_on_error: true
 -------
 
-The `rename` processor has the following configuration settings:
+[discrete]
+== Configuration settings
 
-`ignore_missing`:: (Optional) If set to true, no error is logged in case a key
-which should be renamed is missing. Default is `false`.
+//TODO: Should really describe all the fields here instead of covering some in
+//the intro. 
+
+`ignore_missing`:: (Optional) If set to `true`, no error is logged when a key
+that should be renamed is missing. Default is `false`.
 
 `fail_on_error`:: (Optional) If set to true, in case of an error the renaming of
 fields is stopped and the original event is returned. If set to false, renaming

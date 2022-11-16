@@ -8,16 +8,20 @@
 The `add_process_metadata` processor enriches events with information from running
 processes, identified by their process ID (PID).
 
+[discrete]
+== Example
+
 [source,yaml]
--------------------------------------------------------------------------------
+----
   - add_process_metadata:
       match_pids: [system.process.ppid]
       target: system.process.parent
--------------------------------------------------------------------------------
+----
 
 The fields added to the event look as follows:
+
 [source,json]
--------------------------------------------------------------------------------
+----
 "process": {
   "name":  "systemd",
   "title": "/usr/lib/systemd/systemd --switched-root --system --deserialize 22",
@@ -36,11 +40,11 @@ The fields added to the event look as follows:
 "container": {
   "id": "b5285682fba7449c86452b89a800609440ecc88a7ba5f2d38bedfb85409b30b1"
 },
--------------------------------------------------------------------------------
+----
 
 Optionally, the process environment can be included, too:
 [source,json]
--------------------------------------------------------------------------------
+----
   ...
   "env": {
     "HOME":       "/",
@@ -49,9 +53,10 @@ Optionally, the process environment can be included, too:
     "LANG":       "en_US.UTF-8",
   }
   ...
--------------------------------------------------------------------------------
+----
 
-It has the following settings:
+[discrete]
+== Configuration settings
 
 `match_pids`:: List of fields to lookup for a PID. The processor will
 search the list sequentially until the field is found in the current event, and
@@ -103,3 +108,4 @@ the cgroup cache. In some container runtimes technology like runc, the
 container's process is also process in the host kernel, and will be affected by
 PID rollover/reuse. The expire time needs to set smaller than the PIDs wrap
 around time to avoid wrong container id.
+
