@@ -28,9 +28,9 @@ The Lambda deployment sets up an SQS _Continuing queue_ automatically to ensure 
 
 Lambda uses a _Replay queue_ to handle any ingestion-related exception or fail scenarios. Data in the replay queue is stored as individual events. Lambda keeps track of any failed events and writes them to a replay queue that can then be consumed by adding an additional SQS trigger via Lambda.
 
-You can use the <<sample-s3-config-file,config.yaml>> file to configure the service for each input type, including information such as SQS queue ARN and {es} connection details. You can create multiple input sections within the configuration file to map different inputs to specific log types.
+You can use the <<sample-s3-config-file,config.yaml>> file to configure the service for each input type, including information such as SQS queue ARN (Amazon Resource Number) and {es} connection details. You can create multiple input sections within the configuration file to map different inputs to specific log types.
 
-The Lambda function also supports writing directly to an index, alias, or custom data stream. This enables existing {es} users to re-use index templates, ingest pipelines, or dashboards that are already created and connected to business processes.
+The Lambda function also supports writing directly to an index, alias, or custom data stream. This enables existing {es} users to re-use index templates, ingest pipelines, or dashboards that are already created and connected to other processes.
 
 [discrete]
 [[aws-serverless-forwarder-inputs]]
@@ -40,7 +40,7 @@ The Lambda function also supports writing directly to an index, alias, or custom
 [[aws-serverless-forwarder-inputs-s3]]
 == Amazon S3 (via SQS event notifications)
 
-The Lambda function can ingest logs contained in an Amazon Simple Storage Service (S3) bucket through a Simple Queue Service (SQS) notification (`s3:ObjectCreated`) and send them to Elastic. The SQS queue serves as a trigger for the Lambda function. When a new log file is written to an S3 bucket and meets the criteria (as configured including prefix/suffix), an SQS notification is generated that triggers the Lambda function.
+The Lambda function can ingest logs contained in an Amazon Simple Storage Service (S3) bucket through a Simple Queue Service (SQS) notification (`s3:ObjectCreated`) and send them to Elastic. The SQS queue serves as a trigger for the Lambda function. When a new log file is written to an S3 bucket and meets the user-defined criteria (including prefix/suffix), an SQS notification is generated that triggers the Lambda function.
 
 You can set up separate SQS queues for each type of log (for example, `aws.vpcflow`, `aws.cloudtrail`, `aws.waf`). A single configuration file can have many input sections, pointing to different SQS queues that match specific log types. The `es_datastream_name` parameter in the config file is optional. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs.
 
@@ -79,17 +79,14 @@ You can set up a separate SQS queue for each type of log. The config parameter f
 [[aws-serverless-forwarder-get-started]]
 = Get started
 
-- <<deploy-elastic-serverless-forwarder,Deploy Elastic Serverless Forwarder>>
+- <<aws-deploy-elastic-serverless-forwarder,Deploy Elastic Serverless Forwarder>>
 
-- <<configure-elastic-serverless-forwarder,Configure Elastic Serverless Forwarder>>
-
-- <<aws-serverless-transform>>
+- <<aws-elastic-serverless-forwarder-configuration,Configuration options>>
 
 - <<aws-serverless-troubleshooting,Troubleshooting>>
 
 :leveloffset: -2
-include::deploy-elastic-serverless-forwarder.asciidoc[leveloffset=+3]
-include::configure-elastic-serverless-forwarder.asciidoc[leveloffset=+3]
-include::aws-serverless-transform.asciidoc[leveloffset=+3]
+include::aws-deploy-elastic-serverless-forwarder.asciidoc[leveloffset=+3]
+include::aws-elastic-serverless-forwarder-configuration.asciidoc[leveloffset=+3]
 include::aws-serverless-troubleshooting.asciidoc[leveloffset=+3]
 :leveloffset: +2

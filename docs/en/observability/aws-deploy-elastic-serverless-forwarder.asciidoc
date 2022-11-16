@@ -1,10 +1,10 @@
 :aws: AWS
 
-[[deploy-elastic-serverless-forwarder]]
+[[aws-deploy-elastic-serverless-forwarder]]
 = Deploy Elastic Serverless Forwarder
 
 ++++
-<titleabbrev>Deploy</titleabbrev>
+<titleabbrev>Deploy serverless forwarder</titleabbrev>
 ++++
 :keywords: serverless
 :description: Deploy the Elastic Serverless Forwarder using Kibana and the AWS Serverless Application Repository (SAR).
@@ -16,9 +16,14 @@ To deploy Elastic Serverless Forwarder, you have to:
 * <<aws-serverless-forwarder-deploy-sar>>
 
 NOTE: This page describes the basic steps required to deploy Elastic Serverless
-Forwarder — for additional detail on configuration topics such as permissions
-and automatic routing, see <<configure-elastic-serverless-forwarder>>; for
-additional detail on parsing and enriching data, see <<aws-serverless-transform>>.
+Forwarder for {aws}— for additional information on configuration topics such as permissions and automatic routing, and parsing and enriching data, see <<aws-elastic-serverless-forwarder-configuration>>.
+
+[discrete]
+[[aws-serverless-forwarder-deploy-prereq]]
+=== Pre-requisites
+This documentation assumes you have some familiarity with {aws} services and you have correctly created and configured the necessary {aws} objects. For example, if you want to use an Amazon S3 (via SQS event notifications) input then you must ensure that you have enabled AWS VPX flow logs to be sent to that bucket, and created an SQS queue to receive those logs. For more information, refer to the relevant https://docs.aws.amazon.com/[{aws} docs].
+
+// Need more details on pre-reqs for other input types
 
 [[aws-serverless-forwarder-deploy-kibana]]
 == Install {aws} integration assets in {kib}
@@ -37,19 +42,14 @@ the data you ingest. The integrations use https://www.elastic.co/guide/en/elasti
 with specific https://www.elastic.co/blog/an-introduction-to-the-elastic-data-stream-naming-scheme[naming conventions]
 that provide you with more granular controls and flexibility on managing data ingestion.
 
-NOTE: We recommend using integration assets to get started but the Lambda function
-supports writing to any index, alias, or custom data stream. This enables existing
-Elasticsearch users to re-use index templates, ingest pipelines, or dashboards
-that are already created and connected to existing processes or systems. If you
-already have an existing index or data stream you to send data to then then you
-can skip this deployment step.
+NOTE: We recommend using integration assets to get started but the Lambda function supports writing to any index, alias, or custom data stream. This enables existing Elasticsearch users to re-use index templates, ingest pipelines, or dashboards that are already created and connected to existing processes or systems. If you already have an existing index or data stream you to send data to then then you can skip this deployment step.
 
 [[sample-s3-config-file]]
 == Create and upload `config.yaml` to S3 bucket
 
 Elastic Serverless Forwarder requires a `config.yaml` file to be uploaded to an S3 bucket and referenced by the `S3_CONFIG_FILE` environment variable.
 
-Save the following YAML content as `config.yaml` and edit as required before uploading to an S3 bucket. You should remove any inputs you are not using, and ensure you have entered the correct URLs and credentials as per the inline comments.
+Save the following YAML content as `config.yaml` and edit as required before uploading to an S3 bucket. You should remove any inputs or arguments you are not using, and ensure you have entered the correct URLs and credentials as per the inline comments.
 
 [source, yaml]
 ----
@@ -171,6 +171,9 @@ For `elasticsearch` the following arguments are supported:
   * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your `config.yaml` file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
   * `args.batch_max_actions`: Maximum number of actions to send in a single bulk request. Default value: 500.
   * `args.batch_max_bytes`: Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
+  * `args.ssl_assert_fingerprint`: SSL fingerprint for self-signed SSL certificate on HTTPS transport.
+
+// is there some logic to this order? i.e. just placed ssl at end - should we re-order?
 
 [[aws-serverless-forwarder-deploy-sar]]
 == Deploy `elastic-serverless-forwarder` from Serverless Application Repository
@@ -204,9 +207,9 @@ image::images/aws-serverless-forwarder-create-function.png[Create Elastic Server
     * `ElasticServerlessForwarderS3Buckets`: Add a comma delimited list of S3 bucket ARNs that are sources for the S3 SQS Event Notifications (if any).
 . After your settings have been added, click **Deploy**.
 . On the Applications page for **serverlessrepo-elastic-serverless-forwarder**, click **Deployments**.
-. Refresh the **Deployment history** until you see the `Create complete` status update.
+. Refresh the **Deployment history** until you see the `Create complete` status update. It should take around 5 minutes to deploy &mdash; if the deployment fails for any reason, the create events will be rolled back and you will be able to see an explanation for which event failed.
 . (Optional) To enable Elastic APM instrumentation for your new deployment:
-    * Go to **Lambda > Functions** within {aws} console, and find and select the function with **serverlessrepo-elastic-se-ElasticServerlessForward-**.
+    * Go to **Lambda > Functions** within {aws} console, and find and select the function with **serverlessrepo-**.
     * Go to **Configuration** tab and select **Environment Variables**
     * Add the following environment variables:
 
@@ -215,6 +218,8 @@ image::images/aws-serverless-forwarder-create-function.png[Create Elastic Server
       |`ELASTIC_APM_ACTIVE`       | `true` |
       |`ELASTIC_APM_SECRET_TOKEN` | token  |
       |`ELASTIC_APM_SERVER_URL`	  | url    |
+
+NOTE: If you have already successfully deployed the forwarder but want to update the application (for example, if a new version of the Lambda function is released), you should go through this deploy step again and use the same **Application name**. This will ensure the function is updated rather than duplicated or created anew.
 
 [[aws-serverless-forwarder-deploy-cloudformation]]
 === Deploy using Cloudformation
