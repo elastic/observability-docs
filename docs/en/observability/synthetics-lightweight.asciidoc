@@ -1,68 +1,42 @@
 [[synthetics-lightweight]]
 = Configuring lightweight monitors
 
-// not sure what should be included here, but this is from existing
-// docs: https://www.elastic.co/guide/en/observability/current/uptime-set-up-choose-project-monitors.html#uptime-set-up-project-monitors-add
-
-
-// To use a YAML file and the Elastic Synthetics library to add a
-// lightweight monitor:
-
-// . You'll need a project using `@elastic/synthetics`. You can use an existing project where you manage browser monitors, or you can create a new project using `elastic-synthetics init`.
-// . Add one or more `.yml` files to the project.
-// . Configure monitors in the `.yml` files. For example:
-
-// ```yml
-// heartbeat.monitors:
-// - type: http
-//   id: elastic-http
-//   name: Elastic HTTP check
-//   urls: ["https://elastic.co"]
-//   schedule: "@every 60s"
-//   tags: ["org:elastic"]
-// - type: tcp
-//   id: elastic-tcp
-//   name: Elastic TCP check
-//   hosts: ["elastic.co"]
-//   schedule: "@every 60s"
-//   tags: ["org:elastic"]
-// ```
-
-// [IMPORTANT]
-// ====
-// *This functionality is still in beta and not all {heartbeat} configuration options are supported.* If you attempt to push a project monitor with a configuration option that is not supported, the push will fail with an error.
-// ====
-
-
-Lightweight monitors can be setup via either:
-
-1. The GUI (beta)
-2. YAML files in Project Monitors (beta)
-3. YAML files in Heartbeat (GA)
-
-Note that YAML files in Project Monitors and the GUI support the most common subset of options that Heartbeat does, but that work is ongoing to bring it closer to parity.
-The examples here will use Heartbeat YAML for illustrative purposes, note that these options map back to similarly named GUI options.
-
-[[configuration-heartbeat-options]]
-== Configure {beatname_uc} monitors
-
-To configure {beatname_uc} define a set of `monitors` to check your remote hosts.
-Specify monitors either directly inside the +heartbeat.yml+ config file, or in external
-dynamically loaded files located in the directory referenced by `heartbeat.config.monitors.path`.
-One advantage of using external files is that these can be automatically reloaded
-without stopping the {beatname_uc} process.
-
-Each `monitor` item is an entry in a yaml list, and so begins with a dash (-).
+To configure lightweight monitors define a set of `monitors` to check your remote hosts.
+Each `monitor` item is an entry in a YAML list and begins with a dash (`-``).
 You can define the type of monitor to use, the hosts to check, and other
-optional settings that control {beatname_uc} behavior.
+optional settings.
+
+Lightweight monitors can be configured using any of the following:
+
+* *YAML files in Project Monitors*. beta[]
+  <<synthetics-get-started-project,Set up a project>> and configure monitors in YAML
+  files in the `journeys` directory.
+* *{uptime-app} UI*. beta[]
+  <<synthetics-get-started-ui,Go to the {uptime-app}>> in {kib} and configure monitors
+  using the Monitor Management UI.
+* *YAML files in {heartbeat}*.
+  <<synthetics-get-started-heartbeat,Set up {heartbeat}>> and configure monitors in the
+  `heartbeat.yml` config file, or in external dynamically loaded files located in the
+  directory referenced by `heartbeat.config.monitors.path`. Read more about these options
+  in {heartbeat-ref}/configuration-heartbeat-options.html[Configure {heartbeat} monitors].
+
+[discrete]
+[[synthetics-monitor-types]]
+== Monitor types
+
+`icmp`:: Uses an ICMP (v4 and v6) Echo Request to ping the configured hosts.
+Requires special permissions or root access.
+`tcp`:: Connects via TCP and optionally verifies the endpoint by sending and/or
+receiving a custom payload.
+`http`:: Connects via HTTP and optionally verifies that the host returns the
+expected response. Will use `Elastic-Heartbeat` as
+the user agent product.
 
 The following example configures three monitors checking via the `icmp`, `tcp`, and `http`
-protocols directly inside the +heartbeat.yml+ file, and demonstrates how to use TCP Echo
-and HTTP response verification:
+protocols and demonstrates how to use TCP Echo and HTTP response verification:
 
 [source,yaml]
 ----
-# heartbeat.yml
 heartbeat.monitors:
 - type: icmp
   id: ping-myhost
@@ -87,85 +61,29 @@ heartbeat.scheduler:
   limit: 10
 ----
 
-Using the +heartbeat.yml+ configuration file is convenient, but has two drawbacks:
-it can become hard to manage with large numbers of monitors, and it will not reload
-heartbeat automatically when its contents changes.
+[discrete]
+[[synthetics-monitor-options]]
+== Configuration options
 
-Define monitors via the +heartbeat.config.monitors+ to prevent those issues from
-happening to you. To do so you would instead have your +heartbeat.yml+ file contain the following:
+You can find a complete reference of available configuration options in
+the {heartbeat} documentation.
 
-[source,yaml]
-----
-# heartbeat.yml
-heartbeat.config.monitors:
-  # Directory + glob pattern to search for configuration files
-  path: /path/to/my/monitors.d/*.yml
-  # If enabled, heartbeat will periodically check the config.monitors path for changes
-  reload.enabled: true
-  # How often to check for changes
-  reload.period: 1s
-----
+[NOTE]
+====
+*If you are using Project Monitors or the {uptime-app} UI to configure lightweight monitors*,
+it is important to note that while the most commonly used {heartbeat} configuration options
+are supported, some configuration options are not yet supported in these beta products.
+====
 
-Then, define one or more files in the directory pointed to by `heartbeat.config.monitors.path`.
-You may specify multiple monitors in a given file if you like. The contents of these files is
-monitor definitions only, e.g. what is normally under the `heartbeat.monitors` section of
-+heartbeat.yml+. See below for an example
+There are some common monitor configuration options that are the same for all monitors.
+For a complete list, refer to {heartbeat-ref}/monitor-options.html[Common monitor options].
 
-[source,yaml]
-----
-# /path/to/my/monitors.d/localhost_service_check.yml
-- type: http
-  id: service-status
-  name: Service Status
-  hosts: ["http://localhost:80/service/status"]
-  check.response.status: [200]
-  schedule: '@every 5s'
-----
+Each monitor type has additional configuration options that are specific to that monitor type.
+Refer to:
 
-[float]
-[[monitor-types]]
-=== Monitor types
-
-You can configure {beatname_uc} to use the following monitor types:
-
-*<<monitor-icmp-options,`icmp`>>*:: Uses an ICMP (v4 and v6) Echo Request to ping the configured hosts.
-Requires special permissions or root access.
-*<<monitor-tcp-options,`tcp`>>*:: Connects via TCP and optionally verifies the endpoint by sending and/or
-receiving a custom payload.
-*<<monitor-http-options,`http`>>*:: Connects via HTTP and optionally verifies that the host returns the
-expected response. Will use `Elastic-Heartbeat` as
-the user agent product.
-*<<monitor-browser-options,`browser`>>*:: Allows users to run the synthetic
-monitoring tests via Synthetic Agent on the Chromium browser.
+* {heartbeat-ref}/monitor-tcp-options.html[ICMP monitors]
+* {heartbeat-ref}/monitor-tcp-options.html[TCP monitors]
+* {heartbeat-ref}/monitor-http-options.html[HTTP monitors]
 
 The `tcp` and `http` monitor types both support SSL/TLS and some proxy
 settings.
-
-include::monitors/monitor-common-options.asciidoc[]
-
-include::monitors/monitor-icmp.asciidoc[]
-
-include::monitors/monitor-tcp.asciidoc[]
-
-include::monitors/monitor-http.asciidoc[]
-
-include::monitors/monitor-browser.asciidoc[]
-
-[float]
-[[run-once-mode]]
-=== Run Once Mode (Experimental)
-
-You can configure {beatname_uc} run monitors exactly once then exit, bypassing the scheduler. This is referred to as running {beatname_uc} in 
-"run once" mode by setting `heartbeat.run_once: true`. All {beatname_uc} monitors will ignore their schedules and run exactly once at startup.
-This is an experimental feature and is subject to change. 
-
-Note, the `schedule` field is still required and is used by {beatname_uc} to set the expectation around when
-the next run will occur. That duration is encoded in the `monitor.timespan` field in the {beatname_uc} output.
-
-[source,yaml]
-----
-# heartbeat.yml
-heartbeat.run_once: true
-heartbeat.monitors:
-# your monitor config here...
-----
