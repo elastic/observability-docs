@@ -1,8 +1,8 @@
 [[synthetics-get-started-project]]
-= Create monitors with project monitors
+= Create monitors with Project Monitors
 
 ++++
-<titleabbrev>Use project monitors</titleabbrev>
+<titleabbrev>Use Project Monitors</titleabbrev>
 ++++
 
 beta[]
@@ -88,6 +88,52 @@ Then, take a look at key files and directories inside your project:
 * `synthetics.config.ts` contains settings for your project. When you create a new project, it will contain some basic configuration options that you can customize later.
 * `package.json` contains NPM settings for your project. Learn more in the https://docs.npmjs.com/about-packages-and-modules[Synthetic tests configuration].
 * `.github` contains sample Github actions workflow files for use with Github Actions.
+
+[discrete]
+== Examine the journey files
+
+Inside the `journeys` directory you'll find examples of both browser and lightweight monitors. 
+
+Here's an example of a YAML file defining a *lightweight monitor*:
+
+[source,yml]
+----
+# lightweight.yml
+- type: http
+  name: Todos Lightweight
+  id: todos-lightweight
+  urls: "https://elastic.github.io/synthetics-demo/"
+  schedule: '@every 1m'
+----
+
+For more details on lightweight monitor configuration options,
+refer to <<synthetics-lightweight>>.
+
+Here's an example of a TypeScript file defining a *browser monitor*:
+
+[source,ts]
+----
+//example.journey.ts
+import { journey, step, monitor, expect } from '@elastic/synthetics';
+journey('My Example Journey', ({ page, params }) => {
+  // Only relevant for the push command to create
+  // monitors in Kibana
+  monitor.use({
+    id: 'example-monitor',
+    schedule: 10,
+  });
+  step('launch application', async () => {
+    await page.goto(params.url);
+  });
+  step('assert title', async () => {
+    const header = await page.locator('h1');
+    expect(await header.textContent()).toBe('todos');
+  });
+});
+----
+
+For more details on writing journeys and configuring browser monitors,
+refer to <<synthetics-journeys>>.
 
 [discrete]
 == Connect to the {stack}
