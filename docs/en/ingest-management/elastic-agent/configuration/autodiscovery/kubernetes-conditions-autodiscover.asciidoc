@@ -1,11 +1,11 @@
 [[conditions-based-autodiscover]]
 = Conditions based autodiscover
 
-You can define autodiscover conditions in each input to allow {agent} to automatically identify Pods and start monitoring them using predefined integrations. You can find more about these inputs and their configurations <<elastic-agent-input-configuration,here>>.
+You can define autodiscover conditions in each input to allow {agent} to automatically identify Pods and start monitoring them using predefined integrations. Refer to <<elastic-agent-input-configuration>> to get an idea .
 
-== Example: Target pods by host and label
+== Example: Target Pods by label
 
-To automatically identify a Redis Pod and monitor it with the Redis integration, uncomment the following input configuration inside  the {agent} Standalone manifest [here](https://github.com/elastic/elastic-agent/blob/main/deploy/kubernetes/elastic-agent-standalone-kubernetes.yaml):
+To automatically identify a Redis Pod and monitor it with the Redis integration, uncomment the following input configuration inside the https://github.com/elastic/elastic-agent/blob/main/deploy/kubernetes/elastic-agent-standalone-kubernetes.yaml[{agent} Standalone manifest]:
 
 
 [source,yaml]
@@ -26,7 +26,7 @@ To automatically identify a Redis Pod and monitor it with the Redis integration,
       metricsets:
         - info
       hosts:
-        - '${kubernetes.pod.ip}:6379'
+        - '${kubernetes.Pod.ip}:6379'
       idle_timeout: 20s
       maxconn: 10
       network: tcp
@@ -34,73 +34,43 @@ To automatically identify a Redis Pod and monitor it with the Redis integration,
       condition: ${kubernetes.labels.app} == 'redis'
 ------------------------------------------------
 
-The condition `${kubernetes.labels.app} == 'redis'` will make the {agent} look for a Pod with the `redis` label app within the scope defined in its manifest. 
+The condition `${kubernetes.labels.app} == 'redis'` will make the {agent} look for a Pod with the  label `app:redis` within the scope defined in its manifest.
 
-List of exported fields of the Kubernetes integration {metricbeat-ref}/exported-fields-kubernetes-processor.html[here] to be used in conditions.
+For a list of fields that you can use in conditions, refer to {metricbeat-ref}/exported-fields-kubernetes-processor.html[Kubernetes integration fields].
 
-The `redis` input defined in the {agent} manifest only has `info` as metricset. You can find more metricsets in the {metricbeat-ref}/metricbeat-module-redis.html[Redis module page], as well as the configuration options.
+
+The `redis` input defined in the {agent} manifest only specifies the`info` metricset. To learn about other available metricsets and their configuration settings, refer to the {metricbeat-ref}/metricbeat-module-redis.html[Redis module page].
 
 To deploy Redis, you can apply the following example manifest:
 
 [source,yaml]
 ------------------------------------------------
 apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: test-redis-config
-data:
-  redis-config: |
-    maxmemory 2mb
-    maxmemory-policy allkeys-lru
----
-apiVersion: v1
 kind: Pod
 metadata:
   name: redis
+  annotations:
+    co.elastic.hints/package: redis
+    co.elastic.hints/host: '${kubernetes.Pod.ip}:6379'
   labels:
     k8s-app: redis
     app: redis
 spec:
   containers:
-  - name: redis
-    image: redis:5.0.4
-    command:
-      - redis-server
-      - "/redis-master/redis.conf"
-    env:
-    - name: MASTER
-      value: "true"
+  - image: redis
+    imagePullPolicy: IfNotPresent
+    name: redis
     ports:
-    - containerPort: 6379
-    resources:
-      limits:
-        cpu: "0.1"
-    volumeMounts:
-    - mountPath: /redis-master-data
-      name: data
-    - mountPath: /redis-master
-      name: config
-  volumes:
-    - name: data
-      emptyDir: {}
-    - name: config
-      configMap:
-        name: test-redis-config
-        items:
-        - key: redis-config
-          path: redis.conf
+    - name: redis
+      containerPort: 6379
+      protocol: TCP
 ------------------------------------------------
 
-You should now be able to see Redis data flowing in on index `metrics-redis.info-default`. Make sure that the port on your Redis manifest file and the one used in the Redis input match. 
+You should now be able to see Redis data flowing in on index `metrics-redis.info-default`. Make sure the port in your Redis manifest file matches the port used in the Redis input.
 
-**Note:** All assets (dashboards, ingest pipelines, and so on) related to the Redis integration are not installed. You need to explicitly <<install-uninstall-integration-assets,install them through Kibana>>.
+NOTE: All assets (dashboards, ingest pipelines, and so on) related to the Redis integration are not installed. You need to explicitly <<install-uninstall-integration-assets,install them through {kib}>>.
 
-== Example: Target pods by label
-
-WARNING: In some "As a Service" Kubernetes implementations, like GKE, the control plane nodes or even the pods running on them won’t be visible. In these cases, it won’t be possible to use scheduler metricsets, necessary for this example. Refer https://www.elastic.co/guide/en/beats/metricbeat/current/metricbeat-module-kubernetes.html#_scheduler_and_controllermanager[here] to find more information.
-
-To set the target host dynamically only for a targeted Pod based on its labels, use a variable in the
-{agent} policy to return path information from the provider:
+To set the target host dynamically for a targeted Pod based on its labels, use a variable in the {agent} policy to return path information from the provider:
 
 [source,yaml]
 ----
@@ -111,22 +81,24 @@ To set the target host dynamically only for a targeted Pod based on its labels, 
     - scheduler
   bearer_token_file: /var/run/secrets/kubernetes.io/serviceaccount/token
   hosts:
-    - 'https://${kubernetes.pod.ip}:10259'
+    - 'https://${kubernetes.Pod.ip}:10259'
   period: 10s
   ssl.verification_mode: none
   condition: ${kubernetes.labels.component} == 'kube-scheduler'
 ----
 
-If you now deploy another Redis pod with a different port, it should be detected. You can check this by, for example, studying the field `service.address` under `metrics-redis.info-default`. It should now display 2 different services.
+WARNING: In some "As a Service" Kubernetes implementations, like GKE, the control plane nodes or even the Pods running on them won’t be visible. In these cases, it won’t be possible to use scheduler metricsets, necessary for this example. Refer https://www.elastic.co/guide/en/beats/metricbeat/current/metricbeat-module-kubernetes.html#_scheduler_and_controllermanager[scheduler and controller manager] to find more information.
 
-To obtain the policy generated by this configuration get inside the {agent} container:
+Following the Redis example, if you deploy another Redis Pod with a different port, it should be detected. To check this, go, for example, to the field `service.address` under `metrics-redis.info-default`. It should be displaying two different services.
+
+To obtain the policy generated by this configuration, connect to {agent} container:
 
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
 kubectl exec -n kube-system --stdin --tty elastic-agent-standalone-id -- /bin/bash
 ------------------------------------------------
 
-Do not forget to change the `elastic-agent-standalone-id` to your {agent} pod's name. Moreover, make sure that your pod is inside `kube-system`. If not, change `-n kube-system` to the right namespace.
+Do not forget to change the `elastic-agent-standalone-id` to your {agent} Pod's name. Moreover, make sure that your Pod is inside `kube-system`. If not, change `-n kube-system` to the correct namespace.
 
 Inside the container <<elastic-agent-cmd-options, inspect the output>> of the configuration file you used for the {agent}:
 
@@ -173,7 +145,7 @@ You should now be able to see the generated policy. If you look for the `schedul
               node_kubernetes_io/exclude-from-external-load-balancers: ""
             name: kind-control-plane
             uid: b8d65d6b-61ed-49ef-9770-3b4f40a15a8a
-          pod:
+          Pod:
             ip: 172.19.0.2
             name: kube-scheduler-kind-control-plane
             uid: f028ad77-c82a-4f29-ba7e-2504d9b0beef
@@ -216,7 +188,7 @@ To set the log path of Pods dynamically in the configuration, use a variable in 
 [source,yaml]
 ----
 - name: container-log
-  id: container-log-${kubernetes.pod.name}-${kubernetes.container.id}
+  id: container-log-${kubernetes.Pod.name}-${kubernetes.container.id}
   type: filestream
   use_output: default
   meta:
@@ -236,7 +208,7 @@ To set the log path of Pods dynamically in the configuration, use a variable in 
         - /var/log/containers/*${kubernetes.container.id}.log
 ----
 
-The policy generated by this configuration will look similar to this for every pod inside the scope defined in the manifest:
+The policy generated by this configuration will look similar to this for every Pod inside the scope defined in the manifest:
 
 [source,yaml]
 ----
@@ -282,7 +254,7 @@ The policy generated by this configuration will look similar to this for every p
             node_kubernetes_io/exclude-from-external-load-balancers: ""
           name: kind-control-plane
           uid: b8d65d6b-61ed-49ef-9770-3b4f40a15a8a
-        pod:
+        Pod:
           ip: 172.19.0.2
           name: etcd-kind-control-plane
           uid: 08970fcf-bb93-487e-b856-02399d81fb29

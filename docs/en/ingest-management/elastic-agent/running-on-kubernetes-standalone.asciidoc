@@ -1,9 +1,10 @@
 [[running-on-kubernetes-standalone]]
-= Run {agent} standalone on Kubernetes
+= Run {agent} Standalone on Kubernetes
+
+include::{fleet-repo-dir}/standalone-note.asciidoc[]
 
 :manifest: https://raw.githubusercontent.com/elastic/elastic-agent/{branch}/deploy/kubernetes/elastic-agent-standalone-kubernetes.yaml
 :show-condition: enabled
-
 
 == What you need
 
@@ -15,14 +16,18 @@
 include::{observability-docs-root}/docs/en/shared/spin-up-the-stack/widget.asciidoc[]
 --
 
-
+- `kube-state-metrics`.
++
 include::run-container-common/deploy-kube-state-metrics.asciidoc[]
+
+[discrete]
+== Step 1: Download the {agent} manifest
 
 include::run-container-common/download-elastic-agent.asciidoc[]
 
 
 [discrete]
-== Step 3: Connect to the {stack}
+== Step 2: Connect to the {stack}
 
 Set the {es} settings before deploying the manifest:
 
@@ -43,14 +48,18 @@ Set the {es} settings before deploying the manifest:
 Refer to <<agent-environment-variables>> for all available options.
 
 
+
+[discrete]
+== Step 3: Configure tolerations
 include::run-container-common/agent-tolerations.asciidoc[]
 
-
 :manifest: elastic-agent-standalone-kubernetes.yaml
+[discrete]
+== Step 4: Deploy the {agent}
 include::run-container-common/deploy-elastic-agent.asciidoc[]
 
 [discrete]
-== View your data in {kib}
+== Step 5: View your data in {kib}
 
 . Launch {kib}:
 +
@@ -155,6 +164,7 @@ oc patch namespace kube-system -p \
 ----
 +
 This command sets the node selector for the project to an empty string.
+
 
 
 [discrete]

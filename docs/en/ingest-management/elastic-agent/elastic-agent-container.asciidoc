@@ -1,7 +1,7 @@
 [[elastic-agent-container]]
 = Run {agent} in a container
 
-You can run {agent} inside of a container -- either with {fleet-server} or standalone. Docker images for all versions of {agent} are available from the https://www.docker.elastic.co/r/beats/elastic-agent[Elastic Docker registry]. If you are running in Kubernetes, refer to {eck-ref}/k8s-elastic-agent.html[run {agent} on ECK].
+You can run {agent} inside a container -- either with {fleet-server} or standalone. Docker images for all versions of {agent} are available from the https://www.docker.elastic.co/r/beats/elastic-agent[Elastic Docker registry]. If you are running in Kubernetes, refer to {eck-ref}/k8s-elastic-agent.html[run {agent} on ECK].
 
 Considerations:
 
@@ -59,26 +59,12 @@ include::{tab-widgets}/run-agent-image/widget.asciidoc[]
 [discrete]
 == Step 4: View your data in {kib}
 
-. Launch {kib}:
-+
---
-include::{observability-docs-root}/docs/en/shared/open-kibana/widget.asciidoc[]
---
-
-. You can check if your {agent} is enrolled to {fleet} by going to *Management -> {fleet} -> Agents*.
-+
-[role="screenshot"]
-image::{fleet-repo-dir}/images/kibana-fleet-agents-overview.png[Agents page]
-
-. You can see data flowing in by going to *Analytics -> Discover* and selecting the index `+metrics-*+`, or even more specific, `+metrics-kubernetes.*+`.
-
-. You can see predefined dashboards by selecting *Analytics->Dashboard*, or by <<view-integration-assets,installing assets through an integration>>.
-
+include::run-container-common/kibana-fleet-data.asciidoc[]
 
 [discrete]
 == Docker compose
 
-{agent} can be run in docker-compose.
+You can run {agent} in docker-compose.
 The example below shows how to enroll an {agent}:
 
 ["source","yaml",subs="attributes"]
@@ -112,9 +98,8 @@ Refer to <<agent-environment-variables>> for all available options.
 [discrete]
 == Logs
 
-As a container supports only a single version of {agent},
-logs and state are stored a bit differently than when running an {agent} outside of a container.
-The logs can be found under: `/usr/share/elastic-agent/state/data/logs/*`.
+Since a container supports only a single version of {agent},
+logs and state are stored a bit differently than when running an {agent} outside of a container. The logs can be found under: `/usr/share/elastic-agent/state/data/logs/*`.
 
 It's important to note that only the logs from the {agent} process itself are logged to `stdout`. Subprocess logs are not. Each subprocess writes its own logs to the `default` directory inside the logs directory:
 

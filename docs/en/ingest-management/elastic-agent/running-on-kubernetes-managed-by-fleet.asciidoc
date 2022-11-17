@@ -14,15 +14,24 @@
 include::{observability-docs-root}/docs/en/shared/spin-up-the-stack/widget.asciidoc[]
 --
 
-
+- `kube-state-metrics`.
++
 include::run-container-common/deploy-kube-state-metrics.asciidoc[]
+
+
+[discrete]
+== Step 1: Download the {agent} manifest
 
 include::run-container-common/download-elastic-agent.asciidoc[]
 
 
+[discrete]
+== Step 2: Configure {agent} policy
+
+The {agent} needs to be assigned to a policy to enable the proper inputs. To achieve Kubernetes observability, the policy would need to have the Kubernetes integration. Refer to <<create-a-policy>> and <<add-integration>> to learn how to enable the https://docs.elastic.co/en/integrations/kubernetes[Kubernetes integration].
 
 [discrete]
-== Step 3: Connect to the {stack}
+== Step 3: Enroll {agent} to the policy
 
 {agent} is enrolled to a running {fleet-server} using `FLEET_URL` parameter. The `FLEET_ENROLLMENT_TOKEN` parameter is used to connect {agent} to a specific {agent} policy. To specify different destination/credentials, change the following parameters in the manifest file:
 
@@ -42,7 +51,7 @@ include::run-container-common/download-elastic-agent.asciidoc[]
   value: "" <6>
 ------------------------------------------------
 <1> URL to enroll the {fleet-server} into. You can find it in {kib}. Select *Management -> {fleet} -> Fleet Settings*, and copy the {fleet-server} host URL.
-<2> The token to use for enrollment. Close the flyout panel and select *Enrollment tokens*. Find the Agent policy you want to enroll {agent} into, and display and copy the secret token. To learn how to create a policy, refer to <<create-a-policy-no-ui>>.
+<2> The token to use for enrollment. Close the flyout panel and select *Enrollment tokens*. Find the Agent policy you created before to enroll {agent} into, and display and copy the secret token.
 <3> The policy ID for {fleet-server} to use on itself.
 <4> The {kib} host.
 <5> The basic authentication username used to connect to {kib} and retrieve a `service_token` to enable {fleet}.
@@ -51,27 +60,18 @@ include::run-container-common/download-elastic-agent.asciidoc[]
 Refer to <<agent-environment-variables>> for all available options.
 
 
+[discrete]
+== Step 4: Configure tolerations
 include::run-container-common/agent-tolerations.asciidoc[]
 
+[discrete]
+== Step 5: Deploy the {agent}
 include::run-container-common/deploy-elastic-agent.asciidoc[]
 
-
+[discrete]
 == Step 6: View your data in {kib}
 
-. Launch {kib}:
-+
---
-include::{observability-docs-root}/docs/en/shared/open-kibana/widget.asciidoc[]
---
-
-. You can check if your {agent} is enrolled to {fleet} by going to *Management -> {fleet} -> Agents*.
-+
-[role="screenshot"]
-image::{fleet-repo-dir}/images/kibana-fleet-agents-overview.png[Agents page]
-
-. You can see data flowing in by going to *Analytics -> Discover* and selecting the index `+metrics-*+`, or even more specific, `+metrics-kubernetes.*+`.
-
-. You can see predefined dashboards by selecting *Analytics->Dashboard*, or by <<view-integration-assets,installing assets through an integration>>.
+include::run-container-common/kibana-fleet-data.asciidoc[]
 
 
 :manifest:
