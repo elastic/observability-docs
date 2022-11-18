@@ -21,7 +21,7 @@ Forwarder for {aws}— for additional information on configuration topics such a
 [discrete]
 [[aws-serverless-forwarder-deploy-prereq]]
 === Pre-requisites
-This documentation assumes you have some familiarity with {aws} services and you have correctly created and configured the necessary {aws} objects. For example, if you want to use an Amazon S3 (via SQS event notifications) input then you must ensure that you have enabled AWS VPX flow logs to be sent to that bucket, and created an SQS queue to receive those logs. For more information, refer to the relevant https://docs.aws.amazon.com/[{aws} docs].
+This documentation assumes you have some familiarity with {aws} services and you have correctly created and configured the necessary {aws} objects. For example, if you want to use an Amazon S3 (via SQS event notifications) input then you must ensure that you have enabled AWS VPC flow logs to be sent to that bucket, and created an SQS queue to receive those logs. For more information, refer to the relevant https://docs.aws.amazon.com/[{aws} docs].
 
 // Need more details on pre-reqs for other input types
 
@@ -60,76 +60,76 @@ inputs:
     outputs:
       - type: "elasticsearch"
         args:
-          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence if both are included
           elasticsearch_url: "http(s)://domain.tld:port"
           cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
-          # either api_key or username/password, api_key takes precedence
+          # either api_key or username/password, username/password takes precedence if both are included
           api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
           username: "username"
           password: "password"
           es_datastream_name: "logs-generic-default"
-          batch_max_actions: 500
-          batch_max_bytes: 10485760
+          batch_max_actions: 500 # optional: default value is 500
+          batch_max_bytes: 10485760 # optional: default value is 10485760
   - type: "sqs"
     id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
     outputs:
       - type: "elasticsearch"
         args:
-          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence if both are included
           elasticsearch_url: "http(s)://domain.tld:port"
           cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
-          # either api_key or username/password, api_key takes precedence
+          # either api_key or username/password, username/password takes precedence if both are included
           api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
           username: "username"
           password: "password"
           es_datastream_name: "logs-generic-default"
-          batch_max_actions: 500
-          batch_max_bytes: 10485760
+          batch_max_actions: 500 # optional: default value is 500
+          batch_max_bytes: 10485760 # optional: default value is 10485760
   - type: "kinesis-data-stream"
     id: "arn:aws:kinesis:%REGION%:%ACCOUNT%:stream/%STREAMNAME%"
     outputs:
       - type: "elasticsearch"
         args:
-          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence if both are included
           elasticsearch_url: "http(s)://domain.tld:port"
           cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
-          # either api_key or username/password, api_key takes precedence
+          # either api_key or username/password, username/password takes precedence if both are included
           api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
           username: "username"
           password: "password"
           es_datastream_name: "logs-generic-default"
-          batch_max_actions: 500
-          batch_max_bytes: 10485760
+          batch_max_actions: 500 # optional: default value is 500
+          batch_max_bytes: 10485760 # optional: default value is 10485760
   - type: "cloudwatch-logs"
     id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:*"
     outputs:
       - type: "elasticsearch"
         args:
-          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence if both are included
           elasticsearch_url: "http(s)://domain.tld:port"
           cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
-          # either api_key or username/password, api_key takes precedence
+          # either api_key or username/password, username/password takes precedence if both are included
           api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
           username: "username"
           password: "password"
           es_datastream_name: "logs-generic-default"
-          batch_max_actions: 500
-          batch_max_bytes: 10485760
+          batch_max_actions: 500 # optional: default value is 500
+          batch_max_bytes: 10485760 # optional: default value is 10485760
   - type: "cloudwatch-logs"
     id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:log-stream:%LOG_STREAM_NAME%"
     outputs:
       - type: "elasticsearch"
         args:
-          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence
+          # either elasticsearch_url or cloud_id, elasticsearch_url takes precedence if both are included
           elasticsearch_url: "http(s)://domain.tld:port"
           cloud_id: "cloud_id:bG9jYWxob3N0OjkyMDAkMA=="
-          # either api_key or username/password, api_key takes precedence
+          # either api_key or username/password, username/password takes precedence if both are included
           api_key: "YXBpX2tleV9pZDphcGlfa2V5X3NlY3JldAo="
           username: "username"
           password: "password"
           es_datastream_name: "logs-generic-default"
-          batch_max_actions: 500
-          batch_max_bytes: 10485760
+          batch_max_actions: 500 # optional: default value is 500
+          batch_max_bytes: 10485760 # optional: default value is 10485760
 ----
 
 [[s3-config-file-fields]]
@@ -152,7 +152,7 @@ Inputs of type `cloudwatch-logs` accept both CloudWatch Logs Log Group and Cloud
 
 `inputs.[].outputs`:
 
-A list of outputs (i.e. forwarding targets) for the Elastic Serverless Forwarder Lambda function. Only one output can be defined per type.
+A list of outputs (i.e. forwarding targets) for the Elastic Serverless Forwarder Lambda function. You can have multiple outputs for an input, but only one output can be defined per type.
 
 `inputs.[].outputs.[].type`:
 
@@ -164,16 +164,14 @@ Custom init arguments for the specified forwarding target output.
 For `elasticsearch` the following arguments are supported:
 
   * `args.elasticsearch_url`: URL of elasticsearch endpoint in the format `http(s)://domain.tld:port`. Mandatory when `args.cloud_id` is not provided. Will take precedence over `args.cloud_id` if both are defined.
-  * `args.cloud_id`: Cloud ID of elasticsearch endpoint. Mandatory when `args.elasticsearch_url` is not provided. Will be ignored if `args.elasticsearch_url` is defined as well.
-  * `args.username`: Username of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
-  * `args.password` Password of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will be ignored if `args.api_key` is defined as well.
-  * `args.api_key`:  API key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will take precedence over `args.username`/`args.password` if both are defined.
+  * `args.cloud_id`: Cloud ID of elasticsearch endpoint. Mandatory when `args.elasticsearch_url` is not provided. Will be ignored if `args.elasticsearch_url` is defined.
+  * `args.username`: Username of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will take precedence over `args.api_key` if both are defined.
+  * `args.password` Password of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will take precedence over `args.api_key` if both are defined.
+  * `args.api_key`:  API key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will be ignored if `args.username`/`args.password` are defined.
   * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your `config.yaml` file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
-  * `args.batch_max_actions`: Maximum number of actions to send in a single bulk request. Default value: 500.
-  * `args.batch_max_bytes`: Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
-  * `args.ssl_assert_fingerprint`: SSL fingerprint for self-signed SSL certificate on HTTPS transport.
-
-// is there some logic to this order? i.e. just placed ssl at end - should we re-order?
+  * `args.batch_max_actions`: (Optional) Maximum number of actions to send in a single bulk request. Default value: 500.
+  * `args.batch_max_bytes`: (Optional) Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
+  * `args.ssl_assert_fingerprint`: (Optional) SSL fingerprint for self-signed SSL certificate on HTTPS transport.
 
 [[aws-serverless-forwarder-deploy-sar]]
 == Deploy `elastic-serverless-forwarder` from Serverless Application Repository
@@ -187,19 +185,18 @@ There are several deployment methods available via the {aws} Serverless Applicat
 [[aws-serverless-forwarder-deploy-console]]
 === Deploy using {aws} Console
 
-. Log in to {aws} console and navigate to the Lambda service.
-. Click **Create function**.
-. Select **Browse serverless app repository**.
-. Select **Public applications**.
-. Search for **elastic-serverless-forwarder** and select it from results.
+. Log in to {aws} console and open **Lambda**.
+. Click **Applications** and then **Create application**.
+. Click **Serverless application** and search for **elastic-serverless-forwarder**.
+. Select **elastic-serverless-forwarder** from the search results (ignoring any application beginning *helper-*).
 +
 [role="screenshot"]
 image::images/aws-serverless-forwarder-create-function.png[Create Elastic Serverless Forwarder Lambda function within SAR]
 +
-. Complete the **Application settings** as follows:
+. Complete the **Application settings** as follows, making sure you reference the ARNs specified in your `config.yaml`, and leaving any settings for unused inputs blank:
     * `ElasticServerlessForwarderS3ConfigFile`: Set the value of the S3 URL in the format `s3://bucket-name/config-file-name` to the configuration file for your deployment of Elastic Serverless Forwarder. This will populate the `S3_CONFIG_FILE` environment variable of the deployed Lambda.
-    * `ElasticServerlessForwarderSSMSecrets`: Add a comma delimited list of {aws} SSM Secrets ARNs referenced in the `config.yaml` file (if any).
-    * `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets referenced in the `config.yaml` file (if any).
+    * `ElasticServerlessForwarderSSMSecrets`: Add a comma delimited list of {aws} SSM Secrets ARNs (if any).
+    * `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets (if any).
     * `ElasticServerlessForwarderSQSEvents`: Add a comma delimited list of Direct SQS queues ARNs to set as event triggers for the Lambda (if any).
     * `ElasticServerlessForwarderS3SQSEvents`: Add a comma delimited list of S3 SQS Event Notifications ARNs to set as event triggers for the Lambda (if any).
     * `ElasticServerlessForwarderKinesisEvents`: Add a comma delimited list of Kinesis Data Stream ARNs to set as event triggers for the Lambda (if any).
@@ -243,16 +240,16 @@ aws serverlessrepo list-application-versions --application-id arn:aws:serverless
         Properties:
           Location:
             ApplicationId: 'arn:aws:serverlessrepo:eu-central-1:267093732750:applications/elastic-serverless-forwarder'
-            SemanticVersion: '%SEMANTICVERSION%'  ## CHANGE REFERENCING THE SEMANTIC VERSION (IT MUST BE GREATER THAN 0.30.0)
+            SemanticVersion: '%SEMANTICVERSION%'  ## SET TO CORRECT SEMANTIC VERSION (MUST BE GREATER THAN 0.30.0)
           Parameters:
-            ElasticServerlessForwarderS3ConfigFile: ""          ## FILL WITH THE VALUE OF THE S3 URL IN THE FORMAT "s3://bucket-name/config-file-name" POINTING TO THE CONFIGURATION FILE FOR YOUR DEPLOYMENT OF THE ELASTIC SERVERLESS FORWARDER
-            ElasticServerlessForwarderSSMSecrets: ""            ## FILL WITH A COMMA DELIMITED LIST OF AWS SSM SECRETS ARNS REFERENCED IN THE CONFIG YAML FILE (IF ANY).
-            ElasticServerlessForwarderKMSKeys: ""               ## FILL WITH A COMMA DELIMITED LIST OF AWS KMS KEYS ARNS TO BE USED FOR DECRYPTING AWS SSM SECRETS REFERENCED IN THE CONFIG YAML FILE (IF ANY).
-            ElasticServerlessForwarderSQSEvents: ""             ## FILL WITH A COMMA DELIMITED LIST OF DIRECT SQS QUEUES ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA (IF ANY).
-            ElasticServerlessForwarderS3SQSEvents: ""           ## FILL WITH A COMMA DELIMITED LIST OF S3 SQS EVENT NOTIFICATIONS ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA (IF ANY).
-            ElasticServerlessForwarderKinesisEvents: ""         ## FILL WITH A COMMA DELIMITED LIST OF KINESIS DATA STREAM ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA (IF ANY).
-            ElasticServerlessForwarderCloudWatchLogsEvents: ""  ## FILL WITH A COMMA DELIMITED LIST OF CLOUDWATCH LOGS LOG GROUPS ARNS TO SET SUBSCRIPTION FILTERS ON THE LAMBDA FOR (IF ANY).
-            ElasticServerlessForwarderS3Buckets: ""             ## FILL WITH A COMMA DELIMITED LIST OF S3 BUCKETS ARNS THAT ARE THE SOURCES OF THE S3 SQS EVENT NOTIFICATIONS (IF ANY).
+            ElasticServerlessForwarderS3ConfigFile: ""          ## ENTER THE VALUE OF THE S3 URL IN THE FORMAT "s3://bucket-name/config-file-name" POINTING TO THE CONFIGURATION FILE FOR YOUR DEPLOYMENT OF THE ELASTIC SERVERLESS FORWARDER
+            ElasticServerlessForwarderSSMSecrets: ""            ## ENTER A COMMA DELIMITED LIST OF AWS SSM SECRETS ARNS REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+            ElasticServerlessForwarderKMSKeys: ""               ## ENTER A COMMA DELIMITED LIST OF AWS KMS KEYS ARNS TO BE USED FOR DECRYPTING AWS SSM SECRETS REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+            ElasticServerlessForwarderSQSEvents: ""             ## ENTER A COMMA DELIMITED LIST OF DIRECT SQS QUEUES ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA (IF ANY).
+            ElasticServerlessForwarderS3SQSEvents: ""           ## ENTER A COMMA DELIMITED LIST OF S3 SQS EVENT NOTIFICATIONS ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+            ElasticServerlessForwarderKinesisEvents: ""         ## ENTER A COMMA DELIMITED LIST OF KINESIS DATA STREAM ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+            ElasticServerlessForwarderCloudWatchLogsEvents: ""  ## ENTER A COMMA DELIMITED LIST OF CLOUDWATCH LOGS LOG GROUPS ARNS TO SET SUBSCRIPTION FILTERS ON THE LAMBDA REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+            ElasticServerlessForwarderS3Buckets: ""             ## ENTER A COMMA DELIMITED LIST OF S3 BUCKETS ARNS THAT ARE THE SOURCES OF THE S3 SQS EVENT NOTIFICATIONS (IF ANY).
 ----
 +
 
@@ -286,14 +283,14 @@ NOTE: Starting from **v1.4.0**, if you want to update the Events settings for th
     semantic_version = data.aws_serverlessapplicationrepository_application.esf_sar.semantic_version
     capabilities     = data.aws_serverlessapplicationrepository_application.esf_sar.required_capabilities
   parameters = {
-      ElasticServerlessForwarderS3ConfigFile         = ""  ## FILL WITH THE VALUE OF THE S3 URL IN THE FORMAT "s3://bucket-name/config-file-name" POINTING TO THE CONFIGURATION FILE FOR YOUR DEPLOYMENT OF THE ELASTIC SERVERLESS FORWARDER
-      ElasticServerlessForwarderSSMSecrets           = ""  ## FILL WITH A COMMA DELIMITED LIST OF AWS SSM SECRETS ARNS REFERENCED IN THE CONFIG YAML FILE (IF ANY).
-      ElasticServerlessForwarderKMSKeys              = ""  ## FILL WITH A COMMA DELIMITED LIST OF AWS KMS KEYS ARNS TO BE USED FOR DECRYPTING AWS SSM SECRETS REFERENCED IN THE CONFIG YAML FILE (IF ANY).
-      ElasticServerlessForwarderSQSEvents            = ""  ## FILL WITH A COMMA DELIMITED LIST OF DIRECT SQS QUEUES ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA (IF ANY).
-      ElasticServerlessForwarderS3SQSEvents          = ""  ## FILL WITH A COMMA DELIMITED LIST OF S3 SQS EVENT NOTIFICATIONS ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA (IF ANY).
-      ElasticServerlessForwarderKinesisEvents        = ""  ## FILL WITH A COMMA DELIMITED LIST OF KINESIS DATA STREAM ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA (IF ANY).
-      ElasticServerlessForwarderCloudWatchLogsEvents = ""  ## FILL WITH A COMMA DELIMITED LIST OF CLOUDWATCH LOGS LOG GROUPS ARNS TO SET SUBSCRIPTION FILTERS ON THE LAMBDA FOR (IF ANY).
-      ElasticServerlessForwarderS3Buckets            = ""  ## FILL WITH A COMMA DELIMITED LIST OF S3 BUCKETS ARNS THAT ARE THE SOURCES OF THE S3 SQS EVENT NOTIFICATIONS (IF ANY).
+      ElasticServerlessForwarderS3ConfigFile         = ""  ## ENTER THE VALUE OF THE S3 URL IN THE FORMAT "s3://bucket-name/config-file-name" POINTING TO THE CONFIGURATION FILE FOR YOUR DEPLOYMENT OF THE ELASTIC SERVERLESS FORWARDER
+      ElasticServerlessForwarderSSMSecrets           = ""  ## ENTER A COMMA DELIMITED LIST OF AWS SSM SECRETS ARNS REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+      ElasticServerlessForwarderKMSKeys              = ""  ## ENTER A COMMA DELIMITED LIST OF AWS KMS KEYS ARNS TO BE USED FOR DECRYPTING AWS SSM SECRETS REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+      ElasticServerlessForwarderSQSEvents            = ""  ## ENTER A COMMA DELIMITED LIST OF DIRECT SQS QUEUES ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+      ElasticServerlessForwarderS3SQSEvents          = ""  ## ENTER A COMMA DELIMITED LIST OF S3 SQS EVENT NOTIFICATIONS ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+      ElasticServerlessForwarderKinesisEvents        = ""  ## ENTER A COMMA DELIMITED LIST OF KINESIS DATA STREAM ARNS TO SET AS EVENT TRIGGERS FOR THE LAMBDA REFERENCED IN THE CONFIG YAML FILE (IF ANY).
+      ElasticServerlessForwarderCloudWatchLogsEvents = ""  ## ENTER A COMMA DELIMITED LIST OF CLOUDWATCH LOGS LOG GROUPS ARNS TO SET SUBSCRIPTION FILTERS ON THE LAMBDA REFERENCED IN THE CONFIG YAML FILE(IF ANY).
+      ElasticServerlessForwarderS3Buckets            = ""  ## ENTER A COMMA DELIMITED LIST OF S3 BUCKETS ARNS THAT ARE THE SOURCES OF THE S3 SQS EVENT NOTIFICATIONS (IF ANY).
     }
   }
 ----
