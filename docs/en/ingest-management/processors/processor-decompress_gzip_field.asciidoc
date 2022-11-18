@@ -6,14 +6,14 @@
 ++++
 
 The `decompress_gzip_field` processor specifies a field to gzip decompress.
-The `field` key contains a `from: old-key` and a `to: new-key` pair. `from` is
-the origin and `to` the target name of the field.
 
-To overwrite fields either first rename the target field or use the `drop_fields`
-processor to drop the field and then rename the field.
+To overwrite fields, either first rename the target field, or use the
+`drop_fields` processor to drop the field, and then decompress the field.
 
 [discrete]
 == Example
+
+In this example, `field1` is decompressed in `field2`.
 
 [source,yaml]
 -------
@@ -25,8 +25,6 @@ processor to drop the field and then rename the field.
       fail_on_error: true
 -------
 
-In this example, `field1` is decoded in `field2`.
-
 [discrete]
 == Configuration settings
 
@@ -34,15 +32,23 @@ In this example, `field1` is decoded in `field2`.
 |===
 | Name | Required | Default | Description
 
+| `field`
+| Yes
+|
+a| Contains:
+
+* `from: "old-key"`, where `from` is the origin
+* `to: "new-key"`, where `to` is the target field name
+
 | `ignore_missing`
 | No
 | `false`
-| If `true`, no error is logged when a key that should be base64 decoded is missing.
+| Whether to ignore missing keys. If `true`, no error is logged if a key that should be decompressed is missing.
 
 | `fail_on_error`
 | No
 |`true`
-| If `true` and an error occurs, base64 decoding of fields is stopped, and the original event is returned. If `false`, decoding continues even if an error occurs during decoding.
+| If `true` and an error occurs, decompression of fields is stopped, and the original event is returned. If `false`, decompression continues even if an error occurs during decoding.
 
 |===
 

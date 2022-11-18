@@ -14,21 +14,23 @@ single flow. For example, you can filter on a community ID value and you might
 get back the Netflow records from multiple collectors and layer 7 protocol
 records from Packetbeat.
 
+//REVIEWERS: Is it OK to mention Packetbeat here?
+
 By default the processor is configured to read the flow parameters from the
-appropriate Elastic Common Schema (ECS) fields. If you are processing ECS data
-then no parameters are required.
+appropriate Elastic Common Schema (ECS) fields. If you are processing ECS data,
+no parameters are required. 
 
 [discrete]
-== Example
+== Examples
 
 [source,yaml]
 ----
   - community_id:
 ----
 
-If the data does not conform to ECS then you can customize the field names
-that the processor reads from. You can also change the `target` field which
-is where the computed hash is written to.
+If the data does not conform to ECS, you can customize the field names that the
+processor reads from. You can also change the target field that the computed
+hash is written to. For example:
 
 [source,yaml]
 ----
@@ -45,8 +47,33 @@ is where the computed hash is written to.
       target: network.community_id
 ----
 
-If the necessary fields are not present in the event, the processor will
-silently continue without adding the target field.
+If the necessary fields are not present in the event, the processor silently
+continues without adding the target field.
 
-The processor also accepts an optional `seed` parameter that must be a 16-bit
-unsigned integer. This value gets incorporated into all generated hashes.
+[discrete]
+== Configuration settings
+
+[options="header"]
+|===
+| Name | Required | Default | Description
+
+| `fields`
+| No
+|
+| Field names that the processor reads from.
+
+| `target`
+| No
+|
+| Field that the computed hash is written to.
+
+| `seed`
+| No
+|
+| 16-bit unsigned integer that gets incorporated into all generated hashes.
+
+|===
+
+//REVIEWERS: Original topic did not provide descriptions of each config setting.
+//I feel "fields" should be expanded to describe all of the settings, but I need
+//someone to provide descriptions if we want to do this.

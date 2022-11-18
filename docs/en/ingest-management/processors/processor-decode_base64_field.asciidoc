@@ -6,8 +6,6 @@
 ++++
 
 The `decode_base64_field` processor specifies a field to base64 decode.
-The `field` key contains a `from: old-key` and a `to: new-key` pair. `from` is
-the origin and `to` the target name of the field.
 
 To overwrite fields, either rename the target field or use the `drop_fields`
 processor to drop the field, and then rename the field.
@@ -15,17 +13,17 @@ processor to drop the field, and then rename the field.
 [discrete]
 == Example
 
+In this example, `field1` is decoded in `field2`.
+
 [source,yaml]
--------
+----
   - decode_base64_field:
       field:
         from: "field1"
         to: "field2"
       ignore_missing: false
       fail_on_error: true
--------
-
-In this example, `field1` is decoded in `field2`.
+----
 
 [discrete]
 == Configuration settings
@@ -34,15 +32,25 @@ In this example, `field1` is decoded in `field2`.
 |===
 | Name | Required | Default | Description
 
+| `field`
+| Yes
+|
+a| Contains:
+
+* `from: "old-key"`, where `from` is the origin
+* `to: "new-key"`, where `to` is the target field name
+
 | `ignore_missing`
 | No
 | `false`
-| If `true`, no error is logged if a key that should be base64 decoded is missing.
+| Whether to ignore missing keys. If `true`, missing keys that should be base64 decoded are ignored and no error is logged.
 
 | `fail_on_error`
 | No
 | `true`
-| If `true` and an error occurs, the base64 decoding of fields is stopped, and the original event is returned. If `false`, decoding continues even if an error occurs during decoding.
+| Whether to fail if an error occurs. If `true` and an error occurs, base64 decoding of fields is stopped, and the original event is returned. If `false`, decoding continues even if an error occurs during decoding.
 |===
 
 See <<conditions>> for a list of supported conditions.
+
+//REVIEWERS: What happens if ignore_missing is false and there are missing keys?

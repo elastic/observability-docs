@@ -58,12 +58,6 @@ Optionally, the process environment can be included, too:
 [discrete]
 == Configuration settings
 
-// REVIEWERS: I had to rewrite the descriptions to make them more concise. Can
-// you please confirm the defaults.
-
-//TODO: Take another pass. These are shorter, but still need work and need to be
-//compared to originals for accuracy.
-
 [options="header"]
 |===
 | Name | Required | Default | Description
@@ -86,44 +80,44 @@ Optionally, the process environment can be included, too:
 | `ignore_missing`
 | No
 | `true`
-| Ignores missing fields. If `false`, discards events that don't contain any fields in `match_pids`, and generates an error.
+| Whether to ignore missing fields. If `false`, discards events that don't contain any of the fields specified in `match_pids` and then generates an error. If `true`, missing fields are ignored.
 
 | `overwrite_keys`
 | No
 | `false`
-| Overwrites keys. By default, if a target field already exists, it's not overwritten, and an error is logged. 
+| Whether to overwrite existing keys. If `false` and a target field already exists, it is not, overwritten, and an error is logged. If `true`, the target field is overwritten.
 
 | `restricted_fields`
 | No
 | `false`
-| By default, to avoid leaking sensitive data, the `process.env` field is not output. If `true`, the field will be present in the output.
+| Whether to output restricted fields. If `false`, to avoid leaking sensitive data, the `process.env` field is not output. If `true`, the field will be present in the output.
 
 | `host_path`
 | No
-|
-| By default, the `host_path` field is set to the root directory of the host `/`. This is the path where `/proc` is mounted. For different runtime configurations of Kubernetes or Docker, set the `host_path` to overwrite the default.
+| root directory (`/`) of host
+| Host path where `/proc` is mounted. For different runtime configurations of Kubernetes or Docker, set the `host_path` to overwrite the default.
 
 | `cgroup_prefixes`
 | No
 | `/kubepods` and `/docker`
-| The prefix where the container ID is inside cgroup. For different runtime configurations of Kubernetes or Docker,  set `cgroup_prefixes` to overwrite the defaults.
+| Prefix where the container ID is inside cgroup. For different runtime configurations of Kubernetes or Docker, set `cgroup_prefixes` to overwrite the defaults.
 
 | `cgroup_regex`
 | No
 |
-a| A regular expression that matches the container id of a cgroup with capture group for capturing container id from cgroup path. For example:
+a| Regular expression with capture group for capturing the container ID from the cgroup path. For example:
 
-. `^\/.+\/.+\/.+\/([0-9a-f]{64}).*` matches the container id of a cgroup
+. `^\/.+\/.+\/.+\/([0-9a-f]{64}).*` matches the container ID of a cgroup
 like `/kubepods/besteffort/pod665fb997-575b-11ea-bfce-080027421ddf/b5285682fba7449c86452b89a800609440ecc88a7ba5f2d38bedfb85409b30b1`
-. `^\/.+\/.+\/.+\/docker-([0-9a-f]{64}).scope` matches the container id of a cgroup
+. `^\/.+\/.+\/.+\/docker-([0-9a-f]{64}).scope` matches the container ID of a cgroup
 like `/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod69349abe_d645_11ea_9c4c_08002709c05c.slice/docker-80d85a3a585f1575028ebe468d83093c301eda20d37d1671ff2a0be50fc0e460.scope`
-. `^\/.+\/.+\/.+\/crio-([0-9a-f]{64}).scope` matches the container id of a cgroup
+. `^\/.+\/.+\/.+\/crio-([0-9a-f]{64}).scope` matches the container ID of a cgroup
 like `/kubepods.slice/kubepods-burstable.slice/kubepods-burstable-pod69349abe_d645_11ea_9c4c_08002709c05c.slice/crio-80d85a3a585f1575028ebe468d83093c301eda20d37d1671ff2a0be50fc0e460.scope`
 
-If `cgroup_regex` is not set, the container id is extracted from the cgroup file based on the `cgroup_prefixes` setting. 
+If `cgroup_regex` is not set, the container ID is extracted from the cgroup file based on the `cgroup_prefixes` setting. 
 
 | `cgroup_cache_expire_time`
 | No
 | `30s`
-| The length of time in seconds before cgroup cache elements expire. To disable the cgroup cache, set this to `0`. In some container runtime technologies, like runc, the container's process is also a process in the host kernel and will be affected by PID rollover/reuse. Set the expire time to a value that is smaller than the PIDs wrap around time to avoid wrong container id.
+| Time in seconds before cgroup cache elements expire. To disable the cgroup cache, set this to `0`. In some container runtime technologies, like runc, the container's process is also a process in the host kernel and will be affected by PID rollover/reuse. Set the expire time to a value that is smaller than the PIDs wrap around time to avoid the wrong container ID.
 |===
