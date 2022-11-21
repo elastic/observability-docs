@@ -7,13 +7,11 @@
 <titleabbrev>Configuration options</titleabbrev>
 ++++
 :keywords: serverless
-:description: Learn configuration options for Elastic Serverless Forwarder and how to transform you AWS data as it is collected from Amazon Web Services ({aws}).
-
-// add overview context i.e. what is created on deployment, what needs to be done next, contextualise and link to sample config
+:description: Learn configuration options for Elastic Serverless Forwarder and how to transform your AWS data as it is collected from Amazon Web Services ({aws}).
 
 Learn more about configuration options for Elastic Serverless Forwarder, including more detail on permissions and policies, automatic routing of {aws} service logs, and how to use AWS Secrets Manager for authentication.
 
-You can transform or enrich data from {aws} as it is parsed by the Elastic Serverless Forwarder. This includes examples such as using tags and filters to organise your data and exclude specific messages, automatically discovering and collecting JSON content, and managing multiline messages effectively.
+You can transform or enrich data from {aws} as it is parsed by the forwarder. This includes examples such as using tags and filters to organise your data and exclude specific messages, automatically discovering and collecting JSON content, and managing multiline messages effectively.
 
 - <<lambda-permissions-policies>>
 
@@ -36,7 +34,7 @@ When you provide the ARNs of {aws} resources the forwarder will interact with, t
 
 You can view the execution role associated with your Lambda function from the **Configuration > Permissions** section within . By default this role starts with the name **serverlessrepo-**. When the role is created, a custom policy is added to grant Lambda minimum permissions to be able to use the configured SQS queue, S3 buckets, Kinesis data stream, CloudWatch Logs log groups, Secrets manager (if using), and SQS replay queue.
 
-The Lambda function is granted the following `ManagedPolicyArns` permissions. These are automatically added by default if relevant to the Events configuration:
+The forwarder is granted the following `ManagedPolicyArns` permissions, which are automatically added by default to the Events configuration (if relevant):
 
 [source, bash]
 ----
@@ -66,7 +64,7 @@ In addition to these basic permissions, the following permissions are added when
 [[lambda-policy-cloudwatch]]
 === Lambda resource-based policy for CloudWatch Logs subscription filter input
 
-For CloudWatch Logs subscription filter log group resources that you want to use as triggers of the Lambda function, the following is allowed as a resource-based policy in separate Policy statements:
+For CloudWatch Logs subscription filter log group resources that you want to use as triggers for the forwarder, the following is allowed as a resource-based policy in separate Policy statements:
 
 [source, yaml]
 ----
@@ -225,7 +223,7 @@ You can define a list of regular expressions within `inputs.[].exclude`. If this
 
 [NOTE]
 ====
-Both config parameters are optional, and can be set independently of each other. In terms of rule precedence, the exclude filter is applied first and then the include filter, so exclude takes precedence if both are supplied.
+Both config parameters are optional, and can be set independently of each other. In terms of rule precedence, the exclude filter is applied first and then the include filter, so exclude takes precedence if both are specified.
 
 All regular expressions are case-sensitive and should follow https://docs.python.org/3.9/library/re.html#regular-expression-syntax[Python's 3.9 regular expression syntax].
 
@@ -240,7 +238,7 @@ No flags are used when the regular expression is compiled. Please refer to https
 
 The Elastic Serverless Forwarder is able to automatically discover JSON content in the payload of an input and collect the JSON objects contained in the payload.
 
-The JSON objects can either be on a single line or spanning multiple lines. In the second case, the Elastic Serverless Forwarder expects different JSON objects spanning multiple lines to be separated by a newline delimiter.
+The JSON objects can either be on a single line or spanning multiple lines. In the second case, the forwarder expects different JSON objects spanning multiple lines to be separated by a newline delimiter.
 
 When JSON objects span multiple lines, a limit of 1000 lines is applied. Every JSON object spanning across more than 1000 lines will not be collected. Every line composing the whole JSON object will be forwarded individually instead.
 
@@ -250,9 +248,9 @@ Where content is known to be plain text, you can improve overall performance by 
 
 To change this configuration option, set `inputs.[].json_content_type` to one of the following values:
 
-- **single**: indicates that the content of a single item in the input payload is a single JSON object. The content can either be on a single line or spanning multiple lines. With this setting the whole content of the payload is decoded as JSON object, with no limit on the number of lines the JSON object spans.
+- **single**: indicates that the content of a single item in the input payload is a single JSON object. The content can either be on a single line or spanning multiple lines. With this setting the whole content of the payload is decoded as a JSON object, with no limit on the number of lines the JSON object spans.
 - **ndjson**: indicates that the content of a single item in the input payload is a valid NDJSON format. Multiple single JSON objects formatted on a single line should be separated by a newline delimiter. With this setting each line will be decoded as JSON object, which improves the parsing performance.
-- **disabled**: instructs the Elastic Serverless Forwarder not to attempt any automatic JSON content discovery and instead treat the content as plain text, which improves the parsing performance.
+- **disabled**: instructs the forwarder not to attempt any automatic JSON content discovery and instead treat the content as plain text, which improves the parsing performance.
 
 NOTE: There is no need to configure the JSON content type when <<expanding-events-from-json-object-lists>>, unless you have single JSON objects that span more than 1000 lines.
 
@@ -338,7 +336,7 @@ inputs:
           es_datastream_name: "logs-generic-default"
 ----
 
-The Elastic Serverless Forwarder takes all the lines that do not start with `[` and combines them with the previous line that does. For example, you could use this configuration to join the following lines of a multiline message into a single event:
+The forwarder takes all the lines that do not start with `[` and combines them with the previous line that does. For example, you could use this configuration to join the following lines of a multiline message into a single event:
 
 [source, shell]
 ----
@@ -508,6 +506,7 @@ Sometimes your application logs contain events, that begin and end with custom m
 ----
 
 To consolidate these lines into a single event, use the following multiline configuration:
+
 [source, yaml]
 ----
 multiline:
