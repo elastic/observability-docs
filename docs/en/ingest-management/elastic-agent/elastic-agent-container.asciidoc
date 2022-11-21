@@ -1,21 +1,29 @@
 [[elastic-agent-container]]
 = Run {agent} in a container
 
-You can run {agent} inside of a container -- either with {fleet-server} or standalone.
-Docker images for all versions of {agent} are available from the
-https://www.docker.elastic.co/r/beats/elastic-agent[Elastic Docker registry].
-If you are running in Kubernetes, refer to {eck-ref}/k8s-elastic-agent.html[run {agent} on ECK].
+You can run {agent} inside a container -- either with {fleet-server} or standalone. Docker images for all versions of {agent} are available from the https://www.docker.elastic.co/r/beats/elastic-agent[Elastic Docker registry]. If you are running in Kubernetes, refer to {eck-ref}/k8s-elastic-agent.html[run {agent} on ECK].
 
 Considerations:
 
-* When {agent} runs inside of a container, it cannot be upgraded through {fleet} as it expects that the container itself is upgraded.
+* When {agent} runs inside a container, it cannot be upgraded through {fleet} as it expects that the container itself is upgraded.
 * Enrolling and running an {agent} is usually a two-step process.
 However, this doesn't work in a container, so a special subcommand, `container`, is called.
 This command allows environment variables to configure all properties, and runs the `enroll` and `run` commands as a single command.
 
 [discrete]
-[[agent-in-container-pull]]
-= Pull the image
+== What you need
+
+- https://docs.docker.com/get-docker/[Docker installed].
+
+- {es} for storing and searching your data, and {kib} for visualizing and managing it.
++
+--
+include::{observability-docs-root}/docs/en/shared/spin-up-the-stack/widget.asciidoc[]
+--
+
+[discrete]
+== Step 1: Pull the image
+
 
 There are two images for {agent}, *elastic-agent* and *elastic-agent-complete*. The *elastic-agent* image contains all the binaries for running {beats}, while the *elastic-agent-complete* image contains these binaries plus additional dependencies to run browser monitors through Elastic Synthetics. Refer to {observability-guide}/uptime-set-up.html[Synthetic monitoring via {agent} and {fleet}] for more information.
 
@@ -26,7 +34,7 @@ Run the `docker pull` command against the Elastic Docker registry:
 docker pull docker.elastic.co/beats/elastic-agent:{version}
 ----
 
-If want to run synthetics tests, run the `docker pull` command to fetch the *elastic-agent-complete* image:
+If you want to run Synthetics tests, run the `docker pull` command to fetch the *elastic-agent-complete* image:
 
 [source,terminal,subs="attributes"]
 ----
@@ -34,85 +42,40 @@ docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
 ----
 
 [discrete]
-[[agent-in-container-command]]
-= {agent} container command
+== Step 2: Get aware of the  {agent} container command
+
 
 The {agent} container command offers a wide variety of options.
 To see the full list, run:
 
-[source,terminal]
+[source,terminal,subs="attributes"]
 ----
 docker run --rm docker.elastic.co/beats/elastic-agent:{version} elastic-agent container -h
 ----
 
 [discrete]
-[[agent-in-container-cloud]]
-= {ecloud} example
+== Step 3: Run the {agent} image
 
-The easiest way to get started is by using an Elastic cluster running on {ecloud}.
-
-// lint ignore fleet
-. In {kib}, select *{fleet}* > *Fleet Settings*, and copy the {fleet-server} host URL.
-
-. Close the flyout panel and select *Enrollment tokens*.
-Find the Agent policy you want to enroll {agent} into, and display and copy the secret token.
-
-. Enroll an {agent} running in a container with the following command:
-
-[source,terminal,subs="attributes"]
-----
-docker run \
-  --env FLEET_ENROLL=1 \
-  --env FLEET_URL=<fleet-server-host-url> \
-  --env FLEET_ENROLLMENT_TOKEN=<enrollment-token> \
-  --rm docker.elastic.co/beats/elastic-agent:{version}
-----
-
-NOTE: Replace `docker.elastic.co/beats/elastic-agent` with `docker.elastic.co/beats/elastic-agent-complete` and use the `elastic-agent` user instead of root to run Synthetics Browser tests. Synthetics tests cannot run under the root user. Refer to {observability-guide}/uptime-set-up.html[Synthetics {fleet} Quickstart] for more information.
-
-Refer to <<agent-environment-variables>> for all available options.
+include::{tab-widgets}/run-agent-image/widget.asciidoc[]
 
 [discrete]
-[[agent-in-container-self]]
-= Self-managed example
+== Step 4: View your data in {kib}
 
-If you're running a self-managed cluster and want to run your own {fleet-server}, run the following command, which will spin up {agent} and {fleet-server} in a container:
 
-["source","sh",subs="attributes"]
-----
-docker run \
-  --env FLEET_SERVER_ENABLE=true \
-  --env FLEET_SERVER_ELASTICSEARCH_HOST=<elasticsearch-host> \ <1>
-  --env FLEET_SERVER_SERVICE_TOKEN=<service-token> \ <2>
-  --env FLEET_SERVER_POLICY_ID=<fleet-server-policy> \ <3>
-  --rm docker.elastic.co/beats/elastic-agent:{version}
-----
-// NOTCONSOLE
-
-<1> Your cluster's {es} host URL
-<2> The {fleet} service token -- generate one in the {fleet} UI if you don't have one already
-<3> ID of the {fleet-server} policy. To learn how to create a policy, refer
-<<create-a-policy-no-ui>>.
-
-Refer to <<agent-environment-variables>> for all available options.
-
-We recommend only having one fleet-server policy.
-
-NOTE: Replace `docker.elastic.co/beats/elastic-agent` with `docker.elastic.co/beats/elastic-agent-complete` and use the `elastic-agent` user instead of root to run Synthetics Browser tests. Synthetics tests cannot run under the root user. Refer to {observability-guide}/uptime-set-up.html[Synthetics {fleet} Quickstart] for more information.
+include::run-container-common/kibana-fleet-data.asciidoc[]
 
 [discrete]
-[[agent-in-container-docker]]
-= Docker compose example
+== Docker compose
 
-{agent} can be run in docker-compose.
+You can run {agent} in docker-compose.
 The example below shows how to enroll an {agent}:
 
-[source,yaml,subs="attributes"]
+["source","yaml",subs="attributes"]
 ----
 version: "3"
 services:
   elastic-agent:
-    image: docker.elastic.co/beats/elastic-agent:{version}
+    image: docker.elastic.co/beats/elastic-agent:{version} <1>
     container_name: elastic-agent
     restart: always
     user: root # note, synthetic browser monitors require this set to `elastic-agent`
@@ -121,9 +84,10 @@ services:
       - FLEET_ENROLL=1
       - FLEET_URL=<fleet-server-url>
 ----
+//NOTCONSOLE
+<1> Switch `elastic-agent` to `elastic-agent-complete` if you intend to use the complete version. Use the `elastic-agent` user instead of root to run Synthetics Browser tests. Synthetic tests cannot run under the root user. Refer to {observability-guide}/uptime-set-up.html[Synthetics {fleet} Quickstart] for more information.
 
-Need to run {fleet-server} as well?
-Adjust the docker-compose file above by adding these environment variables:
+If you need to run {fleet-server} as well, adjust the docker-compose file above by adding these environment variables:
 
 [source,yaml]
 ----
@@ -132,21 +96,16 @@ Adjust the docker-compose file above by adding these environment variables:
       - FLEET_SERVER_SERVICE_TOKEN=<service-token>
 ----
 
-NOTE: Replace `docker.elastic.co/beats/elastic-agent` with `docker.elastic.co/beats/elastic-agent-complete` and use the `elastic-agent` user instead of root to run Synthetics Browser tests. Synthetics tests cannot run under the root user. Refer to {observability-guide}/uptime-set-up.html[Synthetics {fleet} Quickstart] for more information.
-
 Refer to <<agent-environment-variables>> for all available options.
 
 [discrete]
-[[agent-in-container-docker-logs]]
-= Logs
+== Logs
 
-As a container supports only a single version of {agent},
-logs and state are stored a bit differently than when running an {agent} outside of a container.
-The logs can be found under: `/usr/share/elastic-agent/state/data/logs/*`.
 
-It's important to note that only the logs from the {agent} process itself are logged to `stdout`;
-Subprocess logs are not.
-Each subprocess writes its own logs to the `default` directory inside the logs directory:
+Since a container supports only a single version of {agent},
+logs and state are stored a bit differently than when running an {agent} outside of a container. The logs can be found under: `/usr/share/elastic-agent/state/data/logs/*`.
+
+It's important to note that only the logs from the {agent} process itself are logged to `stdout`. Subprocess logs are not. Each subprocess writes its own logs to the `default` directory inside the logs directory:
 
 [source,terminal]
 ----
@@ -157,11 +116,10 @@ TIP: Running into errors with {fleet-server}?
 Check the fleet-server subprocess logs for more information.
 
 [discrete]
-[[agent-in-container-debug]]
-= Debugging
+== Debugging
 
-A monitoring endpoint can be enabled to expose resource usage and event processing data.
-The endpoint is compatible with {agent}s running in both {fleet} mode and Standalone mode.
+
+A monitoring endpoint can be enabled to expose resource usage and event processing data. The endpoint is compatible with {agent}s running in both {fleet} mode and Standalone mode.
 
 Enable the monitoring endpoint in `elastic-agent.yml` on the host where the {agent} is installed.
 A sample configuration looks like this:
@@ -181,8 +139,7 @@ agent.monitoring:
 <2> Enable log monitoring.
 <3> Enable metrics monitoring.
 <4> Expose {agent} metrics over HTTP. By default, sockets and named pipes are used.
-<5> The hostname, IP address, Unix socket, or named pipe that the HTTP endpoint will bind to.
-When using IP addresses, we recommend only using `localhost`.
+<5> The hostname, IP address, Unix socket, or named pipe that the HTTP endpoint will bind to. When using IP addresses, we recommend only using `localhost`.
 <6> The port that the HTTP endpoint will bind to.
 
 The above configuration exposes a monitoring endpoint at `http://localhost:6791/processes`.
