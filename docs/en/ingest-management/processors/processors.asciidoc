@@ -29,10 +29,88 @@ event -> processor 1 -> event1 -> processor 2 -> event2 ...
 
 The processors described in this section are valid:
 
-* Under integration settings in the Integrations UI in {kib}.
-* Under input configuration settings for standalone {agent}s. You can define
-processors that apply to all inputs defined in the configuration, or specific
-inputs.
+* **Under integration settings in the Integrations UI in {kib}**. For example,
+when configuring an Nginx integration, you can define processors for a specific
+dataset under **Advanced options**. The processor in this example adds geo
+metadata to the Nginx access logs collected by {agent}:
++
+[role="screenshot"]
+image::images/add-processor.png[Screen showing how to add a processor to an integration policy]
++
+NOTE: Some integrations do not currently support processors.
+
+* **Under input configuration settings for standalone {agent}s**. For example:
++
+[source,yaml]
+----
+inputs:
+  - type: logfile
+    use_output: default
+    data_stream:
+      namespace: default
+    streams:
+      - data_stream:
+          dataset: nginx.access
+          type: logs
+        ignore_older: 72h
+        paths:
+          - /var/log/nginx/access.log*
+        tags:
+          - nginx-access
+        exclude_files:
+          - .gz$
+        processors:
+          - add_host_metadata:
+              cache.ttl: 5m
+              geo:
+                name: nyc-dc1-rack1
+                location: '40.7128, -74.0060'
+                continent_name: North America
+                country_iso_code: US
+                region_name: New York
+                region_iso_code: NY
+                city_name: New York
+          - add_locale: null
+----
+
+//REVIEWERS: Does this config look correct? I modified the policy created
+//by Fleet, but not sure if I stripped out anything important.
+
+You can define processors that apply to all inputs defined in the configuration,
+or specific inputs.
+
+[discrete]
+[[limitations]]
+== What are some limitations of using processors?
+
+Processors have the following limitations.
+
+* Cannot enrich events with data from {es} or other custom data
+sources.
+* Cannot process data after it's been converted to the Elastic Common
+Schema (ECS) because the conversion is performed by {es} ingest pipelines.
+* May break integration ingest pipelines in {es} if the user-defined processing
+removes or alters fields expected by ingest pipelines.
+
+//REVIEWERS: Need more input into the last item in this list to make it more
+//accurate.
+
+[discrete]
+[[processing-options]]
+== What other options are available for processing data?
+
+//REVIEWERS: I'd like to consider reusing a portion of the diagram we created
+//for the ingest cloud docs. I think the decision tree is more useful than
+//a bunch of words, and it sends users off to learn more. WDYT?
+
+The {stack} provides several options for processing data collected by {agent}.
+Use the following diagram to help you decide which options work best for your
+use case. Follow the links in the diagram to learn more about each option.
+
+//TODO: Replace the placeholder image with a navigable diagram.
+
+[role="screenshot"]
+image::images/processor-decision-tree.png[Diagram that shows various options for processing data]
 
 [discrete]
 [[how-different]]
@@ -43,9 +121,6 @@ system for processing. Processors, on the other hand, allow you to apply
 processing logic at the source. This means that you can filter out data you
 don't want to send across the connection, and you can spread some of the
 processing load across host systems running on edge nodes.
-
-//REVIEWERS: I'm just spitballing here, but I think we need to describe the
-//difference. What is missing?
 
 include::processor-syntax.asciidoc[leveloffset=+1]
 
