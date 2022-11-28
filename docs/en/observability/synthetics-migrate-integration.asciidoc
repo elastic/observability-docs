@@ -1,0 +1,106 @@
+[[synthetics-migrate-from-integration]]
+= Migrate from the {agent} integration
+
+++++
+<titleabbrev>From the {agent} integration</titleabbrev>
+++++
+
+_Info on the status of the {agent} integration and why you should migrate..._
+
+[discrete]
+[[synthetics-migrate-integration-compare]]
+= Compare approaches
+
+Below is a comparison of how you used the {agent} integration to create
+monitors and how you'll use the {uptime-app} / Projects to create monitors:
+
+|===
+| | {agent} integration | {uptime-app} / Projects
+
+| *Supported monitors*
+| Supported both lightweight and browser monitors
+| Supports both lightweight and browser monitors
+
+| *Where monitors run*
+| You had to run monitors on your infrastrucuture.
+a| You can run monitors on both:
+
+* Your infrastructure using <<synthetics-private-location,private locations>>
+* Elastic's global managed infrastructure
+
+| *Where you configure monitors*
+a| You could configure monitors using:
+
+* A user interface in Kibana (all monitors)
+* Code in an external, version-controlled project (browser monitors _only_)
+a| You can configure monitors using:
+
+* A user interface in Kibana (all lightweight monitors, browser monitors via inline script only)
+* Code in an external, version-controlled project (all monitors)
+
+| *How to use the UI*
+| Went to the *Integrations* page in Kibana, searched for and added the
+*Elastic Synthetics* integration, configured the monitor, and created the monitor.
+a| Go to the *Uptime app*, go to *Monitor Management*, click *Add monitor*, 
+configure the monitor, and create the monitor.
+
+Find more details in <<synthetics-get-started-ui>>.
+
+| *How to use projects*
+a| Created a project that uses `@elastic/synthetics`
+
+Wrote journeys in JavaScript or TypeScript files.
+
+Created monitor using the Integrations UI. Configured the monitor in the UI
+including a ZIP URL that pointed to the location of the project.
+a| Create a project that uses `@elastic/synthetics`
+
+Write journeys in JavaScript or TypeScript files and configure monitors
+in your journey code using `monitor.use`.
+
+Configure lightweight monitors in YAML files.
+
+Use the `push` command to create monitors.
+
+Find more details in <<synthetics-get-started-project>>.
+|===
+
+[discrete]
+[[synthetics-migrate-integration-location]]
+= Where monitors run
+
+If you want to continue hosting on your infrastructure, you will need to create a
+<<synthetics-private-location,private location>> before creating monitors.
+
+Alternatively, you can start hosting on Elastic's global managed infrastructure.
+With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
+locations without having to manage your own infrastructure.
+Elastic takes care of software updates and capacity planning for you.
+
+[discrete]
+[[synthetics-migrate-integration-projects]]
+= How to use projects
+
+If you already have an external project you were adding via a ZIP URL...
+
+You can use the same project, but you will have to make some changes:
+
+. Update to the latest version of `@elastic/synthetics`.
+. Configure monitors with code instead of in the UI:
+.. In the journey code using `monitor.use` for individual monitors.
+.. In the synthetics configuration file for all monitors.
+. Create monitors using `push` instead of by adding a ZIP URL in the UI
+(you'll need an API token...)
+
+Optionally, you can also add lightweight monitors to the project in YAML files.
+Read more about adding lightweight monitors to projects in <<synthetics-lightweight>>.
+
+Open questions:
+
+* Can you push to the same monitor ID to overwrite the old monitor?
+
+[discrete]
+[[synthetics-migrate-integration-ui]]
+= How to use the UI
+
+If you created monitors solely via the UI...
