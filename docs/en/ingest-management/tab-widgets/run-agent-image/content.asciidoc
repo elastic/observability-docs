@@ -1,0 +1,42 @@
+// tag::cloud[]
+
+["source","sh",subs="attributes"]
+----
+docker run \
+  --env FLEET_ENROLL=1 \ <1>
+  --env FLEET_URL=<fleet-server-host-url> \ <2>
+  --env FLEET_ENROLLMENT_TOKEN=<enrollment-token> \ <3>
+  --rm docker.elastic.co/beats/elastic-agent:{version} <4>
+----
+
+<1> Set to 1 to enroll the {agent} into {fleet-server}.
+<2> URL to enroll the {fleet-server} into. You can find it in {kib}. Select *Management -> {fleet} -> Fleet Settings*, and copy the {fleet-server} host URL.
+<3> The token to use for enrollment. Close the flyout panel and select *Enrollment tokens*. Find the Agent policy you want to enroll {agent} into, and display and copy the secret token. To learn how to create a policy, refer to <<create-a-policy-no-ui>>.
+<4> If you want to run *elastic-agent-complete* image, replace `elastic-agent` to `elastic-agent-complete`. Use the `elastic-agent` user instead of root to run Synthetics Browser tests. Synthetic tests cannot run under the root user. Refer to {observability-guide}/uptime-set-up.html[Synthetics {fleet} Quickstart] for more information.
+
+Refer to <<agent-environment-variables>> for all available options.
+
+// end::cloud[]
+
+// tag::self-managed[]
+If you're running a self-managed cluster and want to run your own {fleet-server}, run the following command, which will spin up both {agent} and {fleet-server} in a container:
+
+["source","sh",subs="attributes"]
+----
+docker run \
+  --env FLEET_SERVER_ENABLE=true \ <1>
+  --env FLEET_SERVER_ELASTICSEARCH_HOST=<elasticsearch-host> \ <2>
+  --env FLEET_SERVER_SERVICE_TOKEN=<service-token> \ <3>
+  --env FLEET_SERVER_POLICY_ID=<fleet-server-policy> \ <4>
+  --rm docker.elastic.co/beats/elastic-agent:{version} <5>
+----
+
+<1> Set to 1 to bootstrap Fleet Server on this Elastic Agent.
+<2> Your cluster's {es} host URL.
+<3> The {fleet} service token. <<create-fleet-enrollment-tokens,Generate one in the {fleet} UI>> if you don't have one already.
+<4> ID of the {fleet-server} policy. We recommend only having one fleet-server policy. To learn how to create a policy, refer to <<create-a-policy-no-ui>>.
+<5> If you want to run *elastic-agent-complete* image, replace `elastic-agent` to `elastic-agent-complete`. Use the `elastic-agent` user instead of root to run Synthetics Browser tests. Synthetic tests cannot run under the root user. Refer to {observability-guide}/uptime-set-up.html[Synthetics {fleet} Quickstart] for more information.
+
+Refer to <<agent-environment-variables>> for all available options.
+
+// end::self-managed[]
