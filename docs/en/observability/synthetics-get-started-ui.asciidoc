@@ -1,0 +1,142 @@
+[[synthetics-get-started-ui]]
+= Create monitors in the {uptime-app} UI
+
+++++
+<titleabbrev>Use the {uptime-app}</titleabbrev>
+++++
+
+beta[]
+
+You can create synthetic monitors directly in the {uptime-app} UI in {kib}.
+
+image::images/synthetics-get-started-ui.png[Diagram showing which pieces of software are used to configure monitors, create monitors, and view results when using the Uptime App. Described in detail in Diagram text description.]
+
+// add text description
+
+This is one of <<synthetics-get-started,three approaches>> you can use to set up a synthetic monitor.
+
+[discrete]
+[[uptime-set-up-prereq]]
+= Prerequisites
+
+To try this beta functionality, first you need to enable Monitor Management in {kib}:
+
+. Go to **{observability}** -> **Uptime**.
+. Click **Monitor Management**.
+. Review the terms and conditions and click **Enable** to start using Monitor Management.
+
+[IMPORTANT]
+======
+To enable Monitor Management, you must be logged into {kib} as a user with
+the following privileges:
+
+* {ref}/security-privileges.html#privileges-list-cluster[Cluster privileges]: `monitor`, `read_ilm`, `read_pipeline`, and at least one of `manage_own_api_key`, `manage_security`, or `manage_api_key`
+* {ref}/security-privileges.html#privileges-list-indices[Indices privileges] for `synthetics-*`: `view_index_metadata`, `create_doc`, `auto_configure`
+======
+
+[[private-locations]]
+[NOTE]
+====
+You should also decide where you want to run the monitors before getting started.
+You can run monitors on one or both of the following:
+
+* *Elastic's global managed testing infrastructure*:
+  With Elastic's global managed testing infrastructure, you can create and run monitors in multiple
+  locations without having to manage your own infrastructure.
+  Elastic takes care of software updates and capacity planning for you.
+* *Private locations*: Private locations allow you to run monitors from your own premises.
+  To use private locations you must create a private location before continuing.
+  For step-by-step instructions, refer to <<synthetics-private-location>>.
+====
+
+[discrete]
+[[uptime-set-up-app-add-monitors]]
+= Add a lightweight monitor
+
+To use the {uptime-app}'s Monitor Management UI to add a lightweight monitor:
+
+. Go to the **Monitor Management** page.
+. Click **Add monitor**.
+. In _Monitor locations_, select one or more locations.
+. Choose a _Monitor type_ and configure the monitor as needed.
+. Click **Save monitor**.
+
+image::uptime-set-up-ui.asciidoc.png[Add monitor UI in {kib} in the Uptime App's Monitor Management]
+
+[NOTE]
+====
+If you've <<synthetics-private-location,added a private location>>,
+you'll see your new private location in the list of _Monitor locations_.
+The new private location will have the _Location name_ you provided and
+a "Private" badge next to its name.
+
+image::images/private-locations-monitor-locations.png[Screenshot of Monitor locations options including a private location]
+====
+
+[discrete]
+[[synthetics-get-started-ui-browser]]
+= Add a browser monitor
+
+You can also create a browser monitor in the {uptime-app} using an *Inline script*.
+
+An inline script contains a single journey that you manage individually.
+Inline scripts can be quick to set up, but can also be more difficult to manage.
+Each browser monitor configured using an inline script can contain only _one_ journey,
+which must be maintained directly in {kib}.
+
+If you depend on external packages, have your journeys next to your code repository,
+or want to embed and manage more than one journey from a single monitor configuration,
+use <<synthetics-get-started-project,Project Monitors>> instead.
+
+To use the {uptime-app}'s Monitor Management UI to add a browser monitor:
+
+. Go to the **Monitor Management** page.
+. Click **Add monitor**.
+. In _Monitor locations_, select one or more locations.
+. Set the _Monitor type_ to *Browser*.
+. Add steps to the *Inline script* code block directly.
+The `journey` keyword isn't required, and variables like `page` and `params` will be part of your script's scope.
+You cannot `import` any dependencies when using inline browser monitors.
++
+[role="screenshot"]
+image::images/uptime-app-inline-script.png[Configure a synthetic monitor using an inline script in Elastic {fleet}]
++
+[NOTE]
+====
+Alternatively, you can use the *Script recorder* option.
+You can use the Elastic Synthetics Recorder to interact with a web page,
+export journey code that reflects all the actions you took,
+and upload the results to the {uptime-app}.
+For more information, refer to <<synthetics-recorder>>.
+====
+
+. Click *Advanced Browser options* to see more ways to configure your monitor.
++
+** Use the *Synthetics agent options* to provide fine-tuned configuration for the synthetics agent.
+Read more about available options in <<synthetics-command-reference>>.
+** Use *Throttling options* to control the monitor's network speed.
+You can control the monitor's download and upload speeds and its latency to simulate your application's behavior on slower or laggier networks.
+** Use *Data stream settings* to configure additional Data Stream options.
+
+. (Optional) Click *Run test* to verify that the test is valid.
+. Click *Save monitor*.
+
+[discrete]
+[[uptime-app-view-in-kibana]]
+= View in {kib}
+
+Navigate to the {uptime-app} in {kib}, where you can see screenshots of each run,
+set up alerts in case of test failures, and more.
+
+If a test does fail (shown as `down` in the {uptime-app}), you'll be able to view the step script that failed,
+any errors, and a stack trace.
+For more information, refer to <<synthetics-visualize>>.
+
+[discrete]
+= Next steps
+
+Learn more about:
+
+* <<synthetics-create-test,Writing user journeys>> to use as inline scripts
+* Using the <<synthetics-recorder,Synthetics Recorder>>
+* <<synthetics-lightweight,Configuring lightweight monitors>>
