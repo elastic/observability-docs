@@ -51,9 +51,9 @@ a| You can configure monitors using:
 a| . Created a project that uses `@elastic/synthetics`.
    . Wrote journeys in JavaScript or TypeScript files.
    . Zipped the entire project.
-   . Created monitor using the Integrations UI.
-   . Configured the monitor in the UI including
-     a ZIP URL that pointed to the location of the project.
+   . Configured and created the monitor in the
+     Integrations UI by adding a ZIP URL that pointed to
+     the location of the project.
 a| . Create a project that uses `@elastic/synthetics`.
    . Configure lightweight monitors in YAML files.
    . Write journeys in JavaScript or TypeScript files and configure
@@ -102,26 +102,41 @@ Elastic takes care of software updates and capacity planning for you.
 [[synthetics-migrate-integration-projects]]
 = How to use projects
 
-// Is this true?
 If you already have an external project you were adding via a ZIP URL
-you can use the same project, but you will have to make some changes:
+you can use the same project, but you will have to make some changes.
 
-. Update to the latest version of `@elastic/synthetics`.
-. Configure monitors with code instead of in the UI:
-.. For individual monitors, use `monitor.use` directly in the journey code.
-   Read more in <<synthetics-monitor-use>>.
-.. To configure all monitors, use the synthetics configuration file.
-   Read more in <<synthetics-configuration>>.
-. Create monitors using `push` instead of by adding a ZIP URL in the UI.
-  This will require an API token.
-  Read more in <<elastic-synthetics-push-command>>.
+First, upgrade the existing project to use the latest version of 
+`@elastic/synthetics`:
+
+. Run `npm install -g @elastic/synthetics@latest` to install
+  the latest version of the CLI.
+. Upgrade your existing project to use new project settings:
+.. Run `npm @elastic/synthetics init <path-to-existing-project>`.
+.. Respond to all prompts provided by the CLI.
+. Review updated files and directories, including:
+.. `journeys/` will contain sample journey code.
+   Move existing journey files into this directory.
+.. `synthetics.config.ts` will contain updated default settings
+   needed for the upgraded project.
+.. `package.json` will contain updated NPM settings for your project.
+.. `.github/` will contain sample workflow files to use with GitHub Actions.
+
+Then, you can further configure monitors as needed.
+In the upgraded project, you'll use code (instead of the Integrations UI)
+to define settings like the name of the monitor and the frequency at which it will run.
+There are two ways you can configure monitors using code:
+
+* For individual monitors, use `monitor.use` directly in the journey code.
+  Read more in <<synthetics-monitor-use>>.
+* To configure all monitors at once, use the synthetics configuration file.
+  Read more in <<synthetics-configuration>>.
+
+Finally, you'll create monitors using `push` instead of by adding a ZIP URL in
+the Integrations UI. This will require an API token.
+Read more in <<elastic-synthetics-push-command>>.
 
 Optionally, you can also add lightweight monitors to the project in YAML files.
 Read more about adding lightweight monitors to projects in <<synthetics-lightweight>>.
-
-// Open questions:
-// * If you push to the same monitor ID will it overwrite the old monitor?
-// * What else is missing?
 
 For more information on getting started with projects,
 refer to <<synthetics-get-started-project>>.
@@ -130,12 +145,11 @@ refer to <<synthetics-get-started-project>>.
 [[synthetics-migrate-integration-ui]]
 = How to use the UI
 
-// Is this something we want to recommend right now?
 If you created monitors solely via the Elastic Synthetics integration UI,
 you can recreate monitors in the {uptime-app} UI.
 
 The configuration options in the {uptime-app} UI look very similar to the
-Elastic Synthetics integration UI with a couple exceptions.
+Elastic Synthetics integration UI with a few exceptions.
 In the {uptime-app} UI:
 
 . You will select one or more locations for each monitor.
