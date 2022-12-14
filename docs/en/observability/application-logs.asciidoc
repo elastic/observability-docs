@@ -1,0 +1,219 @@
+[[application-logs]]
+= Application logs
+
+Application logs provide valuable insight into events that have occurred within your services and applications.
+Correlating these logs with application traces enables you to view the context in which a log event has occurred.
+
+Structured vs unstructured logs:
+
+Structured logging is where the application writes JSON objects directly--instead of
+parsing your logs into a structured object at ingest time.
+
+Why is structure so important in logs? So you can search and aggregate on individual fields within your logs.
+
+
+[float]
+[[ingest-application-logs]]
+== Ingest application logs
+
+There are four ways to ship your application logs to the {stack}.
+Your use case will determine the method that's right for you.
+
+[float]
+=== Plaintext logs with Filebeat
+
+**Requirements**
+
+* The Elastic APM agent for your programming language.
+* Raw, plain-text application logs
+* {filebeat}, to monitor the log files or locations that you specify, collects log events, filter and correlate multi-line logs, and forwards them to {es}
+
+**Pros**
+
+* All programming languages/frameworks are supported
+
+**Cons**
+
+* Must parse application logs to be useful—meaning writing and maintaining Grok patterns and spending CPU cycles on parsing
+
+Learn more: <<plaintext-with-filebeat>>
+
+[float]
+=== ECS loggers with Filebeat
+
+Elastic Common Schema (ECS) loggers format your logs into ECS-compatible JSON,
+which removes the need to manually parse logs.
+
+**Requirements**
+
+* The Elastic APM agent for your programming language
+* The Elastic ECS logger for your language or framework
+* {filebeat}, to monitor the log files or locations that you specify, collects log events, and forwards them to {es}
+
+**Pros**
+
+* Popular logging frameworks supported
+* Simplicity: no manual parsing
+* Decently human-readable JSON structure
+* APM Log correlation
+* Resilient in case of outages
+
+**Cons**
+
+* Not all frameworks are supported
+
+Learn more: <<ecs-with-filebeat>>
+
+[float]
+=== APM agent ECS reformatting with Filebeat
+
+Elastic APM agents can automatically reformat application logs to Elastic Common Schema (ECS) format
+without needing to add an ECS logger dependency.
+
+**Requirements**
+
+* The Elastic APM agent for your programming language
+* {filebeat}, to monitor the log files or locations that you specify, collects log events, and forwards them to {es}
+
+**Pros**
+
+**Cons**
+
+**Supported APM agents/languages**
+
+* Ruby
+* Java
+
+Learn more: <<ecs-reformatting-with-filebeat>>
+
+[float]
+=== APM agent direct logs
+
+Elastic APM agents can automatically capture and send logs directly to APM Server--enabling you to
+easily ingest log events without needing a separate log shipper like {filebeat}.
+
+**Requirements**
+
+The Elastic APM agent for your programming language.
+
+**Pros**
+
+**Cons**
+
+**Supported APM agents/languages**
+
+* Java
+
+Learn more: <<apm-agent-direct>>
+
+[float]
+[[log-correlation]]
+== Log correlation
+
+Elastic APM integrates with the most popular logging frameworks in each programming language.
+These integrations inject trace, transaction, and error ID fields into your application's log records,
+allowing you correlate and easily switch between log and trace events.
+
+[float]
+=== Unstructured logs vs. ECS logs
+
+Unstructured log example:
+
+[source,log]
+----
+DEBUG:root:User 'arthur' (id: 42) successfully logged in. Session id: 91e5b9d
+DEBUG:root:User 'arthur' (id: 42) changed state to verified.
+----
+
+Structured log example:
+
+[source,log]
+----
+verified=False user='arthur' session_id='91e5b9d' id=42 event='logged_in'
+verified=True user='arthur' session_id='91e5b9d' id=42 event='changed_state'
+----
+
+ECS log example:
+
+[source,json]
+----
+{"@timestamp":"2019-08-06T12:09:12.375Z", "log.level": "INFO", "message":"Tomcat started on port(s): 8080 (http) with context path ''", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.boot.web.embedded.tomcat.TomcatWebServer"}
+{"@timestamp":"2019-08-06T12:09:12.379Z", "log.level": "INFO", "message":"Started PetClinicApplication in 7.095 seconds (JVM running for 9.082)", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.samples.petclinic.PetClinicApplication"}
+{"@timestamp":"2019-08-06T14:08:40.199Z", "log.level":"DEBUG", "message":"init find form", "service.name":"spring-petclinic","process.thread.name":"http-nio-8080-exec-8","log.logger":"org.springframework.samples.petclinic.owner.OwnerController","transaction.id":"28b7fb8d5aba51f1","trace.id":"2869b25b5469590610fea49ac04af7da"}
+----
+
+[float]
+=== Enable log correlation
+
+Log correlation is enabled in each APM agent.
+See the relevant agent documentation for more information:
+
+* {apm-go-ref}/log-correlation.html[Go]
+* {apm-java-ref}/log-correlation.html[Java]
+* {apm-dotnet-ref}/log-correlation.html[.NET]
+* {apm-node-ref}/log-correlation.html[Node.js]
+* {apm-py-ref}/log-correlation.html[Python]
+* {apm-ruby-ref}/log-correlation.html[Ruby]
+
+[[plaintext-with-filebeat]]
+== Plaintext logs with Filebeat
+
+// So before indexing, you would typically use Logstash’s amazing Grok filter to parse the application logs into a JSON object, but this means that you have to write and maintain Grok patterns and spend CPU cycles to do the parsing.
+
+Use {filebeat} to parse and ingest raw, plain-text application logs:
+
+include::./tab-widgets/filebeat-logs/widget.asciidoc[]
+
+Learn more:
+
+* {ref}/common-log-format-example.html[Example: Parse logs in the Common Log Format] -- Learn how to use the Grok processor to parse server logs before indexing.
+{filebeat-ref}/filebeat-input-filestream.html[Filestream input] -- Learn more about the Filestream {filebeat} input.
+
+[[ecs-with-filebeat]]
+== ECS logging with Filebeat
+
+The {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)] defines a common set of fields for ingesting data into {es}.
+ECS loggers are plugins for your favorite logging library. They make it easy to format your logs into ECS-compatible JSON--letting you
+extract fields, like log level and exception stack traces.
+For example:
+
+[source,json]
+----
+{"@timestamp":"2019-08-06T12:09:12.375Z", "log.level": "INFO", "message":"Tomcat started on port(s): 8080 (http) with context path ''", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.boot.web.embedded.tomcat.TomcatWebServer"}
+{"@timestamp":"2019-08-06T12:09:12.379Z", "log.level": "INFO", "message":"Started PetClinicApplication in 7.095 seconds (JVM running for 9.082)", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.samples.petclinic.PetClinicApplication"}
+{"@timestamp":"2019-08-06T14:08:40.199Z", "log.level":"DEBUG", "message":"init find form", "service.name":"spring-petclinic","process.thread.name":"http-nio-8080-exec-8","log.logger":"org.springframework.samples.petclinic.owner.OwnerController","transaction.id":"28b7fb8d5aba51f1","trace.id":"2869b25b5469590610fea49ac04af7da"}
+----
+
+Ready to get started? See the guide for your favorite logging framework:
+
+* {ecs-logging-dotnet-ref}/setup.html[.NET]
+* Go: {ecs-logging-go-zap-ref}/setup.html[zap], {ecs-logging-go-logrus-ref}/setup.html[logrus]
+* {ecs-logging-java-ref}/setup.html[Java]
+* Node.js: {ecs-logging-nodejs-ref}/morgan.html[morgan], {ecs-logging-nodejs-ref}/pino.html[pino], {ecs-logging-nodejs-ref}/winston.html[winston]
+* {ecs-logging-php-ref}/setup.html[PHP]
+* {ecs-logging-python-ref}/installation.html[Python]
+* {ecs-logging-ruby-ref}/setup.html[Ruby]
+
+[[ecs-reformatting-with-filebeat]]
+== APM agent ECS reformatting with Filebeat
+
+Elastic APM agents can automatically reformat application logs to Elastic Common Schema (ECS) format
+without needing to add an ECS logger dependency.
+
+Enable APM agent ECS reformatting in the supported APM agent:
+
+// * {apm-java-ref}/logs.html[Java]
+// * {apm-ruby-ref}/logs.html[Ruby]
+
+Set up Filebeat:
+
+include::./tab-widgets/filebeat-logs/widget.asciidoc[]
+
+[[apm-agent-direct]]
+== APM agent direct logs
+
+Elastic APM agents can automatically capture and send logs directly to APM Server--enabling you to
+easily ingest log events without needing a separate log shipper like {filebeat}.
+
+**Supported APM agents:**
+// * {apm-java-ref}/logs.html[Java]

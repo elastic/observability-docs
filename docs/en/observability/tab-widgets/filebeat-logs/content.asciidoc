@@ -1,0 +1,75 @@
+// tag::logs[]
+
+. Follow the {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start] to learn how to
+install {filebeat}, connect to the {stack}.
+
+. Add the following configuration to your `filebeat.yaml` file to start collecting log data.
++
+**structured logs**
++
+[source,yaml]
+.filebeat.yaml
+----
+filebeat.inputs:
+- type: filestream <1>
+  paths: /path/to/logs.json
+  parsers:
+    - ndjson:
+        keys_under_root: true
+        overwrite_keys: true
+        add_error_key: true
+        expand_keys: true
+
+processors:
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+----
+<1> Use the filestream input to read lines from active log files.
++
+**unstructured logs**
++
+You can't aggregate or search on the fields of unstructured logs.
+To learn how to use the Grok processor to parse server logs before indexing,
+see {ref}/common-log-format-example.html[Example: Parse logs in the Common Log Format].
+// TODO: Hide this section from the ECS reformatting page
+
+// end::logs[]
+
+
+// tag::kubernetes[]
+. Make sure your application logs to stdout/stderr.
+. Follow the {filebeat-ref}/running-on-kubernetes.html[Run Filebeat on Kubernetes] guide.
+. Enable https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover-hints.html[hints-based autodiscover] (uncomment the corresponding section in `filebeat-kubernetes.yaml`).
+. Add these annotations to your pods that log using ECS loggers.
+  This will make sure the logs are parsed appropriately.
+
+[source,yaml]
+----
+annotations:
+  co.elastic.logs/json.keys_under_root: true
+  co.elastic.logs/json.overwrite_keys: true
+  co.elastic.logs/json.add_error_key: true
+  co.elastic.logs/json.expand_keys: true
+----
+// end::kubernetes[]
+
+
+// tag::docker[]
+. Make sure your application logs to stdout/stderr.
+. Follow the {filebeat-ref}/running-on-docker.html[Run Filebeat on Docker] guide.
+. Enable https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover-hints.html[hints-based autodiscover].
+. Add these labels to your containers that log using ECS loggers.
+  This will make sure the logs are parsed appropriately.
+
+[source,yaml]
+.docker-compose.yml
+----
+labels:
+  co.elastic.logs/json.keys_under_root: true
+  co.elastic.logs/json.overwrite_keys: true
+  co.elastic.logs/json.add_error_key: true
+  co.elastic.logs/json.expand_keys: true
+----
+// end::docker[]
