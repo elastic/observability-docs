@@ -24,17 +24,21 @@ Your use case will determine the method that's right for you.
 
 **Requirements**
 
-* The Elastic APM agent for your programming language.
-* Raw, plain-text application logs
-* {filebeat}, to monitor the log files or locations that you specify, collects log events, filter and correlate multi-line logs, and forwards them to {es}
+* (Optional) Elastic APM agent for your programming language (for log correlation)
+* Raw, plain-text application logs stored on the file-system
+* {filebeat}, configured to monitor and capture application logs
 
 **Pros**
 
 * All programming languages/frameworks are supported
+* Existing application logs can be ingested
+* Does not require modification of the application or its configuration, unless log correlation is required.
 
 **Cons**
 
 * Must parse application logs to be useful—meaning writing and maintaining Grok patterns and spending CPU cycles on parsing
+* Parsing is tied to the application log format, thus it can differ per application and needs to be maintained over time
+* Log correlation requires to modify the application log format and inject IDs in log message.
 
 Learn more: <<plaintext-with-filebeat>>
 
@@ -46,14 +50,15 @@ which removes the need to manually parse logs.
 
 **Requirements**
 
-* The Elastic APM agent for your programming language
+* (Optional) Elastic APM agent for your programming language. Allows to provide log correlation.
+
 * The Elastic ECS logger for your language or framework
 * {filebeat}, to monitor the log files or locations that you specify, collects log events, and forwards them to {es}
 
 **Pros**
 
 * Popular logging frameworks supported
-* Simplicity: no manual parsing
+* Simplicity: no manual parsing with filebeat, identical configuration can be reused across applications.
 * Decently human-readable JSON structure
 * APM Log correlation
 * Resilient in case of outages
@@ -61,14 +66,15 @@ which removes the need to manually parse logs.
 **Cons**
 
 * Not all frameworks are supported
+* Requires modification of the application and its log configuration
 
 Learn more: <<ecs-with-filebeat>>
 
 [float]
-=== APM agent ECS reformatting with Filebeat
+=== ECS reformatting with Filebeat
 
 Elastic APM agents can automatically reformat application logs to Elastic Common Schema (ECS) format
-without needing to add an ECS logger dependency.
+without needing to add an ECS logger dependency or modifying the application.
 
 **Requirements**
 
@@ -76,8 +82,10 @@ without needing to add an ECS logger dependency.
 * {filebeat}, to monitor the log files or locations that you specify, collects log events, and forwards them to {es}
 
 **Pros**
-
+* all the benefits of using ECS logging, without having to modify the application or its configuration.
 **Cons**
+* Requires to use the APM agent
+* Not all APM agents support this feature
 
 **Supported APM agents/languages**
 
@@ -97,8 +105,15 @@ easily ingest log events without needing a separate log shipper like {filebeat}.
 The Elastic APM agent for your programming language.
 
 **Pros**
+* Simple to setup as it only relies on the APM agent
+* No modification of the application required
+* No need to deploy {filebeat}
+* No need to store log files in filesystem.
 
 **Cons**
+* Experimental feature
+* Only supported in Java APM agent for now
+* Log messages are not persistent and can be dropped when buffered in the agent and in apm-server or in case of outage.
 
 **Supported APM agents/languages**
 
@@ -143,9 +158,10 @@ ECS log example:
 ----
 
 [float]
-=== Enable log correlation
+=== Log correlation
 
-Log correlation is enabled in each APM agent.
+Log correlation is a feature provided by APM agents that allow to correlate application logs and traces.
+
 See the relevant agent documentation for more information:
 
 * {apm-go-ref}/log-correlation.html[Go]
