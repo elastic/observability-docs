@@ -2,24 +2,52 @@
 = Application logs
 
 Application logs provide valuable insight into events that have occurred within your services and applications.
-Correlating these logs with application traces enables you to view the context in which a log event has occurred.
 
-Structured vs unstructured logs:
+[float]
+=== Plaintext logs vs. ECS logs
 
-Structured logging is where the application writes JSON objects directly--instead of
-parsing your logs into a structured object at ingest time.
+Logs are typically produced as either plaintext or structured.
+Plaintext logs contain only text and have no special formatting, for example:
 
-Why is structure so important in logs? So you can search and aggregate on individual fields within your logs.
+[source,log]
+----
+2019-08-06T12:09:12.375Z INFO:spring-petclinic: Tomcat started on port(s): 8080 (http) with context path, org.springframework.boot.web.embedded.tomcat.TomcatWebServer
+2019-08-06T12:09:12.379Z INFO:spring-petclinic: Started PetClinicApplication in 7.095 seconds (JVM running for 9.082), org.springframework.samples.petclinic.PetClinicApplication
+2019-08-06T14:08:40.199Z DEBUG:spring-petclinic: init find form, org.springframework.samples.petclinic.owner.OwnerController
+----
 
+Structured logs, on the other hand, follow a predefined, repeatable pattern or structure.
+This structure is applied at write time--preventing the need for parsing at ingest time.
+The Elastic Common Schema (ECS) defines a common set of fields to use when structuring logs.
+This structure allows logs to be easily ingested,
+and provides the ability to correlate, search, and aggregate on individual fields within your logs.
+
+For example, the same example shown above might look like this when structured with ECS-compatable JSON:
+
+[source,json]
+----
+{"@timestamp":"2019-08-06T12:09:12.375Z", "log.level": "INFO", "message":"Tomcat started on port(s): 8080 (http) with context path ''", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.boot.web.embedded.tomcat.TomcatWebServer"}
+{"@timestamp":"2019-08-06T12:09:12.379Z", "log.level": "INFO", "message":"Started PetClinicApplication in 7.095 seconds (JVM running for 9.082)", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.samples.petclinic.PetClinicApplication"}
+{"@timestamp":"2019-08-06T14:08:40.199Z", "log.level":"DEBUG", "message":"init find form", "service.name":"spring-petclinic","process.thread.name":"http-nio-8080-exec-8","log.logger":"org.springframework.samples.petclinic.owner.OwnerController","transaction.id":"28b7fb8d5aba51f1","trace.id":"2869b25b5469590610fea49ac04af7da"}
+----
 
 [float]
 [[ingest-application-logs]]
 == Ingest application logs
 
 There are four ways to ship your application logs to the {stack}.
-Your use case will determine the method that's right for you.
+Your use case will help determine the method that's right for you.
+
+<<overview-plaintext-with-filebeat>>
+
+<<overview-ecs-with-filebeat>>
+
+<<overview-ecs-reformatting-with-filebeat>>
+
+<<overview-apm-agent-direct>>
 
 [float]
+[[overview-plaintext-with-filebeat]]
 === Plaintext logs with Filebeat
 
 **Requirements**
@@ -39,6 +67,7 @@ Your use case will determine the method that's right for you.
 Learn more: <<plaintext-with-filebeat>>
 
 [float]
+[[overview-ecs-with-filebeat]]
 === ECS loggers with Filebeat
 
 Elastic Common Schema (ECS) loggers format your logs into ECS-compatible JSON,
@@ -65,6 +94,7 @@ which removes the need to manually parse logs.
 Learn more: <<ecs-with-filebeat>>
 
 [float]
+[[overview-ecs-reformatting-with-filebeat>>]]
 === APM agent ECS reformatting with Filebeat
 
 Elastic APM agents can automatically reformat application logs to Elastic Common Schema (ECS) format
@@ -87,6 +117,7 @@ without needing to add an ECS logger dependency.
 Learn more: <<ecs-reformatting-with-filebeat>>
 
 [float]
+[[overview-apm-agent-direct>>]]
 === APM agent direct logs
 
 Elastic APM agents can automatically capture and send logs directly to APM Server--enabling you to
@@ -114,33 +145,15 @@ Elastic APM integrates with the most popular logging frameworks in each programm
 These integrations inject trace, transaction, and error ID fields into your application's log records,
 allowing you correlate and easily switch between log and trace events.
 
-[float]
-=== Unstructured logs vs. ECS logs
 
-Unstructured log example:
 
-[source,log]
-----
-DEBUG:root:User 'arthur' (id: 42) successfully logged in. Session id: 91e5b9d
-DEBUG:root:User 'arthur' (id: 42) changed state to verified.
-----
+// Correlating these logs with application traces allows you to:
 
-Structured log example:
+// * view the context of a log and the parameters a user provided
+// * view all logs belonging to a particular trace
+// * easily move between logs and traces when debugging application issues in {kib}
 
-[source,log]
-----
-verified=False user='arthur' session_id='91e5b9d' id=42 event='logged_in'
-verified=True user='arthur' session_id='91e5b9d' id=42 event='changed_state'
-----
-
-ECS log example:
-
-[source,json]
-----
-{"@timestamp":"2019-08-06T12:09:12.375Z", "log.level": "INFO", "message":"Tomcat started on port(s): 8080 (http) with context path ''", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.boot.web.embedded.tomcat.TomcatWebServer"}
-{"@timestamp":"2019-08-06T12:09:12.379Z", "log.level": "INFO", "message":"Started PetClinicApplication in 7.095 seconds (JVM running for 9.082)", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.samples.petclinic.PetClinicApplication"}
-{"@timestamp":"2019-08-06T14:08:40.199Z", "log.level":"DEBUG", "message":"init find form", "service.name":"spring-petclinic","process.thread.name":"http-nio-8080-exec-8","log.logger":"org.springframework.samples.petclinic.owner.OwnerController","transaction.id":"28b7fb8d5aba51f1","trace.id":"2869b25b5469590610fea49ac04af7da"}
-----
+// it easier to understand _why_ something is happening
 
 [float]
 === Enable log correlation
