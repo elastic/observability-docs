@@ -3,9 +3,8 @@
 . Follow the {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start] to learn how to
 install {filebeat}, connect to the {stack}.
 
+ifdef::ecs-logs[]
 . Add the following configuration to your `filebeat.yaml` file to start collecting log data.
-+
-**structured logs**
 +
 [source,yaml]
 .filebeat.yaml
@@ -27,21 +26,26 @@ processors:
   - add_kubernetes_metadata: ~
 ----
 <1> Use the filestream input to read lines from active log files.
-+
-**unstructured logs**
+endif::ecs-logs[]
+ifdef::plaintext[]
+. Configure filebeat.yaml file to start collecting log data.
 +
 You can't aggregate or search on the fields of unstructured logs.
 To learn how to use the Grok processor to parse server logs before indexing,
 see {ref}/common-log-format-example.html[Example: Parse logs in the Common Log Format].
-// TODO: Hide this section from the ECS reformatting page
+endif::plaintext[]
 
 // end::logs[]
 
 
 // tag::kubernetes[]
 . Make sure your application logs to stdout/stderr.
+
 . Follow the {filebeat-ref}/running-on-kubernetes.html[Run Filebeat on Kubernetes] guide.
+
 . Enable https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover-hints.html[hints-based autodiscover] (uncomment the corresponding section in `filebeat-kubernetes.yaml`).
+
+ifdef::ecs-logs[]
 . Add these annotations to your pods that log using ECS loggers.
   This will make sure the logs are parsed appropriately.
 
@@ -53,13 +57,21 @@ annotations:
   co.elastic.logs/json.add_error_key: true
   co.elastic.logs/json.expand_keys: true
 ----
+endif::ecs-logs[]
+ifdef::plaintext[]
+Plaintext instructions go here
+endif::plaintext[]
 // end::kubernetes[]
 
 
 // tag::docker[]
 . Make sure your application logs to stdout/stderr.
+
 . Follow the {filebeat-ref}/running-on-docker.html[Run Filebeat on Docker] guide.
+
 . Enable https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover-hints.html[hints-based autodiscover].
+
+ifdef::ecs-logs[]
 . Add these labels to your containers that log using ECS loggers.
   This will make sure the logs are parsed appropriately.
 
@@ -72,4 +84,8 @@ labels:
   co.elastic.logs/json.add_error_key: true
   co.elastic.logs/json.expand_keys: true
 ----
+endif::ecs-logs[]
+ifdef::plaintext[]
+Plaintext instructions go here
+endif::plaintext[]
 // end::docker[]
