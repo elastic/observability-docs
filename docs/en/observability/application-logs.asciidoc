@@ -46,7 +46,7 @@ To correlate your logs, you must add APM identifiers,
 like trace, transaction, and error ID fields into your application's logs.
 Elastic APM integrates with the most popular logging frameworks in each programming language to accomplish this automatically.
 
-Learn more about log correlation in the APM Guide: https://www.elastic.co/guide/en/apm/guide/8.5/log-correlation.html
+Learn more about log correlation in the APM Guide: {apm-guide-ref}/log-correlation.html[log correlation]
 Or in any of the ingestion guides below.
 
 // [float]
@@ -202,22 +202,30 @@ Learn more: <<apm-agent-direct>>
 [[plaintext-with-filebeat]]
 == Plaintext logs with Filebeat
 
-// So before indexing, you would typically use Logstash’s amazing Grok filter to parse the application logs into a JSON object, but this means that you have to write and maintain Grok patterns and spend CPU cycles to do the parsing.
-
 include::application-logs.asciidoc[tag=plaintext-with-filebeat]
 
 [float]
-=== Get started
+=== Step 1: Use {filebeat} to ingest logs
 
 :plaintext:
 include::./tab-widgets/filebeat-logs/widget.asciidoc[]
 :!plaintext:
 
 [float]
+=== Step 2: Parse logs at ingest time
+
+A downside of plaintext logs is that you can't aggregate or search on the fields within the logs.
+To enable these features, you'll need to parse the contents of your logs into ECS-compatible fields.
+
+To learn how to use the Grok processor to parse application logs before indexing,
+see {ref}/common-log-format-example.html[Example: Parse logs in the Common Log Format].
+
+[float]
 === Learn more
 
-* {ref}/common-log-format-example.html[Example: Parse logs in the Common Log Format] -- Learn how to use the Grok processor to parse server logs before indexing.
-{filebeat-ref}/filebeat-input-filestream.html[Filestream input] -- Learn more about the Filestream {filebeat} input.
+* {filebeat-ref}/filebeat-input-filestream.html[Filestream input]
+* {ref}/ingest.html[Ingest pipelines]
+* {ref}/grok-processor.html[Grok processor]
 
 [[ecs-with-filebeat]]
 == ECS logging with Filebeat
@@ -227,19 +235,7 @@ include::application-logs.asciidoc[tag=ecs-with-filebeat]
 [float]
 === Get started
 
-The {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)] defines a common set of fields for ingesting data into {es}.
-ECS loggers are plugins for your favorite logging library. They make it easy to format your logs into ECS-compatible JSON--letting you
-extract fields, like log level and exception stack traces.
-For example:
-
-[source,json]
-----
-{"@timestamp":"2019-08-06T12:09:12.375Z", "log.level": "INFO", "message":"Tomcat started on port(s): 8080 (http) with context path ''", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.boot.web.embedded.tomcat.TomcatWebServer"}
-{"@timestamp":"2019-08-06T12:09:12.379Z", "log.level": "INFO", "message":"Started PetClinicApplication in 7.095 seconds (JVM running for 9.082)", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.samples.petclinic.PetClinicApplication"}
-{"@timestamp":"2019-08-06T14:08:40.199Z", "log.level":"DEBUG", "message":"init find form", "service.name":"spring-petclinic","process.thread.name":"http-nio-8080-exec-8","log.logger":"org.springframework.samples.petclinic.owner.OwnerController","transaction.id":"28b7fb8d5aba51f1","trace.id":"2869b25b5469590610fea49ac04af7da"}
-----
-
-Ready to get started? See the guide for your favorite logging framework:
+See the guide for your favorite logging framework:
 
 * {ecs-logging-dotnet-ref}/setup.html[.NET]
 * Go: {ecs-logging-go-zap-ref}/setup.html[zap], {ecs-logging-go-logrus-ref}/setup.html[logrus]
@@ -255,14 +251,16 @@ Ready to get started? See the guide for your favorite logging framework:
 include::application-logs.asciidoc[tag=ecs-reformatting-with-filebeat]
 
 [float]
-=== Get started
+=== Step 1: Enable APM agent reformatting
 
 Enable APM agent ECS reformatting in the supported APM agent:
 
+Link
 // * {apm-java-ref}/logs.html[Java]
 // * {apm-ruby-ref}/logs.html[Ruby]
 
-Set up Filebeat:
+[float]
+=== Step 1: Set up {filebeat}
 
 :ecs-logs:
 include::./tab-widgets/filebeat-logs/widget.asciidoc[]

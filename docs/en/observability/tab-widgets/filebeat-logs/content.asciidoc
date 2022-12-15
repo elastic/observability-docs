@@ -1,7 +1,7 @@
 // tag::logs[]
 
 . Follow the {filebeat-ref}/filebeat-installation-configuration.html[Filebeat quick start] to learn how to
-install {filebeat}, connect to the {stack}.
+install {filebeat} and connect to the {stack}.
 
 ifdef::ecs-logs[]
 . Add the following configuration to your `filebeat.yaml` file to start collecting log data.
@@ -30,9 +30,14 @@ endif::ecs-logs[]
 ifdef::plaintext[]
 . Configure filebeat.yaml file to start collecting log data.
 +
-You can't aggregate or search on the fields of unstructured logs.
-To learn how to use the Grok processor to parse server logs before indexing,
-see {ref}/common-log-format-example.html[Example: Parse logs in the Common Log Format].
+. Add the following configuration to your `filebeat.yaml` file to start collecting log data.
++
+.filebeat.yaml
+----
+filebeat.inputs:
+- type: filestream <1>
+  paths: /path/to/logs.json
+----
 endif::plaintext[]
 
 // end::logs[]
@@ -41,14 +46,13 @@ endif::plaintext[]
 // tag::kubernetes[]
 . Make sure your application logs to stdout/stderr.
 
-. Follow the {filebeat-ref}/running-on-kubernetes.html[Run Filebeat on Kubernetes] guide.
+. Follow the {filebeat-ref}/running-on-kubernetes.html[Run {filebeat} on Kubernetes] guide.
 
-. Enable https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover-hints.html[hints-based autodiscover] (uncomment the corresponding section in `filebeat-kubernetes.yaml`).
+. Enable {filebeat-ref}/configuration-autodiscover-hints.html[hints-based autodiscover] (uncomment the corresponding section in `filebeat-kubernetes.yaml`).
 
 ifdef::ecs-logs[]
-. Add these annotations to your pods that log using ECS loggers.
-  This will make sure the logs are parsed appropriately.
-
+. Add these annotations to your pods that log using ECS-compatible JSON. This will make sure the logs are parsed appropriately.
++
 [source,yaml]
 ----
 annotations:
@@ -59,7 +63,6 @@ annotations:
 ----
 endif::ecs-logs[]
 ifdef::plaintext[]
-Plaintext instructions go here
 endif::plaintext[]
 // end::kubernetes[]
 
@@ -67,14 +70,13 @@ endif::plaintext[]
 // tag::docker[]
 . Make sure your application logs to stdout/stderr.
 
-. Follow the {filebeat-ref}/running-on-docker.html[Run Filebeat on Docker] guide.
+. Follow the {filebeat-ref}/running-on-docker.html[Run {filebeat} on Docker] guide.
 
-. Enable https://www.elastic.co/guide/en/beats/filebeat/current/configuration-autodiscover-hints.html[hints-based autodiscover].
+. Enable {filebeat-ref}/current/configuration-autodiscover-hints.html[hints-based autodiscover].
 
 ifdef::ecs-logs[]
-. Add these labels to your containers that log using ECS loggers.
-  This will make sure the logs are parsed appropriately.
-
+. Add these labels to your containers that log using ECS-compatible JSON. This will make sure the logs are parsed appropriately.
++
 [source,yaml]
 .docker-compose.yml
 ----
@@ -86,6 +88,5 @@ labels:
 ----
 endif::ecs-logs[]
 ifdef::plaintext[]
-Plaintext instructions go here
 endif::plaintext[]
 // end::docker[]
