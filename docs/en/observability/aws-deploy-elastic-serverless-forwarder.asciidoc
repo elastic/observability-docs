@@ -201,6 +201,7 @@ There are four different groups of parameters.
   * `ElasticServerlessForwarderKinesisEvents`
   * `ElasticServerlessForwarderKinesisBatchSize`
   * `ElasticServerlessForwarderKinesisStartingPosition`
+  * `ElasticServerlessForwarderKinesisStartingPositionTimestamp`
   * `ElasticServerlessForwarderKinesisMaximumBatchingWindowInSeconds`
   * `ElasticServerlessForwarderKinesisParallelizationFactor`
   * `ElasticServerlessForwarderCloudWatchLogsEvents`
@@ -226,6 +227,7 @@ Parameters:
 - `ElasticServerlessForwarderKinesisEvents`: Add a comma delimited list of Kinesis Data Stream ARNs to set as event triggers for the forwarder (if any).
 - `ElasticServerlessForwarderKinesisBatchSize`: Raise this value above the default (`10`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 - `ElasticServerlessForwarderKinesisStartingPosition`: Change this value from the default (`TRIM_HORIZON`) if you want to change the starting position of the records processed by the Elastic Serverless Forwarder for the <<aws-serverless-forwarder-inputs-kinesis>>.
+- `ElasticServerlessForwarderKinesisStartingPositionTimestamp`: Set this value to the time from which to start reading, in Unix time seconds, if you set `ElasticServerlessForwarderKinesisStartingPosition` to "AT_TIMESTAMP".
 - `ElasticServerlessForwarderKinesisMaximumBatchingWindowInSeconds`: Raise this value above the default (`0`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 - `ElasticServerlessForwarderKinesisParallelizationFactor`: Raise this value above the default (`1`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing, the average execution time of the Elastic Serverless Forwarder is below 14 minutes and you unbalanced partitions in your <<aws-serverless-forwarder-inputs-kinesis>>. This will increase the number of records the Elastic Serverless Forwarder will increase the number of parallel execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 - `ElasticServerlessForwarderCloudWatchLogsEvents`: Add a comma delimited list of Cloudwatch Logs log group ARNs to set subscription filters on the forwarder (if any).
@@ -313,6 +315,7 @@ aws serverlessrepo list-application-versions --application-id arn:aws:serverless
             ElasticServerlessForwarderKinesisEvents: ""
             ElasticServerlessForwarderKinesisBatchSize: 10
             ElasticServerlessForwarderKinesisStartingPosition: "TRIM_HORIZON"
+            ElasticServerlessForwarderKinesisStartingPositionTimestamp: 0
             ElasticServerlessForwarderKinesisMaximumBatchingWindowInSeconds: 0
             ElasticServerlessForwarderKinesisParallelizationFactor: 1
             ElasticServerlessForwarderCloudWatchLogsEvents: ""
@@ -366,6 +369,7 @@ NOTE: Starting from **v1.4.0**, if you want to update the Events settings for th
       ElasticServerlessForwarderKinesisEvents = ""
       ElasticServerlessForwarderKinesisBatchSize = 10
       ElasticServerlessForwarderKinesisStartingPosition = "TRIM_HORIZON"
+      ElasticServerlessForwarderKinesisStartingPositionTimestamp = 0
       ElasticServerlessForwarderKinesisMaximumBatchingWindowInSeconds = 0
       ElasticServerlessForwarderKinesisParallelizationFactor = 1
       ElasticServerlessForwarderCloudWatchLogsEvents = ""
