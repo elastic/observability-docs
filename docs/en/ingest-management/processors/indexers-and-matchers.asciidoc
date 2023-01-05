@@ -28,21 +28,20 @@ combination if `ip:port` for each one of the ports exposed by its containers.
 Matchers are used to construct the lookup keys that match with the identifiers
 created by indexes.
 
-[discrete]
-==== `field_format`
+Available matchers are:
 
-Looks up Pod metadata using a key created with a string format that can include
-event fields.
-
+`field_format`:: Looks up Pod metadata using a key created with a string format
+that can include event fields.
++
 This matcher has an option `format` to define the string format. This string
 format can contain placeholders for any field in the event.
-
++
 For example, the following configuration uses the `ip_port` indexer to identify
 the Pod metadata by combinations of the Pod IP and its exposed ports, and uses
 the destination IP and port in events as match keys:
-
++
 [source,yaml]
--------------------------------------------------------------------------------
+----
 - add_kubernetes_metadata:
     ...
     default_indexers.enabled: false
@@ -52,23 +51,20 @@ the destination IP and port in events as match keys:
     matchers:
       - field_format:
           format: '%{[destination.ip]}:%{[destination.port]}'
--------------------------------------------------------------------------------
+----
 
-[discrete]
-==== `fields`
-
-Looks up Pod metadata using as key the value of some specific fields. When
-multiple fields are defined, the first one included in the event is used.
-
+`fields`:: Looks up Pod metadata using as key the value of some specific fields.
+When multiple fields are defined, the first one included in the event is used.
++
 This matcher has an option `lookup_fields` to define the files whose value will
 be used for lookup.
-
++
 For example, the following configuration uses the `ip_port` indexer to identify
 Pods, and defines a matcher that uses the destination IP or the server IP for the
 lookup, the first it finds in the event:
-
++
 [source,yaml]
--------------------------------------------------------------------------------
+----
 - add_kubernetes_metadata:
     ...
     default_indexers.enabled: false
@@ -78,14 +74,12 @@ lookup, the first it finds in the event:
     matchers:
       - fields:
           lookup_fields: ['destination.ip', 'server.ip']
--------------------------------------------------------------------------------
+----
 
-[discrete]
-==== `logs_path`
-
-Looks up Pod metadata using identifiers extracted from the log path stored in
-the `log.file.path` field.
-
+`logs_path`:: Looks up Pod metadata using identifiers extracted from the log
+path stored in the `log.file.path` field.
++
+--
 This matcher has the following configuration settings:
 
 `logs_path`:: (Optional) Base path of container logs. If not specified, it uses
@@ -109,19 +103,20 @@ metadata: Pod id, Pod name, etc., not container metadata.
 * `container`: to make the lookup based on the container ID, `logs_path` must
 be set to `/var/log/containers/`.
 It defaults to `container`.
-
+--
++
 To be able to use `logs_path` matcher agent's input path must be a subdirectory
 of directory defined in `logs_path` configuration setting.
-
++
 The default configuration is able to lookup the metadata using the container ID
 when the logs are collected from the default docker logs path
 (`/var/lib/docker/containers/<container ID>/...` on Linux).
-
++
 For example the following configuration would use the Pod UID when the logs are
 collected from `/var/lib/kubelet/pods/<pod UID>/...`.
-
++
 [source,yaml]
--------------------------------------------------------------------------------
+----
 - add_kubernetes_metadata:
     ...
     default_indexers.enabled: false
@@ -132,4 +127,4 @@ collected from `/var/lib/kubelet/pods/<pod UID>/...`.
       - logs_path:
           logs_path: '/var/lib/kubelet/pods'
           resource_type: 'pod'
--------------------------------------------------------------------------------
+----
