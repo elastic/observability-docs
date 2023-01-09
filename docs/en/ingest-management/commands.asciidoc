@@ -36,40 +36,37 @@ invoking the wrong binary.
 [[elastic-agent-diagnostics-command]]
 == elastic-agent diagnostics
 
-Gather diagnostics information from the {agent} and applications it's running.
+Gather diagnostics information from the {agent} and component/unit it's running.
+This command produces an archive that contains:
 
-If no options are specified, this command displays version numbers and application metadata.
-
-If `collect` is specified, it produces an archive containing application metadata, configuration information, the policy, local logs, and metrics data (if the buffer is enabled).
+* version.txt - version information
+* pre-config.yaml - pre-configuration before variable substitution
+* variables.yaml - current variable contexts from providers
+* computed-config.yaml - configuration after variable substitution
+* components.yaml - expected computed components model from the computed-config.yaml
+* state.yaml - current state information of all running components
+* goroutine.txt - goroutine dump
+* heap.txt - memory allocation of live objects
+* allocs.txt - sampling past memory allocations
+* threadcreate.txt - traces led to creation of new OS threads
+* block.txt - stack traces that led to blocking on synchronization primitives
+* mutex.txt - stack traces of holders of contended mutexes
+* components directory - diagnostic information from each running component (content defined by the inputs)
 
 Note that *credentials are not redacted* in the archive; they may appear in plain text in the configuration or policy files inside the archive.
 
-This command is intended for debugging purposes only. The output format and structure of the archive produced by `collect` may change between releases.
-
-If `pprof` is specified, it gathers specific `pprof` data from the {agent} or one of the specified underlying {beats}, and displays to `stdout`.
-By default it gathers a 30 second profile of the {agent}.
+This command is intended for debugging purposes only. The output format and structure of the archive may change between releases.
 
 [discrete]
 === Synopsis
 
 [source,shell]
 ----
-elastic-agent diagnostics [--help] [--output <string>] [global-flags]
-elastic-agent diagnostics collect [--output <string>]
-                                  [--file <string>]
-                                  [--pprof]
-                                  [--pprof-duration <string>]
-                                  [--timeout <string>]
-                                  [--help]
-                                  [global-flags]
-elastic-agent diagnostics pprof [--file <string>]
-                                [--pprof-type <string]
-                                [--pprof-duration <string>]
-                                [--timeout <string>]
-                                [--pprof-application <string>]
-                                [--pprof-route-key <string>]
-                                [--help]
-                                [global-flags]
+elastic-agent diagnostics [--output <string>]
+                          [--file <string>]
+                          [--timeout <string>]
+                          [--help]
+                          [global-flags]
 ----
 
 [discrete]
@@ -84,27 +81,10 @@ When running `collect`, specifies the output archive name. Defaults to `elastic-
 +
 When running `pprof`, specifies the output file name. Defaults to `stdout`.
 
-`--pprof`::
-Gather `pprof` data when running `collect` (default `false`).
-
-`--pprof-duration <string>`::
-The length for the `trace` and `profile` data that's collected when gathering `pprof` data.
-Must be a string that can be parsed as a `time.Duration` value (default: `30s`).
-
 `--timeout <string>`::
 The timeout value for the `diagnostics collect` or `diagnostics pprof` command.
 Should be longer then `pprof-duration` as the command needs to gather and process the data.
 Must be a string that can be parsed as a `time.Duration` value (default: `30s + pprof-duration`).
-
-`--pprof-type <string>`::
-The `pprof` data to gather, one of: `allocs`, `block`, `cmdline`, `goroutine`, `heap`, `mutex`, `profile`, `threadcreate`, or `trace` (default: `profile`).
-
-`--pprof-application <string>`::
-The application name to gather `pprof` data from (default `elastic-agent`).
-
-`--pprof-route-key <string>`::
-The route key (output destination) associated with the application to gather `pprof` data from (default `default`).
-Note that this setting is ignored in the case where `pprof-application=elastic-agent`.
 
 `--help`::
 Show help for the `diagnostics` command.
@@ -428,26 +408,25 @@ If no parameters are specified, shows the full {agent} configuration.
 
 [source,shell]
 ----
-elastic-agent inspect [--help] [global-flags]
-elastic-agent inspect output [--output <string>]
-                             [--program <string>]
+elastic-agent inspect [--help]
+elastic-agent inspect components [--show-config]
+                             [--show-spec]
                              [--help]
-                             [global-flags]
+                             [id]
 ----
 
 [discrete]
 === Options
 
-`output`:: Display the current configuration for the output. This command
+`components`:: Display the current configuration for the component. This command
 accepts additional flags:
 +
 --
-`--output <string>`::
-The name of the output to inspect.
+`--show-config`::
+Use to display the configuration in all units.
 
-`--program <string>`::
-The type of program to inspect. For example, `filebeat`. This option must be
-combined with `--output`.
+`--show-spec`::
+Use to get input/output runtime spectification for a component.
 --
 
 `--help`::
@@ -461,8 +440,8 @@ Show help for the `inspect` command.
 [source,shell]
 ----
 elastic-agent inspect
-elastic-agent inspect output --output default
-elastic-agent inspect output --output default --program filebeat
+elastic-agent inspect components --show-config
+elastic-agent inspect components filebeat
 ----
 
 ++++
