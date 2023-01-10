@@ -26,73 +26,65 @@ Also see:
 [[release-notes-8.6.0]]
 == {fleet} and {agent} 8.6.0
 
-coming[8.6.0]
-
 Review important information about the {fleet} and {agent} 8.6.0 release.
 
-//[discrete]
-//[[security-updates-8.6.0]]
-//=== Security updates
+[discrete]
+[[breaking-changes-8.6.0]]
+=== Breaking changes
 
-//{fleet}::
-//* add info
+Breaking changes can prevent your application from optimal operation and
+performance. Before you upgrade, review the breaking changes, then mitigate the
+impact to your application.
 
-//{agent}::
-//* add info
+[discrete]
+[[breaking-1994]]
+.Each input in an agent policy must have a unique ID 
+[%collapsible]
+====
+*Details* +
+Each input in an agent policy must have a unique ID, like `id: my-unique-input-id`.
+This change only affects standalone agents. Unique IDs are automatically generated in
+agent policies managed by {fleet}. For more information, refer to
+{agent-pull}/1994[#1994]
 
-//[discrete]
-//[[breaking-changes-8.6.0]]
-//=== Breaking changes
+*Impact* +
+Make sure that your standalone agent policies have a unique ID.
+====
 
-//Breaking changes can prevent your application from optimal operation and
-//performance. Before you upgrade, review the breaking changes, then mitigate the
-//impact to your application.
+[discrete]
+[[breaking-1140]]
+.Diagnostics `--pprof` argument has been removed and is now always provided
+[%collapsible]
+====
+*Details* +
+The `diagnostics` command gathers diagnostic information about the {agent} and
+each component/unit it runs. Starting in 8.6.0, the `--pprof`
+argument is no longer available because `pprof` information is now always
+provided. For more information, refer to {agent-pull}1140[#1140].
 
-//[discrete]
-//[[breaking-PR#]]
-//.Short description
-//[%collapsible]
-//====
-//*Details* +
-//<Describe new behavior.> For more information, refer to {kibana-pull}PR[#PR].
+*Impact* +
+Remove the `--pprof` argument from any scripts or commands you use.
+====
 
-//*Impact* +
-//<Describe how users should mitigate the change.> For more information, refer to {fleet-guide}/fleet-server.html[Fleet Server].
-//====
+[discrete]
+[[known-issues-8.6.0]]
+=== Known issues
 
-//[discrete]
-//[[known-issues-8.6.0]]
-//=== Known issues
+[discrete]
+[[known-issue-issue-2066]]
+.Osquery live query results can take up to five minutes to show up in {kib}
+[%collapsible]
+====
+*Details* +
+A known issue in {agent} may prevent live query results from being available
+in the {kib} UI even though the results have been successfully sent to {es}. 
+For more information, refer to {agent-issue}2066[#2066].
 
-//[[known-issue-issue#]]
-//.Short description
-//[%collapsible]
-//====
+*Impact* +
+Be aware that the live query results shown in {kib} may be stale.
+====
 
-//*Details*
-
-//<Describe known issue.>
-
-//*Impact* +
-
-//<Describe impact or workaround.>
-
-//====
-
-//[discrete]
-//[[deprecations-8.6.0]]
-//=== Deprecations
-
-//The following functionality is deprecated in 8.6.0, and will be removed in
-//8.6.0. Deprecated functionality does not have an immediate impact on your
-//application, but we strongly recommend you make the necessary updates after you
-//upgrade to 8.6.0.
-
-//{fleet}::
-//* add info
-
-//{agent}::
-//* add info
+//REVIEWERS: Is this correct ^^? Changelog entries didn't sufficient detail.
 
 [discrete]
 [[new-features-8.6.0]]
@@ -101,34 +93,41 @@ Review important information about the {fleet} and {agent} 8.6.0 release.
 The 8.6.0 release adds the following new and notable features.
 
 {fleet}::
-* Differentiate kubernetes integration multi page experience {kibana-pull}145224[#145224]
-* Prerelease toggle {kibana-pull}143853[#143853]
-* Adds link to skip multi step add integration workflow {kibana-pull}143279[#143279]
-* Request diagnostics {kibana-pull}142369[#142369]
+* Differentiate kubernetes integration multipage experience {kibana-pull}145224[#145224]
+* Add prerelease toggle to Integrations list {kibana-pull}143853[#143853]
+* Add link to allow users to skip multistep add integration workflow {kibana-pull}143279[#143279]
+* Add new action for single agents to request diagnostics {kibana-pull}142369[#142369]
 
-//{agent}::
-//* add info
+{agent}::
+* Upgrade Node to version 18.12.0 {agent-pull}1657[#1657] 
+* Add experimental support for running the elastic-agent-shipper {agent-pull}1527[#1527] {agent-issue}219[#219]
+* Capture stdout/stderr of all subprocesses and adjust default log level to INFO for all components {agent-pull}1702[#1702] {agent-issue}221[#221]
+* Remove inputs when all streams are removed {agent-pull}1869[#1869] {agent-issue}1868[#1868]
+* No longer restart {agent} on log level change {agent-pull}1914[#1914] {agent-issue}1896[#1896]
+* Add `inspect components` command to inspect the computed components/units model of the current configuration (for example, `elastic-agent inspect components`) {agent-pull}1701[#1701] {agent-issue}836[#836]
+* Add Common Expression Language input mapping to the {filebeat} spec {agent-pull}1719[#1719] 
+* Only support {es} as an output for the beta synthetics integration {agent-pull}1491[#1491] 
 
 [discrete]
 [[enhancements-8.6.0]]
 === Enhancements
 
 {fleet}::
-Adds `?full` option to get package info endpoint to return all package fields {kibana-pull}144343[#144343]
+* Add `?full` option to get package info endpoint to return all package fields {kibana-pull}144343[#144343]
 
-//{agent}::
-//* add info
+{agent}::
+* Health Status: {agent} now indicates detailed status information for each component/unit {fleet-server-pull}1747[#1747] {agent-issue}100[#100]
 
 [discrete]
 [[bug-fixes-8.6.0]]
 === Bug fixes
 
 {fleet}::
-Only show {fleet}-managed data streams on data streams list page {kibana-pull}143300[#143300]
+* Only show {fleet}-managed data streams on data streams list page {kibana-pull}143300[#143300]
 
-//{agent}::
-//* add info
-
+{agent}::
+* {agent} uses local port when running {fleet-server} {agent-pull}1867[#1867]
+* Correctly preserve the {filebeat} registry and other persistent input states during upgrades to eliminate event duplication after upgrades {agent-pull}1701[#1701] {agent-issue}836[#836]
 // end 8.6.0 relnotes
 
 
