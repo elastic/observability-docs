@@ -1,33 +1,32 @@
-// These settings are shared across some inputs and outputs.
+[[elastic-agent-ssl-configuration]]
+= Configure SSL/TLS
 
-// You can include this whole block to include the whole table, or individual
-// settings to add rows to an existing table.
-
-// tag::ssl-all-settings[]
+++++
+<titleabbrev>SSL/TLS</titleabbrev>
+++++
 
 There are a number of SSL configuration settings available depending on whether
-you are configuring the client, server, or both. See the following tables for
+you are configuring a client, server, or both. See the following tables for
 available settings:
 
-* <<{type}-common-ssl-options>>. These settings are valid in both client and
+* <<common-ssl-options>>. These settings are valid in both client and
 server configurations.
 
-* <<{type}-client-ssl-options>>
+* <<client-ssl-options>>
 
-* <<{type}-server-ssl-options>>
+* <<server-ssl-options>>
 
 TIP: For more information about using certificates, refer to
-<<secure-connections>>.
+<<secure>>.
 
-[id="{type}-common-ssl-options"]
+[[common-ssl-options]]
 .Common configuration options
 [cols="2*<a"]
 |===
 | Setting | Description
 
-// tag::ssl.ca_sha256-common-setting[]
 |
-[id="{type}-ssl.ca_sha256-common-setting"]
+[[ssl.ca_sha256-common-setting]]
 `ssl.ca_sha256`
 
 | (string) This configures a certificate pin that you can use to ensure that a
@@ -40,13 +39,10 @@ additional validation. If this setting is used with  `verification_mode` set to
 `none`, the check will always fail because it will not receive any verified
 chains.
 
-// end::ssl.ca_sha256-common-setting[]
-
 // =============================================================================
 
-// tag::ssl.cipher_suites-common-setting[]
 |
-[id="{type}-ssl.cipher_suites-common-setting"]
+[[ssl.cipher_suites-common-setting]]
 `ssl.cipher_suites`
 // lint ignore crypto
 | (list) The list of cipher suites to use. The first entry has the highest
@@ -110,13 +106,10 @@ Here is a list of acronyms used in defining the cipher suites:
 * SHA, SHA256, SHA384:
   Cipher suites using SHA-1, SHA-256 or SHA-384.
 
-// end::ssl.cipher_suites-common-setting[]
-
 // =============================================================================
 
-// tag::ssl.curve_types-common-setting[]
 |
-[id="{type}-ssl.curve_types-common-setting"]
+[[ssl.curve_types-common-setting]]
 `ssl.curve_types`
 | (list) The list of curve types for ECDHE (Elliptic Curve Diffie-Hellman
 ephemeral key exchange).
@@ -128,13 +121,10 @@ The following elliptic curve types are available:
 * P-521
 * X25519
 
-// end::ssl.curve_types-common-setting[]
-
 // =============================================================================
 
-// tag::ssl.enabled-common-setting[]
 |
-[id="{type}-ssl.enabled-common-setting"]
+[[ssl.enabled-common-setting]]
 `ssl.enabled`
 
 | (boolean) Enables or disables the SSL configuration.
@@ -144,13 +134,10 @@ The following elliptic curve types are available:
 NOTE: SSL settings are disabled if either `enabled` is set to `false` or the
 `ssl` section is missing.
 
-// end::ssl.enabled-common-setting[]
-
 // =============================================================================
 
-// tag::ssl.supported_protocols-common-setting[]
 |
-[id="{type}-ssl.supported_protocols-common-setting"]
+[[ssl.supported_protocols-common-setting]]
 `ssl.supported_protocols`
 
 | (list) List of allowed SSL/TLS versions. If the SSL/TLS server supports none
@@ -160,22 +147,19 @@ for TLS version 1.0, `TLSv1.0`, `TLSv1.1`, `TLSv1.2`, and `TLSv1.3`.
 
 *Default:* `[TLSv1.1, TLSv1.2, TLSv1.3]`
 
-// end::ssl.supported_protocols-common-setting[]
-
 // =============================================================================
 
 |===
 
 
-[id="{type}-client-ssl-options"]
+[[client-ssl-options]]
 .Client configuration options
 [cols="2*<a"]
 |===
 | Setting | Description
 
-// tag::ssl.certificate-client-setting[]
 |
-[id="{type}-ssl.certificate-client-setting"]
+[[ssl.certificate-client-setting]]
 `ssl.certificate`
 
 | (string) The path to the certificate for SSL client authentication. This
@@ -207,13 +191,10 @@ ssl.certificate: \|
     -----END CERTIFICATE-----
 ----
 
-// end::ssl.certificate-client-setting[]
-
 // =============================================================================
 
-// tag::ssl.certificate_authorities-client-setting[]
 |
-[id="{type}-ssl.certificate_authorities-client-setting"]
+[[ssl.certificate_authorities-client-setting]]
 `ssl.certificate`
 `_authorities`
 
@@ -244,18 +225,10 @@ ssl.certificate_authorities:
     -----END CERTIFICATE-----
 ----
 
-//QUESTION: Is it OK to leave out the contents of the certificate in the example?
-//Including the certificate content messes up the table format, requiring users
-//to scroll right to see all the cell text (including the intro text). It's
-//annoying.
-
-// end::ssl.certificate_authorities-client-setting[]
-
 // =============================================================================
 
-// tag::ssl.key-client-setting[]
 |
-[id="{type}-ssl.key-client-setting"]
+[[ssl.key-client-setting]]
 `ssl.key`
 
 | (string) The client certificate key used for client authentication. Only
@@ -281,26 +254,19 @@ ssl.key: \|
     -----END PRIVATE KEY-----
 ----
 
-// end::ssl.key-client-setting[]
-
 // =============================================================================
 
-
-// tag::ssl.key_passphrase-client-setting[]
 |
-[id="{type}-ssl.key_passphrase-client-setting"]
+[[ssl.key_passphrase-client-setting]]
 `ssl.key_passphrase`
 
 | (string) The passphrase used to decrypt an encrypted key stored in the
 configured `key` file.
 
-// end::ssl.key_passphrase-client-setting[]
-
 // =============================================================================
 
-// tag::ssl.verification_mode-client-setting[]
 |
-[id="{type}-ssl.verification_mode-client-setting"]
+[[ssl.verification_mode-client-setting]]
 `ssl.verification`
 `_mode`
 
@@ -330,13 +296,10 @@ production environments is strongly discouraged.
 
 *Default:* `full`
 
-// end::ssl.verification_mode-client-setting[]
-
 // =============================================================================
 
-// tag::ssl.ca_trusted_fingerprint
 |
-[id="{type}-ssl.ca_trusted_fingerprint"]
+[[ssl.ca_trusted_fingerprint]]
 `ssl.ca_trusted`
 `_fingerprint`
 
@@ -352,19 +315,16 @@ Example:
 ssl.ca_trusted_fingerprint: 3b24d33844d6553...826
 ----
 
-// =============================================================================
-
 |===
 
-[id="{type}-server-ssl-options"]
+[[server-ssl-options]]
 .Server configuration options
 [cols="2*<a"]
 |===
 | Setting | Description
 
-// tag::ssl.certificate-server-setting[]
 |
-[id="{type}-ssl.certificate-server-setting"]
+[[ssl.certificate-server-setting]]
 `ssl.certificate`
 
 | (string) The path to the certificate for SSL server authentication. If the
@@ -389,13 +349,10 @@ ssl.certificate: \|
     -----END CERTIFICATE-----
 ----
 
-// end::ssl.certificate-server-setting[]
-
 // =============================================================================
 
-// tag::ssl.certificate_authorities-server-setting[]
 |
-[id="{type}-ssl.certificate_authorities-server-setting"]
+[[ssl.certificate_authorities-server-setting]]
 `ssl.certificate`
 `_authorities`
 
@@ -427,13 +384,10 @@ ssl.certificate_authorities:
     -----END CERTIFICATE-----
 ----
 
-// end::ssl.certificate_authorities-server-setting[]
-
 // =============================================================================
 
-// tag::ssl.client_authentication-server-setting[]
 |
-[id="{type}-ssl.client_authentication-server-setting"]
+[[ssl.client_authentication-server-setting]]
 `ssl.client_`
 `authentication`
 
@@ -452,9 +406,8 @@ Requires clients to provide a valid certificate.
 
 // =============================================================================
 
-// tag::ssl.key-server-setting[]
 |
-[id="{type}-ssl.key-server-setting"]
+[[ssl.key-server-setting]]
 `ssl.key`
 
 | (string) The server certificate key used for authentication (required).
@@ -476,25 +429,19 @@ ssl.key: \|
     -----END PRIVATE KEY-----
 ----
 
-// end::ssl.key-server-setting[]
-
 // =============================================================================
 
-// tag::ssl.key_passphrase-server-setting[]
 |
-[id="{type}-ssl.key_passphrase-server-setting"]
+[[ssl.key_passphrase-server-setting]]
 `ssl.key_passphrase`
 
 | (string) The passphrase used to decrypt an encrypted key stored in the
 configured `key` file.
 
-// end::ssl.key_passphrase-server-setting[]
-
 // =============================================================================
 
-// tag::ssl.renegotiation-server-setting[]
 |
-[id="{type}-ssl.renegotiation-server-setting"]
+[[ssl.renegotiation-server-setting]]
 `ssl.renegotiation`
 
 | (string) Configures the type of TLS renegotiation to support. The valid options
@@ -511,13 +458,10 @@ Allows a remote server to request renegotiation repeatedly.
 
 *Default:* `never`
 
-// end::ssl.renegotiation-server-setting[]
-
 // =============================================================================
 
-// tag::ssl.verification_mode-server-setting[]
 |
-[id="{type}-ssl.verification_mode-server-setting"]
+[[ssl.verification_mode-server-setting]]
 `ssl.verification`
 `_mode`
 
@@ -547,10 +491,6 @@ discouraged.
 
 *Default:* `full`
 
-// end::ssl.verification_mode-server-setting[]
-
 // =============================================================================
 
 |===
-
-// end::ssl-all-settings[]
