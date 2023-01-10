@@ -4,6 +4,12 @@
 ++++
 <titleabbrev>Troubleshooting</titleabbrev>
 ++++
+== Preventing unexpected costs
+Remember to monitor the Elastic Serverless Forwarder Lambda for timeouts (you can use https://docs.elastic.co/en/integrations/aws/lambda[AWS Lambda integration] for this). If the timeouts are constant pay attention to throttle the Elastic Serverless Forwarder Lambda to stop its execution, before proceeding with any troubleshooting. Constant timeouts will produce, in the most of the cases, the records and messages from the event triggers to go back their sources and trigger the Lambda again producing other timeouts in a loop that protracts itself: this will produce unexpected high costs that you most likely want to prevent.
+
+[[aws-serverless-troubleshooting-vpc-prerequisites]]
+== Prerequisites when Elastic Serverless Forwarder is attached to a VPC
+In case the Elastic Serverless Forwarder is attached to a VPC you need to https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html[create VPC Endpoints] for S3 and SQS and for every service you use as input of the Elastic Serverless Forwarder. S3 and SQS VPC Endpoints are required, regardless the <<aws-serverless-forwarder-inputs>> used, for reading the `config.yaml` uploaded on S3 and managing the _Continuing queue_ and the _Replay queue_.
 
 == Troubleshooting deployment errors
 You can view the status of deployment actions and get additional information on events, including why a particular event fails e.g. misconfiguration details.
