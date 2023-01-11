@@ -70,6 +70,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: logstash_url
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
   - type: "sqs"
     id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
     outputs:
@@ -85,6 +93,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: logstash_url
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
   - type: "kinesis-data-stream"
     id: "arn:aws:kinesis:%REGION%:%ACCOUNT%:stream/%STREAMNAME%"
     outputs:
@@ -100,6 +116,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: logstash_url
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
   - type: "cloudwatch-logs"
     id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:*"
     outputs:
@@ -115,6 +139,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: logstash_url
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
   - type: "cloudwatch-logs"
     id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:log-stream:%LOG_STREAM_NAME%"
     outputs:
@@ -130,6 +162,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: logstash_url
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
 ----
 
 [[s3-config-file-fields]]
@@ -156,7 +196,9 @@ A list of outputs (i.e. forwarding targets) for the Elastic Serverless Forwarder
 
 `inputs.[].outputs.[].type`:
 
-The type of the forwarding target output (currently only `elasticsearch` supported).
+The type of the forwarding target output (currently only `elasticsearch` and `logstash` are supported).
+
+**Note: `logstash` target output is currently offered as Technology Preview.**
 
 `inputs.[].outputs.[].args`:
 Custom init arguments for the specified forwarding target output.
@@ -172,6 +214,16 @@ For `elasticsearch` the following arguments are supported:
   * `args.batch_max_actions`: (Optional) Maximum number of actions to send in a single bulk request. Default value: 500.
   * `args.batch_max_bytes`: (Optional) Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
   * `args.ssl_assert_fingerprint`: (Optional) SSL fingerprint for self-signed SSL certificate on HTTPS transport.
+
+For `logstash` the following arguments are supported:
+
+  * `args.logstash_url` URL of elasticsearch endpoint in the format `http(s)://host:port`
+  * `args.username`: (Optional) Username of the logstash instance to connect to. Mandatory if HTTP Basic authentication is enabled in Logstash.
+  * `args.password`: (Optional) Password of the logstash instance to connect to. Mandatory if HTTP Basic authentication is enabled in Logstash.
+  * `args.max_batch_size`: (Optional) Maximum number of events to send in a single HTTP(s) request. Default value: 500
+  * `args.compression_level`: (Optional) The GZIP compression level for HTTP(s) requests towards logstash. It can be any integer value between 1 (minimum compression, best performance, highest amount of bytes sent) and 9 (maximum compression, worst performance, lowest amount of bytes sent). Default value: 1
+  * `args.ssl_assert_fingerprint`: (Optional) SSL fingerprint for self-signed SSL certificate on HTTPS transport.
+
 
 [[aws-serverless-forwarder-deploy-sar]]
 == Deploy `elastic-serverless-forwarder` from Serverless Application Repository
