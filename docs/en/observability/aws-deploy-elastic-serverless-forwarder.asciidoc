@@ -450,7 +450,7 @@ Set this value different from the default (`TRIM_HORIZON`) if you want to change
 Set this value to the time from which to start reading, in Unix time seconds, if you set `ElasticServerlessForwarderKinesisStartingPosition` to "AT_TIMESTAMP".
 
 `kinesis_data_stream.[].parallelization_factor`:
-Raise this value above the default (`1`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
+Set this value above the default (`1`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
 `sqs.[]`:
 A list of <<aws-serverless-forwarder-inputs-direct>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
@@ -482,7 +482,7 @@ Set this value above the default (`0`) if you experience ingestion delays in you
 A list of <<aws-serverless-forwarder-inputs-cloudwatch>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
 
 `cloudwatch_logs.[].arn`:
-The ARN of the {aws} CloudWatch Logs trigger input. This field accept both CloudWatch Logs Log Group and CloudWatch Logs Log Stream ARNs.
+The ARN of the {aws} CloudWatch Logs trigger input. This field accepts both CloudWatch Logs Log Group and CloudWatch Logs Log Stream ARNs.
 
 `kms_keys.[]`:
 A list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams or SQS queue (if any).
@@ -494,10 +494,10 @@ A list of {aws} IAM Roles ARNs that the Elastic Serverless Forwarder should be g
 A list of S3 bucket ARNs that are sources for the S3 SQS Event Notifications (if any).
 
 `subnets.[]`:
-A list of subnets IDs for to the Elastic Serverless Forwarder. Along with the `security_groups.[]` this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
+A list of subnets IDs for to the Elastic Serverless Forwarder. Along with `security_groups.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
 
 `security_groups.[]`:
-A list of security group IDs to attach to the Elastic Serverless Forwarder. Along with the `subnets.[]` this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
+A list of security group IDs to attach to the Elastic Serverless Forwarder. Along with `subnets.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
 
 `s3_config_file`: Set this value to the location of your Elastic Serverless Forwarder configuration file in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
 
@@ -547,7 +547,7 @@ Assuming you have saved `publish-config.yaml` in the directory you run `publish_
 [source, bash]
 ----
 
-$ ./publish_lambda.sh ./publish-config.yaml first-lambda lambda-v1.5.0 s3-bucket-name eu-central-1
+$ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.6.0 s3-lambda-artifact-bucket-name eu-central-1
 
 ----
 
@@ -557,9 +557,11 @@ In order to update the version of an already published Elastic Serverless Forwar
 [source, bash]
 ----
 
-$ ./publish_lambda.sh ./publish-config.yaml first-lambda lambda-v1.6.0 s3-bucket-name eu-central-1
+$ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.7.0 s3-lambda-artifact-bucket-name eu-central-1
 
 ----
+
+NOTE: The third argument of the publishing script was replaced from `lambda-v1.6.0` to `lambda-v1.7.0`
 
 === Changing the Elastic Serverless Forwarder configuration
 In case you want to change the configuration of an already published Elastic Serverless Forwarder, without changing its version, you should update the `publish-config.yaml` as desired and run again the script using the same `forwarder-tag` currently published:
@@ -567,9 +569,13 @@ In case you want to change the configuration of an already published Elastic Ser
 [source, bash]
 ----
 
-$ ./publish_lambda.sh ./publish-config.yaml first-lambda lambda-v1.5.0 s3-bucket-name eu-central-1
+$ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.6.0 s3-lambda-artifact-bucket-name eu-central-1
 
 ----
+
+
+NOTE: Nothing was changed in the arguments passed to the publishing script, but `publish-config.yaml` content was updated.
+
 
 === Publishing Elastic Serverless Forwarder multiple times
 If you want to publish multiple times the Elastic Serverless Forwarder, with different configurations each, you should create two different `publish-config.yaml` with unique names and run the publishing script two times referring the proper values for `config-path` and `lambda-name` arguments:
@@ -577,8 +583,11 @@ If you want to publish multiple times the Elastic Serverless Forwarder, with dif
 [source, bash]
 ----
 
-$ ./publish_lambda.sh ./publish-config-for-first-lambda.yaml first-lambda lambda-v1.5.0 s3-bucket-name eu-central-1
+$ ./publish_lambda.sh publish-config-for-first-lambda.yaml first-lambda lambda-v1.6.0 s3-lambda-artifact-bucket-name eu-central-1
 
-$ ./publish_lambda.sh ./publish-config-for-second-lambda.yaml second-lambda lambda-v1.5.0 s3-bucket-name eu-central-1
+$ ./publish_lambda.sh publish-config-for-second-lambda.yaml second-lambda lambda-v1.6.0 ss3-lambda-artifact-bucket-name eu-central-1
 
 ----
+
+NOTE: We passed as first and second arguments of the publishing script two different pairs of values: `publish-config-for-first-lambda.yaml` and `first-lambda` vs. `publish-config-for-second-lambda.yaml` and `second-lambda`
+
