@@ -21,10 +21,10 @@ Forwarder for {aws}— for additional information on configuration topics such a
 
 [discrete]
 [[aws-serverless-forwarder-deploy-prereq]]
-=== Pre-requisites
+=== Prerequisites
 This documentation assumes you have some familiarity with {aws} services and you have correctly created and configured the necessary {aws} objects. For example, if you want to use an Amazon S3 (via SQS event notifications) input then you must ensure that you have enabled AWS VPC flow logs to be sent to that bucket, and created an SQS queue to receive those logs. For more information, refer to the relevant https://docs.aws.amazon.com/[{aws} docs].
 
-// Need more details on pre-reqs for other input types
+// Need more details on pre-reqs for other input types?
 
 [[aws-serverless-forwarder-deploy-kibana]]
 == Install {aws} integration assets in {kib}
@@ -168,69 +168,63 @@ For `elasticsearch` the following arguments are supported:
   * `args.cloud_id`: Cloud ID of elasticsearch endpoint. Mandatory when `args.elasticsearch_url` is not provided. Will be ignored if `args.elasticsearch_url` is defined.
   * `args.username`: Username of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will take precedence over `args.api_key` if both are defined.
   * `args.password` Password of the elasticsearch instance to connect to. Mandatory when `args.api_key` is not provided. Will take precedence over `args.api_key` if both are defined.
-  * `args.api_key`:  API key of elasticsearch endpoint in the format **base64encode(api_key_id:api_key_secret)**. Mandatory when `args.username`  and `args.password` are not provided. Will be ignored if `args.username`/`args.password` are defined.
-  * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In version **v0.29.1** and earlier, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your `config.yaml` file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
+  * `args.api_key`:  API key of elasticsearch endpoint in the format `base64encode(api_key_id:api_key_secret)`. Mandatory when `args.username`  and `args.password` are not provided. Will be ignored if `args.username`/`args.password` are defined.
+  * `args.es_datastream_name`: Name of data stream or index where logs should be forwarded to. Lambda supports automatic routing of various {aws} service logs to the corresponding data streams for further processing and storage in the {es} cluster. It supports automatic routing of `aws.cloudtrail`, `aws.cloudwatch_logs`, `aws.elb_logs`, `aws.firewall_logs`, `aws.vpcflow`, and `aws.waf` logs. For other log types, if using data streams, you can optionally set its value in the configuration file according to the naming convention for data streams and available integrations. If the `es_datastream_name` is not specified and it cannot be matched with any of the above {aws} services, then the value will be set to `logs-generic-default`. In versions **v0.29.1** and below, this configuration parameter was named `es_index_or_datastream_name`. Rename the configuration parameter to `es_datastream_name` in your `config.yaml` file on the S3 bucket to continue using it in the future version. The older name `es_index_or_datastream_name` is deprecated as of version **v0.30.0**. The related backward compatibility code is removed from version **v1.0.0**.
   * `args.batch_max_actions`: (Optional) Maximum number of actions to send in a single bulk request. Default value: 500.
   * `args.batch_max_bytes`: (Optional) Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
   * `args.ssl_assert_fingerprint`: (Optional) SSL fingerprint for self-signed SSL certificate on HTTPS transport.
 
 [[aws-serverless-forwarder-define-deploy-parameters]]
-== Define `elastic-serverless-forwarder` Parameters for Deployment
-In order to deploy the Elastic Serverless Forwarder for {aws} you must define some parameters, that will be used by every of the methods available for deployment.
+== Define deployment parameters
+Whichever deployment method you choose, you must define the following parameters correctly for your setup. This section explains the types of parameters and provides guidance on how to set them to match your deployment(s).
 
-There are four different groups of parameters.
+=== General configuration
+These parameters define the general configuration and behaviour for the forwarder.
 
-- General Configuration: parameters related to the general configuration and the Elastic Serverless Forwarder behaviour
-- Inputs: parameters related to your specific <<aws-serverless-forwarder-inputs>> (ie: event triggers)
-- S3 Buckets Permissions: parameters related to the permissions required in order to access the S3 Buckets of <<aws-serverless-forwarder-inputs-s3>>
-- Network: permissions related to the network environment of the Elastic Serverless Forwarder
-
-- General Configuration:
-  * `ElasticServerlessForwarderS3ConfigFile`
-  * `ElasticServerlessForwarderSSMSecrets`
-  * `ElasticServerlessForwarderKMSKeys`
-- Event Triggers:
-  * `ElasticServerlessForwarderSQSEvents`
-  * `ElasticServerlessForwarderS3SQSEvents`
-  * `ElasticServerlessForwarderKinesisEvents`
-  * `ElasticServerlessForwarderCloudWatchLogsEvents`
-- S3 Buckets Permissions:
-  * `ElasticServerlessForwarderS3Buckets`
-- Network:
-  * `ElasticServerlessForwarderSecurityGroups`
-  * `ElasticServerlessForwarderSubnets`
-
-Parameters:
-
-- `ElasticServerlessForwarderS3ConfigFile`: Set this value to the location of your Elastic Serverless Forwarder configuration file in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
+- `ElasticServerlessForwarderS3ConfigFile`: Set this value to the location of your `config.yaml` in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
 - `ElasticServerlessForwarderSSMSecrets`: Add a comma delimited list of {aws} SSM Secrets ARNs used in the `config.yml` (if any).
-- `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams or SQS queue (if any).
-- `ElasticServerlessForwarderSQSEvents`: Add a comma delimited list of Direct SQS queues ARNs to set as event triggers for the forwarder (if any).
+- `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams, or SQS queue (if any).
+- `ElasticServerlessForwarderAssumeRoles`: Add a comma delimited list of {aws} IAM Roles ARNs that the forwarder should be given permission for the `sts:AssumeRole` action (if any).
+
+=== Inputs
+These parameters define your specific <<aws-serverless-forwarder-inputs>> or 'event triggers'.
+
+- `ElasticServerlessForwarderSQSEvents`: Add a comma delimited list of Direct SQS queue ARNs to set as event triggers for the forwarder (if any).
 - `ElasticServerlessForwarderS3SQSEvents`: Add a comma delimited list of S3 SQS Event Notifications ARNs to set as event triggers for the forwarder (if any).
 - `ElasticServerlessForwarderKinesisEvents`: Add a comma delimited list of Kinesis Data Stream ARNs to set as event triggers for the forwarder (if any).
 - `ElasticServerlessForwarderCloudWatchLogsEvents`: Add a comma delimited list of Cloudwatch Logs log group ARNs to set subscription filters on the forwarder (if any).
+
+[NOTE]
+====
+Make sure you reference the ARNs specified in your `config.yaml`, and leave any settings for unused inputs blank.
+====
+
+=== S3 Bucket permissions
+These parameters define the permissions required in order to access the associated S3 Buckets.
+
 - `ElasticServerlessForwarderS3Buckets`: Add a comma delimited list of S3 bucket ARNs that are sources for the S3 SQS Event Notifications (if any).
-- `ElasticServerlessForwarderSecurityGroups`: Add a comma delimited list of security group IDs to attach to the Elastic Serverless Forwarder. Along with the `ElasticServerlessForwarderSubnets` this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to    have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
-- `ElasticServerlessForwarderSubnets`: Add a comma delimited list of subnets IDs for to the Elastic Serverless Forwarder. Along with the `ElasticServerlessForwarderSecurityGroups` this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
+
+=== Network
+These parameters define the network settings for your environment.
+
+- `ElasticServerlessForwarderSecurityGroups`: Add a comma delimited list of security group IDs to attach to the forwarder. Along with `ElasticServerlessForwarderSubnets`, these settings will define the {aws} VPC the forwarder will belong to. Leave blank if you don't want the forwarder to belong to any specific {aws} VPC.
+- `ElasticServerlessForwarderSubnets`: Add a comma delimited list of subnet IDs for to the forwarder. Along with `ElasticServerlessForwarderSecurityGroups`, these settings will define the {aws} VPC the forwarder will belong to. Leave blank if you don't want the forwarder to belong to any specific {aws} VPC.
 
 [NOTE]
 ====
-Make sure you reference the ARNs specified in your `config.yaml`, and leaving any settings for unused inputs blank
-====
-
-[NOTE]
-====
-In case you set up an {aws} VPC for the Elastic Serverless Forwarder, please comply with the required <<aws-serverless-troubleshooting-vpc-prerequisites,prerequisites>>.
+If you are setting up an an {aws} VPC for the forwarder, review the <<aws-serverless-troubleshooting-vpc-prerequisites,VPC prerequisites>>.
 ====
 
 [[aws-serverless-forwarder-deploy-sar]]
 == Deploy `elastic-serverless-forwarder` from Serverless Application Repository
 
-There are several deployment methods available via the {aws} Serverless Application Repository:
+There are several deployment methods available via the {aws} Serverless Application Repository (SAR):
 
 * <<aws-serverless-forwarder-deploy-console>>
 * <<aws-serverless-forwarder-deploy-cloudformation>>
 * <<aws-serverless-forwarder-deploy-terraform>>
+
+NOTE: to deploy the forwarder directly without using SAR, refer to [[aws-serverless-forwarder-direct-deploy]]
 
 [[aws-serverless-forwarder-deploy-console]]
 === Deploy using {aws} Console
@@ -287,6 +281,7 @@ aws serverlessrepo list-application-versions --application-id arn:aws:serverless
             ElasticServerlessForwarderS3ConfigFile: ""
             ElasticServerlessForwarderSSMSecrets: ""
             ElasticServerlessForwarderKMSKeys: ""
+            ElasticServerlessForwarderAssumeRoles: ""
             ElasticServerlessForwarderSQSEvents: ""
             ElasticServerlessForwarderS3SQSEvents: ""
             ElasticServerlessForwarderKinesisEvents: ""
@@ -330,6 +325,7 @@ NOTE: Starting from **v1.4.0**, if you want to update the Events settings for th
       ElasticServerlessForwarderS3ConfigFile = ""
       ElasticServerlessForwarderSSMSecrets = ""
       ElasticServerlessForwarderKMSKeys = ""
+      ElasticServerlessForwarderAssumeRoles = ""
       ElasticServerlessForwarderSQSEvents = ""
       ElasticServerlessForwarderS3SQSEvents = ""
       ElasticServerlessForwarderKinesisEvents = ""
@@ -354,24 +350,19 @@ NOTE: Starting from **v1.4.0**, if you want to update the Events settings for th
 
 [NOTE]
 ====
-Starting from **v1.4.0**, if you want to update the Events settings for the deployment, it is no longer required to manually delete existing settings before applying the new settings.
+From **v1.4.0** and above, if you want to update the Events settings for the deployment, it is no longer required to manually delete existing settings before applying the new settings.
 
 Due to a https://github.com/hashicorp/terraform-provider-aws/issues/24771[Terraform bug] related to `aws_serverlessapplicationrepository_application`, if you want to delete existing Event parameters you have to set the related `aws_serverlessapplicationrepository_cloudformation_stack.parameters` to a blank space value (`" "`) instead of an empty string (`""`).
 ====
 
-[[aws-serverless-forwarder-direct-publish]]
-== Publish Elastic Serverless Forwarder directly
+[[aws-serverless-forwarder-direct-deploy]]
+== Deploy Elastic Serverless Forwarder directly
 
-++++
-<titleabbrev>Publish serverless forwarder</titleabbrev>
-++++
-:keywords: serverless
-:description: Publish the Elastic Serverless Forwarder with maximum level of customisation.
+If the customisation options available when deploying via Serverless Application Repository (SAR) are not sufficient, from version `1.6.0` and above you can deploy the Elastic Serverless Forwarder directly to your {aws} Account without using SAR.
 
-In case the customisation available by <<aws-serverless-forwarder-deploy-sar>> are not enough for your case, since version `1.6.0`, it is possible to publish the Elastic Serverless Forwarder directly in your {aws} Account without relying on {aws} Serverless Application Repository (SAR).
+// coudl we detail or reframe the customisation options here? Note: have changed most 'publish' references to 'deploy' for consistency
 
-
-If you chose this option, you have to:
+To deploy the forwarder directly, you have to:
 
 * <<aws-serverless-forwarder-deploy-kibana>>
 * <<sample-s3-config-file>>
@@ -381,14 +372,14 @@ If you chose this option, you have to:
 [[sample-direct-publish-config-file]]
 === Create `publish-config.yaml` for the publishing script
 
-Publishing Elastic Serverless Forwarder directly requires a `publish-config.yaml` file to be passed as argument in order to <<aws-serverless-forwarder-run-publish-script>>.
+To deploy the forwarder directly, you need to define a `publish-config.yaml` file and pass this as an argument in the <<aws-serverless-forwarder-run-publish-script, publishing script>>.
 
 Save the following YAML content as `publish-config.yaml` and edit as required before running the publishing script. You should remove any inputs or arguments you are not using.
 
 [source, yaml]
 ----
 
-kinesis-data-stream:
+kinesis_data_stream:
     - arn: "arn:aws:kinesis:%REGION%:%ACCOUNT%:stream/%STREAMNAME%"
       batch_size: 10
       batching_window_in_second: 0
@@ -399,59 +390,59 @@ sqs:
     - arn: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
       batch_size: 10
       batching_window_in_second: 0
-s3-sqs:
+s3_sqs:
     - arn: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
       batch_size: 10
       batching_window_in_second: 0
-cloudwatch-logs:
+cloudwatch_logs:
     - arn: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:*"
     - arn: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:log-stream:%LOG_STREAM_NAME%"
-ssm-secrets:
-  - "arn:aws:secretsmanager:%AWS_REGION%:%AWS_ACCOUNT_ID%:secret:%SECRET_NAME%"
-kms-keys:
+kms_keys:
     - "arn:aws:kms:%AWS_REGION%:%AWS_ACCOUNT_ID%:key/%KMS_KEY_UUID%"
-s3-buckets:
+assume_roles:
+    - "arn:aws:iam::%AWS_ACCOUNT_ID%:role/%ROLE_NAME%"
+s3_buckets:
     - "arn:aws:s3:::%BUCKET_NAME%"
 subnets:
     - "%SUBNET_ID%"
-security-groups:
+security_groups:
     - "%SECURITY_ID%"
-s3-config-file: "s3://%S3_CONFIG_BUCKET_NAME%/%S3_CONFIG_OBJECT_KEY%"
-continuing-queue:
-    batch_size: 10
-    batching_window_in_second: 0
+s3_config_file: "s3://%S3_CONFIG_BUCKET_NAME%/%S3_CONFIG_OBJECT_KEY%"
+continuing_queue_batch_size: 10
+continuing_queue_batching_window_in_second: 0
 
 ----
 
 [[direct-publish-config-file-fields]]
 === Fields
 
+// before I edit these - is this just a combined list of what is also available on this page? How much redundancy do we have / can we restructure / only cover the additional publish fields here?
+
 //convert to description list?
 
-`kinesis-data-stream.[]`:
+`kinesis_data_stream.[]`:
 A list of <<aws-serverless-forwarder-inputs-kinesis>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
 
-`kinesis-data-stream.[].arn`:
-The ARN of the {aws} Kinesis Data Stream
+`kinesis_data_stream.[].arn`:
+The ARN of the {aws} Kinesis Data Stream.
 
-`kinesis-data-stream.[].batch_size`:
+`kinesis_data_stream.[].batch_size`:
 Set this value above the default (`10`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis-data-stream.[].batching_window_in_second`:
+`kinesis_data_stream.[].batching_window_in_second`:
 Set this value above the default (`0`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis-data-stream.[].starting_position`:
+`kinesis_data_stream.[].starting_position`:
 Set this value different from the default (`TRIM_HORIZON`) if you want to change the starting position of the records processed by the Elastic Serverless Forwarder for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis-data-stream.[].starting_position_timestamp`:
+`kinesis_data_stream.[].starting_position_timestamp`:
 Set this value to the time from which to start reading, in Unix time seconds, if you set `ElasticServerlessForwarderKinesisStartingPosition` to "AT_TIMESTAMP".
 
-`kinesis-data-stream.[].parallelization_factor`:
+`kinesis_data_stream.[].parallelization_factor`:
 Set this value above the default (`1`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
 `sqs.[]`:
 A list of <<aws-serverless-forwarder-inputs-direct>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
-
 
 `sqs.[].arn`:
 The ARN of the {aws} SQS queue trigger input.
@@ -462,54 +453,53 @@ Set this value above the default (`10`) if you experience ingestion delays in yo
 `sqs.[].batching_window_in_second`:
 Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-direct>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-direct>>.
 
-`s3-sqs.[]`:
+`s3_sqs.[]`:
 A list of <<aws-serverless-forwarder-inputs-s3>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
 
-
-`s3-sqs.[].arn`:
+`s3_sqs.[].arn`:
 The ARN of the {aws} SQS queue receiving S3 Notifications trigger input.
 
-`s3-sqs.[].batch_size`:
+`s3_sqs.[].batch_size`:
 Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-s3>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-s3>>.
 
-`s3-sqs.[].batching_window_in_second`:
+`s3_sqs.[].batching_window_in_second`:
 Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-s3>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-s3>>.
 
-`cloudwatch-logs.[]`:
+`cloudwatch_logs.[]`:
 A list of <<aws-serverless-forwarder-inputs-cloudwatch>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
 
-`cloudwatch-logs.[].arn`:
+`cloudwatch_logs.[].arn`:
 The ARN of the {aws} CloudWatch Logs trigger input. This field accepts both CloudWatch Logs Log Group and CloudWatch Logs Log Stream ARNs.
 
-`ssm-secrets.[]`:
-A list of {aws} SSM Secrets ARNs used in the `config.yml` (if any).
-
-`kms-keys.[]`:
+`kms_keys.[]`:
 A list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams or SQS queue (if any).
 
-`s3-buckets.[]`:
+`assume_roles.[]`:
+A list of {aws} IAM Roles ARNs that the Elastic Serverless Forwarder should be given permission for `sts:AssumeRole` action. (if any).
+
+`s3_buckets.[]`:
 A list of S3 bucket ARNs that are sources for the S3 SQS Event Notifications (if any).
 
 `subnets.[]`:
-A list of subnets IDs for to the Elastic Serverless Forwarder. Along with `security-groups.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
+A list of subnets IDs for to the Elastic Serverless Forwarder. Along with `security_groups.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
 
-`security-groups.[]`:
+`security_groups.[]`:
 A list of security group IDs to attach to the Elastic Serverless Forwarder. Along with `subnets.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
 
-`s3-config-file`: Set this value to the location of your Elastic Serverless Forwarder configuration file in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
+`s3_config_file`: Set this value to the location of your Elastic Serverless Forwarder configuration file in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
 
-`continuing-queue.batch_size`: Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
+`continuing_queue_batch_size`: Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
 
-`continuing-queue.batching_window_in_second`: Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
+`continuing_queue_batching_window_in_second`: Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
 
 [[aws-serverless-forwarder-run-publish-script]]
 == Run the publishing script
 
-In the root of the https://github.com/elastic/elastic-serverless-forwarder[Elastic Serverless Forwarder repository]  is available a bash script for publishing directly the Elastic Serveless Forwarder on your {aws} Account.
+A bash script for publishing the Elastic Serverless Forwarder directly to your {aws} account is available from the https://github.com/elastic/elastic-serverless-forwarder[Elastic Serverless Forwarder repository].
 
-The name of the script is `publish_lambda.sh`. The script is self-contained: you don't need to clone the full repository in order to run it. Downloading the https://raw.githubusercontent.com/elastic/elastic-serverless-forwarder/lambda-v1.6.0/publish_lambda.sh[raw content of the file] from GitHub is enough.
+Download the https://raw.githubusercontent.com/elastic/elastic-serverless-forwarder/lambda-v1.6.0/publish_lambda.sh[`publish_lambda.sh` script] and follow the instructions below.
 
-=== Publishing script arguments
+=== Script arguments
 [source, bash]
 ----
 
@@ -528,8 +518,8 @@ Usage: ./publish_lambda.sh config-path lambda-name forwarder-tag bucket-name reg
 ----
 
 === Prerequisites
-Python3.9 with pip3 is a prerequirement for the script.
-https://aws.amazon.com/cli/[{aws} CLI], https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html[SAM CLI] and the https://pypi.org/project/ruamel.yaml/[ruamel.yaml package] must be installed as well:
+- Python3.9 with pip3 is required to run the script
+- https://aws.amazon.com/cli/[{aws} CLI], https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html[SAM CLI] and the https://pypi.org/project/ruamel.yaml/[ruamel.yaml package] must also be installed
 
 [source, bash]
 ----
@@ -539,7 +529,7 @@ $ pip3 install awscli aws-sam-cli ruamel.yaml
 ----
 
 === Running the script
-Assuming you have saved `publish-config.yaml` in the directory you run `publish_lambda.sh` from, here's an example for running the script:
+Assuming `publish-config.yaml` in saved in the same directory you intend to run `publish_lambda.sh` from, here's an example:
 
 [source, bash]
 ----
@@ -548,8 +538,8 @@ $ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.6.0 s3-lamb
 
 ----
 
-=== Updating the Elastic Serverless Forwarder to a new version
-In order to update the version of an already published Elastic Serverless Forwarder, without changing its configuration, you can just run the publishing script again passing a new https://github.com/elastic/elastic-serverless-forwarder/tags[`forwarder-tag`] argument:
+=== Updating to a new version via script
+You can update the version of a published Elastic Serverless Forwarder without changing its configuration by running the publishing script again and passing a *new* https://github.com/elastic/elastic-serverless-forwarder/tags[`forwarder-tag`]:
 
 [source, bash]
 ----
@@ -558,10 +548,10 @@ $ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.7.0 s3-lamb
 
 ----
 
-NOTE: The third argument of the publishing script was replaced from `lambda-v1.6.0` to `lambda-v1.7.0`
+NOTE: The above examples show the forwarder being updated from `lambda-v1.6.0` to `lambda-v1.7.0`.
 
-=== Changing the Elastic Serverless Forwarder configuration
-In case you want to change the configuration of an already published Elastic Serverless Forwarder, without changing its version, you should update the `publish-config.yaml` as desired and run again the script using the same `forwarder-tag` currently published:
+=== Changing configuration via script
+If you want to change the configuration of a published Elastic Serverless Forwarder without changing its version, you can update the `publish-config.yaml` and run the script again using the *same* `forwarder-tag`:
 
 [source, bash]
 ----
@@ -570,12 +560,11 @@ $ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.6.0 s3-lamb
 
 ----
 
+NOTE: The above example shows an existing `lambda-v1.6.0` configuration being updated without changing version.
 
-NOTE: Nothing was changed in the arguments passed to the publishing script, but `publish-config.yaml` content was updated.
 
-
-=== Publishing Elastic Serverless Forwarder multiple times
-If you want to publish multiple times the Elastic Serverless Forwarder, with different configurations each, you should create two different `publish-config.yaml` with unique names and run the publishing script two times referring the proper values for `config-path` and `lambda-name` arguments:
+=== Multiple deployments using the script
+If you want to use the publish script for deploying the forwarder with different configurations, create two different `publish-config.yaml` files with unique names and run the publishing script twice, with correct references to the `config-path` and `lambda-name`:
 
 [source, bash]
 ----
@@ -586,5 +575,4 @@ $ ./publish_lambda.sh publish-config-for-second-lambda.yaml second-lambda lambda
 
 ----
 
-NOTE: We passed as first and second arguments of the publishing script two different pairs of values: `publish-config-for-first-lambda.yaml` and `first-lambda` vs. `publish-config-for-second-lambda.yaml` and `second-lambda`
-
+NOTE: The above example publishes two versions of the forwarder, each with different configurations i.e. `publish-config-for-first-lambda.yaml` and `first-lambda` vs. `publish-config-for-second-lambda.yaml` and `second-lambda`.
