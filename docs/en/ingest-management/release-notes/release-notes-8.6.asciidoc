@@ -47,6 +47,33 @@ For more information, refer to {agent-issue}2066[#2066].
 Be aware that the live query results shown in {kib} may be delayed by up to 5 minutes.
 ====
 
+[[known-issue-2170]]
+.Adding a {fleet-server} integration to an agent results in panic if the agent was not bootstrapped with a {fleet-server}
+[%collapsible]
+====
+
+*Details*
+
+A panic occurs because the {agent} does not have a `fleet.server` in the `fleet.enc`
+configuration file. When this happens, the agent fails with a message like:
+
+[source,shell]
+----
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0x8 pc=0x557b8eeafc1d]
+goroutine 86 [running]:
+github.com/elastic/elastic-agent/internal/pkg/agent/application.FleetServerComponentModifier.func1({0xc000652f00, 0xa, 0x10}, 0x557b8fa8eb92?)
+...
+----
+
+For more information, refer to {agent-issue}2170[#2170].
+
+*Impact* +
+
+To work around this problem, uninstall the {agent} and install it again with
+{fleet-server} enabled during the bootstrap process.
+====
+
 [discrete]
 [[bug-fixes-8.6.1]]
 === Bug fixes
@@ -61,8 +88,9 @@ Be aware that the live query results shown in {kib} may be delayed by up to 5 mi
 * No bug fixes in this release
 
 {agent}::
-* Fix issue where it's possible for a component to receive a unit without a
-config {agent-pull}2138[#2138] {agent-issue}2086[#2086]
+* Fix issue where {beats} started by {agent} may fail with an `output unit has no config` error {agent-pull}2138[#2138] {agent-issue}2086[#2086]
+* Fix broken deployments that use traffic filter by injecting custom headers {agent-pull}2158[#2158] {beats-issue}32993[#32993]
+* Make it easier to filter agent logs from the combined agent log file {agent-pull}2044[#2044] {agent-issue}1810[#1810]
 
 // end 8.6.1 relnotes
 
