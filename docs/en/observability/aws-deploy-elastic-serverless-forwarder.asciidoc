@@ -185,7 +185,6 @@ These parameters define the general configuration and behaviour for the forwarde
 - `ElasticServerlessForwarderS3ConfigFile`: Set this value to the location of your `config.yaml` in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
 - `ElasticServerlessForwarderSSMSecrets`: Add a comma delimited list of {aws} SSM Secrets ARNs used in the `config.yml` (if any).
 - `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams, or SQS queue (if any).
-- `ElasticServerlessForwarderAssumeRoles`: Add a comma delimited list of {aws} IAM Roles ARNs that the forwarder should be given permission for the `sts:AssumeRole` action (if any).
 
 === Inputs
 These parameters define your specific <<aws-serverless-forwarder-inputs>> or 'event triggers'.
@@ -282,7 +281,6 @@ aws serverlessrepo list-application-versions --application-id arn:aws:serverless
             ElasticServerlessForwarderS3ConfigFile: ""
             ElasticServerlessForwarderSSMSecrets: ""
             ElasticServerlessForwarderKMSKeys: ""
-            ElasticServerlessForwarderAssumeRoles: ""
             ElasticServerlessForwarderSQSEvents: ""
             ElasticServerlessForwarderS3SQSEvents: ""
             ElasticServerlessForwarderKinesisEvents: ""
@@ -326,7 +324,6 @@ NOTE: Starting from **v1.4.0**, if you want to update the Events settings for th
       ElasticServerlessForwarderS3ConfigFile = ""
       ElasticServerlessForwarderSSMSecrets = ""
       ElasticServerlessForwarderKMSKeys = ""
-      ElasticServerlessForwarderAssumeRoles = ""
       ElasticServerlessForwarderSQSEvents = ""
       ElasticServerlessForwarderS3SQSEvents = ""
       ElasticServerlessForwarderKinesisEvents = ""
@@ -380,7 +377,7 @@ Save the following YAML content as `publish-config.yaml` and edit as required be
 [source, yaml]
 ----
 
-kinesis_data_stream:
+kinesis-data-stream:
     - arn: "arn:aws:kinesis:%REGION%:%ACCOUNT%:stream/%STREAMNAME%"
       batch_size: 10
       batching_window_in_second: 0
@@ -391,26 +388,27 @@ sqs:
     - arn: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
       batch_size: 10
       batching_window_in_second: 0
-s3_sqs:
+s3-sqs:
     - arn: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
       batch_size: 10
       batching_window_in_second: 0
-cloudwatch_logs:
+cloudwatch-logs:
     - arn: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:*"
     - arn: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:log-stream:%LOG_STREAM_NAME%"
-kms_keys:
+ssm-secrets:
+  - "arn:aws:secretsmanager:%AWS_REGION%:%AWS_ACCOUNT_ID%:secret:%SECRET_NAME%"
+kms-keys:
     - "arn:aws:kms:%AWS_REGION%:%AWS_ACCOUNT_ID%:key/%KMS_KEY_UUID%"
-assume_roles:
-    - "arn:aws:iam::%AWS_ACCOUNT_ID%:role/%ROLE_NAME%"
-s3_buckets:
+s3-buckets:
     - "arn:aws:s3:::%BUCKET_NAME%"
 subnets:
     - "%SUBNET_ID%"
-security_groups:
+security-groups:
     - "%SECURITY_ID%"
-s3_config_file: "s3://%S3_CONFIG_BUCKET_NAME%/%S3_CONFIG_OBJECT_KEY%"
-continuing_queue_batch_size: 10
-continuing_queue_batching_window_in_second: 0
+s3-config-file: "s3://%S3_CONFIG_BUCKET_NAME%/%S3_CONFIG_OBJECT_KEY%"
+continuing-queue:
+    batch_size: 10
+    batching_window_in_second: 0
 
 ----
 
@@ -421,25 +419,25 @@ continuing_queue_batching_window_in_second: 0
 
 //convert to description list?
 
-`kinesis_data_stream.[]`:
+`kinesis-data-stream.[]`:
 A list of <<aws-serverless-forwarder-inputs-kinesis>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
 
-`kinesis_data_stream.[].arn`:
+`kinesis-data-stream.[].arn`:
 The ARN of the {aws} Kinesis Data Stream.
 
-`kinesis_data_stream.[].batch_size`:
+`kinesis-data-stream.[].batch_size`:
 Set this value above the default (`10`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis_data_stream.[].batching_window_in_second`:
+`kinesis-data-stream.[].batching_window_in_second`:
 Set this value above the default (`0`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis_data_stream.[].starting_position`:
+`kinesis-data-stream.[].starting_position`:
 Set this value different from the default (`TRIM_HORIZON`) if you want to change the starting position of the records processed by the Elastic Serverless Forwarder for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis_data_stream.[].starting_position_timestamp`:
+`kinesis-data-stream.[].starting_position_timestamp`:
 Set this value to the time from which to start reading, in Unix time seconds, if you set `ElasticServerlessForwarderKinesisStartingPosition` to "AT_TIMESTAMP".
 
-`kinesis_data_stream.[].parallelization_factor`:
+`kinesis-data-stream.[].parallelization_factor`:
 Set this value above the default (`1`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
 `sqs.[]`:
@@ -454,44 +452,41 @@ Set this value above the default (`10`) if you experience ingestion delays in yo
 `sqs.[].batching_window_in_second`:
 Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-direct>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-direct>>.
 
-`s3_sqs.[]`:
+`s3-sqs.[]`:
 A list of <<aws-serverless-forwarder-inputs-s3>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
 
-`s3_sqs.[].arn`:
+`s3-sqs.[].arn`:
 The ARN of the {aws} SQS queue receiving S3 Notifications trigger input.
 
-`s3_sqs.[].batch_size`:
+`s3-sqs.[].batch_size`:
 Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-s3>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-s3>>.
 
-`s3_sqs.[].batching_window_in_second`:
+`s3-sqs.[].batching_window_in_second`:
 Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-s3>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-s3>>.
 
-`cloudwatch_logs.[]`:
+`cloudwatch-logs.[]`:
 A list of <<aws-serverless-forwarder-inputs-cloudwatch>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
 
-`cloudwatch_logs.[].arn`:
+`cloudwatch-logs.[].arn`:
 The ARN of the {aws} CloudWatch Logs trigger input. This field accepts both CloudWatch Logs Log Group and CloudWatch Logs Log Stream ARNs.
 
-`kms_keys.[]`:
+`kms-keys.[]`:
 A list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams or SQS queue (if any).
 
-`assume_roles.[]`:
-A list of {aws} IAM Roles ARNs that the Elastic Serverless Forwarder should be given permission for `sts:AssumeRole` action. (if any).
-
-`s3_buckets.[]`:
+`s3-buckets.[]`:
 A list of S3 bucket ARNs that are sources for the S3 SQS Event Notifications (if any).
 
 `subnets.[]`:
-A list of subnets IDs for to the Elastic Serverless Forwarder. Along with `security_groups.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
+A list of subnets IDs for to the Elastic Serverless Forwarder. Along with `security-groups.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
 
-`security_groups.[]`:
+`security-groups.[]`:
 A list of security group IDs to attach to the Elastic Serverless Forwarder. Along with `subnets.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
 
-`s3_config_file`: Set this value to the location of your Elastic Serverless Forwarder configuration file in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
+`s3-config-file`: Set this value to the location of your Elastic Serverless Forwarder configuration file in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
 
-`continuing_queue_batch_size`: Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
+`continuing-queue.batch_size`: Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
 
-`continuing_queue_batching_window_in_second`: Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
+`continuing-queue.batching_window_in_second`: Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
 
 [[aws-serverless-forwarder-run-publish-script]]
 == Run the publishing script
