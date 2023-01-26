@@ -86,8 +86,6 @@ The following configuration will enable `kubernetes.scheduler` dataset only for 
   condition: ${kubernetes.labels.component} == 'kube-scheduler'
 ----
 
-WARNING: In some "As a Service" Kubernetes implementations, like GKE, the control plane nodes or even the Pods running on them won’t be visible. In these cases, it won’t be possible to use scheduler metricsets, necessary for this example. Refer https://www.elastic.co/guide/en/beats/metricbeat/current/metricbeat-module-kubernetes.html#_scheduler_and_controllermanager[scheduler and controller manager] to find more information.
-
 NOTE: Pods labels and annotations can be used in autodiscover conditions. In the case of labels or annotations that include dots(`.`), they can be used in conditions exactly as
 they are defined in the pods. For example `condition: ${kubernetes.labels.app.kubernetes.io/name} == 'ingress-nginx'`. This should not be mistaken with optional dedoted labels and annotations
 stored into Elasticsearch(<<kubernetes-provider>>).
@@ -95,6 +93,7 @@ stored into Elasticsearch(<<kubernetes-provider>>).
 WARNING: Before 8.6 release, labels used in autodiscover conditions were dedoted in case `labels.dedot` parameter was set to `true` in Kubernetes Provider 
 configuration. The same did not apply for annotations. This was fixed in 8.6 release. Refer to <<release-notes-8.6.0>>.
 
+WARNING: In some "As a Service" Kubernetes implementations, like GKE, the control plane nodes or even the Pods running on them won’t be visible. In these cases, it won’t be possible to use scheduler metricsets, necessary for this example. Refer https://www.elastic.co/guide/en/beats/metricbeat/current/metricbeat-module-kubernetes.html#_scheduler_and_controllermanager[scheduler and controller manager] to find more information.
 
 Following the Redis example, if you deploy another Redis Pod with a different port, it should be detected. To check this, go, for example, to the field `service.address` under `metrics-redis.info-default`. It should be displaying two different services.
 
