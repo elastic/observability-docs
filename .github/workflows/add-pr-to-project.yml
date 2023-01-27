@@ -21,7 +21,7 @@ jobs:
         with:
           query: |
             mutation($project:ID!, $pull_request:ID!){
-              addProjectV2ItemById(input:{projectId:$projectid contentId:$contentid}) {
+              addProjectV2ItemById(input:{projectId:$project contentId:$pull_request}) {
                 item {
                   ... on ProjectV2Item {
                     id
@@ -41,7 +41,7 @@ jobs:
           headers: '{"GraphQL-Features": "projects_next_graphql"}'
           query: |
             mutation label_team($project:ID!, $item:ID!, $field:ID!, $value:String!){
-              updateProjectV2ItemFieldValue(input: { projectId:$projectid itemId:$itemid fieldId:$fieldid value:{singleSelectOptionId: $value} }) {
+              updateProjectV2ItemFieldValue(input: { projectId:$project itemId:$item fieldId:$field value:{singleSelectOptionId: $value} }) {
                 projectV2Item {
                   id
                   content {
@@ -54,7 +54,7 @@ jobs:
             }
           project: ${{ env.PROJECT_ID }}
           # `item` is the ID returned by the previous step
-          item: ${{ fromJSON(steps.add_to_project.outputs.data).addProjectV2ItemById.item.id }}
+          item: ${{ fromJSON(steps.add_pr_to_board.outputs.data).addProjectV2ItemById.item.id }}
           # This is the ID for the project "status" attribute
           field: "PVTSSF_lADOAGc3Zs0iZ84AAQIU"
           # This is the ID for the status sub-attribute "In Review"
