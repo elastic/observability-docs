@@ -19,12 +19,13 @@ jobs:
         uses: octokit/graphql-action@v2.x
         id: add_pr_to_board
         with:
-          headers: '{"GraphQL-Features": "projects_next_graphql"}'
           query: |
             mutation($project:ID!, $pull_request:ID!){
-              addProjectNextItem(input: {projectId: $project, contentId: $pull_request}){
-                projectNextItem{
-                  id
+              addProjectV2ItemById(input:{projectId:$project contentId:$pull_request}) {
+                item {
+                  ... on ProjectV2Item {
+                    id
+                  }
                 }
               }
             }
@@ -40,19 +41,24 @@ jobs:
           headers: '{"GraphQL-Features": "projects_next_graphql"}'
           query: |
             mutation label_team($project:ID!, $item:ID!, $field:ID!, $value:String!){
-              updateProjectNextItemField(input: { projectId: $project, itemId: $item, fieldId: $field, value: $value }){
-                projectNextItem {
+              updateProjectV2ItemFieldValue(input: { projectId:$project itemId:$item fieldId:$field value:{singleSelectOptionId: $value} }) {
+                projectV2Item {
                   id
+                  content {
+                    ... on PullRequest {
+                      number
+                    }
+                  }
                 }
               }
             }
           project: ${{ env.PROJECT_ID }}
           # `item` is the ID returned by the previous step
-          item: ${{ fromJSON(steps.add_pr_to_board.outputs.data).addProjectNextItem.projectNextItem.id }}
+          item: ${{ fromJSON(steps.add_pr_to_board.outputs.data).addProjectV2ItemById.item.id }}
           # This is the ID for the project "status" attribute
-          field: "MDE2OlByb2plY3ROZXh0RmllbGQ2NjA2OA=="
+          field: "PVTSSF_lADOAGc3Zs0iZ84AAQIU"
           # This is the ID for the status sub-attribute "In Review"
           value: "2d732740"
         env:
-          PROJECT_ID: "PN_kwDOAGc3Zs0iZw"
+          PROJECT_ID: "PVT_kwDOAGc3Zs0iZw"
           GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}
