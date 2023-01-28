@@ -1,0 +1,177 @@
+[[monitor-amazon-s3]]
+= Monitor Amazon Simple Storage Service (S3)
+
+++++
+<titleabbrev>Monitor Amazon S3</titleabbrev>
+++++
+
+Amazon Simple Storage Service (S3) is an object storage service that offers
+scalability, data availability, security, and performance. Amazon S3 stores data
+as objects within buckets. An object consists of a file and optionally any
+metadata that describes that file. Buckets are the containers for objects. Users
+can have one or more buckets. For each bucket, users can control access to it.
+
+Like most AWS services, Amazon S3 and Amazon CloudWatch are integrated so users
+can collect, view and analyze CloudWatch metrics for their S3 buckets to help
+understand and improve the performance of applications that use Amazon S3.
+Elastic Amazon S3 integration collects metrics from Amazon CloudWatch using
+Elastic Agent. Users usually will install Elastic Agent locally or on an EC2
+instance and configure the integration policy and add Amazon S3 integration.
+
+With the Amazon S3 integration, we are collecting two kinds of metrics from
+CloudWatch for S3: daily storage metrics for buckets and request metrics. Daily
+storage metrics are used to monitor bucket storage. These storage metrics for
+Amazon S3 are reported once per day by default and are provided to all customers
+at no additional cost. The request metrics can be used to quickly identify and
+act on operational issues. These request metrics are available at 1-minute
+intervals after some latency for processing and they are not enabled by default. 
+
+There are several ways to enable request metrics for S3 buckets: using the
+Amazon S3 console, using the AWS CLI or using the REST API. Please see AWS
+documentation for more details. For using AWS CLI,
+`put-bucket-metrics-configuration` is the API to use.
+
+[source,shell]
+----
+aws s3api put-bucket-metrics-configuration --endpoint https://s3.us-west-2.amazonaws.com --bucket bucket-name --id metrics-config-id --metrics-configuration '{"Id":"metrics-config-id"}'
+----
+
+Here are the steps to follow to configure request metrics using the console:
+
+. Open the Amazon S3 console at https://console.aws.amazon.com/s3/ and in the Buckets list, choose the name of the bucket that contains the objects you want request metrics for.
+
+. Choose the **Metrics** tab and under **Bucket metrics**, choose **View additional charts**.
++
+[role="screenshot"]
+image::images/s3-view-additional-charts.png[Screenshot showing the Metrics tab with the View Additional charts link highlighted]
+
+. Choose the **Request metrics** tab and choose **Create filter**.
++
+[role="screenshot"]
+image::images/s3-filter-bucket-metrics.png[Screenshot showing the Request metrics tab with the Create filter button highlighted]
+
+. In the **Filter name** box, enter a filter name. Under **Choose a Filter scope**, choose **This filter applies to all objects in the bucket** and then click Create filter. 
++
+[role="screenshot"]
+image::images/s3-create-filter.png[Screenshot showing Create filter window with the scope set to all objects]
+
+Amazon S3 integration comes with a {kib} dashboard out of the box:
+
+[role="screenshot"]
+image::images/s3-dashboard.png[Screenshot showing the S3 dashboard]
+
+[discrete]
+== Metrics to watch
+
+.Daily storage metrics for buckets
+|===
+| Field | Description | Unit | Type
+
+| `aws.s3_daily_storage.number_of_objects`
+| The number of objects stored in a bucket for all storage classes over the
+specific time period. This value is calculated by counting all objects in the
+bucket and the total number of parts for all incomplete multipart uploads to the
+bucket.
+| Count
+| double
+
+| `aws.s3_daily_storage.bucket.size.bytes`
+| The average amount of data in bytes that is stored in a bucket. This value is calculated by summing the size of all objects and metadata in the bucket, including the size of all parts for all incomplete multipart uploads to the bucket.
+| Bytes
+| double
+|===
+
+.Request metrics
+|===
+| Field | Description | Unit | Type
+
+| `aws.s3_request.requests.total`
+| The total number of HTTP requests made to an Amazon S3 bucket.
+| Count
+| long
+
+| `aws.s3_request.requests.get`
+| The total number of HTTP GET requests made for objects in an Amazon S3 bucket. This does not include list operations.
+| Count
+| long
+
+| `aws.s3_request.requests.put`
+| The total number of HTTP PUT requests made for objects in an Amazon S3 bucket.
+| Count
+| long
+
+| `aws.s3_request.requests.delete`
+| The total number of HTTP DELETE requests made for objects in an Amazon S3 bucket.
+| Count
+| long
+
+| `aws.s3_request.requests.head`
+| The total number of HTTP HEAD requests made to an Amazon S3 bucket.
+| Count
+| long
+
+| `aws.s3_request.requests.post`
+| The total number of HTTP POST requests made to an Amazon S3 bucket.
+| Count
+| long
+
+| `aws.s3_request.requests.select`
+| The total number of Amazon S3 SELETE Object Content requests made for objects in an Amazon S3 bucket.
+| Count
+| long
+
+| `aws.s3_request.requests.list`
+| The total number of HTTP request that list the contents of a bucket.
+| Count
+| long
+
+| `aws.s3_request.requests.select_scanned.bytes`
+| The average number of bytes of data scanned per Amazon S3 SELETE Object Content requests in an Amazon S3 bucket.
+| Bytes
+| double
+
+| `aws.s3_request.requests.select_returned.bytes`
+| The average number of bytes of data returned per Amazon S3 SELECT Object Content requests in an Amazon S3 bucket.
+| Bytes
+| double
+
+| `aws.s3_request.downloaded.bytes`
+| The average number of bytes downloaded per request made to an Amazon S3 bucket, where the response includes a body.
+| Bytes
+| double
+
+| `aws.s3_request.uploaded.bytes`
+| The average number of bytes uploaded per request made to an Amazon S3 bucket, where the response includes a body.
+| Bytes
+| double
+
+| `aws.s3_request.downloaded.bytes_per_period`
+| The total number of bytes downloaded per period for requests made to an Amazon S3 bucket, where the response includes a body.
+| Bytes
+| double
+
+| `aws.s3_request.uploaded.bytes_per_period`
+| The total number of bytes uploaded per period for requests made to an Amazon S3 bucket, where the response includes a body.
+| Bytes
+| double
+
+| `aws.s3_request.errors.4xx`
+| The average number of HTTP 4xx client error status code requests made to an Amazon S3 bucket over the specific time period.
+| Count
+| double
+
+| `aws.s3_request.errors.5xx`
+| The average number of HTTP 5xx client error status code requests made to an Amazon S3 bucket over the specific time period.
+| Count
+| double
+
+| `aws.s3_request.latency.first_byte.ms`
+| The average pre-request time from the complete request being received by an Amazon S3 bucket to when the response starts to be returned.
+| Milliseconds
+| double
+
+| `aws.s3_request.latency.total_request.ms`
+| The average elapsed per-request time from the first byte received to the last byte sent to an Amazon S3 bucket.
+| Milliseconds
+| double
+|===
