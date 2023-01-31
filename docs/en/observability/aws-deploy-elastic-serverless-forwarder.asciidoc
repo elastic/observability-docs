@@ -19,15 +19,15 @@ To deploy Elastic Serverless Forwarder, you have to:
 NOTE: This page describes the basic steps required to deploy Elastic Serverless
 Forwarder for {aws}— for additional information on configuration topics such as permissions and automatic routing, and parsing and enriching data, see <<aws-elastic-serverless-forwarder-configuration>>.
 
-=== Deploying directly without SAR
+[discrete]
+[[aws-serverless-forwarder-deploy-direct-note]]
+== Deploying directly without SAR
 If the customization options available when deploying via Serverless Application Repository (SAR) are not sufficient, from version `1.6.0` and above you can <<aws-serverless-forwarder-direct-deploy,deploy the Elastic Serverless Forwarder directly>> to your {aws} Account without using SAR. This enables you to customize the event source settings for the inputs (i.e. triggers) one-by-one.
 
 [discrete]
 [[aws-serverless-forwarder-deploy-prereq]]
 === Prerequisites
 This documentation assumes you have some familiarity with {aws} services and you have correctly created and configured the necessary {aws} objects. For example, if you want to use an Amazon S3 (via SQS event notifications) input then you must ensure that you have enabled AWS VPC flow logs to be sent to that bucket, and created an SQS queue to receive those logs. For more information, refer to the relevant https://docs.aws.amazon.com/[{aws} docs].
-
-// Need more details on pre-reqs for other input types?
 
 [[aws-serverless-forwarder-deploy-kibana]]
 == Install {aws} integration assets in {kib}
@@ -218,7 +218,7 @@ If you are setting up an an {aws} VPC for the forwarder, review the <<aws-server
 ====
 
 [[aws-serverless-forwarder-deploy-sar]]
-== Deploy `elastic-serverless-forwarder` from Serverless Application Repository
+== Deploy Elastic Serverless Forwarder from SAR
 
 There are several deployment methods available via the {aws} Serverless Application Repository (SAR):
 
@@ -358,7 +358,7 @@ Due to a https://github.com/hashicorp/terraform-provider-aws/issues/24771[Terraf
 [[aws-serverless-forwarder-direct-deploy]]
 == Deploy Elastic Serverless Forwarder directly
 
-If the customisation options available when deploying via Serverless Application Repository (SAR) are not sufficient, from version `1.6.0` and above you can deploy the Elastic Serverless Forwarder directly to your {aws} Account without using SAR. This enables you to customize the event source settings for the inputs (i.e. triggers) one-by-one.
+For more customisation options during deployment, from version `1.6.0` and above you can deploy the Elastic Serverless Forwarder directly to your {aws} Account without using SAR. This enables you to customize the event source settings for the inputs (i.e. triggers) one-by-one.
 
 To deploy the forwarder directly, you have to:
 
@@ -466,7 +466,6 @@ continuing-queue:
 | `continuing-queue.batch_size` | Set this value above the default (`10`) if you experience ingestion delays in your output *and* `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of messages the forwarder will process in a single execution for the _Continuing queue_.
 
 | `continuing-queue.batching_window_in_second` | Set this value above the default (`0`) if you experience ingestion delays in your output *and* `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of messages the forwarder will process in a single execution for the _Continuing queue_.
-
 
 |===
 
