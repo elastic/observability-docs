@@ -6,7 +6,7 @@
 ++++
 <titleabbrev>Deploy serverless forwarder</titleabbrev>
 ++++
-:keywords: serverless
+:keywords: serverless, AWS, SAR
 :description: Deploy the Elastic Serverless Forwarder using Kibana and the AWS Serverless Application Repository (SAR).
 
 To deploy Elastic Serverless Forwarder, you have to:
@@ -15,10 +15,12 @@ To deploy Elastic Serverless Forwarder, you have to:
 * <<sample-s3-config-file>>
 * <<aws-serverless-forwarder-define-deploy-parameters>>
 * <<aws-serverless-forwarder-deploy-sar>>
-* <<aws-serverless-forwarder-direct-deploy>>
 
 NOTE: This page describes the basic steps required to deploy Elastic Serverless
 Forwarder for {aws}— for additional information on configuration topics such as permissions and automatic routing, and parsing and enriching data, see <<aws-elastic-serverless-forwarder-configuration>>.
+
+=== Deploying directly without SAR
+If the customization options available when deploying via Serverless Application Repository (SAR) are not sufficient, from version `1.6.0` and above you can <<aws-serverless-forwarder-direct-deploy,deploy the Elastic Serverless Forwarder directly>> to your {aws} Account without using SAR. This enables you to customize the event source settings for the inputs (i.e. triggers) one-by-one.
 
 [discrete]
 [[aws-serverless-forwarder-deploy-prereq]]
@@ -177,7 +179,7 @@ For `elasticsearch` the following arguments are supported:
 
 [[aws-serverless-forwarder-define-deploy-parameters]]
 == Define deployment parameters
-Whichever deployment method you choose, you must define the following parameters correctly for your setup. This section explains the types of parameters and provides guidance on how to set them to match your deployment(s).
+Whichever SAR deployment method you choose, you must define the following parameters correctly for your setup. This section explains the types of parameters and provides guidance on how to set them to match your deployment(s).
 
 === General configuration
 These parameters define the general configuration and behaviour for the forwarder.
@@ -356,9 +358,7 @@ Due to a https://github.com/hashicorp/terraform-provider-aws/issues/24771[Terraf
 [[aws-serverless-forwarder-direct-deploy]]
 == Deploy Elastic Serverless Forwarder directly
 
-If the customisation options available when deploying via Serverless Application Repository (SAR) are not sufficient, from version `1.6.0` and above you can deploy the Elastic Serverless Forwarder directly to your {aws} Account without using SAR.
-
-// coudl we detail or reframe the customisation options here? Note: have changed most 'publish' references to 'deploy' for consistency
+If the customisation options available when deploying via Serverless Application Repository (SAR) are not sufficient, from version `1.6.0` and above you can deploy the Elastic Serverless Forwarder directly to your {aws} Account without using SAR. This enables you to customize the event source settings for the inputs (i.e. triggers) one-by-one.
 
 To deploy the forwarder directly, you have to:
 
@@ -415,90 +415,69 @@ continuing-queue:
 [[direct-publish-config-file-fields]]
 === Fields
 
-// before I edit these - is this just a combined list of what is also available on this page? How much redundancy do we have / can we restructure / only cover the additional publish fields here?
+|===
 
-//convert to description list?
+| `kinesis-data-stream.[]` | List of <<aws-serverless-forwarder-inputs-kinesis>> (i.e. triggers) for the forwarder, matching those defined in your <<sample-s3-config-file>>.
 
-`kinesis-data-stream.[]`:
-A list of <<aws-serverless-forwarder-inputs-kinesis>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
+| `kinesis-data-stream.[].arn` | ARN of the {aws} Kinesis Data Stream.
 
-`kinesis-data-stream.[].arn`:
-The ARN of the {aws} Kinesis Data Stream.
+| `kinesis-data-stream.[].batch_size` | Set this value above the default (`10`) if you experience ingestion delays in your output *and* `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of records the forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis-data-stream.[].batch_size`:
-Set this value above the default (`10`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
+| `kinesis-data-stream.[].batching_window_in_second` | Set this value above the default (`0`) if you experience ingestion delays in your output *and* `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of records the forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis-data-stream.[].batching_window_in_second`:
-Set this value above the default (`0`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
+| `kinesis-data-stream.[].starting_position` | Change this value from the default (`TRIM_HORIZON`) if you want to change the starting position of the records processed by the forwarder for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis-data-stream.[].starting_position`:
-Set this value different from the default (`TRIM_HORIZON`) if you want to change the starting position of the records processed by the Elastic Serverless Forwarder for the <<aws-serverless-forwarder-inputs-kinesis>>.
+| `kinesis-data-stream.[].starting_position_timestamp` | Set this value to the time from which to start reading (in Unix time seconds) if you set `ElasticServerlessForwarderKinesisStartingPosition` to "AT_TIMESTAMP".
 
-`kinesis-data-stream.[].starting_position_timestamp`:
-Set this value to the time from which to start reading, in Unix time seconds, if you set `ElasticServerlessForwarderKinesisStartingPosition` to "AT_TIMESTAMP".
+| `kinesis-data-stream.[].parallelization_factor` | Set this value above the default (`1`) if you experience ingestion delays in your output *and* `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of records the forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
 
-`kinesis-data-stream.[].parallelization_factor`:
-Set this value above the default (`1`) if you experience ingestion delays in your output and `GetRecords.IteratorAgeMilliseconds` and `IncomingRecords` Kinesis CloudWatch metrics for the <<aws-serverless-forwarder-inputs-kinesis>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of records the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-kinesis>>.
+| `sqs.[]` | List of <<aws-serverless-forwarder-inputs-direct>> (i.e. triggers) for the forwarder, matching those defined in your <<sample-s3-config-file>>.
 
-`sqs.[]`:
-A list of <<aws-serverless-forwarder-inputs-direct>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
+| `sqs.[].arn` | ARN of the {aws} SQS queue trigger input.
 
-`sqs.[].arn`:
-The ARN of the {aws} SQS queue trigger input.
+| `sqs.[].batch_size` | Set this value above the default (`10`) if you experience ingestion delays in your output *and* `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-direct>> keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of messages the forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-direct>>.
 
-`sqs.[].batch_size`:
-Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-direct>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-direct>>.
+| `sqs.[].batching_window_in_second` | Set this value above the default (`0`) if you experience ingestion delays in your output *and* `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-direct>> keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of messages the forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-direct>>.
 
-`sqs.[].batching_window_in_second`:
-Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-direct>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-direct>>.
+| `s3-sqs.[]` | List of <<aws-serverless-forwarder-inputs-s3>> (i.e. triggers) for the forwarder, matching those defined in your <<sample-s3-config-file>>.
 
-`s3-sqs.[]`:
-A list of <<aws-serverless-forwarder-inputs-s3>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
+| `s3-sqs.[].arn` | ARN of the {aws} SQS queue receiving S3 Notifications as trigger input.
 
-`s3-sqs.[].arn`:
-The ARN of the {aws} SQS queue receiving S3 Notifications trigger input.
+| `s3-sqs.[].batch_size` | Set this value above the default (`10`) if you experience ingestion delays in your output *and* `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-s3>> keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of messages the forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-s3>>.
 
-`s3-sqs.[].batch_size`:
-Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-s3>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-s3>>.
+| `s3-sqs.[].batching_window_in_second` | Set this value above the default (`0`) if you experience ingestion delays in your output *and* `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-s3>> keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of messages the forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-s3>>.
 
-`s3-sqs.[].batching_window_in_second`:
-Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the <<aws-serverless-forwarder-inputs-s3>> keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the <<aws-serverless-forwarder-inputs-s3>>.
+| `cloudwatch-logs.[]` | List of <<aws-serverless-forwarder-inputs-cloudwatch>> (i.e. triggers) for the forwarder, matching those defined in your <<sample-s3-config-file>>.
 
-`cloudwatch-logs.[]`:
-A list of <<aws-serverless-forwarder-inputs-cloudwatch>> (i.e. triggers) for the Elastic Serverless Forwarder Lambda function, these are the same as the ones defined in the <<sample-s3-config-file>>.
+| `cloudwatch-logs.[].arn` | ARN of the {aws} CloudWatch Logs trigger input (accepts both CloudWatch Logs Log Group and CloudWatch Logs Log Stream ARNs).
 
-`cloudwatch-logs.[].arn`:
-The ARN of the {aws} CloudWatch Logs trigger input. This field accepts both CloudWatch Logs Log Group and CloudWatch Logs Log Stream ARNs.
+| `ssm-secrets.[]` | List of {aws} SSM Secrets ARNs used in your `config.yml` (if any).
 
-`ssm-secrets.[]`:
-A list of {aws} SSM Secrets ARNs used in the `config.yml` (if any).
+| `kms-keys.[]` | List of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams or SQS queues (if any).
 
-`kms-keys.[]`:
-A list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams or SQS queue (if any).
+| `s3-buckets.[]` | List of S3 bucket ARNs that are sources for the S3 SQS Event Notifications (if any).
 
-`s3-buckets.[]`:
-A list of S3 bucket ARNs that are sources for the S3 SQS Event Notifications (if any).
+| `subnets.[]` | A list of subnets IDs for the forwarder. Along with `security-groups.[]`, these settings will define the {aws} VPC the forwarder will belong to. Leave blank if you don't want the forwarder to belong to any specific {aws} VPC.
 
-`subnets.[]`:
-A list of subnets IDs for to the Elastic Serverless Forwarder. Along with `security-groups.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
+| `security-groups.[]` | List of security group IDs to attach to the forwarder. Along with `subnets.[]`, these settings will define the {aws} VPC the forwarder will belong to. Leave blank if you don't want to have the forwarder belong to any specific {aws} VPC.
 
-`security-groups.[]`:
-A list of security group IDs to attach to the Elastic Serverless Forwarder. Along with `subnets.[]`, this settings will define the {aws} VPC the Elastic Serverless Forwarder will belong to. Leave it empty if you don't want to have the Elastic Serverless Forwarder belong to any specific {aws} VPC.
+| `s3-config-file` | Set this value to the location of your forwarder configuration file in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
 
-`s3-config-file`: Set this value to the location of your Elastic Serverless Forwarder configuration file in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
+| `continuing-queue.batch_size` | Set this value above the default (`10`) if you experience ingestion delays in your output *and* `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of messages the forwarder will process in a single execution for the _Continuing queue_.
 
-`continuing-queue.batch_size`: Set this value above the default (`10`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
+| `continuing-queue.batching_window_in_second` | Set this value above the default (`0`) if you experience ingestion delays in your output *and* `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing *and* the average execution time of the forwarder is below 14 minutes. This will increase the number of messages the forwarder will process in a single execution for the _Continuing queue_.
 
-`continuing-queue.batching_window_in_second`: Set this value above the default (`0`) if you experience ingestion delays in your output and `ApproximateNumberOfMessagesVisible` and `ApproximateAgeOfOldestMessage` SQS CloudWatch metrics for the _Continuing queue_ keep increasing and the average execution time of the Elastic Serverless Forwarder is below 14 minutes. This will increase the number of messages the Elastic Serverless Forwarder will process in a single execution for the _Continuing queue_.
+
+|===
 
 [[aws-serverless-forwarder-run-publish-script]]
-== Run the publishing script
+=== Run the publishing script
 
 A bash script for publishing the Elastic Serverless Forwarder directly to your {aws} account is available from the https://github.com/elastic/elastic-serverless-forwarder[Elastic Serverless Forwarder repository].
 
 Download the https://raw.githubusercontent.com/elastic/elastic-serverless-forwarder/lambda-v1.6.0/publish_lambda.sh[`publish_lambda.sh` script] and follow the instructions below.
 
-=== Script arguments
+==== Script arguments
 [source, bash]
 ----
 
@@ -516,7 +495,7 @@ Usage: ./publish_lambda.sh config-path lambda-name forwarder-tag bucket-name reg
     region: region where to publish in
 ----
 
-=== Prerequisites
+==== Prerequisites
 - Python3.9 with pip3 is required to run the script
 - https://aws.amazon.com/cli/[{aws} CLI], https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html[SAM CLI] and the https://pypi.org/project/ruamel.yaml/[ruamel.yaml package] must also be installed
 
@@ -527,7 +506,7 @@ $ pip3 install awscli aws-sam-cli ruamel.yaml
 
 ----
 
-=== Running the script
+==== Running the script
 Assuming `publish-config.yaml` in saved in the same directory you intend to run `publish_lambda.sh` from, here's an example:
 
 [source, bash]
@@ -537,7 +516,7 @@ $ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.6.0 s3-lamb
 
 ----
 
-=== Updating to a new version via script
+==== Updating to a new version via script
 You can update the version of a published Elastic Serverless Forwarder without changing its configuration by running the publishing script again and passing a *new* https://github.com/elastic/elastic-serverless-forwarder/tags[`forwarder-tag`]:
 
 [source, bash]
@@ -549,7 +528,7 @@ $ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.7.0 s3-lamb
 
 NOTE: The above examples show the forwarder being updated from `lambda-v1.6.0` to `lambda-v1.7.0`.
 
-=== Changing configuration via script
+==== Changing configuration via script
 If you want to change the configuration of a published Elastic Serverless Forwarder without changing its version, you can update the `publish-config.yaml` and run the script again using the *same* `forwarder-tag`:
 
 [source, bash]
@@ -562,7 +541,7 @@ $ ./publish_lambda.sh publish-config.yaml forwarder-lambda lambda-v1.6.0 s3-lamb
 NOTE: The above example shows an existing `lambda-v1.6.0` configuration being updated without changing version.
 
 
-=== Multiple deployments using the script
+==== Using the script for multiple deployments
 If you want to use the publish script for deploying the forwarder with different configurations, create two different `publish-config.yaml` files with unique names and run the publishing script twice, with correct references to the `config-path` and `lambda-name`:
 
 [source, bash]

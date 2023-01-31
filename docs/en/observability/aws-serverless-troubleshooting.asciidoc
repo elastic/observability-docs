@@ -5,14 +5,6 @@
 <titleabbrev>Troubleshooting</titleabbrev>
 ++++
 
-[[aws-serverless-troubleshooting-1.6.0-id-changes]]
-== New Event ID format starting from v1.6.0
-
-Version 1.6.0 introduces a new event ID format, to prevent duplicate ID errors when a high volume of events is ingested to {es}. This new format combines a timestamp and data specific to the AWS resource involved, both taken from the AWS Lambda event that Elastic Serverless Forwarder receives.
-The timestamp is used as prefix for the ID, as identifiers that gradually increase over time based on sorting order generally result in better indexing performance in {es} than completely random identifiers. More information about this are available on https://www.elastic.co/blog/efficient-duplicate-prevention-for-event-based-data-in-elasticsearch[this blog post]
-
-**Please be aware that, if old events that were already published to {es} using older versions of Elastic Serverless Forwarder are ingested again, they will be treated as new events and published to {es} again.**
-
 == Troubleshooting deployment errors
 You can view the status of deployment actions and get additional information on events, including why a particular event fails e.g. misconfiguration details.
 
@@ -26,7 +18,7 @@ NOTE: For example, if you don't increase the visibility timeout for an SQS queue
 If the Elastic Serverless Forwarder is attached to a VPC, you need to https://docs.aws.amazon.com/vpc/latest/privatelink/create-interface-endpoint.html[create VPC Endpoints] for S3 and SQS, and for *every* service you define as an input for the forwarder. S3 and SQS VPC Endpoints are always required for reading the `config.yaml` uploaded to S3 and managing the _Continuing queue_ and the _Replay queue_, regardless of the <<aws-serverless-forwarder-inputs>> used.
 
 == Preventing unexpected costs
-It is important to monitor the Elastic Serverless Forwarder Lambda function for timeouts to prevent unexpected costs. You can use the https://docs.elastic.co/en/integrations/aws/lambda[AWS Lambda integration] for this. If the timeouts are constant, you should throttle the Lambda function to stop its execution before proceeding with any troubleshooting steps. In most cases, constant timeouts will cause the records and messages from the event triggers to go back to their sources and trigger the function again, which will cause further timeouts and force a loop that will incure unexpected high costs.
+It is important to monitor the Elastic Serverless Forwarder Lambda function for timeouts to prevent unexpected costs. You can use the https://docs.elastic.co/en/integrations/aws/lambda[AWS Lambda integration] for this. If the timeouts are constant, you should throttle the Lambda function to stop its execution before proceeding with any troubleshooting steps. In most cases, constant timeouts will cause the records and messages from the event triggers to go back to their sources and trigger the function again, which will cause further timeouts and force a loop that will incure unexpected high costs. For more information on throttling Lambda functions, refer to https://docs.aws.amazon.com/lambda/latest/operatorguide/throttling.html[AWS docs].
 
 // is it clear how you would throttle the Lambda function? should we detail and number these steps?
 
@@ -38,6 +30,19 @@ To help with debugging, you can increase the amount of logging detail by adding 
 . Click **Add environment variable** and enter `LOG_LEVEL` as **Key** and `DEBUG` as **Value** and click **Save**
 
 // confirm where this is visible - only in CloudWatch or also within ES messages?
+
+[[aws-serverless-troubleshooting-event-id-format]]
+== Using the Event ID format (version 1.6.0 and above)
+
+// this is not ideal to describe version changes in troubleshooting but we can edit and integrate better when we create a versioned version of these docs
+
+Version 1.6.0 introduces a new event ID format that prevents duplicate ID errors when a high volume of events is ingested to {es}. This new format combines a timestamp with data specific to the relevant AWS resource, extracted from the AWS Lambda event received by the forwarder.
+
+The timestamp is used as a prefix for the ID, because identifiers that gradually increase over time generally result in better indexing performance in {es}, based on sorting order rather than completely random identifiers. For more information, please refer to https://www.elastic.co/blog/efficient-duplicate-prevention-for-event-based-data-in-elasticsearch[this Elastic blog on event-based data].
+
+// Leaving the blog link in for context though this is not ideal and would be better to link to existing docs instead
+
+NOTE: If old events that are already published to {es} using a version of Elastic Serverless Forwarder before v1.6.0 are ingested again, they will be treated as new events and published to {es} as duplicates.
 
 == Error handling
 
