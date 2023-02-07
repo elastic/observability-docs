@@ -32,7 +32,7 @@ end up with duplicate or missing tests. Private locations do not currently load 
 multiple {agents}. See <<synthetics-private-location-scaling>> for information on increasing the capacity
 within a private location.
 
-Any private location can only run two browser tests simultaneously, and as many lightweight checks as resources allow.
+By default private locations are configured to allow two simultaneous browser tests and an unlimited number of lightweight checks.
 As a result, if more than two browser tests are assigned to a particular private location, there may be a delay to run them.
 ====
 
@@ -134,15 +134,15 @@ TIP: You can run the same monitor both from Elastic's global managed infrastruct
 
 By default private locations are configured to allow two simultaneous browser tests, and an unlimited number of lightweight checks. 
 These limits can be set via the environment variables `SYNTHETICS_LIMIT_{TYPE}`, where `{TYPE}` is one of `BROWSER`, `HTTP`, `TCP`, and `ICMP` 
-for the container running the {{agent}} docker image. 
+for the container running the {agent} docker image. 
 
 It is critical to allocate enough memory and CPU capacity to handle configured limits. 
-A good rule of thumb is to allocate at 2 GiB of memory and 2 cores per browser instance in order to have more consistent
-performance and avoid out of memory errors. Resource requirements will vary depending on workload. 
-For lightweight monitors much less memory is needed. We recommend starting at 512MiB of memory and two cores for 
-lightweight checks and increasing allocated memory and CPU based on observed usage patterns.
+Start by allocating at 2 GiB of memory and two cores per browser instance to ensure consistent
+performance and avoid out-of-memory errors. Then adjust as needed. Resource requirements will vary depending on workload. 
+Much less memory is needed for lightweight monitors. Start by allocating at 512MiB of memory and two cores for 
+lightweight checks. Then increase allocated memory and CPU based on observed usage patterns.
 
-Note that these limits are for simultaneous tests, not total tests. If, for instance,
-60 browser tests were scheduled to run once per hour, with each taking exactly 1 minute to run that would fully occupy one execution slot.
-That being said, it is not a good practice to leave execution slots without extra capacity. A good starting point would be to over-allocate by
+These limits are for simultaneous tests, not total tests. For example, if
+60 browser tests were scheduled to run once per hour and each took 1 minute to run, that would fully occupy one execution slot.
+However, it is a good practice to set up execution slots with extra capacity. A good starting point would be to over-allocate by
 a factor of 5. In the previous example that would mean mean allocating 5 slots.
