@@ -2,66 +2,75 @@
 = Monitor Amazon Simple Storage Service (S3)
 
 ++++
-<titleabbrev>Monitor Amazon S3</titleabbrev>
+<titleabbrev>Monitor S3</titleabbrev>
 ++++
 
 Amazon Simple Storage Service (S3) is an object storage service that offers
 scalability, data availability, security, and performance. Amazon S3 stores data
 as objects within buckets. An object consists of a file and optionally any
-metadata that describes that file. Buckets are the containers for objects. Users
-can have one or more buckets. For each bucket, users can control access to it.
+metadata that describes that file. Buckets are the containers for objects. You
+can have one or more buckets. For each bucket, you can control access to it.
 
-Like most AWS services, Amazon S3 and Amazon CloudWatch are integrated so users
-can collect, view and analyze CloudWatch metrics for their S3 buckets to help
+Like most AWS services, Amazon S3 and Amazon CloudWatch are integrated so you
+can collect, view, and analyze CloudWatch metrics for your S3 buckets to help
 understand and improve the performance of applications that use Amazon S3.
-Elastic Amazon S3 integration collects metrics from Amazon CloudWatch using
-Elastic Agent. Users usually will install Elastic Agent locally or on an EC2
-instance and configure the integration policy and add Amazon S3 integration.
+The Elastic {integrations-docs}/aws/s3[Amazon S3 integration] collects metrics
+from Amazon CloudWatch using {agent}.
 
-With the Amazon S3 integration, we are collecting two kinds of metrics from
-CloudWatch for S3: daily storage metrics for buckets and request metrics. Daily
-storage metrics are used to monitor bucket storage. These storage metrics for
-Amazon S3 are reported once per day by default and are provided to all customers
-at no additional cost. The request metrics can be used to quickly identify and
-act on operational issues. These request metrics are available at 1-minute
-intervals after some latency for processing and they are not enabled by default. 
+With the Amazon S3 integration, you can collect these S3 metrics from
+CloudWatch:
 
-There are several ways to enable request metrics for S3 buckets: using the
-Amazon S3 console, using the AWS CLI or using the REST API. Please see AWS
-documentation for more details. For using AWS CLI,
-`put-bucket-metrics-configuration` is the API to use.
+* Daily storage metrics for buckets. Use these metrics to monitor bucket
+storage. These metrics are reported once per day by default and are provided to
+AWS customers at no additional cost.
+* Request metrics. Use these metrics to quickly identify and act on
+operational issues. These request metrics are available at one-minute intervals
+after some latency for processing, and they are not enabled by default. 
 
-[source,shell]
-----
-aws s3api put-bucket-metrics-configuration --endpoint https://s3.us-west-2.amazonaws.com --bucket bucket-name --id metrics-config-id --metrics-configuration '{"Id":"metrics-config-id"}'
-----
+[discrete]
+[[get-started-s3]]
+== Get started
 
-Here are the steps to follow to configure request metrics using the console:
+If you plan to collect request metrics, enable them for the S3 buckets you want
+to monitor. To learn how, refer to the
+https://docs.aws.amazon.com/AmazonS3/latest/userguide/configure-request-metrics-bucket.html[AWS documentation].
 
-. Open the Amazon S3 console at https://console.aws.amazon.com/s3/ and in the Buckets list, choose the name of the bucket that contains the objects you want request metrics for.
+To collect S3 logs and metrics, you typically need to install the Elastic
+{integrations-docs}/aws/s3[Amazon S3 integration] and deploy an {agent}
+locally or on an EC2 instance.
 
-. Choose the **Metrics** tab and under **Bucket metrics**, choose **View additional charts**.
-+
-[role="screenshot"]
-image::images/s3-view-additional-charts.png[Screenshot showing the Metrics tab with the View Additional charts link highlighted]
+Expand the **quick guide** to learn how, or skip to the next section if your
+data is already in {es}.
 
-. Choose the **Request metrics** tab and choose **Create filter**.
-+
-[role="screenshot"]
-image::images/s3-filter-bucket-metrics.png[Screenshot showing the Request metrics tab with the Create filter button highlighted]
+//Sets the integration name used in the quick guide
+:integration-name: Amazon S3
 
-. In the **Filter name** box, enter a filter name. Under **Choose a Filter scope**, choose **This filter applies to all objects in the bucket** and then click Create filter. 
-+
-[role="screenshot"]
-image::images/s3-create-filter.png[Screenshot showing Create filter window with the scope set to all objects]
+include::{observability-docs-root}/docs/en/shared/integrations-quick-guide.asciidoc[]
 
-Amazon S3 integration comes with a {kib} dashboard out of the box:
+//Clears the integration name
+:integration-name!:
+
+{agent} is currently the preferred way to add S3 logs and metrics. For other
+ways, refer to {cloud}/ec-cloud-ingest-data.html[Adding data to {es}].
+
+[discrete]
+[[dashboard-s3]]
+== Dashboards
+
+{kibana-desc}
+For example, to see an overview of your S3 metrics in {kib}, go to
+the **Dashboard** app and navigate to the **[Metrics AWS] S3 Overview**
+dashboard.
 
 [role="screenshot"]
 image::images/s3-dashboard.png[Screenshot showing the S3 dashboard]
 
 [discrete]
 == Metrics to watch
+
+Here are the key metrics that you should watch, organized by category. For a
+full list of fields exported by the integration, refer to the
+{integrations-docs}/aws/s3[Amazon S3 integration] docs.
 
 .Daily storage metrics for buckets
 |===
@@ -116,7 +125,7 @@ bucket.
 | long
 
 | `aws.s3_request.requests.select`
-| The total number of Amazon S3 SELETE Object Content requests made for objects in an Amazon S3 bucket.
+| The total number of Amazon S3 SELECT Object Content requests made for objects in an Amazon S3 bucket.
 | Count
 | long
 
@@ -126,7 +135,7 @@ bucket.
 | long
 
 | `aws.s3_request.requests.select_scanned.bytes`
-| The average number of bytes of data scanned per Amazon S3 SELETE Object Content requests in an Amazon S3 bucket.
+| The average number of bytes of data scanned per Amazon S3 SELECT Object Content requests in an Amazon S3 bucket.
 | Bytes
 | double
 

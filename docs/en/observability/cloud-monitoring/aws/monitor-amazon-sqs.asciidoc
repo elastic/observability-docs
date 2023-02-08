@@ -2,49 +2,83 @@
 = Monitor Amazon Simple Queue Service (SQS)
 
 ++++
-<titleabbrev>Monitor Amazon SQS</titleabbrev>
+<titleabbrev>Monitor SQS</titleabbrev>
 ++++
 
-The three main parts in a distributed messaging system are the software
-components of your system, the queue (distributed on Amazon SQS) and the
-messages in the queue.
+The main parts in a distributed messaging system include the software components
+of your system, the queue (distributed on Amazon SQS), and the messages in the
+queue.
 
 Amazon Simple Queue Service (SQS) is a message queuing service that makes it
-easy to decouple and scale microservices, distributed systems, and serverless
+easier to decouple and scale microservices, distributed systems, and serverless
 applications. 
 
-AWS SQS and Amazon CloudWatch are integrated and therefore, users can collect,
-view and analyze data. Metrics for Amazon SQS queues are automatically collected
-and pushed to CloudWatch at one-minute intervals.
+AWS SQS and Amazon CloudWatch are integrated and therefore, you can collect,
+view, and analyze data. Metrics for Amazon SQS queues are automatically
+collected and pushed to CloudWatch at one-minute intervals.
 
-Users can view and analyze the queue’s metrics from the Amazon SQS console, the
-CloudWatch console, the AWS CLI or using the CloudWatch API.
+You can view and analyze the queue’s metrics from the Amazon SQS console, the
+CloudWatch console, the AWS CLI, or by using the CloudWatch API.
 
 After a message is received, it remains in the queue for consumers to ingest.
-Amazon SQS provides a visibility timeout which is a period of time that prevents
-other consumers from receiving and processing the message (default: 30s, min:
-0s, max: 12h).
+Amazon SQS provides a visibility timeout, which is a period of time that
+prevents other consumers from receiving and processing the message (default:
+30s, min: 0s, max: 12h).
 
 Amazon SQS does not automatically delete the messages in the queue and therefore
 the consumer is responsible for the deletion of the message after consumption.
 
-Elastic Amazon SQS integration collects metrics from Amazon CloudWatch using
-{agent}.
+The Elastic {integrations-docs}/aws/sqs[Amazon SQS integration]
+collects metrics from Amazon CloudWatch using {agent}.
 
-The agent can be installed locally or on an EC2 instance and configure the integration policy to
-include the Amazon SQS integration.
+Amazon SQS is also integrated with AWS CloudTrail, which is a service that can
+capture API calls related to Amazon SQS queues as events. For more information
+about logging Amazon SQS API calls using AWS CloudTrail, refer to the 
+https://docs.aws.amazon.com/AWSSimpleQueueService/latest/SQSDeveloperGuide/sqs-logging-using-cloudtrail.html[Amazon SQS documentation].
 
-Amazon SQS is also integrated with AWS CloudTrail which is a service that can
-capture API calls related to Amazon SQS queues as events. More information about
-logging Amazon SQS API calls using AWS CloudTrail can be found here.
+[discrete]
+[[get-started-sqs]]
+== Get started
 
-Amazon SQS integration comes with a {kib} dashboard out of the box:
+To collect SQS metrics, you typically need to install the Elastic
+{integrations-docs}/aws/sqs[Amazon SQS integration] and deploy an {agent}
+locally or on an EC2 instance.
+
+Expand the **quick guide** to learn how, or skip to the next section if your
+data is already in {es}.
+
+//Sets the integration name used in the quick guide
+:integration-name: Amazon SQS
+
+include::{observability-docs-root}/docs/en/shared/integrations-quick-guide.asciidoc[]
+
+//Clears the integration name
+:integration-name!:
+
+{agent} is currently the preferred way to add SQS metrics. For other ways, refer
+to {cloud}/ec-cloud-ingest-data.html[Adding data to {es}].
+
+[discrete]
+[[dashboard-sqs]]
+== Dashboards
+
+{kibana-desc}
+For example, to see an overview of your S3 metrics in {kib}, go to
+the **Dashboard** app and navigate to the **[Metrics AWS] SQS Overview**
+dashboard.
 
 [role="screenshot"]
 image::images/sqs-dashboard.png[Screenshot showing the SQS overview dashboard]
 
 [discrete]
 == Metrics to watch
+
+// REVIEWERS: Why are these metrics important to watch? Also see comment I made
+// in the SQS and Kinesis docs.
+
+Here are the key metrics that you should watch, organized by category. For a
+full list of fields exported by the integration, refer to the
+{integrations-docs}/aws/sqs[Amazon SQS integration] docs.
 
 .messages
 |===
@@ -90,6 +124,10 @@ image::images/sqs-dashboard.png[Screenshot showing the SQS overview dashboard]
 | Bytes
 | long
 |===
+
+// REVIEWERS: Does it really make sense to have separate tables for
+// queue info if we only have one row in the table? Do we plan to add other
+// fields.
 
 .queue
 |===

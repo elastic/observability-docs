@@ -2,43 +2,78 @@
 = Monitor Amazon Kinesis data streams
 
 ++++
-<titleabbrev>Monitor Amazon Kinesis</titleabbrev>
+<titleabbrev>Monitor Kinesis data streams</titleabbrev>
 ++++
 
 Amazon Kinesis Data Streams is a serverless streaming data service that can
-easily capture, process, and store data streams at any scale. Users can use
-Amazon Kinesis Data Streams to collect and process large streams of data records
-in real-time. 
+capture, process, and store data streams at any scale. You can use Amazon
+Kinesis Data Streams for real-time collection and processing of large streams of
+data records.
 
-Like most AWS services, Amazon Kinesis data streams and Amazon CloudWatch are
-integrated so users can collect, view and analyze CloudWatch metrics for their
-kinesis data streams, such as tracking shard usage and recording related
-operations for each Kinesis data stream. Elastic Amazon Kinesis integration
-collects metrics from Amazon CloudWatch using Elastic Agent. Users usually will
-install Elastic Agent locally or on an EC2 instance and configure the
-integration policy and add Amazon Kinesis integration.
+Like most AWS services, Amazon Kinesis Data Streams and Amazon CloudWatch are
+integrated so you can collect, view, and analyze CloudWatch metrics for your
+Kinesis data streams, such as tracking shard usage and recording related
+operations for each Kinesis data stream. The Elastic
+{integrations-docs}/aws/kinesis[Amazon Kinesis Data Stream integration] collects
+metrics from Amazon CloudWatch using {agent}.
 
-Kinesis Data Streams by default sends stream-level (basic level) metrics to
+By default, Kinesis Data Streams sends stream-level (basic level) metrics to
 CloudWatch every minute automatically. There is also shard-level data (enhanced
-level) which is sent to CloudWatch every minute with an additional cost per
-stream. To get this level of data, users must specifically enable it for each
-stream using the AWS Kinesis `enable-enhanced-monitoring` API. For example
+level) that is sent to CloudWatch every minute and incurs an additional cost per
+stream. To get this level of data, you must specifically enable it for each
+stream by using the AWS Kinesis `enable-enhanced-monitoring` API. For example
 
 [source,shell]
 ----
 aws kinesis enable-enhanced-monitoring --stream-name samplestream --shard-level-metrics ALL
 ----
 
-Please see
+For more details, refer to the
 https://docs.aws.amazon.com/kinesis/latest/APIReference/API_EnableEnhancedMonitoring.html[EnableEnhancedMonitoring]
-documentation for more details.
-
-[role="screenshot"]
-image::images/kinesis-dashboard.png[Screenshot showing the Kinesis dashboard]
+documentation.
 
 [discrete]
+[[get-started-kinesis]]
+== Get started
 
+To collect Kinesis data stream metrics from Amazon CloudWatch, you typically
+need to install the Elastic
+{integrations-docs}/aws/kinesis[Amazon Kinesis Data Stream integration] and
+deploy an {agent}.
+
+Expand the **quick guide** to learn how, or skip to the next section if your
+data is already in {es}.
+
+//Set the integration name used in the quick guide
+:integration-name: Amazon Kinesis Data Stream
+
+include::{observability-docs-root}/docs/en/shared/integrations-quick-guide.asciidoc[]
+
+//Clear the integration name
+:integration-name!:
+
+{agent} is currently the preferred way to add Kinesis data stream metrics. For
+other ways, refer to {cloud}/ec-cloud-ingest-data.html[Adding data to {es}].
+
+[discrete]
+[[dashboard-kinesis]]
+== Dashboards
+
+{kibana-desc}
+For example, to see an overview of your Kinesis data streams in {kib}, go to
+the **Dashboard** app and navigate to the **[Metrics AWS] Kinesis Overview**
+dashboard.
+
+[role="screenshot"]
+image::images/kinesis-dashboard.png[Screenshot showing the Kinesis overview dashboard]
+
+[discrete]
+[[metrics-to-watch-kinesis]]
 == Metrics to watch
+
+Here are the key metrics that you should watch, organized by category. For a
+full list of fields exported by the integration, refer to the
+{integrations-docs}/aws/kinesis[Amazon Kinesis Data Stream integration] docs.
 
 .GetRecords 
 |===
@@ -80,7 +115,7 @@ image::images/kinesis-dashboard.png[Screenshot showing the Kinesis dashboard]
 | long
 
 | `aws.kinesis.metrics.ReadProvisionedThroughputExceeded.avg`
-| The average number of GetRecords called throttled for the stream over the specified time period.
+| The average number of GetRecords calls throttled for the stream over the specified time period.
 | Count
 | double
 
