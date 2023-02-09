@@ -1,5 +1,5 @@
 [[elastic-agent-configuration]]
-= {agent} standalone configuration
+= Configure standalone {agent}s
 
 include::{fleet-repo-dir}/standalone-note.asciidoc[]
 
@@ -21,6 +21,36 @@ changes after installation, you must modify the installed file.
 
 For installation details, refer to <<install-standalone-elastic-agent>>.
 
+Alternatively, you can put input configurations in YAML files into the
+folder `{path.config}/inputs.d` to separate your configuration into
+multiple smaller files.
+The YAML files in the `inputs.d` folder should contain input configurations only.
+Any other configurations are ignored.
+The files are reloaded at the same time as the standalone configuration.
+
+TIP: The first line of the configuration must be `inputs`. Then you can list the
+inputs you would like to run. Each input in the policy must have a unique value
+for the `id` key. If the `id` key is missing its value defaults to the empty 
+string `""`.
+
+[source,yaml]
+----
+inputs:
+  - id: unique-logfile-id
+    type: logfile
+    data_stream.namespace: default
+    paths: [/path/to/file]
+    use_output: default
+
+  - id: unique-system-metrics-id
+    type: system/metrics
+    data_stream.namespace: default
+    use_output: default
+    streams:
+      - metricset: cpu
+        data_stream.dataset: system.cpu
+----
+
 The following sections describe some settings you might need to configure to
 run an {agent} standalone. For a full reference example, refer to the
 <<elastic-agent-reference-yaml,elastic-agent.reference.yml>> file.
@@ -28,5 +58,3 @@ run an {agent} standalone. For a full reference example, refer to the
 The settings described here are available for standalone {agent}s. Settings for
 {fleet}-managed agents are specified through the UI. You do not set them
 explicitly in a policy file.
-
-//TODO: Explain the structure of the file, how it's used, etc.

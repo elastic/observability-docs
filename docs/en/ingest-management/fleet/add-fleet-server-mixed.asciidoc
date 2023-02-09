@@ -1,0 +1,141 @@
+[[add-fleet-server-mixed]]
+= Deploy {fleet-server} on-premises and {es} on Cloud
+
+To use {fleet} for central management, a <<fleet-server,{fleet-server}>> must
+be running and accessible to your hosts. Deploying {fleet-server} on-premises to
+work with a hosted {ess} is one of <<add-a-fleet-server,several approaches>>
+to setting up {fleet-server}.
+
+image::images/fleet-server-on-prem-es-cloud.png[{fleet-server} on-premise and {es} on Cloud deployment model]
+
+To deploy a self-managed {fleet-server} on-premises to work with a hosted {ess},
+you need to: 
+
+* Satisfy all <<add-fleet-server-mixed-compatibility,compatibility requirements>> and <<add-fleet-server-mixed-prereq,prerequisites>>
+* Add <<fleet-server-add-hosts,{fleet-server} hosts>>
+* Create a <<fleet-server-create-policy,{fleet-server} policy>>
+* <<fleet-server-add-server,Add {fleet-server}>> by installing an {agent} and enrolling it in an agent policy containing the {fleet-server} integration
+
+[discrete]
+[[add-fleet-server-mixed-compatibility]]
+= Compatibility
+
+{fleet-server} is compatible with the following Elastic products:
+
+* {stack} 7.13 or later
+** For version compatibility: {es} >= {fleet-server} >= {agent} (except for
+bugfix releases)
+** {kib} should be on the same minor version as {es}
+
+* {ece} 2.9 or later--allows you to use a hosted {fleet-server} on {ecloud}.
++
+--
+** Requires additional wildcard domains and certificates (which normally only
+cover `*.cname`, not `*.*.cname`). This enables us to provide the URL for
+{fleet-server} of `https://.fleet.`.
+** The deployment template must contain an {integrations-server} node.
+--
++
+For more information about hosting {fleet-server} on {ece}, refer to
+{ece-ref}/ece-manage-integrations-server.html[Manage your {integrations-server}].
+
+[discrete]
+[[add-fleet-server-mixed-prereq]]
+= Prerequisites
+
+include::add-fleet-server-on-prem.asciidoc[tag=cert-prereq]
+
+[discrete]
+[[fleet-server-add-hosts]]
+= Add {fleet-server} hosts
+
+include::add-fleet-server-on-prem.asciidoc[tag=fleet-server-host-prereq]
+
+include::add-fleet-server-on-prem.asciidoc[tag=add-fleet-server-host]
+
+. Save and apply the settings.
+
+[discrete]
+[[fleet-server-create-policy]]
+= Create a {fleet-server} policy
+
+Next, you'll create a {fleet-server} policy. The {fleet-server} policy manages
+and configures the {agent} running on the {fleet-server} host to launch a
+{fleet-server} process.
+
+To create a {fleet-server} policy:
+
+. In {kib}, navigate to the **{fleet}** page and go to the **Agent policies** tab.
+
+. Click on the **Create agent policy** button, then:
+.. Provide a meaningful name for the policy that will help you identify this {fleet-server} (or cluster) in the future.
+.. Ensure you select _Collect system logs and metrics_ so the compute system hosting this {fleet-server} can be monitored. (This is not required, but is highly recommended.)
+
+. After creating the {fleet-server} policy, navigate to the policy itself and click **Add integration**.
+
+. Search for and select the **{fleet-server}** integration.
+
+. Then click **Add {fleet-server}**.
+
+. Configure the {fleet-server}:
+.. Expand **Change default**. Because you are deploying this {fleet-server} on-premises,
+you need to enter the _Host_ address and _Port_ number, `8220`.
+(In our example the {fleet-server} will be installed on the host `10.128.0.46`.)
+.. It's recommended that you also enter the _Max agents_ you intend to support with this {fleet-server}.
+This can also be modified at a later stage.
+This will allow the {fleet-server} to handle the load and frequency of updates being sent to the agent
+and ensure a smooth operation in a bursty environment.
+
+[discrete]
+[[fleet-server-add-server]]
+= Add {fleet-server}s
+
+Now that the policy exists, you can add {fleet-server}s.
+A {fleet-server} is an {agent} that is enrolled in a {fleet-server} policy.
+The policy configures the agent to operate in a special mode to serve as a {fleet-server} in your deployment.
+
+To add a {fleet-server}:
+
+. Click the **Agents** tab.
+
+. Click *Add {fleet-server}*.
+
+. This will open in-product instructions for adding a {fleet-server} using 
+one of two options. Choose *Advanced*.
++
+[role="screenshot"]
+image::images/add-fleet-server-advanced.png[In-product instructions for adding a {fleet-server} in advanced mode]
+
+. Follow the in-product instructions to add a {fleet-server}.
+.. Choose the policy name for this deployment.
+.. Choose **Production** as your deployment mode.
++
+Production mode is the fully secured mode where TLS certificates ensure a secure communication between {fleet-server} and {es}.
+.. Select the {fleet-server} host that was identified earlier. Click **Add host**.
+.. A **Service Token** is required so the {fleet-server} can write data to the connected {es} instance.
+Click **Generate service token** and copy the generated token.
+.. Copy the installation instructions provided in {kib}, which include some of the known deployment parameters.
+.. Replace the value of the `--certificate-authorities` parameter with your <<add-fleet-server-mixed-prereq,CA certificate>>.
+
+After {fleet-server} is installed and enrolled in {fleet},
+the newly created {fleet-server} policy is applied.
+You can see this on the {fleet-server} policy page.
+
+The {fleet-server} agent will also show up on the main {fleet} page as another agent
+whose life-cycle can be managed (like other agents in the deployment).
+
+[discrete]
+[[fleet-server-install-agents]]
+= Next steps
+
+Now you're ready to add {agent}s to your host systems.
+To learn how, see <<install-fleet-managed-elastic-agent>>.
+
+[NOTE]
+====
+For on-premises deployments, you can dedicate a policy to all the
+agents in the network boundary and configure that policy to include a
+specific {fleet-server} (or a cluster of {fleet-server}s).
+
+Read more in <<add-fleet-server-to-policy>>.
+====

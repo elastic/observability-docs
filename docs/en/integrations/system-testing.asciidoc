@@ -9,19 +9,19 @@ Elastic Packages comprise of data streams. A system test exercises the end-to-en
 
 Conceptually, running a system test involves the following steps:
 
-. Deploy the {stack}, including {es}, {kib}, and the {agent}. This step takes time. so you should typically do it once as a pre-requisite to running system tests on multiple data streams.
-. Enroll the {agent} with {fleet} (running in the {kib} instance). This step also can be done once, as a pre-requisite.
+. Deploy the {stack}, including {es}, {kib}, and the {agent}. This step takes time. so you should typically do it once as a prerequisite to running system tests on multiple data streams.
+. Enroll the {agent} with {fleet} (running in the {kib} instance). This step also can be done once, as a prerequisite.
 . Depending on the Elastic Package whose data stream is being tested, deploy an instance of the package's integration service.
 . Create a test policy that configures a single data stream for a single package.
 . Assign the test policy to the enrolled Agent.
 . Wait a reasonable amount of time for the Agent to collect data from the
-   integration service and index it into the correct Elasticsearch data stream.
+   integration service and index it into the correct {es} data stream.
 . Query the first 500 documents based on `@timestamp` for validation.
 . Validate mappings are defined for the fields contained in the indexed documents.
 . Validate that the JSON data types contained `_source` are compatible with
    mappings declared for the field.
 . Delete test artifacts and tear down the instance of the package's integration service.
-. Once all desired data streams have been system tested, tear down the Elastic Stack.
+. Once all desired data streams have been system tested, tear down the {stack}.
 
 [discrete]
 [[system-test-limitations]]
@@ -103,7 +103,7 @@ Here, `SERVICE_LOGS_DIR` is a special keyword. It is something that we will need
 === Terraform service deployer
 
 When using the Terraform service deployer, the `<service deployer files>` must include at least one `*.tf` file.
-The `*.tf` files define the infrastructure using the Terraform syntax. The terraform-based service can be handy to boot up
+The `*.tf` files define the infrastructure using the Terraform syntax. The Terraform-based service can be handy to boot up
 resources using a selected cloud provider and use them for testing (e.g. observe and collect metrics).
 
 Sample `main.tf` definition:
@@ -152,8 +152,8 @@ The Kubernetes service deployer needs [kind](https://kind.sigs.k8s.io/) to be in
 wget -qO-  https://raw.githubusercontent.com/elastic/elastic-package/main/scripts/kind-config.yaml | kind create cluster --config -
 ----
 
-Before executing system tests, the service deployer applies once the deployment of the Elastic Agent to the cluster and links
-the kind cluster with the Elastic stack network - applications running in the kind cluster can reach Elasticsearch and Kibana instances.
+Before executing system tests, the service deployer applies once the deployment of the {agent} to the cluster and links
+the kind cluster with the Elastic stack network - applications running in the kind cluster can reach {es} and {kib} instances.
 The {agent}'s deployment is not deleted after tests to shorten the total test execution time, but it can be reused.
 
 See how to execute system tests for the Kubernetes integration (`pod` data stream):
@@ -271,7 +271,7 @@ elastic-package stack down
 === Generating sample events
 
 As the system tests exercise an integration end-to-end from running the integration's service all the way
-to indexing generated data from the integration's data streams into Elasticsearch, it is possible to generate
+to indexing generated data from the integration's data streams into {es}, it is possible to generate
 `sample_event.json` files for each of the integration's data streams while running these tests.
 
 [source,terminal]

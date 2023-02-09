@@ -1,6 +1,6 @@
 [discrete]
 [[conditions]]
-== Conditions
+= Conditions
 
 A condition is a boolean expression that you can specify in your agent policy
 to control whether a configuration is applied to the running {agent}. You can
@@ -11,7 +11,8 @@ In this example, the input is applied if the host platform is Linux:
 [source,yaml]
 ----
 inputs:
-  - type: logfile
+  - id: unique-logfile-id
+    type: logfile
     streams:
       - paths:
          - /var/log/syslog
@@ -23,7 +24,8 @@ In this example, the stream is applied if the host platform is not Windows:
 [source,yaml]
 ----
 inputs:
-  - type: system/metrics
+  - id: unique-system-metrics-id
+    type: system/metrics
     streams:
       - metricset: load
         data_stream.dataset: system.cpu
@@ -35,7 +37,8 @@ In this example, the processor is applied if the host platform is not Windows:
 [source,yaml]
 ----
 inputs:
-  - type: system/metrics
+  - id: unique-system-metrics-id
+    type: system/metrics
     streams:
       - metricset: load
         data_stream.dataset: system.cpu
@@ -49,7 +52,7 @@ inputs:
 
 [discrete]
 [[condition-syntax]]
-=== Condition syntax
+== Condition syntax
 
 The conditions supported by {agent} are based on {ref}/eql-syntax.html[EQL]'s
 boolean syntax, but add support for variables from providers and functions to
@@ -64,6 +67,7 @@ manipulate the values.
 
 **Functions:**
 
+// lint ignore startswith-function indexof-function endswith-function concat-function
 * Array functions <<arrayContains-function,`arrayContains`>>
 * Dict functions <<hasKey-function,`hasKey`>> (not in EQL)
 * Length functions <<length-function,`length`>>
@@ -80,7 +84,7 @@ manipulate the values.
 
 [discrete]
 [[condition-examples]]
-=== Condition examples
+== Condition examples
 
 Run only when a specific label is included.
 

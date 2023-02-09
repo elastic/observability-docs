@@ -1,0 +1,34 @@
+name: add-issue-to-project
+on:
+  issues:
+    types:
+      - opened
+jobs:
+  add_issue_to_project:
+    name: Add issue to project
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get token
+        id: get_token
+        uses: elastic/actions-app-token@master
+        with:
+          APP_PEM: ${{ secrets.OBS_DOCS_AUTOMATION_PRIVATE_KEY }}
+          APP_ID: 203735
+      - name: Add issue to board
+        uses: octokit/graphql-action@v2.x
+        id: add_issue_to_board
+        with:
+          headers: '{"GraphQL-Features": "projects_next_graphql"}'
+          query: |
+            mutation($project:ID!, $issue:ID!){
+              addProjectNextItem(input: {projectId: $project, contentId: $issue}){
+                projectNextItem{
+                  id
+                }
+              }
+            }
+          project: ${{ env.PROJECT_ID }}
+          issue: ${{ github.event.issue.node_id }}
+        env:
+          PROJECT_ID: "PN_kwDOAGc3Zs0iZw"
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}

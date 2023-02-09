@@ -1,61 +1,73 @@
 [[synthetics-create-test]]
-= Create a new synthetic test
+= Write a synthetic test
 
-++++
-<titleabbrev>Create a test</titleabbrev>
-++++
+beta[] 
+
+After <<synthetics-get-started-project,setting up a project>>, you can start writing synthetic tests that check critical actions and requests that an end-user might make
+on your site.
 
 [discrete]
 [[synthetics-syntax]]
-== Syntax
+= Syntax overview
 
-beta[] To write synthetic tests for your application, you'll need to know basic JavaScript and
+To write synthetic tests for your application, you'll need to know basic JavaScript and
 {playwright-url}[Playwright] syntax.
-The Elastic Synthetics agent exposes an API for creating and running tests:
-
-* `journey(name, ({ page, browser, context, params }) => {})` -- A journey tests one discrete unit of functionality.
-For example, logging into a website, adding something to a cart, or joining a mailing list.
-Each journey provides a fresh playwright `browser`, `context`, and `page` instance.
-See <<synthetics-create-journey>> for more information.
-* `step(name, function)` -- A journey consists of multiple steps, i.e., actions that should be completed in a specific order.
-Steps are displayed individually in the {uptime-app} for easy debugging and error tracking.
-* `beforeAll(({ params }) => {})` -- Runs a provided function prior to all `journey` runs.
-If the provided function is a promise, the runner will wait for the promise to resolve before invoking the journey.
-This function is useful for setting up global state or a server that will be used across multiple journeys.
-* `before(({ params }) => {})` -- Runs a provided function prior to a single `journey` runs.
-This function is useful for setting up global state or a server that will be used for a single journey.
-* `afterAll(({ params }) => {})` -- Runs a provided function after all the journeys have completed.
-This function is useful for removing global state or closing a server that was used in multiple journeys.
-* `after(({ params }) => {})` -- Runs a provided function after a single journey has completed.
-This function is useful for removing global state or closing a server that was used in a single journey.
 
 TIP: {playwright-url}[Playwright] is a browser testing library developed by Microsoft.
-It is reliable and fast and features a modern API that auto waits for page elements to be ready.
+It's fast, reliable, and features a modern API that automatically waits for page elements to be ready.
+
+The synthetics agent exposes an API for creating and running tests, including:
+
+[horizontal]
+`journey`::     Tests one discrete unit of functionality.
+                Takes two parameters: a `name` (string) and a `callback` (function).
+                Learn more in <<synthetics-create-journey>>.
+`step`::        Actions within a journey that should be completed in a specific order.
+                Takes two parameters: a `name` (string) and a `callback` (function).
+                Learn more in <<synthetics-create-step>>.
+`beforeAll`::   Runs a provided function once, before any `journey` runs.
+                If the provided function is a promise, the runner will wait for the
+                promise to resolve before invoking the `journey`.
+                Takes one parameter: a `callback` (function).
+                Learn more in <<before-after>>.
+`before`::      Runs a provided function before a single `journey` runs.
+                Takes one parameter: a `callback` (function).
+                Learn more in <<before-after>>.
+`afterAll`::    Runs a provided function once, after all the `journey` runs have completed.
+                Takes one parameter: a `callback` (function).
+                Learn more in <<before-after>>.
+`after`::       Runs a provided function after a single `journey` has completed.
+                Takes one parameter: a `callback` (function).
+                Learn more in <<before-after>>.
+`monitor`::     The `monitor.use` method allows you to determine a monitor's configuration on a journey-by-journey basis.
+                If you want two journeys to create monitors with different intervals, for example, you should call
+                `monitor.use` in each of them and set the `schedule` property to different values in each.
+                Note that this is only relevant when using the `push` command to create monitors in {kib}.
+                Learn more in <<synthetics-monitor-use>>.
 
 [discrete]
 [[synthetics-create-journey]]
-== Write a synthetic test
+= Create a journey
 
-Start by creating a new file using the `.journey.ts` or `.journey.js` file extension,
-importing the synthetics library, and adding a new journey.
+Create a new file using the `.journey.ts` or `.journey.js` file extension or edit one of the example journey files.
+
 A _journey_ tests one discrete unit of functionality.
 For example, logging into a website, adding something to a cart, or joining a mailing list.
 
 The journey function takes two parameters: a `name` and a `callback`.
 The `name` helps you identify an individual journey.
 The `callback` argument is a function that encapsulates what the journey does.
+The callback provides access to fresh Playwright `page`, `params`, `browser`, and `context` instances.
 
 [source,js]
 ----
-journey('Journey name', ({ page, browser, context, params }) => {
+journey('Journey name', ({ page, browser, context, params, request }) => {
   // Add steps here
 });
 ----
 
-The callback provides access to fresh Playwright `page`, `params`, `browser`, and `context` instances:
-
 [horizontal]
-`name`::        A string you provide to describe the journey.
+`name`::        A user-defined string to describe the journey.
 `page`::        A https://playwright.dev/docs/api/class-page[page] object from Playwright
                 that lets you control the browser's current page.
 `browser`::     A {playwright-api-docs}[browser] object created by Playwright.
@@ -65,20 +77,23 @@ The callback provides access to fresh Playwright `page`, `params`, `browser`, an
                 For example, if you want to use a different homepage depending on the `env`
                 (`localhost` for `dev` and a URL for `prod`). See <<synthetics-params-secrets>>
                 for more information.
+`request`::     A request object that can be used to make API requests independently of the browser
+                interactions. For example, to get authentication credentials or tokens in service of a
+                browser-based test. See <<synthetics-request-param>> for more information.
 
 
 [discrete]
 [[synthetics-create-step]]
-=== Add steps
+= Add steps
 
-A journey consists of multiple _steps_. Steps are actions that should be completed in a specific order.
-Steps are displayed individually in the {uptime-app} along with screenshots for easy debugging and error tracking.
+A journey consists of one or more _steps_. Steps are actions that should be completed in a specific order.
+Steps are displayed individually in the {uptime-app} along with screenshots for convenient debugging and error tracking.
 
 A basic two-step journey would look like this:
 
 [source,js]
 ----
-journey('Journey name', ({ page, browser, client, params }) => {
+journey('Journey name', ({ page, browser, client, params, request }) => {
     step('Step 1 name', () => {
       // Do something here
     });
@@ -100,7 +115,7 @@ step('Load the demo page', () => {
 <1> See the https://playwright.dev/docs/api/class-page#page-goto[`page.goto` reference] for more information.
 
 A more complex step might wait for a page element to be selected
-and then ensure that it matches an expected value.
+and then make sure that it matches an expected value.
 
 For example, on a page using the following HTML:
 
@@ -114,7 +129,7 @@ For example, on a page using the following HTML:
 </header>
 ----
 
-You can verify that the `input` element with class `new-todo` contains the expected `placeholder` value
+You can verify that the `input` element with class `new-todo` has the expected `placeholder` value
 (the hint text for `input` elements) with the following test:
 
 [source,js]
@@ -132,11 +147,117 @@ See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getA
 <2> Use the assertion library provided by the Synthetics agent to look for the
 expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
 
+[[synthetics-create-test-script-recorder]]
+[NOTE]
+====
+If you want to generate code by interacting with a web page directly, you can use the *Synthetics Recorder*.
+
+The recorder launches a https://www.chromium.org/Home/[Chromium browser] that will listen to each interaction you have with the web page and record them internally using Playwright.
+When you're done interacting with the browser, the recorder converts the recorded actions into JavaScript code that you can use with Elastic Synthetics or {heartbeat}.
+
+For more details on getting started with the Synthetics Recorder, refer to <<synthetics-recorder>>.
+====
+
+[discrete]
+[[synthetics-request-param]]
+= Make API requests
+
+You can use the `request` parameter to make API requests independently of browser interactions.
+For example, you could retrieve a token from an HTTP endpoint and use it in a subsequent webpage request.
+
+[source,js]
+----
+step('make an API request', async () => {
+  const response = await request.get(params.url);
+  // Do something with the response
+})
+----
+
+The Elastic Synthetics `request` parameter is similar to https://playwright.dev/docs/api/class-apirequestcontext[other request objects that are exposed by Playwright]
+with a few key differences:
+
+* The Elastic Synthetics `request` parameter comes built into the library so it doesn't
+have to be imported separately, which reduces the amount of code needed and allows you to
+make API requests in <<synthetics-get-started-ui-browser,inline journeys>>.
+* The top level `request` object exposed by Elastic Synthetics has its own isolated cookie storage
+unlike Playwright's `context.request` and `page.request`, which share cookie storage
+with the corresponding https://playwright.dev/docs/api/class-browsercontext[`BrowserContext`].
+* If you want to control the creation of the `request` object, you can do so by passing options
+via <<elastic-synthetics-command, `--playwright-options`>> or in the
+<<synthetics-configuration, `synthetics.config.ts` file>>.
+
+For a full example that shows how to use the `request` object, refer to the https://github.com/elastic/synthetics-demo/blob/main/advanced-examples/journeys/api-requests.journey.ts[Elastic Synthetics demo repository].
+
+NOTE: The `request` parameter is not intended to be used for writing pure API tests. Instead, it is a way to support
+writing plain HTTP requests in service of a browser-based test.
+
+[discrete]
+[[before-after]]
+= Set up and remove a global state
+
+If there are any actions that should be done before or after journeys, you can use `before`, `beforeAll`, `after`, or `afterAll`.
+
+To set up global state or a server that will be used for a **single** `journey`, for example,
+use a `before` hook. To perform this setup once before **all** journeys, use a `beforeAll` hook.
+
+[source,js]
+----
+before(({ params }) => {
+  // Actions to take
+});
+
+beforeAll(({ params }) => {
+  // Actions to take
+});
+----
+
+You can clean up global state or close a server used for a **single** `journey` using an `after` hook.
+To perform this cleanup once after all journeys, use an `afterAll` hook.
+
+[source,js]
+----
+after(({ params }) => {
+  // Actions to take
+});
+
+afterAll(({ params }) => {
+  // Actions to take
+});
+----
+
+[discrete]
+[[synthetics-import-packages]]
+= Import NPM packages
+
+You can import and use other NPM packages inside journey code.
+Refer to the example below using the external NPM package `is-positive`:
+
+[source,js]
+----
+import { journey, step, monitor, expect } from '@elastic/synthetics';
+import isPositive from 'is-positive';
+
+journey('bundle test', ({ page, params }) => {
+  step('check if positive', () => {
+    expect(isPositive(4)).toBe(true);
+  });
+});
+----
+
+When you <<synthetics-get-started-project,create a monitor>> from a journey that uses
+external NPM packages, those packages will be bundled along with the
+journey code when the `push` command is invoked.
+
+However there are some limitations when using external packages:
+	
+* Bundled journeys after compression should not be more than 800 Kilobytes.
+* Native node modules will not work as expected due to platform inconsistency.
+
 [discrete]
 [[synthetics-sample-test]]
-=== Sample synthetic test
+= Sample synthetic test
 
-A complete example of a basic synthetic test looks like this:
+A complete example of a basic synthetic test might look like this:
 
 [source,js]
 ----
@@ -156,30 +277,31 @@ journey('Ensure placeholder is correct', ({ page }) => {
 });
 ----
 
-[discrete]
-[[synthetic-run-tests]]
-== Run synthetic tests
-
-There are two ways to run synthetic tests:
-
-* If you want to create a single journey and manage it in isolation from monitors containing other journeys,
-<<synthetics-inline-journey,use an inline journey>>.
-Inline journeys can be more efficient, but have some limitations like not supporting dependencies or multiple journeys.
-* If you have multiple journeys, rely on dependencies, or your tests need to live with your
-application code, <<synthetics-test-suite,use a test suite>>.
+You can find more complex examples in the https://github.com/elastic/synthetics-demo/blob/main/advanced-examples/journeys/api-requests.journey.ts[Elastic Synthetics demo repository].
 
 [discrete]
-[[synthetics-inline-journey]]
-=== Use an inline journey
+[[synthetics-test-locally]]
+= Test locally
 
-The easiest way to run a synthetic test is by creating an inline journey.
-The `journey` keyword isn't required, and access to variables like `page` and `params` is automatic.
-You cannot `import` any dependencies using inline scripts.
+As you write journeys, you can run them locally to verify they work as expected. Then, you can create monitors to run your journeys at a regular interval.
 
-To test an inline example locally, change into your test's directory
-and pipe the file contents to the `npx @elastic/synthetics` command.
+To test all the journeys in a project, navigate into the directory containing the synthetics project and run the journeys in there.
+By default, the `@elastic/synthetics` runner will only run files matching the filename `*.journey.(ts|js)*`.
 
-For example, create a `sample.js` file containing steps:
+[source,sh]
+----
+# Run tests on the current directory. The dot `.` indicates
+# that it should run all tests in the current directory.
+npx @elastic/synthetics .
+----
+
+[discrete]
+[[synthetics-test-inline]]
+== Test an inline monitor
+
+To test an inline monitor's journey locally, pipe the inline journey into the `npx @elastic/synthetics` command.
+
+Assume, for example, that your inline monitor includes the following code:
 
 [source,js]
 ----
@@ -191,14 +313,14 @@ step('hover over products menu', async () => {
 });
 ----
 
-Then test the sample file:
+To run that journey locally, you can save that code to a file and pipe the file's contents into `@elastic-synthetics`:
 
 [source,sh]
 ----
 cat path/to/sample.js | npx @elastic/synthetics --inline
 ----
 
-And you'll get a response similar to:
+And you'll get a response like the following:
 
 [source,sh]
 ----
@@ -209,80 +331,3 @@ Journey: inline
  2 passed (2511 ms)
 ----
 
-After testing locally, you can copy the script into your
-Elastic Synthetics integration or `heartbeat.yml`.
-
-* **{agent} and {fleet}**: Add an inline journey when configuring the Elastic Synthetics integration.
-In Monitor settings, use Monitor Type "Browser" and switch the Source Type to "Inline script".
-See <<synthetics-quickstart-fleet>> for details.
-* **{heartbeat}**: Copy and paste your test steps into `heartbeat.yml`.
-{heartbeat} spawns a separate Node.js process, schedules your tests, and runs them on a Chromium browser.
-See <<synthetics-quickstart-step-two>> for details.
-
-[discrete]
-[[synthetics-test-suite]]
-=== Use a test suite
-
-If you have a suite of tests to implement, you can use Elastic Synthetics as a library.
-In this method, you use Docker to run both {heartbeat} and `elastic-synthetics`.
-
-To test an inline example locally, start by installing the `@elastic/synthetics` package globally:
-
-[source,sh]
-----
-npm install -g @elastic/synthetics
-----
-
-Then write your tests:
-
-. Create a new https://docs.npmjs.com/cli/v7/commands/npm-init[NPM/Node.js project].
-. Create a `javascript` or `typescript` file that imports your tests.
-All synthetic test files must use the `.journey.ts` or `.journey.js` file extension.
-. Make sure any dependencies are defined with an `import` outside of the `journey` object.
-. Compile everything together.
-
-Find examples in the https://github.com/elastic/synthetics[elastic/synthetics] repository.
-If you'd like to test an example locally, clone the repository and install the example:
-
-[source,sh]
-----
-# Check out the synthetics repo and included examples
-git clone git@github.com:elastic/synthetics.git &&\
-cd synthetics/examples/todos/ &&\
-# Install all required dependencies for the todos example
-npm install
-----
-
-You are now inside the synthetics test suite, which is also an NPM project.
-From this folder, you can run the provided tests.
-By default only files matching the filename `*.journey.(ts|js)*` will be run.
-
-[source,sh]
-----
-# Run tests on the current directory. The dot `.` indicates
-# that it should run all tests in the current directory.
-npx @elastic/synthetics .
-----
-
-After testing locally, you can run the test suite using the
-Elastic Synthetics integration or `heartbeat.yml`.
-
-* **{agent} and {fleet}**: Add a test suite when configuring the Elastic Synthetics integration.
-Use Monitor Type "Browser" and use the Source Type "Zip URL" pointing to a zip file containing the test project.
-See <<synthetics-quickstart-fleet>> for details.
-* **{heartbeat}**: Copy and paste the path to your zip file into `heartbeat.yml`.
-See <<synthetics-quickstart-step-two>> for details.
-
-[discrete]
-[[synthetics-ci]]
-=== Run on CI
-
-In addition to replacing your end-to-end tests locally, you can run a synthetic test suite on your CI environment.
-
-Elastic's synthetics runner can output results in multiple formats, including JSON and JUnit
-(the standard format supported by most CI platforms).
-If any of your journeys fail, it will yield a non-zero exit code, which most CI systems pick up as a failure. 
-
-You can see an example using GitHub Actions in the
-https://github.com/elastic/synthetics-demo/blob/main/.github/workflows/run-synthetics.yml[elastic/synthetics-demo] repository.
-This example sets up a job that executes the synthetics runner and tells the runner to yield results in a JUnit format.

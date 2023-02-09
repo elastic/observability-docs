@@ -162,7 +162,7 @@ be able to see the data streams for various logs and metrics from the host. This
 is out-of-the-box without any extra configuration or dashboard creation:
 +
 [role="screenshot"]
-image::images/migration-agent-data-streams.png[Screen showing data streams created by the Elastic Agent]
+image::images/migration-agent-data-streams.png[Screen showing data streams created by the {agent}]
 
 . Go to *Analytics > Discover* and examine the data streams. Note that documents
 indexed by {agent} match these patterns:
@@ -271,7 +271,7 @@ where it's defined.
 [role="screenshot"]
 image::images/migration-add-processor.png[Screen showing how to add a processor to an integration policy]
 +
-For example, the following processor adds geo-specific metadata to host events:
+For example, the following processor adds geographically specific metadata to host events:
 +
 [source,yaml]
 ----
@@ -383,28 +383,28 @@ For more information, see the {ref}/aliases.html[Aliases documentation].
 [discrete]
 == Migrate index lifecycle policies
 
-Index lifecycle management (ILM) policies in {es} enable you to manage indices
+{ilm-cap} ({ilm}) policies in {es} enable you to manage indices
 according to your performance, resiliency, and retention requirements. To learn
-more about ILM, refer to the
-{ref}/index-lifecycle-management.html[ILM documentation].
+more about {ilm}, refer to the
+{ref}/index-lifecycle-management.html[{ilm} documentation].
 
-ILM is configured by default in {beats} (version 7.0 and later) and in {agent}
+{ilm} is configured by default in {beats} (version 7.0 and later) and in {agent}
 (all versions). To view the index lifecycle policies defined in {es}, go to
 *Management > Index Lifecycle Policies*.
 
 [role="screenshot"]
 image::images/migration-index-lifecycle-policies.png[Screen showing how to add a processor to an integration policy]
 
-If you used ILM with {beats}, you'll see index lifecycle policies like
+If you used {ilm} with {beats}, you'll see index lifecycle policies like
 *filebeat* and *metricbeat* in the list. After migrating to {agent}, you'll see
-polices named *logs* and *metrics*, which encapsulate the ILM policies for all
+polices named *logs* and *metrics*, which encapsulate the {ilm} policies for all
 `logs-*` and `metrics-*` index templates.
 
 When you migrate from {beats} to {agent}, you have a couple of options for
 migrating index policy settings:
 
 * *Modify the newly created index lifecycle policies (recommended).* As
-mentioned earlier, ILM is enabled by default when the {agent} is installed.
+mentioned earlier, {ilm} is enabled by default when the {agent} is installed.
 Index lifecycle policies are created and added to the index templates for
 data streams created by integrations.
 +
@@ -413,7 +413,7 @@ recommended that you modify the lifecycle policies for {agent} to match your
 previous policy. To do this:
 +
 --
-. In {kib}, go to *Stack Management > Index Lifecycle Policies* and search for a
+. In {kib}, go to *{stack-manage-app} > Index Lifecycle Policies* and search for a
 {beats} policy, for example, *filebeat*. Under *Linked indices*, notice you can
 view indices linked to the policy. Click the policy name to see the settings.
 
@@ -446,9 +446,9 @@ policy.
 index templates.
 --
 
-.What if you're not using ILM with {beats}?
+.What if you're not using {ilm} with {beats}?
 ****
-You can begin to use ILM now with {agent}. Under *Index lifecycle policies*,
+You can begin to use {ilm} now with {agent}. Under *Index lifecycle policies*,
 click the policy name and edit the settings to meet your requirements.
 ****
 
@@ -462,14 +462,14 @@ duplicated data until you remove {beats}.
 When you're satisfied with your {agent} deployment, remove {beats} from your
 hosts. All the data collected before installing the {agent} will still be
 available in {es} until you delete the data or it's removed according to the
-data retention policies you've specified for ILM.
+data retention policies you've specified for {ilm}.
 
 To remove {beats} from your host:
 
 . Stop the service by using the correct command for your system.
 
 . (Optional) Back up your {beats} configuration files in case you need to refer
-to to them in the future.
+to them in the future.
 
 . Delete the {beats} installation directory. If necessary, stop any orphan
 processes that are running after you stopped the service.

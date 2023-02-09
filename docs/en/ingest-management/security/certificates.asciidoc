@@ -1,5 +1,5 @@
 [[secure-connections]]
-= Encrypt traffic in clusters with a self-managed {fleet-server}
+= Configure SSL/TLS for self-managed {fleet-server}s
 
 If you're running a self-managed cluster, configure Transport Layer Security
 (TLS) to encrypt traffic between {agent}s, {fleet-server}, and other components
@@ -21,7 +21,7 @@ information about securing the {stack}, refer to
 {agent}s require a PEM-formatted CA certificate to send encrypted data to {es}.
 If you followed the steps in {ref}/configuring-stack-security.html[Configure
 security for the {stack}], your certificate will be in a p12 file. To convert
-it, use openssl:
+it, use OpenSSL:
 
 [source,shell]
 ----
@@ -139,6 +139,7 @@ the *Action* column.
 .. Specify either a CA certificate or CA fingerprint to connect securely
 {es}:
 
+// lint ignore elasticsearch
 * If you have a CA trusted fingerprint, specify it in the
 *Elasticsearch CA trusted fingerprint* field. To learn more, refer to the
 {ref}/configuring-stack-security.html[{es} security documentation].
@@ -275,7 +276,7 @@ sudo elastic-agent install -f --url=https://192.0.2.1:8220 \
 Where:
 
 `url`::
-Fleet Server URL to use to enroll the {agent} into {fleet}.
+{fleet-server} URL to use to enroll the {agent} into {fleet}.
 `enrollment-token`::
 The enrollment token for the policy that will be applied to the {agent}.
 `certificate-authorities`::
@@ -283,11 +284,8 @@ CA certificate to use to connect to {fleet-server}. This is the
 CA used to <<generate-fleet-server-certs,generate a certificate and key>>
 for {fleet-server}.
 
-Don't have an enrollment token? On the *Agents* tab in Fleet, click *Add agent*.
+// lint ignore elastic-agent
+Don't have an enrollment token? On the *Agents* tab in {fleet}, click *Add agent*.
 Under *Enroll and start the Elastic Agent*, follow the in-product installation steps, making sure
 that you add the `--certificate-authorities` option before you run the command.
 --
-
-// TODO: Add reference docs about SSL settings and point to the content from
-// this topics. Before I can do this, I need to know which settings from Beats
-// are supported for Elastic Agent.

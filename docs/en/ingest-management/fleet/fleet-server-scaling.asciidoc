@@ -10,9 +10,9 @@ First modify your {fleet} deployment settings in {ecloud}:
 
 . Log in to {ecloud} and go to your deployment.
 
-. Under *Deployments > _deployment name_*, click *Edit*.
+. Under **Deployments > _deployment name_**, click **Edit**.
 
-. Under APM & Fleet:
+. Under {integrations-server}:
 +
 --
 * Modify the compute resources available to the server to accommodate a higher
@@ -27,15 +27,16 @@ image::images/fleet-server-hosted-container.png[{fleet-server} hosted agent]
 
 Next modify the {fleet-server} configuration by editing the agent policy: 
 
-. In *Fleet*, click *Agent Policies*. Click on the *{ecloud} agent policy* to
-edit it.
+. In {kib}, go to **Management > {fleet} > Agent Policies**. Click the name of
+the **{ecloud} agent policy** to edit the policy.
 
-. Open the *Actions* menu and select *Edit integration*.
+. Open the **Actions** menu next to the {fleet-server} integration and click
+**Edit integration**.
 +
 [role="screenshot"]
 image::images/elastic-cloud-agent-policy.png[{ecloud} policy]
 
-. Under {fleet-server}, modify *Max Connections* and other
+. Under {fleet-server}, modify **Max Connections** and other
 <<fleet-server-configuration,advanced settings>> as described in
 <<scaling-recommendations>>. 
 +
@@ -52,11 +53,24 @@ deployment.
 `cache`::
 
 `num_counters`:::
-Size of the hash table. Best practice is to have this set to 10x max
+Size of the hash table. Best practice is to have this set to 10 times the max
 connections.
 
 `max_cost`:::
 Total size of the cache.
+
+`server.timeouts`::
+`checkin_timestamp`:::
+How often {fleet-server} updates the "last activity" field for each agent.
+Defaults to `30s`. In a large-scale deployment, increasing this
+setting may improve performance. If this setting is higher than `2m`,
+most agents will be shown as "offline" in the Fleet UI. For a typical setup,
+it's recommended that you set this value to less than `2m`.
+
+`checkin_long_poll`:::
+How long {fleet-server} allows a long poll request from an agent before
+timing out. Defaults to `5m`. In a large-scale deployment, increasing
+this setting may improve performance.
 
 `server.limits`::
 `policy_throttle`:::
@@ -77,7 +91,7 @@ Maximum number of agents that can call the artifact API concurrently. It allows
 the user to avoid overloading the {fleet-server} from artifact API calls.
 
 `artifact_limit.interval`:::
-How often artifacts are rolled out. Default of 100ms allows 10 artifacts to be
+How often artifacts are rolled out. Default of `100ms` allows 10 artifacts to be
 rolled out per second.
 
 `artifact_limit.burst`:::
@@ -89,7 +103,7 @@ Maximum number of agents that can call the Ack API concurrently. It allows the
 user to avoid overloading the {fleet-server} from Ack API calls.
 
 `ack_limit.interval`:::
-How often an acknowledgment (ACK) is sent. Default value of 10ms enables 100
+How often an acknowledgment (ACK) is sent. Default value of `10ms` enables 100
 ACKs per second to be sent.
 
 `ack_limit.burst`:::
@@ -104,7 +118,7 @@ calls.
 `enroll_limit.interval`:::
 Interval between processing enrollment request. Enrollment is both CPU and RAM
 intensive, so the number of enrollment requests needs to be limited for overall
-system health. Default value of 100ms allows 10 enrollments per second.
+system health. Default value of `100ms` allows 10 enrollments per second.
 
 `enroll_limit.burst`:::
 Burst of enrollments to accept before falling back to the rate defined by
@@ -120,22 +134,18 @@ on the number of agents required by your deployment:
 * <<resource-requirements-by-number-agents>>
 * <<recommend-settings-scaling-agents>>
 
-// TODO: Confirm that these recommendations are current. The values don't match
-// the drop-down lists in the latest version of Elastic Cloud. 
-
 [discrete]
 [[resource-requirements-by-number-agents]]
 === Resource requirements by number of agents
 |===
-| Number of Agents | Memory      | vCPU           | {es} Cluster size
-
-| 50               | 512MB       | Up to 2.5 vCPU | 480GB disk \| 16GB RAM \| up to 5 vCPU
-| 5,000            | 1GB         | Up to 2.5 vCPU | 960GB disk \| 32GB RAM \| 5 vCPU
-| 7,500            | 2GB         | Up to 2.5 vCPU | 1.88TB disk \| 64GB RAM \| 9.8 vCPU
-| 10,000           | 4GB         | Up to 2.5 vCPU | 3.75TB disk \| 128GB RAM \| 19.8 vCPU
-| 12,500           | 8G          | Up to 2.5 vCPU | 7.5TB disk \| 256GB RAM \| 39.4 vCPU
-| 30,000           | 16GB        | 2.5 vCPU       | 7.5TB disk \| 256GB RAM \| 39.4 vCPU
-| 50,000           | 32GB        | 2.5 vCPU       | 11.25TB disk \| 384GB RAM \|59.2 vCPU
+| Number of Agents | Memory       | vCPU            | {es} Cluster size
+| 50               | 1 GB         | Up to 8.5 vCPU  | 480 GB disk \| 16 GB RAM \| up to 5 vCPU
+| 5,000            | 2 GB         | Up to 8.5 vCPU  | 960 GB disk \| 32 GB RAM \| 5 vCPU
+| 7,500            | 4 GB         | Up to 8.5 vCPU  | 1.88 TB disk \| 64 GB RAM \| 9.8 vCPU
+| 10,000           | 8 GB         | Up to 8.5 vCPU  | 3.75 TB disk \| 128 GB RAM \| 19.8 vCPU
+| 15,000           | 16 GB        | 8.5 vCPU        | 7.5 TB disk \| 256 GB RAM \| 39.4 vCPU
+| 25,000           | 16 GB        | 8.5 vCPU        | 7.5 TB disk \| 256 GB RAM \| 39.4 vCPU
+| 50,000           | 32 GB        | 16.9 vCPU       | 11.25 TB disk \| 384 GB RAM \|59.2 vCPU
 |===
 
 
@@ -147,29 +157,29 @@ on the number of agents required by your deployment:
 TIP: You might need to scroll to the right to see all the table columns.
 
 |===
-|                      | *50*    | *5,000*  | *7,500*  | *10,000* | *12,500*  | *30,000*   | *50,000*
-| *Max Connections*    | 100     | 7,000    | 10,000   | 20,000   | 32,000    | 32,000     | 32,000
+|                      | **50**   | **5,000** | **7,500**  | **10,000** | **12,500**  | **30,000**   | **50,000**
+| **Max Connections**  | 100      | 7,000     | 10,000     | 20,000     | 32,000      | 32,000       | 32,000
 8+s| Cache settings
-| `num_counters`       | 2000    | 20000    | 40000    | 80000     | 160000    | 160000    | 320000
-| `max_cost`           | 2097152 | 20971520 | 50971520 | 104857600 | 209715200 | 209715200 | 209715200
+| `num_counters`       | 2000     | 20000     | 40000    | 80000        | 160000      | 160000       | 320000
+| `max_cost`           | 2097152  | 20971520  | 50971520 | 104857600    | 209715200   | 209715200    | 209715200
 8+s| Server limits
-| `policy_throttle`    | 200ms   | 50ms     | 10ms     | 5ms       | 5ms       | 2ms       | 5ms
+| `policy_throttle`    | 200 ms   | 50 ms     | 10 ms     | 5 ms        | 5 ms        | 2 ms         | 5 ms
 8+| `checkin_limit:`
->| `interval`          | 50ms    | 5ms      | 2ms      | 1ms       | 500us     | 500us     | 500us
->| `burst`             | 25      | 500      | 1000     | 2000      | 4000      | 4000      | 4000
->| `max`               | 100     | 5001     | 7501     | 10001     | 12501     | 15001     | 25001
+>| `interval`          | 50 ms    | 5 ms      | 2 ms      | 1 ms        | 500 us      | 500 us       | 500 us
+>| `burst`             | 25       | 500       | 1000      | 2000        | 4000        | 4000         | 4000
+>| `max`               | 100      | 5001      | 7501      | 10001       | 12501       | 15001        | 25001
 8+|`artifact_limit:`
->| `interval`          | 100ms   | 5ms      | 2ms      | 1ms       | 500us     | 500us     | 500us
->| `burst`             | 10      | 500      | 1000     | 2000      | 4000      | 4000      | 4000
->| `max`               | 10      | 1000     | 2000     | 4000      | 8000      | 8000      | 8000
+>| `interval`          | 100 ms   | 5 ms      | 2 ms      | 1 ms        | 500 us      | 500 us       | 500 us
+>| `burst`             | 10       | 500       | 1000      | 2000        | 4000        | 4000         | 4000
+>| `max`               | 10       | 1000      | 2000      | 4000        | 8000        | 8000         | 8000
 8+| `ack_limit:`
->| `interval`          | 10ms    | 4ms      | 2ms      | 1ms       | 500us     | 500us     | 500us
->| `burst`             | 20      | 500      | 1000     | 2000      | 4000      | 4000      | 4000
->| `max`               | 20      | 1000     | 2000     | 4000      | 8000      | 8000      | 8000
+>| `interval`          | 10 ms    | 4 ms      | 2 ms      | 1 ms        | 500 us      | 500 us       | 500 us
+>| `burst`             | 20       | 500       | 1000      | 2000        | 4000        | 4000         | 4000
+>| `max`               | 20       | 1000      | 2000      | 4000        | 8000        | 8000         | 8000
 8+| `enroll_limit:`
->| `interval`          | 100ms   | 20ms     | 10ms     | 10ms      | 10ms      | 10ms      | 10ms
->| `burst`             | 5       | 50       | 100      | 100       | 100       | 100       | 100
->| `max`               | 10      | 100      | 200      | 200       | 200       | 200       | 200
+>| `interval`          | 100 ms   | 20 ms     | 10 ms     | 10 ms       | 10 ms       | 10 ms        | 10 ms
+>| `burst`             | 5        | 50        | 100       | 100         | 100         | 100          | 100
+>| `max`               | 10       | 100       | 200       | 200         | 200         | 200          | 200
 8+s| Server runtime settings
-| `gc_percent`         | 20      | 20       | 20       | 20        | 20        | 20        | 20
+| `gc_percent`         | 20       | 20        | 20        | 20          | 20          | 20           | 20
 |===

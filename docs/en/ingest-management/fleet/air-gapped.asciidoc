@@ -1,41 +1,63 @@
 [[air-gapped]]
 = Air-gapped environments
 
-There are certain environments in which network traffic restrictions are mandatory. In these environments, the {kib} instance
-isn't able to reach the public {package-registry} endpoints, like https://epr.elastic.co/[epr.elastic.co], to download
-package metadata and content.
+When running {agent}s in a restricted or closed network, you need to take extra
+steps to make sure:
 
-There are two workarounds in this situation -- use a proxy server as network gateway to reach the public endpoints,
-or deploy your own instance of the {package-registry}.
+* {kib} is able to reach the {package-registry} to download package metadata and
+content.
+* {agent}s are able to download binaries during upgrades.
+
+When upgrading all the components in an air-gapped environment, it is recommended that you upgrade in the following order:
+
+. Upgrade the {package-registry}.
+. Upgrade the {stack} including {kib}.
+. Upgrade the {artifact-registry} and ensure the latest {agent} binaries are available.
+. Upgrade the on-premise {fleet-server}.
+. In {fleet}, issue an upgrade for all the {agent}s.
 
 [discrete]
 [[air-gapped-proxy-server]]
-== Use a proxy server
+== Use a proxy server to access the {package-registry}
 
-If you can route traffic to the public endpoint of the {package-registry} through a network gateway, there is a property in {kib} that
-can orchestrate to use a proxy server:
+By default {kib} downloads package metadata and content from the public
+{package-registry} at https://epr.elastic.co/[epr.elastic.co].
+
+If you can route traffic to the public endpoint of the {package-registry}
+through a network gateway, set the following property in {kib} to use a proxy
+server:
 
 [source,yaml]
 ----
 xpack.fleet.registryProxyUrl: your-nat-gateway.corp.net
 ----
 
+For more information, refer to <<fleet-agent-proxy-support>>.
+
 [discrete]
 [[air-gapped-diy-epr]]
 == Host your own {package-registry}
 
-If routing traffic through a proxy server is not an option, you can host your own {package-registry}.
+NOTE: The {package-registry} packages include signatures used in
+<<package-signatures,package verification>>. By default, {fleet} uses the Elastic
+public GPG key to verify package signatures. If you ever need to change this GPG
+key, use the `xpack.fleet.packageVerification.gpgKeyPath` setting in
+`kibana.yml`. For more information, refer to
+{kibana-ref}/fleet-settings-kb.html[{fleet} settings].
 
-The {package-registry} can be deployed and hosted on-site using one of the
+If routing traffic through a proxy server is not an option, you can host your
+own {package-registry}.
+
+The {package-registry} can be deployed and hosted onsite using one of the
 available Docker images. These docker images include the {package-registry} and
 a selection of packages.
 
 There are different distributions available:
 
-* {version} (recommended): +docker.elastic.co/package-registry/distribution:{version}+ - Selection of packages from the production repository released with the {version} version of the {stack}.
+* {version} (recommended): +docker.elastic.co/package-registry/distribution:{version}+ - Selection of packages from the production repository released with {stack} {version}.
+* lite-{version}: +docker.elastic.co/package-registry/distribution:lite-{version}+ - Subset of the most commonly used packages from the production repository released with {stack} {version}. This image is a good candidate to start using {fleet} in air-gapped environments.
 * production: `docker.elastic.co/package-registry/distribution:production` - Packages available in the production registry (https://epr.elastic.co).
-* staging: `docker.elastic.co/package-registry/distribution:staging` - Packages available in the staging registry (https://epr-staging.elastic.co). These packages may be pending of validation.
-* snapshot: `docker.elastic.co/package-registry/distribution:snapshot` - Packages under development.
+* lite: `docker.elastic.co/package-registry/distribution:lite` - Subset of the most commonly used packages available in the production registry (https://epr.elastic.co).
 
 ifeval::["{release-state}"=="unreleased"]
 [WARNING]
@@ -50,6 +72,7 @@ Every distribution contains packages that can be used by different versions of
 the {stack}. The {package-registry} API exposes a {kib} version constraint that
 allows for filtering packages that are compatible with a particular version.
 
+// lint ignore runtimes
 NOTE: These steps use the standard Docker CLI, but you can create a Kubernetes manifest
 based on this information.
 These images can also be used with other container runtimes compatible with Docker images.
@@ -90,7 +113,7 @@ requests to the root path:
 ["source", "sh", subs="attributes"]
 ----
 docker run -it -p 8080:8080 \
-    --health-cmd "curl -f -L http://127.0.0.1:8080/" \
+    --health-cmd "curl -f -L http://127.0.0.1:8080/health" \
     docker.elastic.co/package-registry/distribution:{version}
 ----
 
@@ -98,7 +121,8 @@ docker run -it -p 8080:8080 \
 [[air-gapped-diy-epr-kibana]]
 === Connect {kib} to your hosted {package-registry}
 
-Use the `xpack.fleet.registryUrl` property in the {kib} config to set the URL of your hosted package registry. For example:
+Use the `xpack.fleet.registryUrl` property in the {kib} config to set the URL of
+your hosted package registry. For example:
 
 [source,yaml]
 ----
@@ -126,20 +150,105 @@ docker run -it -p 443:443 \
 ----
 
 [discrete]
-[[air-gapped-limitations]]
-== Limitations for {agent} upgrades
+=== Using custom CA certificates
 
-The <<upgrade-elastic-agent>> feature in technical preview does not currently support network restricted environments without access to artifacts.elastic.co.
-To upgrade {agent}s:
+If you are using self-signed certificates or certificates issued by a custom Certificate Authority (CA), you need to set the file path to your CA in the `NODE_EXTRA_CA_CERTS` environment
+variable in the {kib} startup files.
 
-1. Download the new version from the https://www.elastic.co/downloads/elastic-agent[download page]
-2. Place the tarball in a secure internal network location
-3. Use the <<elastic-agent-upgrade-command,`upgrade`>> command with a custom `--source-uri` option
+[source,text]
+----
+NODE_EXTRA_CA_CERTS="/etc/kibana/certs/ca-cert.pem"
+----
 
 [discrete]
-=== Example
+[[host-artifact-registry]]
+== Host your own artifact registry for binary downloads
 
-["source", "sh", subs="attributes"]
+{agent}s must be able to access the {artifact-registry} to download
+binaries during upgrades. By default {agent}s download artifacts from
+`https://artifacts.elastic.co/downloads/`.
+
+To make binaries available in an air-gapped environment, you can host your own
+custom artifact registry, and then configure {agent}s to download binaries
+from it.
+
+. Create a custom artifact registry in a location accessible to your {agent}s:
+.. Download the latest release artifacts from the public {artifact-registry} at
+`https://artifacts.elastic.co/downloads/`. For example, the
+following cURL commands download all the artifacts that may be needed to upgrade
+{agent}s running on Linux. The exact list depends on which integrations you're
+using.
++
+["source","shell",subs="attributes"]
 ----
-elastic-agent upgrade {version} --source-uri https://myinternaldomain.com/elastic-agent/elastic-agent-{version}-<platform>-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/apm-server/apm-server-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/apm-server/apm-server-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/apm-server/apm-server-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/beats/auditbeat/auditbeat-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/beats/auditbeat/auditbeat-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/beats/auditbeat/auditbeat-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/beats/elastic-agent/elastic-agent-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/beats/filebeat/filebeat-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/beats/heartbeat/heartbeat-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/beats/metricbeat/metricbeat-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/beats/osquerybeat/osquerybeat-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/beats/osquerybeat/osquerybeat-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/beats/osquerybeat/osquerybeat-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/beats/packetbeat/packetbeat-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/cloudbeat/cloudbeat-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/cloudbeat/cloudbeat-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/cloudbeat/cloudbeat-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/endpoint-dev/endpoint-security-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/endpoint-dev/endpoint-security-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/endpoint-dev/endpoint-security-{version}-linux-x86_64.tar.gz.asc
+curl -O https://artifacts.elastic.co/downloads/fleet-server/fleet-server-{version}-linux-x86_64.tar.gz
+curl -O https://artifacts.elastic.co/downloads/fleet-server/fleet-server-{version}-linux-x86_64.tar.gz.sha512
+curl -O https://artifacts.elastic.co/downloads/fleet-server/fleet-server-{version}-linux-x86_64.tar.gz.asc
 ----
+.. On your HTTP file server, group the artifacts into directories and
+sub-directories that follow the same convention used by the {artifact-registry}:
++
+[source,shell]
+----
+<source_uri>/<artifact_type>/<artifact_name>-<version>-<arch>-<package_type>
+----
++
+Where `<artifact_type>` may be `beats/elastic-agent`, `beats/filebeat`,
+`fleet-server`, `endpoint-dev`, and so on.
++
+[TIP]
+====
+Make sure you have a plan or automation in place to update your artifact
+registry when new versions of {agent} are available.
+====
+. Add the agent binary download location to {fleet} settings:
+.. In {kib}, go to **{fleet} -> Settings**.
+.. Under **Agent Binary Download**, click **Add agent binary source** to add
+the location of your artifact registry. For more detail about these settings,
+refer to <<fleet-agent-binary-download-settings>>. If you want all {agent}s
+to download binaries from this location, set it as the default. 
+. If your artifact registry is not the default, edit your agent policies to
+override the default:
+.. Go to **{fleet} -> Agent policies** and click the policy name to edit it.
+.. Click **Settings**.
+.. Under **Agent Binary Download**, select your artifact registry.
++
+When you trigger an upgrade for any {agent}s enrolled in the policy, the
+binaries are downloaded from your artifact registry instead of the
+public repository.
+
+**Not using {fleet}?** For standalone {agent}s, you can set the binary download
+location under `agent.download.sourceURI` in the
+<<elastic-agent-reference-yaml,`elastic-agent.yml`>> file, or run the
+<<elastic-agent-upgrade-command,`elastic-agent upgrade`>> command
+with the `--source-uri` flag specified. 

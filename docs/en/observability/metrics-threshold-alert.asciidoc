@@ -1,25 +1,25 @@
 [[metrics-threshold-alert]]
 = Create a metrics threshold rule
 
-Based on the metrics that are listed on the *Metrics Explorer* page within the {metrics-app},
+Based on the metrics that are listed on the **Metrics Explorer** page within the {infrastructure-app},
 you can create a threshold rule to notify you when a metric has reached or exceeded a value for a specific
 time period.
 
 Additionally, each rule can be defined using multiple
 conditions that combine metrics and thresholds to create precise notifications.
 
-. To access this page, go to *Observability > Metrics*.
-. On the *Inventory* page or the *Metrics Explorer* page, click *Alerts > Metrics*.
-. Select *Create threshold alert*.
+. To access this page, go to **{observability}** -> **Infrastructure**.
+. On the **Inventory** page or the **Metrics Explorer** page, click **Alerts and rules** -> **Metrics**.
+. Select **Create threshold alert**.
 
 [TIP]
 =====
 When you select *Create threshold alert*, the rule is automatically populated with the same parameters
 you've configured on the *Metrics Explorer* page. If you've chosen a *graph per* value, your rule is
-pre-configured to monitor and notify about each individual graph displayed on the page.
+preconfigured to monitor and notify about each individual graph displayed on the page.
 
-You can also create a rule based on a single graph. On the *Metrics Explorer* page,
-click *Actions > Create alert*. The condition and filter sections of the threshold rule
+You can also create a rule based on a single graph. On the **Metrics Explorer** page,
+click **Alerts and rules** -> **Create alert**. The condition and filter sections of the threshold rule
 are automatically populated.
 =====
 
@@ -74,54 +74,19 @@ image::images/run-when-selection.png[Configure when a rule is triggered]
 [discrete]
 == Action variables
 
-This section details the variables that metrics threshold rules will send to your actions.
-
-[discrete]
-=== Basic variables
-
-[role="screenshot"]
-image::images/basic-variables.png[The default metrics threshold rule message detailing basic variables]
-
-The default message for a metrics threshold rule displays the basic variables you can use.
-
-- `context.group`: This variable resolves to the **group** that the rule conditions detected.
-For Inventory rules, this is the name of a monitored host, pod, container, and so on. For metric threshold rules,
-this is the value of the field specified in the **Create alert per** field or `*` if the rule is configured
-to aggregate your entire infrastructure.
-- `context.alertState`: Depending on why the action is triggered, this variable resolves to `ALERT`, `NO DATA`,
-or `ERROR`. `ALERT` means the rule condition is detected, `NO DATA` means that no data was returned for the
-time period that the rule queried, and `ERROR` indicates an error when querying the data.
-- `context.reason`: This variable describes why the rule is in its current state. For each of the rule
-conditions, it includes the **detected value** of the monitored **metric**, and a description of the **threshold**.
-- `context.timestamp`: This variable resolves to the timestamp of when the rule was evaluated.
-
-[discrete]
-=== Advanced variables
+Use the default notification message or customize it.
+You can add more context to the message by clicking the icon above the message text box
+and selecting from a list of available variables.
 
 [role="screenshot"]
-image::images/advanced-variables.png[The default metrics threshold rule message detailing advanced variables]
-
-Instead of using `context.reason` to provide all the information you need, there may be cases when you’d like
-to customize your action message. Metrics threshold rules provide advanced context variables that have a tree structure.
-
-[IMPORTANT]
-==============================================
-These variables must use the structure of `{{context.[Variable Name].condition[Number]}}`. For example,
-`{{context.value.condition0}}`, `{{context.value.condition1}}`, and so on. This is required even if your
-rule has only one condition (accessible with `.condition0`). Using just `{{context.[Variable Name]}}` evaluates
-to a blank line or `[object Object]` depending on the action type.
-==============================================
-
-- `context.value.condition[X]`: This variable resolves to the detected value of conditions 0, 1, 2, and so on.
-- `context.value.threshold[X]`: This variable resolves to the threshold values of conditions 0, 1, 2, and so on.
-- `context.value.metric[X]`: This variable resolves to the monitored metric of conditions 0, 1, 2, and so on.
+image::images/metrics-threshold-alert-default-message.png[Default notification message for metrics threshold rules with open "Add variable" popup listing available action variables,width=600]
 
 [discrete]
 [[metrics-alert-settings]]
 == Settings
 
 With metrics threshold rules, it's not possible to set an explicit index pattern as part of the configuration. The index pattern is instead inferred from
-*Metrics indices* on the <<configure-settings,Settings>> page of the {metrics-app}.
+*Metrics indices* on the <<configure-settings,Settings>> page of the {infrastructure-app}.
 
 With each execution of the rule check, the *Metrics indices* setting is checked, but it is not stored when the rule is created.
 

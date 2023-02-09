@@ -1,0 +1,66 @@
+name: Add PR to obs-docs board
+on:
+  pull_request_target:
+    types: [review_requested]
+    branches:
+      - 'main'
+jobs:
+  specific_review_requested:
+    name: Adding
+    runs-on: ubuntu-latest
+    # The steps below only run for PRs where `obs-docs` has been added as a reviewer
+    if: ${{ github.event.requested_team.name == 'obs-docs'}}
+    steps:
+      - name: Get token
+        id: get_token
+        uses: elastic/actions-app-token@master
+        with:
+          APP_PEM: ${{ secrets.OBS_DOCS_AUTOMATION_PRIVATE_KEY }}
+          APP_ID: 203735
+      - name: Add PR to board
+        uses: octokit/graphql-action@v2.x
+        id: add_pr_to_board
+        with:
+          query: |
+            mutation($project:ID!, $pull_request:ID!){
+              addProjectV2ItemById(input:{projectId:$project contentId:$pull_request}) {
+                item {
+                  ... on ProjectV2Item {
+                    id
+                  }
+                }
+              }
+            }
+          project: ${{ env.PROJECT_ID }}
+          pull_request: ${{ github.event.pull_request.node_id }}
+        env:
+          PROJECT_ID: "PVT_kwDOAGc3Zs0iZw"
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}
+      - name: Move PR to review column
+        uses: octokit/graphql-action@v2.x
+        id: move_pr_to_review_column
+        with:
+          headers: '{"GraphQL-Features": "projects_next_graphql"}'
+          query: |
+            mutation label_team($project:ID!, $item:ID!, $field:ID!, $value:String!){
+              updateProjectV2ItemFieldValue(input: { projectId:$project itemId:$item fieldId:$field value:{singleSelectOptionId: $value} }) {
+                projectV2Item {
+                  id
+                  content {
+                    ... on PullRequest {
+                      number
+                    }
+                  }
+                }
+              }
+            }
+          project: ${{ env.PROJECT_ID }}
+          # `item` is the ID returned by the previous step
+          item: ${{ fromJSON(steps.add_pr_to_board.outputs.data).addProjectV2ItemById.item.id }}
+          # This is the ID for the project "status" attribute
+          field: "PVTSSF_lADOAGc3Zs0iZ84AAQIU"
+          # This is the ID for the status sub-attribute "In Review"
+          value: "2d732740"
+        env:
+          PROJECT_ID: "PVT_kwDOAGc3Zs0iZw"
+          GITHUB_TOKEN: ${{ steps.get_token.outputs.app_token }}

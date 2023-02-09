@@ -1,0 +1,39 @@
+NOTE: You can find {agent} Docker images https://www.docker.elastic.co/r/beats/elastic-agent[here].
+
+Download the manifest file:
+
+["source", "sh", subs="attributes"]
+------------------------------------------------
+curl -L -O {manifest}
+------------------------------------------------
+
+NOTE: You might need to adjust https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/[resource limits] of the {agent} container in the manifest. Container resource usage depends on the number of data streams and the environment size.
+
+This manifest includes the Kubernetes integration to collect Kubernetes metrics and System integration to collect system level metrics and logs from nodes.
+
+The {agent} is deployed as a https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[DaemonSet]
+to ensure that there is a running instance on each node of the cluster. These instances are used to retrieve most metrics from the host, such as system metrics, Docker stats, and metrics from all the services running on top of Kubernetes. These metrics are accessed through the deployed `kube-state-metrics`. Notice that everything is deployed under the `kube-system` namespace by default. To change the namespace, modify the manifest file.
+
+Moreover, one of the Pods in the DaemonSet will constantly hold a _leader lock_ which makes it responsible for
+handling cluster-wide monitoring. You can find more information about leader election configuration options at <<kubernetes_leaderelection-provider, leader election provider>>. The leader pod will retrieve metrics that are unique for the whole cluster, such as Kubernetes events or https://github.com/kubernetes/kube-state-metrics[kube-state-metrics].
+ifeval::["{show-condition}"=="enabled"]
+We make sure that these metrics are retrieved from the leader pod by applying the following <<elastic-agent-kubernetes-autodiscovery, condition>> in the manifest, before declaring the data streams with these metricsets:
+
+[source,yaml]
+------------------------------------------------
+...
+inputs:
+  - id: kubernetes-cluster-metrics
+    condition: ${kubernetes_leaderelection.leader} == true
+    type: kubernetes/metrics
+    # metricsets with the state_ prefix and the metricset event
+...
+------------------------------------------------
+endif::[]
+
+For Kubernetes Security Posture Management (KSPM) purposes, the {agent} requires read access to various types of Kubernetes resources, node processes, and files.
+To achieve this, read permissions are granted to the {agent} for the necessary resources, and volumes from the hosting node's file system are mounted to allow accessibility to the {agent} pods.
+
+TIP: The size and the number of nodes in a Kubernetes cluster can be fairly large at times, and in such cases the Pod that will be collecting cluster level metrics might face performance issues due to resources limitations. In this case users might consider to avoid using the leader election strategy and instead run a dedicated, standalone {agent} instance using a Deployment in addition to the DaemonSet.
+
+

@@ -15,6 +15,34 @@ pull_request_rules:
             git merge upstream/{{base}}
             git push upstream {{head}}
             ```
+  - name: backport patches to 8.3 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.3
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.3"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+        labels:
+          - backport
+  - name: backport patches to 8.2 branch
+    conditions:
+      - merged
+      - base=main
+      - label=backport-8.2
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.2"
+        title: "[{{ destination_branch }}] {{ title }} (backport #{{ number }})"
+        labels:
+          - backport
   - name: backport patches to 8.1 branch
     conditions:
       - merged
@@ -121,3 +149,55 @@ pull_request_rules:
       comment:
         message: |
           This pull request has not been merged yet. Could you please review and merge it @{{ assignee | join(', @') }}? 🙏
+  - name: backport patches to 8.4 branch
+    conditions:
+      - merged
+      - label=backport-8.4
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.4"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}](backport #{{ number }}) {{ title }}"
+  - name: backport patches to 8.5 branch
+    conditions:
+      - merged
+      - label=backport-8.5
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.5"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}](backport #{{ number }}) {{ title }}"
+  - name: backport patches to 8.6 branch
+    conditions:
+      - merged
+      - label=backport-8.6
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.6"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}](backport #{{ number }}) {{ title }}"
+  - name: backport patches to 8.7 branch
+    conditions:
+      - merged
+      - label=backport-8.7
+    actions:
+      backport:
+        assignees:
+          - "{{ author }}"
+        branches:
+          - "8.7"
+        labels:
+          - "backport"
+        title: "[{{ destination_branch }}](backport #{{ number }}) {{ title }}"
