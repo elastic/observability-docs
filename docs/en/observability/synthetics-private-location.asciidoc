@@ -1,5 +1,28 @@
 [[synthetics-private-location]]
-= Add a private location
+= Monitor resources on private networks
+
+To monitor resources on private networks you can either:
+
+* Allow Elastic's global managed infrastructure to access your private endpoints.
+* Use {agent} to create a Private Location.
+
+Private Locations via Elastic Agent require only outbound connections from your network, while allowing Elastic's global managed infrastructure to access a private endpoint requires
+inbound access, thus posing an additional risk that users must assess.
+
+[discrete]
+[[monitor-via-access-control]]
+= Allow access to your private network
+
+To give Elastic's global managed infrastructure access to a private endpoint, use IP address filtering, HTTP authentication, or both.
+
+To grant access via IP, use https://manifest.synthetics.elastic-cloud.com/v1/ip-ranges.json[this list of egress IPs].
+The addresses and locations on this list may change, so automating updates to
+filtering rules is recommended. IP filtering alone will allow all users of Elastic's global managed infrastructure access to your endpoints, if this
+is a concern consider adding additional protection via user/password authentication via a proxy like nginx.
+
+[discrete]
+[[monitor-via-private-agent]]
+= Monitor via a private agent
 
 IMPORTANT: This is only relevant to monitors created using the Synthetics UI or project monitors.
 
@@ -27,6 +50,7 @@ refer to {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
 [IMPORTANT]
 ====
 A private location should be set up against an agent policy that runs on a single {agent}.
+The {agent} must be **enrolled in Fleet** (Private Locations cannot be set up using **standalone** {agents}).
 Do _not_ run the same agent policy on multiple agents being used for private locations, as you may
 end up with duplicate or missing tests. Private locations do not currently load balance tests across
 multiple {agents}. See <<synthetics-private-location-scaling>> for information on increasing the capacity
