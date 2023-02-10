@@ -29,10 +29,11 @@ refer to {fleet-guide}/agent-policy.html#create-a-policy[{agent} policy].
 A private location should be set up against an agent policy that runs on a single {agent}.
 Do _not_ run the same agent policy on multiple agents being used for private locations, as you may
 end up with duplicate or missing tests. Private locations do not currently load balance tests across
-multiple {agents}.
+multiple {agents}. See <<synthetics-private-location-scaling>> for information on increasing the capacity
+within a private location.
 
-Any private location can only run two tests simultaneously.
-As a result, if more than two tests are assigned to a particular private location, there may be a small delay to run them.
+By default private locations are configured to allow two simultaneous browser tests and an unlimited number of lightweight checks.
+As a result, if more than two browser tests are assigned to a particular private location, there may be a delay to run them.
 ====
 
 [discrete]
@@ -120,9 +121,26 @@ When the {agent} is running you can add a new private location in {kib}:
 . Click **Save**. 
 
 [discrete]
+[[synthetics-private-location-scaling]]
+= Scaling private locations
+
+By default private locations are configured to allow two simultaneous browser tests, and an unlimited number of lightweight checks. 
+These limits can be set via the environment variables `SYNTHETICS_LIMIT_{TYPE}`, where `{TYPE}` is one of `BROWSER`, `HTTP`, `TCP`, and `ICMP` 
+for the container running the {agent} docker image. 
+
+It is critical to allocate enough memory and CPU capacity to handle configured limits. 
+Start by allocating at least 2 GiB of memory and two cores per browser instance to ensure consistent
+performance and avoid out-of-memory errors. Then adjust as needed. Resource requirements will vary depending on workload. 
+Much less memory is needed for lightweight monitors. Start by allocating at least 512MiB of memory and two cores for 
+lightweight checks. Then increase allocated memory and CPU based on observed usage patterns.
+
+These limits are for simultaneous tests, not total tests. For example, if
+60 browser tests were scheduled to run once per hour and each took 1 minute to run, that would fully occupy one execution slot.
+However, it is a good practice to set up execution slots with extra capacity. A good starting point would be to over-allocate by
+a factor of 5. In the previous example that would mean allocating 5 slots.
+
+[discrete]
 [[synthetics-private-location-next]]
 = Next steps
 
 Now you can add monitors to your private location in <<synthetics-get-started-ui,the {uptime-app}>> or using the <<synthetics-get-started-project,Elastic Synthetics library's `push` method>>.
-
-TIP: You can run the same monitor both from Elastic's global managed infrastructure _and_ your private locations to compare results.
