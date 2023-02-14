@@ -5,28 +5,34 @@ NOTE: The settings described here are configurable through the {fleet} UI. Refer
 {kibana-ref}/fleet-settings-kb.html[{fleet} settings in {kib}] for a list of
 settings that you can configure in the `kibana.yml` configuration file.
 
-Configure {fleet} settings to apply global settings to all {agent}s enrolled in
-{fleet}:
+// lint ignore fleet
+On the **Settings** tab in **Fleet**, you can configure global settings available
+to all {agent}s enrolled in {fleet}. This includes {fleet-server} hosts and
+output settings.
 
-. In {kib}, open the main menu, then click *Management > {fleet}*.
+[discrete]
+[[fleet-server-hosts-setting]]
+== {fleet-server} host settings
 
-. Click *{fleet} settings*
-+
---
-[cols="2*<a"]
-|===
-|
-[id="fleet-server-hosts-setting"]
-*{fleet-server} hosts*
+Click **Edit hosts** and specify the host URLs your {agent}s will use to connect
+to a {fleet-server}.
 
-| The URLs your {agent}s will use to connect to a {fleet-server}. This setting
-is required. On self-managed clusters, you must specify one or more URLs. On
-{ecloud}, this field is populated automatically.
+TIP: If the **Edit hosts** option is grayed out, {fleet-server} hosts
+are configured outside of {fleet}. For more information, refer to
+{kibana-ref}/fleet-settings-kb.html[{fleet} settings in {kib}].
+
+Not sure if {fleet-server} is running? Refer to <<add-a-fleet-server>>.
+
+On self-managed clusters, you must specify one or more URLs.
+
+On {ecloud}, this field is populated automatically. If you are using
+Azure Private Link, GCP Private Service Connect, or AWS PrivateLink and
+enrolling the {agent} with a private link URL, ensure that this setting is
+configured. Otherwise, {agent} will reset to use a default address instead of
+the private link URL.
 
 NOTE: If a URL is specified without a port, {kib} sets the port to `80` (http)
 or `443` (https).
-
-//TODO: Find out what we need to say about IPv6 addresses.
 
 By default, {fleet-server} is typically exposed on the following ports:
 
@@ -34,34 +40,68 @@ By default, {fleet-server} is typically exposed on the following ports:
 Default {fleet-server} port for self-managed clusters
 
 `443` or `9243`::
-Default {fleet-server} port for {ecloud}. Look at *{fleet} settings*
-to see the actual port that's used.
+Default {fleet-server} port for {ecloud}. View the {fleet} **Settings** tab
+to find the actual port that's used.
 
 IMPORTANT: The exposed ports must be open for ingress and egress in the firewall and
 networking rules on the host to allow {agent}s to communicate with {fleet-server}.
 
-Specify multiple URLs to scale out your deployment and provide automatic
-failover.
-
-If multiple URLs exist, {fleet} shows the first provided URL for enrollment
-purposes. Enrolled {agent}s will connect to the URLs in round robin order until
-they connect successfully. 
-
+Specify multiple URLs (click **Add row**) to scale out your deployment and provide
+automatic failover. If multiple URLs exist, {fleet} shows the first provided URL
+for enrollment purposes. Enrolled {agent}s will connect to the URLs in round
+robin order until they connect successfully. 
 
 When a {fleet-server} is added or removed from the list, all agent policies
 are updated automatically.
 
-*Examples:*
+**Examples:**
 
 * `https://192.0.2.1:8220`
 * `https://abae718c1276457893b1096929e0f557.fleet.eu-west-1.aws.qa.cld.elstc.co:443`
 * `https://[2001:db8::1]:8220`
 
-// =============================================================================
+[discrete]
+[[output-settings]]
+== Output settings
 
+Add or edit output settings to specify where {agent}s send data. {agent}s
+use the default output if you don't select an output in the agent policy.
+
+
+NOTE: The {ecloud} internal output is locked and cannot be edited. This
+output is used for internal routing to reduce external network charges when
+using the {ecloud} agent policy. It also provides visibility for
+troubleshooting on {ece}.
+
+To add or edit an output:
+
+. Go to **{fleet} -> Settings**.
+
+. Under **Outputs**, click **Add output** or **Edit**.
+
+. Set the output name and type.
+
+. Specify settings for the output type you selected:
++
+* <<es-output-settings>>
+* <<ls-output-settings>>
+
+TIP: If the options for editing an output are grayed out, outputs
+are configured outside of {fleet}. For more information, refer to
+{kibana-ref}/fleet-settings-kb.html[{fleet} settings in {kib}].
+
+
+[discrete]
+[[es-output-settings]]
+=== {es} output settings
+
+Specify these settings to send data over a secure connection to {es}.
+
+[cols="2*<a"]
+|===
 |
-[id="es-hosts-setting"]
-*{es} hosts*
+[id="es-output-hosts-setting"]
+**Hosts**
 
 | The {es} URLs where {agent}s will send data. By default, {es} is exposed
 on the following ports:
@@ -72,25 +112,167 @@ Default {es} port for self-managed clusters
 `443`::
 Default {es} port for {ecloud}
 
-*Examples:*
+**Examples:**
 
 * `https://192.0.2.0:9200`
 * `https://1d7a52f5eb344de18ea04411fe09e564.fleet.eu-west-1.aws.qa.cld.elstc.co:443`
 * `https://[2001:db8::1]:9200`
 
+// =============================================================================
+
+|
+[id="es-trusted-fingerprint-yaml-setting"]
+**{es} CA trusted fingerprint**
+
+| HEX encoded SHA-256 of a CA certificate. If this certificate is
+present in the chain during the handshake, it will be added to the
+`certificate_authorities` list and the handshake will continue
+normally. To learn more about trusted fingerprints, refer to the
+{ref}/configuring-stack-security.html[{es} security documentation].
 
 // =============================================================================
 
 |
-[id="es-output-configuration-setting"]
-*{es} output configuration (YAML)*
+[id="es-output-advanced-yaml-setting"]
+**Advanced YAML configuration**
 
-| YAML settings that will be added to the {es} output section
-of each policy. This setting allows you to specify global output settings for
-all {agent}s enrolled in {fleet}. Make sure you specify valid YAML. The UI does
-not currently provide validation.
+| YAML settings that will be added to the {es} output section of each policy
+that uses this output. Make sure you specify valid YAML. The UI does not
+currently provide validation.
+
+// =============================================================================
+
+|
+[id="es-agent-integrations-output"]
+**Make this output the default for agent integrations**
+
+| When this setting is on, {agent}s use this output to send data if no other
+output is set in the agent policy.
+
+// =============================================================================
+
+|
+[id="es-agent-monitoring-output"]
+**Make this output the default for agent monitoring**
+
+| When this setting is on, {agent}s use this output to send agent monitoring
+data if no other output is set in the agent policy.
+
+Sending monitoring data to a remote {es} cluster is currently not supported.
+|===
+
+[discrete]
+[[ls-output-settings]]
+=== {ls} output settings
+
+Specify these settings to send data over a secure connection to {ls}. You must
+also configure a {ls} pipeline that reads encrypted data from {agent}s and sends
+the data to {es}. Follow the in-product steps to configure the {ls} pipeline.
+
+To learn how to generate certificates, refer to <<secure-logstash-connections>>.
+
+[cols="2*<a"]
+|===
+|
+[id="ls-logstash-hosts"]
+**{ls} hosts**
+
+| The addresses your {agent}s will use to connect to {ls}. Use the format
+`host:port`. Click **add** row to specify additional {ls} addresses.
+
+**Examples:**
+
+* `192.0.2.0:5044`
+* `mylogstashhost:5044`
+
+// =============================================================================
+
+|
+[id="ls-server-ssl-certificate-authorities-setting"]
+**Server SSL certificate authorities**
+
+| The CA certificate to use to connect to {ls}. This is the CA used to generate
+the certificate and key for {ls}. Copy and paste in the full contents for the CA
+certificate.
+
+This setting is optional.
+
+// =============================================================================
+
+|
+[id="ls-client-ssl-certificate-setting"]
+**Client SSL certificate**
+
+| The certificate generated for the client. Copy and paste in the full contents
+of the certificate. This is the certificate that all the agents will use to connect to {ls}.
+
+In cases where each client has a unique certificate, the local path to that certificate can be
+placed here. The agents will pick the certificate in that location when establishing a connection to
+{ls}.
+
+// =============================================================================
+
+|
+[id="ls-client-ssl-certificate-key-setting"]
+**Client SSL certificate key**
+
+| The private key generated for the client. This must be in PKCS 8 key.
+Copy and paste in the full contents of the certificate key. This is the certificate key that all the agents will use to connect to {ls}.
+
+In cases where each client has a unique certificate key, the local path to that certificate key can be placed here.
+The agents will pick the certificate key in that location when establishing a connection to {ls}.
+
+// =============================================================================
+
+|
+[id="ls-output-advanced-yaml-setting"]
+**Advanced YAML configuration**
+
+| YAML settings that will be added to the {ls} output section of each policy
+that uses this output. Make sure you specify valid YAML. The UI does not
+currently provide validation.
+
+// =============================================================================
+
+|
+[id="ls-agent-integrations-output"]
+**Make this output the default for agent integrations**
+
+| When this setting is on, {agent}s use this output to send data if no other
+output is set in the agent policy.
+
+// =============================================================================
+
+|
+[id="ls-agent-monitoring-output"]
+**Make this output the default for agent monitoring**
+
+| When this setting is on, {agent}s use this output to send agent monitoring
+data if no other output is set in the agent policy.
 
 |===
---
 
-. Save and apply the settings.
+[discrete]
+[[fleet-agent-binary-download-settings]]
+== Agent binary download settings
+
+{agent}s must be able to access the {artifact-registry} to download
+binaries during upgrades. By default {agent}s download artifacts from the
+artifact registry at `https://artifacts.elastic.co/downloads/`.
+
+For {agent}s that cannot access the internet, you can specify agent binary
+download settings, and then configure agents to download their artifacts from
+the alternate location. For more information about running {agent}s in a
+restricted environment, refer to <<air-gapped>>.
+
+To add or edit the source of binary downloads:
+
+. Go to **{fleet} -> Settings**.
+. Under **Agent Binary Download**, click **Add agent binary source** or **Edit**.
+. Set the agent binary source name.
+. For **Host**, specify the address where you are hosting the artifacts
+repository.
+. (Optional) To make this location the default, select
+**Make this host the default for all agent policies**. {agent}s
+use the default location if you don't select a different agent binary source
+in the agent policy.

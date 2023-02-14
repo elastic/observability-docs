@@ -20,23 +20,13 @@ For feedback and questions, please contact us in the {forum}[discuss forum].
 [[fleet-prereqs-traces]]
 == Prerequisites
 
-* You need {es} for storing and searching your data, and {kib} for visualizing and
-managing it. You can use our
-{ess-product}[hosted {ess}]
-on {ecloud} (recommended), or self-manage the {stack} on your own hardware.
-+
+You need {es} for storing and searching your data, and {kib} for visualizing and
+managing it. You can use our {ess-product}[hosted {ess}] on {ecloud}
+(recommended), or self-manage the {stack} on your own hardware.
+
 Here's what you need for each deployment type:
-+
---
+
 include::../ingest-management/tab-widgets/prereq-widget.asciidoc[]
---
-
-* An internet connection is required for {kib} to download integration packages
-from the Elastic Package Registry. Make sure the {kib} server can connect to
-`https://epr.elastic.co` on port `443`.
-
-* {fleet} is currently only available to users with the
-{ref}/built-in-roles.html[superuser role].
 
 [discrete]
 [[set-up-fleet-traces]]
@@ -51,20 +41,37 @@ include::../ingest-management/tab-widgets/add-fleet-server/widget.asciidoc[]
 
 For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
 
+NOTE: The APM integration does not support running {agent} in standalone mode;
+you must use {fleet} to manage {agent}.
+
+[discrete]
+[[add-apm-integration]]
+== Step 2: Configure the APM integration
+
+{ecloud} runs a hosted version of {integrations-server} that includes the APM integration.
+Self-managed users will need to add the APM integration before configuring it.
+
+include::./tab-widgets/add-apm-integration/widget.asciidoc[]
+
 [discrete]
 [[add-agent-to-fleet-traces]]
-== Step 2: Add an {agent} to {fleet}
+== Step 3: Install and run an {agent} on your machine
 
-[TIP]
-====
-Don't confuse {agent} with APM agents–they are different components.
+****
+This step is optional for {ess} users as {ecloud} spins up an {agent} instance automatically.
+Unless you want to run a separate {agent} on an edge machine, {ess} users should skip this step.
+****
+
+{agent} is a single, unified way to add monitoring for logs, metrics, and other
+types of data to a host. It can also protect hosts from security threats, query
+data from operating systems, forward data from remote services or hardware, and
+more. A single agent makes it easier and faster to deploy monitoring across your
+infrastructure. Each agent has a single policy you can update to add
+integrations for new data sources, security protections, and more.
+
+Don't confuse {agent} with APM agents--they are different components.
 In a later step, you'll instrument your code with APM agents and send the data
 to an APM Server instance that {agent} spins up.
-====
-
-{agent} is a single, unified agent that you can deploy to hosts or containers to
-collect data and send it to the {stack}. Behind the scenes, {agent} runs the
-{beats} shippers or Elastic Endpoint required for your configuration.
 
 If you plan on enabling Real User Monitoring (RUM), you must run {agent} centrally.
 If RUM is disabled, you should run {agent} on edge machines.
@@ -73,52 +80,6 @@ To send APM data to the {stack}:
 
 include::../ingest-management/elastic-agent/install-fleet-managed-elastic-agent.asciidoc[tag=agent-enroll]
 
-[discrete]
-[[add-apm-integration]]
-== Step 3: Add the APM integration
-
-Next, you'll browse a catalog of integrations, then add an APM integration to
-the default policy used by your agent. You use policies to manage settings
-across a group of agents. An agent policy may contain any number of integrations
-for collecting observability data from the various services running on your
-host.
-
-. In {kib}, select **Add integrations**.
-+
-[role="screenshot"]
-image::images/kibana-fleet-integrations-apm.png[{fleet} showing APM integration]
-. Click the **Elastic APM** integration to see more details about it, then click
-**Add Elastic APM**.
-+
-[role="screenshot"]
-image::images/kibana-fleet-integrations-apm-overview.png[{fleet} showing APM integration overview]
-
-. On the **Add Elastic APM integration** page,
-define the host and port where APM Server will listen.
-If you're using our hosted **Elastic Cloud** offering, the URL where APM Server listens will be predefined.
-Inspect or change other settings.
-
-. Under **Apply to agent policy**, select the default policy.
-Click **Save and continue**.
-+
-****
-In this guide, you add integrations to the default policy created by
-{kib}. After you learn the basics, you can create your own policies and assign
-them to agents.
-****
-+
-[role="screenshot"]
-image::images/add-integration-apm.png[{fleet} Add APM integration page]
-
-. To see the updated policy, click the *Default policy* link.
-+
-The newly added APM integration should appear under **Fleet** > **Agent policies** > **Default policy**,
-along with the default System integration.
-+
-[role="screenshot"]
-image::images/kibana-fleet-policies-default-with-apm.png[{fleet} showing default agent policy with apm-1 datasource]
-+
-All {agent}s that use this policy will collect APM data from your instrumented services.
 
 [discrete]
 [[add-apm-integration-agents]]
@@ -128,7 +89,7 @@ APM agents are written in the same language as your service.
 To monitor a new service, you must install the agent and configure it with a service name,
 APM Server host, and Secret token.
 
-* **Service name**: The APM integration maps an instrumented service's name–defined in each APM agent's configuration–
+* **Service name**: The APM integration maps an instrumented service's name–defined in each {apm-agent}'s configuration–
 to the index that its data is stored in {es}.
 Service names are case-insensitive and must be unique.
 For example, you cannot have a service named `Foo` and another named `foo`.
@@ -137,7 +98,7 @@ Special characters will be removed from service names and replaced with undersco
 * **APM Server URL**: The host and port that APM Server listens for events on.
 This should match the host and port defined when setting up the APM integration.
 
-* **Secret token**: Authentication method for APM agent and APM Server communication.
+* **Secret token**: Authentication method for {apm-agent} and APM Server communication.
 This should match the secret token defined when setting up the APM integration.
 
 TIP: You can edit your APM integration settings if you need to change the APM Server URL
@@ -158,7 +119,7 @@ endif::[]
 [[view-apm-integration-data]]
 == Step 5: View your data
 
-Back in {kib}, under Observability, select APM.
+Back in {kib}, under {observability}, select APM.
 You should see application performance monitoring data flowing into the {stack}!
 
 NOTE: The built-in `apm_user` role is not compatible with the APM integration
@@ -167,7 +128,9 @@ For a list of indices users need access to, refer to
 {apm-guide-ref}/apm-data-streams.html[APM data streams]
 
 [role="screenshot"]
-image::images/kibana-apm-sample-data.png[APM app with data]
+image::images/kibana-apm-sample-data.png[{apm-app} with data]
+
+Not seeing any data? Review our list of {apm-guide-ref}/common-problems.html[common problems] for helpful tips.
 
 [discrete]
 == What's next?
@@ -184,7 +147,7 @@ just another integration that you add to the agent policy!
 {observability-guide}/create-alerts.html[Create alerts] and find out about
 problems while sipping your favorite beverage poolside.
 
-* Want Elastic to do the heavy lifting? Use machine learning to
+* Want Elastic to do the heavy lifting? Use {ml} to
 {observability-guide}/inspect-log-anomalies.html[detect anomalies].
 
 * Got everything working like you want it? Roll out your agent policies to

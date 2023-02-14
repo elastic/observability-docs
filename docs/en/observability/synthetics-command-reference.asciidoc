@@ -5,24 +5,22 @@
 <titleabbrev>Command reference</titleabbrev>
 ++++
 
+beta[]
+
 [discrete]
 [[elastic-synthetics-command]]
-== `elastic-synthetics`
+= `elastic-synthetics`
 
-beta[] Heartbeat uses the `npx @elastic/synthetics` command to run and report synthetic tests.
+{heartbeat} uses the `npx @elastic/synthetics` command to run and report synthetic tests.
 It can also be used locally to help develop your tests.
-
-*SYNOPSIS*
 
 [source,sh]
 ----
 npx @elastic/synthetics [options] [files] [dir]
 ----
 
-*FLAGS*
-
 You will not need to use most command line flags -- they have been implemented
-purely to interact with Heartbeat.
+purely to interact with {heartbeat}.
 However, there are some you may find useful.
 They are documented below.
 
@@ -33,7 +31,7 @@ Prints debug info.
 Filters journey with the name or a matching tag.
 
 *`--tags <name...>`*::
-Filters journey with the given tag(s)
+Filters journey with the given tag(s).
 
 *`--reporter`*::
 One of `junit`, `default`, or `json`. Use the JUnit reporter to provide easily parsed output to CI
@@ -44,10 +42,111 @@ Runs with the browser in headful mode.
 
 *`--inline`*::
 Instead of reading from a file, `cat` inline scripted journeys and pipe them through `stdin`.
-For example, `cat path/to/file.js | npx @elastic/synthetics --inline`
+For example, `cat path/to/file.js | npx @elastic/synthetics --inline`.
+
+*`--playwright-options <jsonstring>`*::
+JSON object to pass in custom Playwright options for the agent.
+Options passed will be merged with Playwright options defined in your synthetics.config.js file. Options defined via `--playwright-options` 
+take precedence.
 
 *`--screenshots <on|off|only-on-failure>`*::
 Captures screenshots for every step in the journey.
 
 *`-h, --help`*::
 Shows help for the `npx @elastic/synthetics` command.
+
+[discrete]
+[[elastic-synthetics-init-command]]
+= `elastic-synthetics init`
+
+Scaffold a new project using Elastic Synthetics.
+
+This will create a template Node.js project that includes the synthetics agent, required dependencies,
+a synthetics configuration file, and example journey files.
+These journeys can be edited and then pushed to {kib} to create monitors.
+
+[source,sh]
+----
+npx @elastic/synthetics init <name-of-project>
+----
+
+[discrete]
+[[elastic-synthetics-push-command]]
+= `elastic-synthetics push`
+
+Create monitors in {kib} by using your local journeys.
+
+[source,sh]
+----
+npx @elastic/synthetics push --auth <api-key> --url <kibana-url> --project <id|name>
+----
+
+[NOTE]
+====
+The `push` command includes interactive prompts to prevent you from accidentally deleting or duplicating monitors.
+You will see a prompt when:
+
+* You `push` a project that used to contain one or more monitors but no longer contains any monitors.
+Select `yes` to delete all monitors associated with the project ID being pushed.
+* You `push` a project that's already been pushed using one project ID and then try to `push`
+it using a _different_ ID. Select `yes` to create duplicates of all monitors in the project.
+====
+
+[NOTE]
+====
+If the journey contains external NPM packages other than the `@elastic/synthetics`,
+those packages will be bundled along with the journey code when the `push` command is invoked.
+However there are some limitations when using external packages:
+	
+* Bundled journeys after compression should not be more than 800 Kilobytes.
+* Native node modules will not work as expected due to platform inconsistency. 
+====
+
+`--auth`::
+API key used for {kibana-ref}/api-keys.html[{kib} authentication].
++
+If you are pushing to a <<private-locations,private location>>, you must use an API key generated in 8.4 or higher.
++
+To create an API key, you must be logged into {kib} as a user with the following privileges:
++
+* {ref}/security-privileges.html#privileges-list-cluster[Cluster privileges]: _At least_ one of `manage_own_api_key`, `manage_security`, or `manage_api_key`
+* {kibana-ref}/kibana-privileges.html[{kib} privileges]: 
+** _If using one or more public locations_: `All` for *Synthetics and Uptime* in the *Observability* section.
+** _If using one or more private locations_: `All` for both *Fleet* and *Integrations* in the *Management* section.
+
+`--url`::
+The {kib} URL for the deployment to which you want to upload the monitors.
+
+`--project`::
+A unique id associated with your project.
+It will be used for logically grouping monitors.
+If you used <<elastic-synthetics-init-command, `init` to create a project>>, this is the `<name-of-project>` you specified.
+
+`--yes`::
+The `push` command includes interactive prompts to prevent you from accidentally deleting or duplicating monitors.
+If running the CLI non-interactively, you can override these prompts using the `--yes` option.
+When the `--yes` option is passed to `push`:
++
+* If you `push` a project that used to contain one or more monitors but no longer contains any monitors,
+all monitors associated with the project ID being pushed will be deleted.
+* If you `push` a project that's already been pushed using one project ID and then try to `push`
+it using a _different_ ID, it will create duplicates of all monitors in the project.
+
+[discrete]
+[[elastic-synthetics-locations-command]]
+= `elastic-synthetics locations`
+
+List all available locations for running synthetics monitors.
+
+[source,sh]
+----
+npx @elastic/synthetics locations --url <kibana-host> --auth <api-key>
+----
+
+Run `npx @elastic/synthetics locations` with no flags to list all the available global locations managed by Elastic for running synthetics monitors.
+
+`--url`::
+The {kib} URL for the deployment from which to fetch all available public and private locations.
+
+`--auth`::
+API key used for {kibana-ref}/api-keys.html[{kib} authentication].

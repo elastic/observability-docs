@@ -3,8 +3,17 @@
 [[elastic-agent-cmd-options]]
 = {agent} command reference
 
+++++
+<titleabbrev>Command reference</titleabbrev>
+++++
+
 {agent} provides commands for running {agent}, managing {fleet-server}, and
-doing common tasks:
+doing common tasks.
+
+NOTE: You might need to log in as a root user (or Administrator on Windows) to
+run these commands. After the {agent} service is installed and running, make
+sure you run these commands without prepending them with `./` to avoid
+invoking the wrong binary.
 
 * <<elastic-agent-diagnostics-command,diagnostics>>
 * <<elastic-agent-enroll-command,enroll>>
@@ -13,13 +22,11 @@ doing common tasks:
 * <<elastic-agent-install-command,install>>
 * <<elastic-agent-restart-command,restart>>
 * <<elastic-agent-run-command,run>>
+* <<elastic-agent-status-command,status>>
 * <<elastic-agent-uninstall-command,uninstall>>
 * <<elastic-agent-upgrade-command,upgrade>>
 * <<elastic-agent-version-command,version>>
 //* <<elastic-agent-watch-command,watch>>
-
-NOTE: You might need to log in as a root user (or Administrator on Windows) to
-run these commands.
 
 ++++
 <hr>
@@ -29,26 +36,37 @@ run these commands.
 [[elastic-agent-diagnostics-command]]
 == elastic-agent diagnostics
 
-Gather diagnostics information from the {agent} and applications it's running.
+Gather diagnostics information from the {agent} and component/unit it's running.
+This command produces an archive that contains:
 
-If no options are specified, this command displays version numbers and application metadata.
-
-If `collect` is specified, it produces an archive containing application metadata, configuration information, the policy, and any local logs.
+* version.txt - version information
+* pre-config.yaml - pre-configuration before variable substitution
+* variables.yaml - current variable contexts from providers
+* computed-config.yaml - configuration after variable substitution
+* components.yaml - expected computed components model from the computed-config.yaml
+* state.yaml - current state information of all running components
+* goroutine.txt - goroutine dump
+* heap.txt - memory allocation of live objects
+* allocs.txt - sampling past memory allocations
+* threadcreate.txt - traces led to creation of new OS threads
+* block.txt - stack traces that led to blocking on synchronization primitives
+* mutex.txt - stack traces of holders of contended mutexes
+* components directory - diagnostic information from each running component (content defined by the inputs)
 
 Note that *credentials are not redacted* in the archive; they may appear in plain text in the configuration or policy files inside the archive.
 
-This command is intended for debugging purposes only. The output format and structure of the archive produced by `collect` may change between releases.
+This command is intended for debugging purposes only. The output format and structure of the archive may change between releases.
 
 [discrete]
 === Synopsis
 
 [source,shell]
 ----
-elastic-agent diagnostics [--help] [--output <string>] [global-flags]
-elastic-agent diagnostics collect [--output <string>]
-                                  [--file <string>]
-                                  [--help]
-                                  [global-flags]
+elastic-agent diagnostics [--output <string>]
+                          [--file <string>]
+                          [--timeout <string>]
+                          [--help]
+                          [global-flags]
 ----
 
 [discrete]
@@ -59,8 +77,14 @@ Output format. If using `collect`, specify `json` or `yaml` (the default).
 Otherwise specify `json`, `yaml`, or `human` (the default).
 
 `--file`::
-Output archive name for the `collect` option.
-Defaults to `elastic-agent-diagnostics-<timestamp>.zip` where the timestamp is the current time in UTC.
+When running `collect`, specifies the output archive name. Defaults to `elastic-agent-diagnostics-<timestamp>.zip`, where the timestamp is the current time in UTC.
++
+When running `pprof`, specifies the output file name. Defaults to `stdout`.
+
+`--timeout <string>`::
+The timeout value for the `diagnostics collect` or `diagnostics pprof` command.
+Should be longer then `pprof-duration` as the command needs to gather and process the data.
+Must be a string that can be parsed as a `time.Duration` value (default: `30s + pprof-duration`).
 
 `--help`::
 Show help for the `diagnostics` command.
@@ -122,9 +146,12 @@ elastic-agent enroll --url <string>
                      --enrollment-token <string>
                      [--ca-sha256 <string>]
                      [--certificate-authorities <string>]
+                     [--delay-enroll]
                      [--force]
+                     [--non-interactive]
                      [--help]
                      [--insecure ]
+                     [--tag <string>]
                      [global-flags]
 ----
 
@@ -136,27 +163,31 @@ elastic-agent enroll --fleet-server-es <string>
                      --fleet-server-service-token <string>
                      [--ca-sha256 <string>]
                      [--certificate-authorities <string>]
+                     [--delay-enroll]
                      [--fleet-server-cert <string>] <1>
                      [--fleet-server-cert-key <string>]
                      [--fleet-server-es-ca <string>]
+                     [--fleet-server-es-ca-trusted-fingerprint <string>] <2>
+                     [--fleet-server-es-insecure]
                      [--fleet-server-host <string>]
                      [--fleet-server-insecure-http]
                      [--fleet-server-policy <string>]
                      [--fleet-server-port <uint16>]
                      [--force]
+                     [--non-interactive]
                      [--help]
-                     [--url <string>] <2>
-                     [--fleet-server-es-insecure ] <3>
+                     [--tag <string>] 
+                     [--url <string>] <3>
                      [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
 self-signed certificate with the hostname of the machine. Remote {agent}s
 enrolling into a {fleet-server} with self-signed certificates must specify
 the `--insecure` flag.
-<2> Required when enrolling in a {fleet-server} with custom certificates. The
+<2> Required when using self-signed certificates with {es}.
+<3> Required when enrolling in a {fleet-server} with custom certificates. The
 URL must match the DNS name used to generate the certificate specified by
 `--fleet-server-cert`.
-<3> Required when using self-signed certificate on {es} side.
 
 For more information about custom certificates, refer to <<secure-connections>>.
 
@@ -172,6 +203,11 @@ verification.
 
 `--certificate-authorities <string>`::
 Comma-separated list of root certificates used for server verification.
+
+`--delay-enroll`::
+Delays enrollment to occur on first start of the {agent} service. This setting
+is useful when you don't want the {agent} to enroll until the next reboot or manual start of the service, for
+example, when you're preparing an image that includes {agent}.
 
 `--enrollment-token <string>`::
 Enrollment token to use to enroll {agent} into {fleet}. You can use
@@ -190,6 +226,11 @@ specified {es} URL.
 `--fleet-server-es-ca <string>`::
 Path to certificate authority to use to communicate with {es}.
 
+`--fleet-server-es-ca-trusted-fingerprint <string>`::
+The SHA-256 fingerprint (hash) of the certificate authority used to self-sign {es} certificates.
+This fingerprint will be used to verify self-signed certificates presented by {fleet-server} and any inputs started by {agent} for communication.
+This flag is required when using self-signed certificates with {es}.
+
 `--fleet-server-es-insecure`::
 Allows fleet server to connect to {es} in the following situations:
 +
@@ -197,7 +238,6 @@ Allows fleet server to connect to {es} in the following situations:
 * When connecting to an HTTP server.
 * When connecting to an HTTPs server and the certificate chain cannot be
 verified. The content is encrypted, but the certificate is not verified.
-* When using self-signed certificates.
 --
 +
 When this flag is used the certificate verification is disabled.
@@ -212,8 +252,7 @@ production. When using this option, you should bind {fleet-server} to the
 local host (this is the default).
 
 `--fleet-server-policy <string>`::
-Used when starting a self-managed {fleet-server} to allow a specific policy to be used,
-instead of the Default Fleet Server policy.
+Used when starting a self-managed {fleet-server} to allow a specific policy to be used.
 
 `--fleet-server-port <uint16>`::
 {fleet-server} HTTP binding port (overrides the policy).
@@ -224,6 +263,14 @@ Service token to use for communication with {es}.
 `--force`::
 Force overwrite of current configuration without prompting for confirmation.
 This flag is helpful when using automation software or scripted deployments.
++
+NOTE: If the {agent} is already installed on the host, using `--force` may
+result in unpredictable behavior with duplicate {agent}s appearing in {fleet}.
+
+`--non-interactive`::
+Install {agent} in a non-interactive mode. This flag is helpful when 
+using automation software or scripted deployments. If {agent} is
+already installed on the host, the installation will terminate.
 
 `--help`::
 Show help for the `enroll` command.
@@ -241,8 +288,15 @@ verified. The content is encrypted, but the certificate is not verified.
 +
 We strongly recommend that you use a secure connection.
 
+`--tag <string>`::
+A comma-separated list of tags to apply to {fleet}-managed {agent}s. You can
+use these tags to filter the list of agents in {fleet}.
++
+NOTE: Currently, there is no way to remove or edit existing tags. To change the
+tags, you must unenroll the {agent}, then re-enroll it using new tags.
+
 `--url <string>`::
-Fleet Server URL to use to enroll the {agent} into {fleet}.
+{fleet-server} URL to use to enroll the {agent} into {fleet}.
 
 // end::enroll-install-options[]
 
@@ -354,26 +408,25 @@ If no parameters are specified, shows the full {agent} configuration.
 
 [source,shell]
 ----
-elastic-agent inspect [--help] [global-flags]
-elastic-agent inspect output [--output <string>]
-                             [--program <string>]
+elastic-agent inspect [--help]
+elastic-agent inspect components [--show-config]
+                             [--show-spec]
                              [--help]
-                             [global-flags]
+                             [id]
 ----
 
 [discrete]
 === Options
 
-`output`:: Display the current configuration for the output. This command
+`components`:: Display the current configuration for the component. This command
 accepts additional flags:
 +
 --
-`--output <string>`::
-The name of the output to inspect.
+`--show-config`::
+Use to display the configuration in all units.
 
-`--program <string>`::
-The type of program to inspect. For example, `filebeat`. This option must be
-combined with `--output`.
+`--show-spec`::
+Use to get input/output runtime spectification for a component.
 --
 
 `--help`::
@@ -387,8 +440,8 @@ Show help for the `inspect` command.
 [source,shell]
 ----
 elastic-agent inspect
-elastic-agent inspect output --output default
-elastic-agent inspect output --output default --program filebeat
+elastic-agent inspect components --show-config
+elastic-agent inspect components filebeat
 ----
 
 ++++
@@ -404,13 +457,16 @@ service manager. The agent will start automatically after installation is
 complete. On Linux (tar package), this command requires a system and service
 manager like systemd.
 
-IMPORTANT: If you installed {agent} from a DEB or RPM package, use the
-<<elastic-agent-enroll-command,`enroll` command>> instead of `install`. The DEB
-and RPM packages include a service unit for Linux systems with systemd.
+IMPORTANT: If you installed {agent} from a DEB or RPM package, the `install`
+command will skip the installation itself and function as an alias of the
+<<elastic-agent-enroll-command,`enroll` command>> instead.
 
 You must run this command as the root user (or Administrator on Windows)
 to write files to the correct locations. This command overwrites the
 `elastic-agent.yml` file in the agent directory.
+
+The syntax for running this command varies by platform. For platform-specific
+examples, refer to <<elastic-agent-installation>>.
 
 [discrete]
 === Synopsis
@@ -424,9 +480,12 @@ elastic-agent install --url <string>
                       --enrollment-token <string>
                       [--ca-sha256 <string>]
                       [--certificate-authorities <string>]
+                      [--delay-enroll]
                       [--force]
+                      [--non-interactive]
                       [--help]
                       [--insecure ]
+                      [--tag <string>] 
                       [global-flags]
 ----
 
@@ -440,27 +499,31 @@ elastic-agent install --fleet-server-es <string>
                       --fleet-server-service-token <string>
                       [--ca-sha256 <string>]
                       [--certificate-authorities <string>]
+                      [--delay-enroll]
                       [--fleet-server-cert <string>] <1>
                       [--fleet-server-cert-key <string>]
                       [--fleet-server-es-ca <string>]
+                      [--fleet-server-es-ca-trusted-fingerprint <string>] <2>
                       [--fleet-server-host <string>]
                       [--fleet-server-insecure-http]
                       [--fleet-server-policy <string>]
                       [--fleet-server-port <uint16>]
                       [--force]
+                      [--non-interactive]
                       [--help]
-                      [--url <string>] <2>
-                      [--fleet-server-es-insecure ] <3>
+                      [--tag <string>] 
+                      [--url <string>] <3>
+                      [--fleet-server-es-insecure]
                       [global-flags]
 ----
 <1> If no `fleet-server-cert*` flags are specified, {agent} auto-generates a
 self-signed certificate with the hostname of the machine. Remote {agent}s
 enrolling into a {fleet-server} with self-signed certificates must specify
 the `--insecure` flag.
-<2> Required when enrolling in a {fleet-server} with custom certificates. The
+<2> Required when using self-signed certificate on {es} side.
+<3> Required when enrolling in a {fleet-server} with custom certificates. The
 URL must match the DNS name used to generate the certificate specified by
 `--fleet-server-cert`.
-<3> Required when using self-signed certificate on {es} side.
 
 For more information about custom certificates, refer to <<secure-connections>>.
 
@@ -616,6 +679,62 @@ Set log level to INFO.
 [source,shell]
 ----
 elastic-agent run -c myagentconfig.yml
+----
+
+++++
+<hr>
+++++
+
+[discrete]
+[[elastic-agent-status-command]]
+== elastic-agent status
+
+Returns the current status of the running {agent} daemon and of each process
+in the {agent}.
+
+[discrete]
+=== Synopsis
+
+[source,shell]
+----
+elastic-agent status [--output <string>]
+                     [--help]
+                     [global-flags]
+----
+
+[discrete]
+=== Options
+
+`--output <string>`::
+Output the status information in either `human` (the default), `json`, or
+`yaml`. When the output is `json` or `yaml`, the command returns status codes:
++
+--
+|===
+|Code |Status
+
+|0    |`STARTING`
+|1    |`CONFIGURING`
+|2    |`HEALTHY`
+|3    |`DEGRADED`
+|4    |`FAILED`
+|5    |`STOPPING`
+|6    |`UPGRADING`
+|7    |`ROLLBACK`
+|===
+--
+
+`--help`::
+Show help for the `status` command.
+
+{global-flags-link}
+
+[discrete]
+=== Examples
+
+[source,shell]
+----
+elastic-agent status
 ----
 
 ++++

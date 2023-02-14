@@ -1,34 +1,42 @@
 [[inspect-log-anomalies]]
 = Inspect log anomalies
 
-When the {anomaly-detect} features of {ml} are enabled,
-you can use the **Anomalies** page in the {logs-app} to detect and inspect log anomalies
-and the log partitions where the log anomalies occur.
-This means you can easily see anomalous behavior without significant human intervention --
-no more manually sampling log data, calculating rates, and determining if rates are expected.
+When the {anomaly-detect} features of {ml} are enabled, you can use the
+**Anomalies** page in the {logs-app} to detect and inspect log anomalies and the
+log partitions where the log anomalies occur. This means you can easily see
+anomalous behavior without significant human intervention -- no more manually
+sampling log data, calculating rates, and determining if rates are expected.
 
-*Anomalies* automatically highlight periods where the log rate is outside expected bounds
-and therefore may be anomalous.
+*Anomalies* automatically highlight periods where the log rate is outside
+expected bounds and therefore may be anomalous. For example:
 
-For example:
+* A significant drop in the log rate might suggest that a piece of infrastructure
+stopped responding, and thus we're serving fewer requests.
+* A spike in the log rate could denote a DDoS attack. This may lead to an
+investigation of IP addresses from incoming requests.
 
-* A significant drop in the log rate might suggest that a piece of infrastructure stopped responding,
-and thus we're serving fewer requests.
-* A spike in the log rate could denote a DDoS attack.
-This may lead to an investigation of IP addresses from incoming requests.
+You can also view log anomalies directly in the
+{kibana-ref}/xpack-ml-anomalies.html[{ml-app} app].
 
-You can also view log anomalies directly in the {kibana-ref}/xpack-ml-anomalies.html[Machine Learning app].
+NOTE: This feature makes use of {ml} {anomaly-jobs}. To set up jobs, you must
+have `all` {kib} feature privileges for *{ml-app}*. Users that have full or
+read-only access to {ml-features} within a {kib} space can view the results of
+_all_ {anomaly-jobs} that are visible in that space, even if they do not have
+access to the source indices of those jobs. You must carefully consider who is
+given access to {ml-features}; {anomaly-job} results may propagate field values
+that contain sensitive information from the source indices to the results. For
+more details, refer to {ml-docs}/setup.html[Set up {ml-features}].
 
 [discrete]
 [[enable-anomaly-detection]]
-== Enable log rate analysis and anomaly detection
+== Enable log rate analysis and {anomaly-detect}
 
-Create a machine learning job to detect anomalous log entry rates automatically.
+Create a {ml} job to detect anomalous log entry rates automatically.
 
-1. Select *Anomalies*, and you'll be prompted to create a machine learning job which will carry out the log rate analysis.
-2. Choose a time range for the machine learning analysis.
+1. Select *Anomalies*, and you'll be prompted to create a {ml} job which will carry out the log rate analysis.
+2. Choose a time range for the {ml} analysis.
 3. Add the Indices that contain the logs you want to analyze.
-4. Click *Create ML job*.
+4. Click *Create {ml-init} job*.
 5. You're now ready to explore your log partitions.
 
 [discrete]
@@ -49,10 +57,10 @@ If you have a lot of log partitions, use the following to filter your data:
 image::images/anomalies-chart.png[Anomalies chart]
 
 The chart shows the time range where anomalies were detected.
-The typical rate values are shown in grey, while the anomalous regions are color-coded and superimposed on top.
+The typical rate values are shown in gray, while the anomalous regions are color-coded and superimposed on top.
 
 When a time range is flagged as anomalous,
-the machine learning algorithms have detected unusual log rate activity.
+the {ml} algorithms have detected unusual log rate activity.
 This might be because:
 
 * The log rate is significantly higher than usual.
@@ -67,5 +75,5 @@ To help you further drill down into a potential anomaly,
 you can view an anomaly chart for each partition. Anomaly scores range from 0
 (no anomalies) to 100 (critical).
 
-To analyze the anomalies in more detail, click *View anomaly in machine learning*, which opens the
-{ml-docs}/ml-gs-results.html[Anomaly Explorer in Machine Learning].
+To analyze the anomalies in more detail, click *View anomaly in {ml}*, which opens the
+{ml-docs}/ml-gs-results.html[Anomaly Explorer in {ml-app}].

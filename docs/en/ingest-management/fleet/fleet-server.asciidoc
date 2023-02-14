@@ -1,38 +1,62 @@
 [[fleet-server]]
-= {fleet-server}
+= Set up {fleet-server}
 
-{fleet-server} is a component of the {stack} used to centrally manage {agent}s.
-It's launched as part of an {agent} on a host intended to act as a server. One
-{fleet-server} process can support many {agent} connections, and serves as a
-control plane for updating agent policies, collecting status information, and
-coordinating actions across {agent}s.
+{fleet-server} is required if you plan to use {fleet} for central management.
 
-{fleet-server} is the mechanism {agent}s use to communicate with {es}:
+* For self-managed deployments, you must install and host {fleet-server}
+yourself.
 
-. When a new agent policy is created, it's saved to {es}.
+* **No extra setup is required on {ecloud} unless you want to scale your
+deployment.** {ecloud} runs a hosted version of {integrations-server} that
+includes {fleet-server}. 
+
+[discrete]
+== What is {fleet-server}?
+
+{fleet-server} is a component that connects {agent}s to {fleet}. It supports
+many {agent} connections and serves as a control plane for updating agent
+policies, collecting status information, and coordinating actions across
+{agent}s. It also provides a scalable architecture. As the size of your agent
+deployment grows, you can deploy additional {fleet-server}s to manage the
+increased workload.
+
+The following diagram shows how {agent}s communicate with {fleet-server} to
+retrieve agent policies:
+
+include::./diagrams/fleet-server-diagram.asciidoc[A high level diagram showing the relationship between components of the {stack}.]
+
+. When a new agent policy is created, the {fleet} UI saves the policy to
+a {fleet} index in {es}.
 
 . To enroll in the policy, {agent}s send a request to {fleet-server},
 using the enrollment key generated for authentication.
 
-. {fleet-server} receives the request and gets the agent policy from {es},
-then ships the policy to all {agent}s enrolled in that policy.
+. {fleet-server} monitors {fleet} indices, picks up the new agent policy from
+{es}, then ships the policy to all {agent}s enrolled in that policy.
+{fleet-server} may also write updated policies to the {fleet} index to manage
+coordination between agents.
 
 . {agent} uses configuration information in the policy to collect and send data
 to {es}.
 
-. {fleet-server} periodically checks {agent}s for status information.
+. {agent} checks in with {fleet-server} for updates, maintaining an open
+connection.
 
 . When a policy is updated, {fleet-server} retrieves the updated policy from
 {es} and sends it to the connected {agent}s.
 
-image:images/fleet-server-communication.png[Fleet Server handles communication between {agent}, {fleet}, {es}, and {kib}]
+. To communicate with {fleet} about the status of {agent}s and the policy
+rollout, {fleet-server} writes updates to {fleet} indices.
 
-{fleet-server} runs as a subprocess inside an {agent}. The agent uses a special
-policy that describes the {fleet-server} configuration. In large scale
-self-managed deployments or on {ess-product}[hosted {ess}] on {ecloud},
-{fleet-server} is typically run as a dedicated {agent} communication host, but
-you can optionally use it for data collection on self-managed clusters. For more
-details, refer to <<fleet-server-scalability>>.
+****
+**Does {fleet-server} run inside of {agent}?**
+
+{fleet-server} is a subprocess that runs inside a deployed {agent}. This means
+the deployment steps are similar to any {agent}, except that you enroll the
+agent in a special {fleet-Server} policy. Typically--especially in large-scale
+deployments--this agent is dedicated to running {fleet-server} as an {agent}
+communication host and is not configured for data collection.
+****
 
 [discrete]
 [[fleet-security-account]]
@@ -45,7 +69,18 @@ advantage of using a separate token for each server is that you can invalidate
 each one separately.
 
 You can create a service token by either using the {fleet} UI or the {es} API.
-For more information, refer to <<add-fleet-server>>.
+For more information, refer to <<add-a-fleet-server>>.
+
+[discrete]
+[[fleet-server-HA-operations]]
+== {fleet-server} High-availability operations
+
+{fleet-server} is stateless. Connections to the {fleet-server} therefore can be
+load balanced as long as the {fleet-server} has capacity to accept more
+connections. Load balancing is done on a round-robin basis.
+
+How you handle high-availability, fault-tolerance, and lifecycle management of {fleet-server}
+depends on the deployment model you use. To compare deployment models, see <<add-a-fleet-server>>.
 
 [discrete]
 == Learn more
@@ -54,8 +89,6 @@ To learn more about adding and scaling {fleet-server}, refer to:
 
 [[add-fleet-server]]
 * <<add-a-fleet-server>>
-
-* <<deployment-models>>
 
 * <<fleet-server-scalability>>
 

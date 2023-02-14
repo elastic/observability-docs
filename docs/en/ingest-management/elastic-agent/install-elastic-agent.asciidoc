@@ -1,35 +1,25 @@
 [[elastic-agent-installation]]
 = Install {agent}s
 
-****
-// tag::agent-install-intro[]
-{agent} is a single, unified agent that you deploy to hosts or containers to
-collect data and send it to the {stack}. Behind the scenes, {agent} runs the
-{beats} shippers or Elastic Endpoint required for your configuration.
-// end::agent-install-intro[]
-****
+NOTE: You can install only a single {agent} per host.
 
-//TODO: Follow up with Jason to see where and what we need to say about allowlists
-//for restricting access to the file system.
 You have a few options for installing and managing an {agent}:
 
 * **Install a {fleet}-managed {agent} (recommended)**
 +
-With this approach, you install {agent} on each host you want to monitor and
-use {fleet} in {kib} to define, configure, and manage your agents in a central
-location.
+With this approach, you install {agent} and use {fleet} in {kib} to define,
+configure, and manage your agents in a central location.
 +
 We recommend using {fleet} management because it makes the management and
-upgrade of your agents considerably easier. 
+upgrade of your agents considerably easier.
 +
 Refer to <<install-fleet-managed-elastic-agent>>.
 
 * **Install {agent} in standalone mode (advanced users)**
 +
-With this approach, you install {agent} on each host you want to monitor and
-manually configure the agent locally on the system where it’s installed. You are
-responsible for managing and upgrading the agents. This approach is reserved
-for advanced users only.
+With this approach, you install {agent} and manually configure the agent locally
+on the system where it’s installed. You are responsible for managing and
+upgrading the agents. This approach is reserved for advanced users only.
 +
 Refer to <<install-standalone-elastic-agent>>.
 +
@@ -47,7 +37,24 @@ Refer to:
 --
 * <<elastic-agent-container>>
 * <<running-on-kubernetes-managed-by-fleet>>
+** <<running-on-gke-standard-managed-by-fleet>>
+** <<running-on-eks-managed-by-fleet>>
+** <<running-on-aks-managed-by-fleet>>
 * <<running-on-kubernetes-standalone>>
 * {eck-ref}/k8s-elastic-agent.html[Run {agent} on ECK] -- for {eck} users
 --
 
+[discrete]
+== Minimum Requirements
+
+// lint ignore 2vcpu 1gb
+Minimum requirements have been determined by running the {agent} (`v8.0.0`) on a GCP `e2-micro` instance (2vCPU/1GB).
+The {agent} used the default policy, running the system integration and self-monitoring.
+
+// lint ignore mem
+|===
+| **CPU** | Under 2% total, including all monitoring processes
+| **Disk** | 640 MB
+| **RSS Mem Size** | 300 MB
+|===
+Adding integrations will increase the memory used by the agent and its processes.
