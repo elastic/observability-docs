@@ -14,6 +14,7 @@
 
 This section summarizes the changes in each release.
 
+* <<release-notes-8.6.2>>
 * <<release-notes-8.6.1>>
 * <<release-notes-8.6.0>>
 
@@ -22,7 +23,87 @@ Also see:
 * {kibana-ref}/release-notes.html[{kib} release notes]
 * {beats-ref}/release-notes.html[{beats} release notes]
 
-// begin 8.6.1 relnotes
+// begin 8.6.2 relnotes
+
+[[release-notes-8.6.2]]
+== {fleet} and {agent} 8.6.2
+
+Review important information about the {fleet} and {agent} 8.6.2 release.
+
+[discrete]
+[[known-issues-8.6.2]]
+=== Known issues
+
+[discrete]
+[[known-issue-issue-2066-8-6-2]]
+.Osquery live query results can take up to five minutes to show up in {kib}
+[%collapsible]
+====
+*Details* +
+A known issue in {agent} may prevent live query results from being available
+in the {kib} UI even though the results have been successfully sent to {es}. 
+For more information, refer to {agent-issue}2066[#2066].
+
+*Impact* +
+Be aware that the live query results shown in {kib} may be delayed by up to 5 minutes.
+====
+
+[[known-issue-2170-8-6-2]]
+.Adding a {fleet-server} integration to an agent results in panic if the agent was not bootstrapped with a {fleet-server}
+[%collapsible]
+====
+
+*Details*
+
+A panic occurs because the {agent} does not have a `fleet.server` in the `fleet.enc`
+configuration file. When this happens, the agent fails with a message like:
+
+[source,shell]
+----
+panic: runtime error: invalid memory address or nil pointer dereference
+[signal SIGSEGV: segmentation violation code=0x1 addr=0x8 pc=0x557b8eeafc1d]
+goroutine 86 [running]:
+github.com/elastic/elastic-agent/internal/pkg/agent/application.FleetServerComponentModifier.func1({0xc000652f00, 0xa, 0x10}, 0x557b8fa8eb92?)
+...
+----
+
+For more information, refer to {agent-issue}2170[#2170].
+
+*Impact* +
+
+To work around this problem, uninstall the {agent} and install it again with
+{fleet-server} enabled during the bootstrap process.
+====
+
+[discrete]
+[[enhancements-8.6.2]]
+=== Enhancements
+
+{fleet}::
+* Adds the ability to run agent policy schema in batches during {fleet} setup.
+Also adds `xpack.fleet.setup.agentPolicySchemaUpgradeBatchSize` config
+{kibana-pull}150688[#150688]
+
+[discrete]
+[[bug-fixes-8.6.2]]
+=== Bug fixes
+
+{fleet}::
+* Fix max 20 installed integrations returned from Fleet API {kibana-pull}150780[#150780]
+* Fix updates available when beta integrations are off {kibana-pull}149515[#149515] {kibana-pull}149486[#149486]
+
+{fleet-server}::
+* Prevent {fleet-server} from crashing by allowing the the Warn log level to be
+specified as "warning" or "warn" {fleet-server-issue}2328[#2328] {fleet-server-pull}2331[#2331]
+
+{agent}::
+* Ignore {fleet} connectivity state when considering whether an upgrade should be rolled back. Avoids unnecessary upgrade failures due to transient network errors {agent-pull}2239[#2239]
+* Preserve persistent process state between upgrades. The {filebeat} registry is now correctly preserved during {agent} upgrades. {agent-issue}2136[#2136] {agent-pull}2207[#2207]
+* Enable nodejs engine validation when bundling synthetics
+{agent-issue}2249[#2249] {agent-pull}2256[#2256] {agent-pull}2225[#2225]
+* Guarantee that services are stopped before they are started. Fixes occasional upgrade failures when Elastic Defend is installed {agent-pull}2226[#2226]
+
+// end 8.6.2 relnotes
 
 [[release-notes-8.6.1]]
 == {fleet} and {agent} 8.6.1
