@@ -1,0 +1,55 @@
+[[aws-elastic-serverless-forwarder-telemetry]]
+= Telemetry
+
+++++
+<titleabbrev>Telemetry</titleabbrev>
+++++
+
+== Telemetry
+The Elastic Serverless Forwarder collects usage data and sends it to Elastic. The data is anonymous and does not contain any personally identifiable information (PII) or AWS account identifiable information. 
+
+The data is used to improve the product. For more information, see https://www.elastic.co/legal/privacy-statement.
+
+=== What data is collected?
+The Elastic Serverless Forwarder collects the following data:
+
+[cols="<m,<d,<d",options="header",]
+|========================================================
+| Field | Description | Transformations
+| function_id | Lambda function ID | Anonymized (because it contains the AWS account ID)
+| function_version | Lambda function version | No
+| execution_id | Lambda function execution ID | Anonymized
+| cloud_provider | Cloud provider name (for example, aws) | No
+| cloud_region | Cloud provider region (for example, us-west-1) | No
+| memory_limit_in_mb | Lambda function memory size | No
+| input.type | Name of the input the sourced the incoming data. | No
+| input.outputs | List of configured outputs for the input the sourced the incoming data. | No
+|========================================================
+
+Here is an example of the data that is collected:
+
+[source, json]
+----
+{
+    "function_id": "80036aa038",
+    "function_version": "v0.0.0",
+    "execution_id": "6b76b62589",
+    "cloud_provider": "aws",
+    "cloud_region": "us-east-1",
+    "memory_limit_in_mb": "512",
+    "input": {
+        "type": "s3-sqs",
+        "outputs": [
+            "elasticsearch"
+        ]
+    },
+}
+----
+
+=== How to disable the telemetry
+You can disable telemetry by setting the `TELEMETRY_ENABLED` environment variable to `false`.
+
+You can do this during deployment from the AWS Serverless Application Repository, and the other deployment methods.
+
+If you change your mind after the deployment, you can still enable or disable the telemetry by updating the Lambda function environment variables.
+
