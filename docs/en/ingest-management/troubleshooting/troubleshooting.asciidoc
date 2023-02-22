@@ -377,6 +377,20 @@ Any response data indicates that the port is in use. This could be correct or no
 if you had intended to uninstall the {fleet-server}. In which case, re-check and continue.
 
 [discrete]
+[[fleet-agent-stuck-on-updating]]
+==  {agent} is stuck in status `Updating`
+
+In some rare situations during the upgrade process, an {agent} may hang with the status `Updating`. To fix this problem, authenticate as a superuser and force unenroll to remove the stale {agent}:
+
+[source,shell]
+----
+curl 'https://<kibana_url>/api/fleet/agents/<agentID>/unenroll' \
+  -H 'kbn-xsrf: xx' \
+  -H 'Content-type: application/json' \
+  --data-raw '{"force":true,"revoke":true}' \
+  --compressed
+----
+
 [[secondary-agent-not-connecting]]
 == {fleet-server} is running and healthy with data, but other Agents cannot use it to connect to {es}
 
