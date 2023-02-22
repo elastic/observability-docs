@@ -14,7 +14,7 @@ The Elastic Serverless Forwarder is an Amazon Web Services ({aws}) Lambda functi
 [discrete]
 [[aws-serverless-forwarder-overview]]
 = Overview
-The Elastic Serverless Forwarder can forward {aws} data to cloud-hosted or self-managed Elastic environments. It supports the following inputs:
+The Elastic Serverless Forwarder can forward {aws} data to cloud-hosted, self-managed Elastic environments, or preview:[]{ls}. It supports the following inputs:
 
 - Amazon S3 (via SQS event notifications)
 - Amazon Kinesis Data Streams
@@ -22,13 +22,13 @@ The Elastic Serverless Forwarder can forward {aws} data to cloud-hosted or self-
 - Amazon SQS message payload
 
 [role="screenshot"]
-image::aws-serverless-lambda-flow.png[AWS Lambda flow]
+image::images/aws-serverless-lambda-flow.png[AWS Lambda flow]
 
 When you successfully deploy the forwarder, an SQS _Continuing queue_ is automatically created in Lambda to ensure no data is lost. By default the forwarder runs for a maximum of 15 minutes so it's possible that {aws} may exit the function in the middle of processing event data. The forwarder handles this scenario by keeping track of the last offset processed. When the queue triggers a new function invocation, the forwarder will start where the last function run stopped.
 
 The forwarder uses a _Replay queue_ (also automatically created during deployment) to handle any ingestion-related exception or fail scenarios. Data in the replay queue is stored as individual events. Lambda keeps track of any failed events and writes them to a replay queue that can then be consumed by adding an additional SQS trigger via Lambda.
 
-You can use the <<sample-s3-config-file,config.yaml>> file to configure the service for each input type, including information such as SQS queue ARN (Amazon Resource Number) and {es} connection details. You can create multiple input sections within the configuration file to map different inputs to specific log types.
+You can use the <<sample-s3-config-file,config.yaml>> file to configure the service for each input and output type, including information such as SQS queue ARN (Amazon Resource Number) and {es} or {ls} connection details. You can create multiple input sections within the configuration file to map different inputs to specific log types.
 
 The forwarder also supports writing directly to an index, alias, or custom data stream. This enables existing {es} users to re-use index templates, ingest pipelines, or dashboards that are already created and connected to other processes.
 
