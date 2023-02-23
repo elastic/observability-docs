@@ -242,7 +242,12 @@ These parameters define the general configuration and behaviour for the forwarde
 
 - `ElasticServerlessForwarderS3ConfigFile`: Set this value to the location of your `config.yaml` in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
 - `ElasticServerlessForwarderSSMSecrets`: Add a comma delimited list of {aws} SSM Secrets ARNs used in the `config.yml` (if any).
-- `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams, or SQS queue (if any).
+- `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams, SQS queue, or S3 buckets (if any).
+
+[NOTE]
+====
+Make sure you include all the KMS keys used to encrypt the data. For example, S3 buckets are often encrypted, so the Lambda function needs access to that key to get the object.
+====
 
 === Inputs
 These parameters define your specific <<aws-serverless-forwarder-inputs>> or 'event triggers'.
