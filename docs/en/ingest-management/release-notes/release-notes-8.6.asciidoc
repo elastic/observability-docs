@@ -36,7 +36,7 @@ Review important information about the {fleet} and {agent} 8.6.2 release.
 
 [discrete]
 [[known-issue-issue-2066-8-6-2]]
-.Osquery live query results can take up to five minutes to show up in {kib}
+.Osquery live query results can take up to five minutes to show up in {kib}.
 [%collapsible]
 ====
 *Details* +
@@ -49,7 +49,7 @@ Be aware that the live query results shown in {kib} may be delayed by up to 5 mi
 ====
 
 [[known-issue-2170-8-6-2]]
-.Adding a {fleet-server} integration to an agent results in panic if the agent was not bootstrapped with a {fleet-server}
+.Adding a {fleet-server} integration to an agent results in panic if the agent was not bootstrapped with a {fleet-server}.
 [%collapsible]
 ====
 
@@ -73,6 +73,21 @@ For more information, refer to {agent-issue}2170[#2170].
 
 To work around this problem, uninstall the {agent} and install it again with
 {fleet-server} enabled during the bootstrap process.
+====
+
+[[known-issue-issue-2103-8.6.2]]
+.Installing {agent} on MacOS Ventura may fail if Full Disk Access has not been granted to the application used for installation.
+[%collapsible]
+====
+*Details* +
+This issue occurs on MacOS Ventura when Full Disk Access is not granted to the application that runs the installation command.
+This could be either a Terminal or any custom package that a user has built to distribute {agent}.
+
+For more information, refer to {agent-issue}2103[#2103].
+
+*Impact* +
+{agent} will fail to install and produce "Error: failed to fix permissions: chown elastic-agent.app: operation not permitted" message.
+Ensure that the application used to install {agent} (for example, the Terminal or custom package) has Full Disk Access before running `sudo ./elastic-agent install`.
 ====
 
 [discrete]
@@ -102,6 +117,7 @@ specified as "warning" or "warn" {fleet-server-issue}2328[#2328] {fleet-server-p
 * Enable nodejs engine validation when bundling synthetics
 {agent-issue}2249[#2249] {agent-pull}2256[#2256] {agent-pull}2225[#2225]
 * Guarantee that services are stopped before they are started. Fixes occasional upgrade failures when Elastic Defend is installed {agent-pull}2226[#2226]
+* Fix an issue where inputs in {beats} started by {agent} can be incorrectly disabled. This primarily occurs when changing the log level. {agent-issue}2232[#2232] {beats-pull}34504[#34504]
 
 // end 8.6.2 relnotes
 
@@ -116,7 +132,7 @@ Review important information about the {fleet} and {agent} 8.6.1 release.
 
 [discrete]
 [[known-issue-issue-2066-8-6-1]]
-.Osquery live query results can take up to five minutes to show up in {kib}
+.Osquery live query results can take up to five minutes to show up in {kib}.
 [%collapsible]
 ====
 *Details* +
@@ -129,7 +145,7 @@ Be aware that the live query results shown in {kib} may be delayed by up to 5 mi
 ====
 
 [[known-issue-2170]]
-.Adding a {fleet-server} integration to an agent results in panic if the agent was not bootstrapped with a {fleet-server}
+.Adding a {fleet-server} integration to an agent results in panic if the agent was not bootstrapped with a {fleet-server}.
 [%collapsible]
 ====
 
@@ -153,6 +169,46 @@ For more information, refer to {agent-issue}2170[#2170].
 
 To work around this problem, uninstall the {agent} and install it again with
 {fleet-server} enabled during the bootstrap process.
+====
+
+[[known-issue-2232-8-6-1]]
+.Changing the {agent} log level can incorrectly disable inputs in supervised {beats}.
+[%collapsible]
+====
+
+*Details*
+
+Data collection may be disabled when the {agent} log level is changed. Avoid changing the {agent} log level.
+
+Upgrade to 8.6.2 to fix the problem. For more information, refer to {agent-issue}2232[#2232].
+====
+
+[[known-issue-2328-8-6-1]]
+.{fleet-server} will crash when configured to use the Warning log level.
+[%collapsible]
+====
+
+*Details*
+
+{fleet-server} will crash when configured to use the Warning log level. Do not use the Warning log level.
+Affected {fleet-server} instances must be reinstalled to fix the problem.
+
+Upgrade to 8.6.2 to fix the problem. For more information, refer to {fleet-server-issue}2328[#2328].
+====
+
+[[known-issue-issue-2103-8.6.1]]
+.Installing {agent} on MacOS Ventura may fail if Full Disk Access has not been granted to the application used for installation.
+[%collapsible]
+====
+*Details* +
+This issue occurs on MacOS Ventura when Full Disk Access is not granted to the application that runs the installation command.
+This could be either a Terminal or any custom package that a user has built to distribute {agent}.
+
+For more information, refer to {agent-issue}2103[#2103].
+
+*Impact* +
+{agent} will fail to install and produce "Error: failed to fix permissions: chown elastic-agent.app: operation not permitted" message.
+Ensure that the application used to install {agent} (for example, the Terminal or custom package) has Full Disk Access before running `sudo ./elastic-agent install`.
 ====
 
 [discrete]
@@ -243,7 +299,7 @@ of dedoted kubernetes labels inside conditions has to be updated.
 
 [discrete]
 [[known-issue-issue-2066]]
-.Osquery live query results can take up to five minutes to show up in {kib}
+.Osquery live query results can take up to five minutes to show up in {kib}.
 [%collapsible]
 ====
 *Details* +
@@ -255,21 +311,24 @@ For more information, refer to {agent-issue}2066[#2066].
 Be aware that the live query results shown in {kib} may be delayed by up to 5 minutes.
 ====
 
-[[known-issue-issue-2103]]
-.Installation of {agent} on MacOS Ventura may fail if Full Disk Access has not been granted to the installer
+[[known-issue-issue-2103-8.6.0]]
+.Installing {agent} on MacOS Ventura may fail if Full Disk Access has not been granted to the application used for installation.
 [%collapsible]
 ====
 *Details* +
 This issue occurs on MacOS Ventura when Full Disk Access is not granted to the application that runs the installation command.
 This could be either a Terminal or any custom package that a user has built to distribute {agent}.
 
+For more information, refer to {agent-issue}2103[#2103].
+
 *Impact* +
 {agent} will fail to install and produce "Error: failed to fix permissions: chown elastic-agent.app: operation not permitted" message.
 Ensure that the application used to install {agent} (for example, the Terminal or custom package) has Full Disk Access before running `sudo ./elastic-agent install`.
 ====
 
+
 [[known-issue-issue-2086]]
-.Beats started by agent may fail with `output unit has no config` error
+.Beats started by agent may fail with `output unit has no config` error.
 [%collapsible]
 ====
 *Details* +
