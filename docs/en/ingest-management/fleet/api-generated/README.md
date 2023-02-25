@@ -14,7 +14,7 @@ or a similar tool that can generate HTML output from OAS.
 . Generate HTML output. For example:
 
   ```
-  openapi-generator generate -g html -i $GIT_HOME/kibana/x-pack/plugins/fleet/common/openapi/bundled.json -o $GIT_HOME/observability-docs/docs/en/ingest-management/fleet/api-generated/rules $GIT_HOME/observability-docs/docs/en/ingest-management/fleet/api-generated/template
+  openapi-generator generate -g html -i $GIT_HOME/kibana/x-pack/plugins/fleet/common/openapi/bundled.json -o $GIT_HOME/observability-docs/docs/en/ingest-management/fleet/api-generated/rules -t $GIT_HOME/observability-docs/docs/en/ingest-management/fleet/api-generated/template
   ```
 
 . Rename the output files. For example:
