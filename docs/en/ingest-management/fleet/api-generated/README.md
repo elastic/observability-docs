@@ -2,9 +2,9 @@
 
 The process described here is a Fleet-specific instance of the process described for generating Kibana OpenAPI documentation in general. Refer to the Kibana OpenAPI [readme file](https://github.com/elastic/kibana/tree/main/docs/api-generated) for details.
 
-Open API specifications (OAS) exist in JSON for the Fleet in Kibana, though they are experimental and may be incomplete or change later.
+Open API specifications (OAS) exist in JSON for the Fleet, though they are experimental and may be incomplete or change later.
 
-A preview of the API specifications can be added to the Fleet Guide by using the following process:
+A preview of the API specifications can be added to the Fleet and Elastic Agent Guide by using the following process:
 
 . Install [OpenAPI Generator](https://openapi-generator.tech/docs/installation),
 or a similar tool that can generate HTML output from OAS.
