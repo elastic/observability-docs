@@ -6,6 +6,8 @@ Open API specifications (OAS) exist in JSON for Fleet, though they are experimen
 
 A preview of the API specifications can be added to the Fleet and Elastic Agent Guide by using the following process:
 
+. Create a local clone of the [elastic/kibana](https://github.com/elastic/kibana) and [elastic/observability-docs](https://github.com/elastic/observability-docs) repositories in your `$GIT_PATH` directory.
+
 . Install [OpenAPI Generator](https://openapi-generator.tech/docs/installation),
 or a similar tool that can generate HTML output from OAS.
 
