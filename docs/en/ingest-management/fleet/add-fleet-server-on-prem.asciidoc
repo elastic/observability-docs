@@ -45,9 +45,19 @@ For more information about hosting {fleet-server} on {ece}, refer to
 [[add-fleet-server-on-prem-prereq]]
 = Prerequisites
 
+Before deploying, you need to:
+
+* Obtain or generate a Cerfiticate Authority (CA) certificate.
+* Ensure components have access to the ports needed for communication.
+
+[discrete]
+[[add-fleet-server-on-prem-cert-prereq]]
+== CA certificate
+
 // tag::cert-prereq[]
+
 Before setting up {fleet-server} using this approach, you will need a
-Certificate Authority (CA) certificate to configure Transport Layer Security (TLS)
+CA certificate to configure Transport Layer Security (TLS)
 to encrypt traffic between the {fleet-server}s and the {stack}.
 
 If your organization already uses the {stack}, you may already have a CA certificate. If you do not have a CA certificate, you can read more
@@ -56,6 +66,28 @@ about generating one in <<secure-connections>>.
 NOTE: This is not required when testing and iterating using the *Quick start* option, but should always be used for production deployments.
 
 // end::cert-prereq[]
+
+[discrete]
+[[default-port-assignments-on-prem]]
+== Default port assignments
+
+//tag::default-port-prereq[]
+
+When {es} or {fleet-server} are deployed, components communicate over well-defined, pre-allocated ports.
+You may need to allow access to these ports. See the following table for default port assignments:
+
+|===
+| Component communication | Default port
+
+| Elastic Agent → {fleet-server} | 8220
+| Elastic Agent → {es} | 9200
+| Elastic Agent → Logstash | 5044
+| Elastic Agent → {fleet} | 5601
+| {fleet-server} → {fleet} | 5601
+| {fleet-server} → {es} | 9200
+|===
+
+// end::default-port-prereq[]
 
 [discrete]
 [[add-fleet-server-on-prem-hosts]]
