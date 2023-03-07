@@ -21,6 +21,8 @@ To deploy Elastic Serverless Forwarder, you have to:
 === Prerequisites
 This documentation assumes you have some familiarity with {aws} services and you have correctly created and configured the necessary {aws} objects. For example, if you want to use an Amazon S3 (via SQS event notifications) input then you must ensure that you have enabled AWS VPC flow logs to be sent to that bucket, and created an SQS queue to receive those logs. For more information, refer to the relevant https://docs.aws.amazon.com/[{aws} docs].
 
+// Need more details on pre-reqs for other input types
+
 NOTE: This page describes the basic steps required to deploy Elastic Serverless
 Forwarder for {aws}— for additional information on configuration topics such as permissions and automatic routing, and parsing and enriching data, see <<aws-elastic-serverless-forwarder-configuration>>.
 
@@ -74,6 +76,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: "http(s)://host:port"
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
   - type: "sqs"
     id: "arn:aws:sqs:%REGION%:%ACCOUNT%:%QUEUENAME%"
     outputs:
@@ -89,6 +99,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: "http(s)://host:port"
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
   - type: "kinesis-data-stream"
     id: "arn:aws:kinesis:%REGION%:%ACCOUNT%:stream/%STREAMNAME%"
     outputs:
@@ -104,6 +122,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: "http(s)://host:port"
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
   - type: "cloudwatch-logs"
     id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:*"
     outputs:
@@ -119,6 +145,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: "http(s)://host:port"
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
   - type: "cloudwatch-logs"
     id: "arn:aws:logs:%AWS_REGION%:%AWS_ACCOUNT_ID%:log-group:%LOG_GROUP_NAME%:log-stream:%LOG_STREAM_NAME%"
     outputs:
@@ -134,6 +168,14 @@ inputs:
           es_datastream_name: "logs-generic-default"
           batch_max_actions: 500 # optional: default value is 500
           batch_max_bytes: 10485760 # optional: default value is 10485760
+      - type: "logstash"
+        args:
+          logstash_url: "http(s)://host:port"
+          username: "username" #optional
+          password: "password" #optional
+          max_batch_size: 500 #optional
+          compression_level: 1 #optional
+          ssl_assert_fingerprint: "22:F7:FB:84:1D:43:3E:E7:BB:F9:72:F3:D8:97:AD:7C:86:E3:08:42" #optional
 ----
 
 [[s3-config-file-fields]]
@@ -160,7 +202,12 @@ A list of outputs (i.e. forwarding targets) for the Elastic Serverless Forwarder
 
 `inputs.[].outputs.[].type`:
 
-The type of the forwarding target output (currently only `elasticsearch` supported).
+The type of the forwarding target output. Currently only the following outputs are supported:
+
+ * `elasticsearch`
+ * preview:[] `logstash`
+
+If {ls} is chosen as an output, Elastic Serverless Forwarder expects the {logstash-ref}/plugins-inputs-elastic_serverless_forwarder.html[`elastic_serverless_forwarder`] Logstash input to be installed, enabled, and properly configured. For more information about installing Logstash plugins, refer to the {logstash-ref}/working-with-plugins.html#installing-plugins[Logstash documentation].
 
 `inputs.[].outputs.[].args`:
 Custom init arguments for the specified forwarding target output.
@@ -177,6 +224,15 @@ For `elasticsearch` the following arguments are supported:
   * `args.batch_max_bytes`: (Optional) Maximum size in bytes to send in a single bulk request. Default value: 10485760 (10MB).
   * `args.ssl_assert_fingerprint`: (Optional) SSL fingerprint for self-signed SSL certificate on HTTPS transport.
 
+For `logstash` the following arguments are supported:
+
+  * `args.logstash_url`: URL of {ls} endpoint in the format `http(s)://host:port`
+  * `args.username`: (Optional) Username of the {ls} instance to connect to. Mandatory if HTTP Basic authentication is enabled in {ls}.
+  * `args.password`: (Optional) Password of the {ls} instance to connect to. Mandatory if HTTP Basic authentication is enabled in {ls}.
+  * `args.max_batch_size`: (Optional) Maximum number of events to send in a single HTTP(s) request. Default value: 500
+  * `args.compression_level`: (Optional) The GZIP compression level for HTTP(s) requests towards {ls}. It can be any integer value between 1 (minimum compression, best performance, highest amount of bytes sent) and 9 (maximum compression, worst performance, lowest amount of bytes sent). Default value: 1
+  * `args.ssl_assert_fingerprint`: (Optional) SSL fingerprint for self-signed SSL certificate on HTTPS transport.
+
 [[aws-serverless-forwarder-define-deploy-parameters]]
 == Define deployment parameters
 Whichever SAR deployment method you choose, you must define the following parameters correctly for your setup. This section explains the types of parameters and provides guidance on how to set them to match your deployment(s).
@@ -186,7 +242,12 @@ These parameters define the general configuration and behaviour for the forwarde
 
 - `ElasticServerlessForwarderS3ConfigFile`: Set this value to the location of your `config.yaml` in S3 URL format: `s3://bucket-name/config-file-name`. This will populate the `S3_CONFIG_FILE` environment variable for the forwarder.
 - `ElasticServerlessForwarderSSMSecrets`: Add a comma delimited list of {aws} SSM Secrets ARNs used in the `config.yml` (if any).
-- `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams, or SQS queue (if any).
+- `ElasticServerlessForwarderKMSKeys`: Add a comma delimited list of {aws} KMS Keys ARNs to be used for decrypting {aws} SSM Secrets, Kinesis Data Streams, SQS queue, or S3 buckets (if any).
+
+[NOTE]
+====
+Make sure you include all the KMS keys used to encrypt the data. For example, S3 buckets are often encrypted, so the Lambda function needs access to that key to get the object.
+====
 
 === Inputs
 These parameters define your specific <<aws-serverless-forwarder-inputs>> or 'event triggers'.

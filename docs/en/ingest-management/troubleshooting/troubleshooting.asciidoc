@@ -168,7 +168,7 @@ To fix this problem, pass the `--insecure` flag along with the `enroll` or
 
 [source,sh]
 ----
-sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
+sudo ./elastic-agent install --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
 ----
 
 Traffic between {agent}s and {fleet-server} over HTTPS will be encrypted; you're
@@ -347,7 +347,7 @@ The stand-alone install command installs the {agent}, and all of the service con
 
 [source,shell]
 ----
-elastic-agent enroll -f --fleet-server-es=https://<es-url>:443 --fleet-server-service-token=<token> --fleet-server-policy=<policy-id>
+elastic-agent enroll --fleet-server-es=https://<es-url>:443 --fleet-server-service-token=<token> --fleet-server-policy=<policy-id>
 ----
 Note: Port `443` is commonly used in {ecloud}. However, with self-managed deployments, your {es} may run on port `9200` or something entirely different.
 
@@ -375,6 +375,21 @@ netstat -nat | grep :8220
 +
 Any response data indicates that the port is in use. This could be correct or not
 if you had intended to uninstall the {fleet-server}. In which case, re-check and continue.
+
+[discrete]
+[[fleet-agent-stuck-on-updating]]
+==  {agent} is stuck in status `Updating`
+
+In some rare situations during the upgrade process, an {agent} may hang with the status `Updating`. To fix this problem, authenticate as a superuser and force unenroll to remove the stale {agent}:
+
+[source,shell]
+----
+curl 'https://<kibana_url>/api/fleet/agents/<agentID>/unenroll' \
+  -H 'kbn-xsrf: xx' \
+  -H 'Content-type: application/json' \
+  --data-raw '{"force":true,"revoke":true}' \
+  --compressed
+----
 
 [discrete]
 [[secondary-agent-not-connecting]]
@@ -524,7 +539,7 @@ command:
 
 [source,sh]
 ----
-sudo ./elastic-agent install -f --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
+sudo ./elastic-agent install --url=https://<fleet-server-ip>:8220 --enrollment-token=<token> --insecure
 ----
 
 For more information, refer to <<agent-enrollment-certs>>.
