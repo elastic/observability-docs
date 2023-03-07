@@ -1,0 +1,102 @@
+[[synthetics-lightweight-data-types]]
+= Config file data types
+
+Values of configuration settings are interpreted as required by beats.
+If a value can not be correctly interpreted as the required type - for example a
+string is given when a number is required - the beat will fail to start up.
+
+[discrete]
+[[synthetics-lightweight-data-bool]]
+= Boolean
+
+Boolean values can be either `true` or `false`. Alternative names for `true` are
+`yes` and `on`. Instead of `false` the values `no` and `off` can be used.
+
+[source,yaml]
+-----
+enabled: true
+disabled: false
+-----
+
+[discrete]
+[[synthetics-lightweight-data-numbers]]
+= Number
+
+Number values require you to enter the number to use without using single or
+double quotes. Some settings only support a restricted number range though.
+
+[source,yaml]
+-----
+integer: 123
+negative: -1
+float: 5.4
+-----
+
+[discrete]
+[[synthetics-lightweight-data-string]]
+= String
+
+In http://www.yaml.org[YAML], multiple styles of string definitions are supported:
+ double-quoted, single-quoted, unquoted.
+
+The double-quoted style is specified by surrounding the string with `"`. This
+style provides support for escaping unprintable characters using `\`, but comes
+at the cost of having to escape `\` and `"` characters.
+
+The single-quoted style is specified by surrounding the string with `'`. This
+style supports no escaping (use `''` to quote a single quote). Only printable
+characters can be used when using this form.
+
+Unquoted style requires no quotes, but does not support any escaping plus care
+needs to be taken to not use any symbol that has a special meaning in YAML.
+
+Note: Single-quoted style is recommended when defining regular expressions,
+event format strings, windows file paths, or non-alphabetical symbolic characters.
+
+[discrete]
+[[synthetics-lightweight-data-duration]]
+= Duration
+
+Durations require a numeric value with optional fraction and required unit.
+Valid time units are `ns`, `us`, `ms`, `s`, `m`, `h`. Sometimes features based
+on durations can be disabled by using zero or negative durations.
+
+[source,yaml]
+-----
+duration1: 2.5s
+duration2: 6h
+duration_disabled: -1s
+-----
+
+[discrete]
+[[synthetics-lightweight-data-regex]]
+= Regular expression
+
+Regular expressions are special strings getting compiled into regular
+expressions at load time.
+
+As regular expressions and YAML use `\` for escaping
+characters in strings, it's highly recommended to use single quoted strings when
+defining regular expressions. When single quoted strings are used, `\` character
+is not interpreted by YAML parser as escape symbol.
+
+[discrete]
+[[synthetics-lightweight-data-sprintf]]
+= Format String (sprintf)
+
+Format strings enable you to refer to event field values creating a string based
+on the current event being processed. Variable expansions are enclosed in
+expansion braces `%{<accessor>:default value}`. Event fields are accessed using
+field references `[fieldname]`. Optional default values can be specified in case the
+field name is missing from the event.
+
+You can also format time stored in the
+`@timestamp` field using the `+FORMAT` syntax where FORMAT is a valid https://godoc.org/github.com/elastic/beats/libbeat/common/dtfmt[time
+format].
+
+[source,yaml]
+-----
+constant-format-string: 'constant string'
+field-format-string: '%{[fieldname]} string'
+format-string-with-date: '%{[fieldname]}-%{+yyyy.MM.dd}'
+-----
