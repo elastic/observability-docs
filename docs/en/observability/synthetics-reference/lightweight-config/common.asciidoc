@@ -1,10 +1,3 @@
-[[synthetics-lightweight-common-options]]
-= Common options
-
-You can specify the following options when defining a synthetic monitor in any location.
-These options are the same for all monitors. Each monitor type has additional configuration
-options that are specific to that monitor type.
-
 :hardbreaks-option:
 
 [%header]
@@ -81,6 +74,44 @@ Run the task every 5 seconds from the time the monitor was started.
 schedule: @every 5s
 
 
+| [[monitor-timeout]] *`timeout`*
+(<<synthetics-lightweight-data-duration,duration>>)
+a| The total running time for each ping test. This is the total time allowed for testing the connection and exchanging data.
+
+*Default*: `16s`
+
+*Example*:
+
+[source,yaml]
+timeout: 2m
+
+
+| [[monitor-tags]] *`tags`*
+(list of <<synthetics-lightweight-data-string,string>>ss)
+a| A list of tags that will be sent with the monitor event.
+
+*Examples*:
+
+[source,yaml]
+----
+tags:
+  - tag one
+  - tag two
+----
+
+[source,yaml]
+----
+tags: ["tag one", "tag two"]
+----
+
+|===
+
+:!hardbreaks-option:
+
+////
+Heartbeat options that are not supported (yet or maybe ever?)
+in Synthetics
+
 | [[monitor-ipv4]] *`ipv4`*
 (<<synthetics-lightweight-data-bool,boolean>>)
 a|  Whether to ping using the ipv4 protocol if hostnames are configured.
@@ -92,7 +123,6 @@ a|  Whether to ping using the ipv4 protocol if hostnames are configured.
 [source,yaml]
 ipv4: false
 
-
 | [[monitor-ipv6]] *`ipv6`*
 (<<synthetics-lightweight-data-bool,boolean>>)
 a|  Whether to ping using the ipv6 protocol if hostnames are configured.
@@ -103,7 +133,6 @@ a|  Whether to ping using the ipv6 protocol if hostnames are configured.
 
 [source,yaml]
 ipv6: false
-
 
 | [[monitor-mode]] *`mode`*
 (`"any"` \| `"all"`)
@@ -119,19 +148,6 @@ You're using a DNS-load balancer and want to ping every IP address for the speci
 
 [source,yaml]
 mode: all
-
-
-| [[monitor-timeout]] *`timeout`*
-(<<synthetics-lightweight-data-duration,duration>>)
-a| The total running time for each ping test. This is the total time allowed for testing the connection and exchanging data.
-
-*Default*: `16s`
-
-*Example*:
-
-[source,yaml]
-timeout: 2m
-
 
 | [[monitor-run-from]] *`run_from`*
 a| Use the `run_from` option to set the geographic location fields relevant to a given monitor.
@@ -157,7 +173,6 @@ run_from:
     region_iso_code: NY
     city_name: New York
 ----
-
 
 | [[monitor-fields]] *`fields`*
 a| Fields that you can specify to add additional information to the output.
@@ -203,25 +218,6 @@ fields:
 fields_under_root: true
 fields: {project: "myproject", region: "us-east-1"}
 ----
-
-| [[monitor-tags]] *`tags`*
-(list of <<synthetics-lightweight-data-string,string>>s)
-a| A list of tags that will be sent with the monitor event.
-
-*Examples*:
-
-[source,yaml]
-----
-tags:
-  - tag one
-  - tag two
-----
-
-[source,yaml]
-----
-tags: ["tag one", "tag two"]
-----
-
 
 | [[monitor-processors]] *`processors`*
 (list of {heartbeat-ref}/defining-processors.html[processors])
@@ -278,6 +274,4 @@ a| If this option is set to true, fields with `null` values will be published in
 [source,yaml]
 keep_null: true
 
-|===
-
-:!hardbreaks-option:
+////
