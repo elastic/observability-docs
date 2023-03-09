@@ -19,13 +19,27 @@ order they are defined.
 event -> processor 1 -> event1 -> processor 2 -> event2 ...
 ----
 
+// set this attribute to show the full description here
+:works-with-fields:
+
 // tag::processor-limitations[]
 
+ifdef::works-with-fields[]
 NOTE: {agent} processors execute _before_ ingest pipelines, which means that
 your processor configurations cannot refer to fields that are created by ingest
 pipelines or {ls}. For more limitations, refer to <<limitations>>
+endif::[]
+
+ifndef::works-with-fields[]
+NOTE: {agent} processors execute _before_ ingest pipelines, which means that
+they process the raw event data rather than the final event sent to {es}. For
+related limitations, refer to <<limitations>>
+endif::[]
 
 // end::processor-limitations[]
+
+// reset the field to null
+:works-with-fields!:
 
 [discrete]
 [[where-valid]]
