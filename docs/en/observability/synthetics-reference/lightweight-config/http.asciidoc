@@ -1,21 +1,30 @@
 :hardbreaks-option:
 
+[%header]
 |===
 | Option (type) | Description
 
-| [[monitor-http-hosts]] *`hosts`* (list of <<synthetics-lightweight-data-string,string>>s)
-| *Required*. A list of URLs to ping.
+// hosts
+| [[monitor-http-hosts]] *`hosts`*
+(list of <<synthetics-lightweight-data-string,string>>s)
+a| *Required*. A list of URLs to ping.
 
+////////////////////////
+max_redirects
+////////////////////////
+| [[monitor-http-max_redirects]] *`max_redirects`*
+(<<synthetics-lightweight-data-numbers,number>>)
+a| The total number of redirections Heartbeat will follow. By default, Heartbeat will not follow redirects, but will report the status of the redirect. If set to a number greater than `0`, Heartbeat will follow that number of redirects.
 
-| [[monitor-http-max_redirects]] *`max_redirects`* (<<synthetics-lightweight-data-numbers,number>>)
-a| The total number of redirections Heartbeat will follow. Defaults to 0, meaning heartbeat will not follow redirects, but will report the status of the redirect. If set to a number greater than 0 heartbeat will follow that number of redirects.
-
-When this option is set to a value greater than zero the `monitor.ip` field will no longer be reported, as multiple DNS requests across multiple IPs may return multiple IPs. Fine grained network timing data will also not be recorded, as with redirects that data will span multiple requests. Specifically the fields `http.rtt.content.us`, `http.rtt.response_header.us`, `http.rtt.total.us`, `http.rtt.validate.us`, `http.rtt.write_request.us` and `dns.rtt.us` will be omitted.
+When this option is set to a value greater than `0`, the `monitor.ip` field will no longer be reported, as multiple DNS requests across multiple IPs may return multiple IPs. Fine grained network timing data will also not be recorded, as with redirects that data will span multiple requests. Specifically the fields `http.rtt.content.us`, `http.rtt.response_header.us`, `http.rtt.total.us`, `http.rtt.validate.us`, `http.rtt.write_request.us` and `dns.rtt.us` will be omitted.
 
 *Default*: `0`
 
-
-| [[monitor-http-proxy_url]] *`proxy_url`* (<<synthetics-lightweight-data-string,string>>)
+////////////////////////
+proxy_url
+////////////////////////
+| [[monitor-http-proxy_url]] *`proxy_url`*
+(<<synthetics-lightweight-data-string,string>>)
 a| The HTTP proxy URL. This setting is optional.
 
 *Example*:
@@ -23,18 +32,27 @@ a| The HTTP proxy URL. This setting is optional.
 [source,yaml]
 http://proxy.mydomain.com:3128
 
-
-| [[monitor-http-username]] *`username`* (<<synthetics-lightweight-data-string,string>>)
+////////////////////////
+username
+////////////////////////
+| [[monitor-http-username]] *`username`*
+(<<synthetics-lightweight-data-string,string>>)
 a| The username for authenticating with the server. The credentials are passed with the request. This setting is optional.
 
 You need to specify credentials when your `check.response` settings require it. For example, you can check for a 403 response (`check.response.status: [403]`) without setting credentials.
 
-
-| [[monitor-http-password]] *`password`* (<<synthetics-lightweight-data-string,string>>)
+////////////////////////
+password
+////////////////////////
+| [[monitor-http-password]] *`password`*
+(<<synthetics-lightweight-data-string,string>>)
 a| The password for authenticating with the server. This setting is optional.
 
-
-| [[monitor-http-ssl]] *`ssl`* ({heartbeat-ref}/configuration-ssl.html[SSL])
+////////////////////////
+ssl
+////////////////////////
+| [[monitor-http-ssl]] *`ssl`*
+({heartbeat-ref}/configuration-ssl.html[SSL])
 a| The TLS/SSL connection settings for use with the HTTPS endpoint. If you don't specify settings, the system defaults are used.
 
 *Example*:
@@ -51,16 +69,24 @@ a| The TLS/SSL connection settings for use with the HTTPS endpoint. If you don't
     supported_protocols: ["TLSv1.0", "TLSv1.1", "TLSv1.2"]
 ----
 
-
-| [[monitor-http-headers]] *`headers`* (<<synthetics-lightweight-data-bool,boolean>>)
+////////////////////////
+headers
+////////////////////////
+| [[monitor-http-headers]] *`headers`*
+(<<synthetics-lightweight-data-bool,boolean>>)
 a| Controls the indexing of the HTTP response headers `http.response.body.headers` field. Set `response.include_headers` to `false` to disable.
 
 *Default*: `true`
 
-
+////////////////////////
+response
+////////////////////////
 | [[monitor-http-response]] *`response`*
 a| Controls the indexing of the HTTP response body contents to the `http.response.body.contents` field.
 
+////////////////////////
+response.include_body
+////////////////////////
 *`response.include_body`* (`"on_error"` \| `"never"` \| `"always"`)::
 Set `response.include_body` to one of the options listed below.
 +
@@ -68,21 +94,31 @@ Set `response.include_body` to one of the options listed below.
 * `never`: Never include the body.
 * `always`: Always include the body with checks.
 
-
+////////////////////////
+check
+////////////////////////
 | [[monitor-http-check]] *`check`*
 a| 
+////////////////////////
 // check.request
+////////////////////////
 *`request`*:: An optional `request` to send to the remote host. Under `check.request`, specify these options:
 +
 --
+////////////////////////
 // check.request.method
+////////////////////////
 *`method`* (`"HEAD"` \| `"GET"` \| `"POST"` \| `"OPTIONS"`)::: The HTTP method to use.
 
+////////////////////////
 // check.request.headers
-*`headers`*  (?):::
+////////////////////////
+*`headers`* (?):::
   A dictionary of additional HTTP headers to send. By default heartbeat will set the 'User-Agent' header to identify itself.
 
+////////////////////////
 // check.request.body
+////////////////////////
 *`body`*  (<<synthetics-lightweight-data-string,string>>):::
   Optional request body content.
 --
@@ -99,13 +135,17 @@ check.request:
   body: "name=first&email=someemail%40someemailprovider.com"
 ----
 
+////////////////////////
 // check.response
+////////////////////////
 *`response`*:: The expected `response`.
 +
 --
 Under `check.response`, specify these options:
 
+////////////////////////
 // check.response.status
+////////////////////////
 *`status`* (list of <<synthetics-lightweight-data-string,string>>s):::
 A list of expected status codes. 4xx and 5xx codes are considered `down` by default. Other codes are considered `up`.
 +
@@ -117,11 +157,15 @@ check.response:
   status: [200, 201]
 ----
 
+////////////////////////
 // check.response.headers
-*`headers`* (list of <<synthetics-lightweight-data-string,string>>s):::
+////////////////////////
+*`headers`* (?):::
 The required response headers.
 
+////////////////////////
 // check.response.body.positive
+////////////////////////
 *`body.positive`* (list of <<synthetics-lightweight-data-string,string>>s):::
 A list of regular expressions to match the body output. Only a single expression needs to match.
 +
@@ -139,7 +183,9 @@ check.response:
       - Foo
 ----
 
+////////////////////////
 // check.response.body.negative
+////////////////////////
 *`body.negative`* (list of <<synthetics-lightweight-data-string,string>>s):::
 A list of regular expressions to match the the body output negatively. Return match failed if single expression matches. HTTP response bodies of up to 100MiB are supported.
 +
