@@ -1,0 +1,161 @@
+[[analyze-hosts]]
+= Analyze and compare hosts on the Hosts page
+
+++++
+<titleabbrev>Analyze and compare hosts</titleabbrev>
+++++
+
+preview::[]
+
+The **Hosts** page provides a metrics-driven view of your entire infrastructure
+backed by an easy-to-use interface called Lens. On the **Hosts** page, you can 
+view health and performance metrics to help you quickly:
+
+* Analyze and compare hosts without having to build new dashboards.
+//* Identify which hosts trigger the most alerts.
+* Troubleshoot and resolve issues quickly.
+//* View historical data to rule out false alerts and identify root causes.
+* Filter and search the data to focus on the hosts you care about the most.
+
+To access the **Hosts** page, go to **{observability} -> Infrastructure**, and
+then click **Hosts**. If the view is not enabled, click **Enable host view** to
+begin exploring.
+
+include::view-infrastructure-metrics.asciidoc[tag=add-metrics-tip]
+
+[role="screenshot"]
+image::images/hosts.png[Screenshot of the Hosts page]
+
+The **Hosts** page provides a few different ways to view host metrics:
+
+* Overview tiles show the number of hosts returned by your search plus
+averages of key metrics, including CPU usage, memory usage, and throughput.
+* The host list shows all the hosts returned by your search with a
+breakdown of metrics for each host. You may need to page through the list or
+change the number of rows displayed on each page to see all of your hosts.
+* Each host name is an active link to an overview page with additional metrics
+about the host, such as CPU usage, load, memory usage, and network traffic.
+* The **Metrics** view shows metrics trending over time for the top 20 hosts,
+including normalized load, CPU usage, memory usage, network inbound, network
+outbound, disk read IOPS, and disk write IOPS. Place your cursor over a line to
+view metrics at a specific point in time.
+
+[NOTE]
+====
+This feature is in technical preview. We'd love to get your feedback!
+https://docs.google.com/forms/d/e/1FAIpQLScRHG8TIVb1Oq8ZhD4aks3P1TmgiM58TY123QpDCcBz83YC6w/viewform[Tell us what you think!]
+====
+
+[discrete]
+[[analyze-hosts-filter-view]]
+== Filter the Hosts view
+
+The **Hosts** page provides several mechanisms for filtering the data on the
+page:
+
+* Enter a search query to show metrics that match your search criteria. For
+example, to see metrics for all hosts running on Google Cloud Platform (GCP),
+enter `cloud.account.provider : "gcp"`. Otherwise you'll see metrics for all
+your monitored hosts.
+* Select additional criteria to filter the view: 
+** In the **Operating System** list, select one or more operating systems
+and include (or exclude) metrics for those hosts.
+** In the **Cloud Provider** list, select one or more cloud cloud providers to
+include (or exclude) metrics for the selected cloud providers. 
+* Change the date range in the Time Picker, or click and drag on a
+visualization to change the date range.
+* In the visualizations under **Metrics**, click a point on a line and apply
+filters to set other visualizations on the page to the same time and/or host.
+
+To learn more about filtering data in {kib}, refer to
+{kibana-ref}/kibana-concepts-analysts.html[{kib} concepts].
+
+[NOTE]
+.Limitation on filtering by service names
+====
+When searching on a specific service name, the **Hosts** page may display hosts,
+but no metrics data. This happens if the index that contains the hostname and
+service name does not contain the collected metrics.
+====
+
+[discrete]
+[[analyze-hosts-open-in-lens]]
+== Open in Lens
+
+Because all visualizations are powered by Lens, you can continue your analysis
+in Lens if you require more flexibility. Under **Metrics**, hover your cursor
+over a visualization, then click the ellipsis icon in the upper-right corner to
+open the visualization in Lens.
+
+[role="screenshot"]
+image::images/hosts-open-in-lens.png[Screenshot showing option to open in Lens]
+
+In Lens, you can examine all the fields and formulas used to create the
+visualization, make modifications to the visualization, and save your changes.
+
+For more information about using Lens, refer to the
+{kibana-ref}/lens.html[{kib} documentation about Lens].
+
+[discrete]
+[[analyze-hosts-inspect-data]]
+== Inspect and download metrics
+
+From the **Hosts** page, you can access a text-based view of the data underlying
+your metrics visualizations and optionally download the data to a
+comma-separated (CSV) file. 
+
+Under **Metrics**, hover your cursor over a visualization, then in the
+upper-right corner, click the ellipsis icon to inspect the data.
+
+[role="screenshot"]
+image::images/hosts-inspect.png[Screenshot showing option to inspect data]
+
+In the flyout, click **Download CSV** to download formatted or raw data to a CSV
+file. 
+
+Notice that you can change the view to **View: Requests** to explore the request
+used to fetch the data and the response returned from {es}. You can click links
+to further inspect and analyze the request in the **Dev Console** or
+**Search Profiler**.
+
+[discrete]
+[[analyze-hosts-fields]]
+== Fields used to populate the Hosts page
+
+The **Hosts** page displays metrics from indices that match the index patterns
+specified on the **Settings page**. For example, the default patterns are
+`metrics-*` and `metricbeat-*`.
+
+The following sections describe the fields used to populate the **Hosts** page
+with data.
+
+****
+**Question for reviewers**
+
+Can you please look at the TODO items in this table and help me translate these
+formulas to a plain english description?
+
+Or we could just provide the formula for each metric. Either way, I need help.
+
+****
+
+.Tiles
+|===
+|**Hosts** | TODO: Describe formula here
+|**CPU usage** | TODO: Describe formula here
+|**Memory usage** | TODO: Describe formula here
+|**Network inbound (RX)** | TODO: Describe formula here
+|**Network outbound (TX)** | TODO: Describe formula here
+|===
+
+.Metrics visualizations
+|===
+|**Normalized load** | Average of `system.load.1` divided by maximum `system.load.cores`
+|**CPU Usage** | Average of `system.cpu.total.norm.pct`
+|**Memory Usage** | Average of `system.memory.actual.used.bytes` divided by maximum `system.memory.total`
+|**Memory Available** | Maximum `system.memory.total` minus average `system.memory.actual.used.bytes`
+|**Network Inbound (RX)** | TODO: put this in plain english average(host.network.ingress.bytes) * 8 / (max(metricset.period, kql='host.network.ingress.bytes: *') / 1000)
+|**Network Outbound (RX)** | TODO: put this in plain english: average(host.network.egress.bytes) * 8 / (max(metricset.period, kql='host.network.egress.bytes: *') / 1000)
+|**Disk Read IOPS** | TODO: put this in plain english: counter_rate(max(system.diskio.read.bytes), kql='system.diskio.read.bytes >= 0')
+|**Disk Write IOPS** | TODO: Put this in plain english: counter_rate(max(system.diskio.write.bytes), kql='system.diskio.write.bytes>= 0')
+|===
