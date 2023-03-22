@@ -39,8 +39,8 @@ head host-agent.log -n 15 | grep "level=error"
 If running this command outputs error-level logs, the following are possible causes:
 
 * The host-agent is running on an unsupported version of the Linux kernel, or its missing kernel features.
-
-If the host-agent is running on an unsupoorted kernel version, the following is logged:
++
+If the host-agent is running on an unsupported kernel version, the following is logged:
 +
 ----
 Host Agent requires kernel version 4.15 or newer but got 3.10.0
@@ -70,12 +70,14 @@ Verify the `collection-agent` configuration value is set and is equal to what wa
 rpc error: code = Unauthenticated desc = authentication failed
 ----
 * The host-agent is unable to reach the `collectionagent` service. In this case, a similar message to the following is logged:
++
 ----
 Failed to report hostinfo (retrying...): rpc error: code = Unimplemented desc = unknown service collectionagent.CollectionAgent"
 ----
 +
 This typically means that your {ecloud} cluster has not been configured for Universal Profiling. To confingure your {ecloud} cluster, follow the steps in <<profiling-configure-data-ingestion,configure data ingestion>>.
 * The APM server (part of the backend in {ecloud} that receives data from the host-agent) ran out of memory. In this case, a similar message to the following is logged:
++
 ----
 Error: failed to invoke XXX(): Unavailable rpc error: code = Unavailable desc = unexpected HTTP status code received from server: 502 (Bad Gateway); transport: received unexpected content-type "application/json; charset=UTF-8"
 ----
@@ -106,7 +108,7 @@ NOTE: We recommend only enabling debug logs on a single instance of host-agent r
 
 The amount of data loaded for the flamegraph, topN functions, and traces view can lead to latency when using a slow connection (e.g. DSL or mobile).
 
-If you're running Kibana/ES 8.6+, setting the Kibana cluster option `server.compression.brotli.enabled: true` reduces the amount of data transferred and should reduce load time.
+Setting the Kibana cluster option `server.compression.brotli.enabled: true` reduces the amount of data transferred and should reduce load time.
 
 [discrete]
 [[profiling-troubleshoot-kubernetes]]
@@ -128,7 +130,8 @@ format.
 
 The following examples provide a `tolerations` config that you can add to the Helm chart `values.yaml`:
 
-* To deploy the host-agent on all nodes with taint `workload=python:NoExecute`, add the following to the `values.yaml`: 
+* To deploy the host-agent on all nodes with taint `workload=python:NoExecute`, add the following to the `values.yaml`:
++ 
 ----
 tolerations:
 - key: "workload"
@@ -136,6 +139,7 @@ tolerations:
   effect: "NoExecute"
 ----
 * To deploy the host-agent on all nodes tainted with _key_ `production` and effect `NoSchedule` (no value provided), add the following to the `values.yaml`:
++
 ----
 tolerations:
   - key: "production"
@@ -143,6 +147,7 @@ tolerations:
     operator: Exists
 ----
 * To deploy the host-agent on all nodes, tolerating all taints, add the following to the `values.yaml`:
++
 ----
 tolerations:
   - effect: NoSchedule
