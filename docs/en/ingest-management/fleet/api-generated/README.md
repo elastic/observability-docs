@@ -6,6 +6,8 @@ Open API specifications (OAS) exist in JSON for Fleet, though they are experimen
 
 A preview of the API specifications can be added to the Fleet and Elastic Agent Guide by using the following process:
 
+. Make sure that your system has perl enabled.
+
 . Create a local clone of the [elastic/kibana](https://github.com/elastic/kibana) and [elastic/observability-docs](https://github.com/elastic/observability-docs) repositories in your `$GIT_PATH` directory.
 
 . Install [OpenAPI Generator](https://openapi-generator.tech/docs/installation),
@@ -22,6 +24,11 @@ or a similar tool that can generate HTML output from OAS.
 . Rename the output files. For example:
   ```
   mv $GIT_HOME/observability-docs/docs/en/ingest-management/fleet/api-generated/rules/index.html $GIT_HOME/observability-docs/docs/en/ingest-management/fleet/api-generated/rules/fleet-apis-passthru.asciidoc
+  ```
+
+. Run a perl search-and-replace command to fix the header text for each section of the API page:
+  ```
+  perl -i -pe'while (s/">[A-Z][^ ]*[a-z]\K([A-Z])/ $1/g) {}' $GIT_HOME/observability-docs/docs/en/ingest-management/fleet/api-generated/rules/fleet-apis-passthru.asciidoc
   ```
 
 . If you're creating a new set of API output, you will need to have a page that incorporates the output by using passthrough blocks. For more information, refer to [Asciidoctor docs](https://docs.asciidoctor.org/asciidoc/latest/pass/pass-block/)
