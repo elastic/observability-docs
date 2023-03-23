@@ -11,6 +11,7 @@ You can use the host-agent logs to find errors.
 
 The following is an example of a _healthy_ host-agent output:
 
+[source,logs]
 ----
 time="..." level=info msg="Starting Prodfiler Host Agent v2.4.0 (revision develop-5cce978a, build timestamp 12345678910)"
 time="..." level=info msg="Interpreter tracers: perl,php,python,hotspot,ruby,v8"
@@ -32,6 +33,7 @@ time="..." level=info msg="Attached sched monitor"
 
 A host-agent deployment is working if the output of the following command is empty:
 
+[source,logs]
 ----
 head host-agent.log -n 15 | grep "level=error"
 ----
@@ -42,23 +44,27 @@ If running this command outputs error-level logs, the following are possible cau
 +
 If the host-agent is running on an unsupported kernel version, the following is logged:
 +
+[source,logs]
 ----
 Host Agent requires kernel version 4.15 or newer but got 3.10.0
 ----
 +
 If eBPF features are not available in the kernel, the host-agent fails to start, and one of the following is logged:
 +
+[source,logs]
 ----
 Failed to probe eBPF syscall
 ----
 +
 or
 +
+[source,logs]
 ----
 Failed to probe tracepoint
 ----
 * The host-agent is not able to connect to {ecloud}. In this case, a similar message to the following is logged:
 +
+[source,logs]
 ----
 Failed to setup gRPC connection (retrying...): context deadline exceeded
 ----
@@ -66,11 +72,13 @@ Failed to setup gRPC connection (retrying...): context deadline exceeded
 Verify the `collection-agent` configuration value is set and is equal to what was printed by `elastic-profiling config`.
 * The secret token is not valid, or it has been changed. In this case, the host-agent shuts down, and logs a similar message to the following:
 +
+[source,logs]
 ----
 rpc error: code = Unauthenticated desc = authentication failed
 ----
 * The host-agent is unable to reach the `collectionagent` service. In this case, a similar message to the following is logged:
 +
+[source,logs]
 ----
 Failed to report hostinfo (retrying...): rpc error: code = Unimplemented desc = unknown service collectionagent.CollectionAgent"
 ----
@@ -78,14 +86,13 @@ Failed to report hostinfo (retrying...): rpc error: code = Unimplemented desc = 
 This typically means that your {ecloud} cluster has not been configured for Universal Profiling. To confingure your {ecloud} cluster, follow the steps in <<profiling-configure-data-ingestion,configure data ingestion>>.
 * The APM server (part of the backend in {ecloud} that receives data from the host-agent) ran out of memory. In this case, a similar message to the following is logged:
 +
+[source,logs]
 ----
 Error: failed to invoke XXX(): Unavailable rpc error: code = Unavailable desc = unexpected HTTP status code received from server: 502 (Bad Gateway); transport: received unexpected content-type "application/json; charset=UTF-8"
 ----
 +
 Verify that the APM server is running by navigating to *{ecloud} → Deployments → `<Deployment Name>` → Integrations Server* in https://cloud.elastic.co/home[Elastic Cloud]. If the *Copy endpoint* link next to *APM* is grayed out,
 you need to restart the APM server by clicking *Force Restart* under *Integrations Server Management*.
-+
-![restart-integrations-server](./img/restart-integrations-server.png)
 +
 For non-demo workloads, verify that the Integrations Server has at least the recommended 4GB of RAM. You can check this on the Integrations Server page under *Instances*.
 
@@ -124,7 +131,7 @@ The following sections provide potential scenarios when host-agent installation 
 {k8s} clusters often include https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/[taints and tolerations] in their setup.
 In these cases, a host-agent installation may show no pods or very few pods running, even for a large cluster.
 
-This is because a _taint_ precludes the execution of pods on a node unless the workload has been _tolerated_.
+This is because a taint precludes the execution of pods on a node unless the workload has been tolerated.
 The Helm chart `tolerations` key in the `values.yaml` sets the toleration of taints using the official {k8s} scheduling API
 format.
 
@@ -132,6 +139,7 @@ The following examples provide a `tolerations` config that you can add to the He
 
 * To deploy the host-agent on all nodes with taint `workload=python:NoExecute`, add the following to the `values.yaml`:
 + 
+[source,yaml]
 ----
 tolerations:
 - key: "workload"
@@ -140,6 +148,7 @@ tolerations:
 ----
 * To deploy the host-agent on all nodes tainted with _key_ `production` and effect `NoSchedule` (no value provided), add the following to the `values.yaml`:
 +
+[source,yaml]
 ----
 tolerations:
   - key: "production"
@@ -148,6 +157,7 @@ tolerations:
 ----
 * To deploy the host-agent on all nodes, tolerating all taints, add the following to the `values.yaml`:
 +
+[source,yaml]
 ----
 tolerations:
   - effect: NoSchedule
