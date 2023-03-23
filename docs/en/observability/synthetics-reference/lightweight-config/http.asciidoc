@@ -14,7 +14,7 @@ max_redirects
 ////////////////////////
 | [[monitor-http-max_redirects]] *`max_redirects`*
 (<<synthetics-lightweight-data-numbers,number>>)
-a| The total number of redirections Heartbeat will follow. By default, Heartbeat will not follow redirects, but will report the status of the redirect. If set to a number greater than `0`, Heartbeat will follow that number of redirects.
+a| The total number of redirections Synthetics will follow. By default, Synthetics will not follow redirects, but will report the status of the redirect. If set to a number greater than `0`, Synthetics will follow that number of redirects.
 
 When this option is set to a value greater than `0`, the `monitor.ip` field will no longer be reported, as multiple DNS requests across multiple IPs may return multiple IPs. Fine grained network timing data will also not be recorded, as with redirects that data will span multiple requests. Specifically the fields `http.rtt.content.us`, `http.rtt.response_header.us`, `http.rtt.total.us`, `http.rtt.validate.us`, `http.rtt.write_request.us` and `dns.rtt.us` will be omitted.
 
@@ -113,8 +113,8 @@ a|
 ////////////////////////
 // check.request.headers
 ////////////////////////
-*`headers`* (?):::
-  A dictionary of additional HTTP headers to send. By default heartbeat will set the 'User-Agent' header to identify itself.
+*`headers`* (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers[HTTP headers]):::
+  A dictionary of additional HTTP headers to send. By default Synthetics will set the 'User-Agent' header to identify itself.
 
 ////////////////////////
 // check.request.body
@@ -160,7 +160,7 @@ check.response:
 ////////////////////////
 // check.response.headers
 ////////////////////////
-*`headers`* (?):::
+*`headers`* (https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers[HTTP headers]):::
 The required response headers.
 
 ////////////////////////
@@ -223,83 +223,3 @@ check.response:
 |===
 
 :!hardbreaks-option:
-
-////
-Heartbeat options that are not supported (yet or maybe ever?)
-in Synthetics
-
-| [[monitor-http-proxy_headers]] *`proxy_headers`* (?)
-a| Additional headers to send to proxies during `CONNECT` requests.
-
-In `response`:
-
-*`response.include_body_max_bytes`* (<<synthetics-lightweight-data-numbers,number>>):: Set `response.include_body_max_bytes`
-to control the maximum size of the stored body contents.
-+
-Default: `1024`
-
-A list of regular expressions to match the body output.
-Only a single expression needs to match.
-HTTP response bodies of up to 100MiB are supported.
-+
-The following configuration shows how to check the response with a multiline
-regex:
-+
-[source,yaml]
-----
-check.response:
-  status: [200]
-  body: '(?s)first.*second.*third'
-----
-
-*`json`*::: A list of expressions or condition statements (now deprecated)
-executed against the body when parsed as JSON.
-Body sizes must be less than or equal to 100 MiB.
-
-*`description`*:::: Description...
-
-*`expression`*:::: The following configuration shows how to check the response using
-https://github.com/PaesslerAG/gval/blob/master/README.md[gval] expressions
-when the body contains JSON:
-+
-*Example*:
-+
-[source,yaml]
-----
-check.response:
-  status: [200]
-  json:
-    - description: check status
-      expression: 'foo.bar == "myValue"'
-----
-
-*`condition`*::::
-Expressions can be much more complex than simple equality.
-They can also use https://goessner.net/articles/JsonPath/[jsonpath] syntax.
-Note that strings must be double quoted with `"` rather than single quoted
-with `'` in the `gval` variant of jsonpath.
-Please note that jsonpath sub-expressions must start with `$.`,
-for instance `'$.nodes[?(@.name=="myname")] != []'` will check that
-the `nodes` map has at least one value with the name 'myname'.
-+
-When working with responses that are returned in the form of a JSON array
-at the root rather than an object jsonpath can be used as well.
-As an example `$.[0].foo == "bar"` tests that the first item in the response
-has an attribute `foo` that has the value "bar".
-+
-JSON bodies can also be checked via the now deprecated `condition` option,
-which is not as powerful as `expression`.
-The following configuration shows how to check the response using a `condition`
-statement when the body contains JSON:
-+
-[source,yaml]
-----
-check.response:
-  status: [200]
-  json:
-    - description: check status
-      condition:
-        equals:
-          status: ok
-----
-////
