@@ -25,6 +25,8 @@ The synthetics agent exposes an API for creating and running tests, including:
 `step`::        Actions within a journey that should be completed in a specific order.
                 Takes two parameters: a `name` (string) and a `callback` (function).
                 Learn more in <<synthetics-create-step>>.
+// To do: Add description
+`expect`::      +++<span style="color:#f04e98">Description...</span>+++ Learn more in <<synthetics-make-assertions>>.
 `beforeAll`::   Runs a provided function once, before any `journey` runs.
                 If the provided function is a promise, the runner will wait for the
                 promise to resolve before invoking the `journey`.
@@ -66,8 +68,18 @@ journey('Journey name', ({ page, browser, context, params, request }) => {
 });
 ----
 
-[horizontal]
-`name`::        A user-defined string to describe the journey.
+[discrete]
+[[synthetics-journey-ref]]
+== Arguments
+
+[cols="1,2"]
+|===
+| *`name`* (_string_)
+| A user-defined string to describe the journey.
+
+| *`callback`* (_function_)
+a| Instances:
+
 `page`::        A https://playwright.dev/docs/api/class-page[page] object from Playwright
                 that lets you control the browser's current page.
 `browser`::     A {playwright-api-docs}[browser] object created by Playwright.
@@ -80,7 +92,7 @@ journey('Journey name', ({ page, browser, context, params, request }) => {
 `request`::     A request object that can be used to make API requests independently of the browser
                 interactions. For example, to get authentication credentials or tokens in service of a
                 browser-based test. See <<synthetics-request-param>> for more information.
-
+|===
 
 [discrete]
 [[synthetics-create-step]]
@@ -112,7 +124,70 @@ step('Load the demo page', () => {
   await page.goto('https://elastic.github.io/synthetics-demo/'); <1>
 });
 ----
-<1> See the https://playwright.dev/docs/api/class-page#page-goto[`page.goto` reference] for more information.
+<1> Go to the https://playwright.dev/docs/api/class-page#page-goto[`page.goto` reference] for more information.
+
+[discrete]
+[[synthetics-step-ref]]
+== Arguments
+
+[cols="1,2"]
+|===
+| *`name`* (_string_)
+| A user-defined string to describe the journey.
+
+| *`callback`* (_function_)
+| +++<span style="color:#f04e98">Description...</span>+++
+|===
+
+[[synthetics-create-test-script-recorder]]
+[NOTE]
+====
+If you want to generate code by interacting with a web page directly, you can use the *Synthetics Recorder*.
+
+The recorder launches a https://www.chromium.org/Home/[Chromium browser] that will listen to each interaction you have with the web page and record them internally using Playwright.
+When you're done interacting with the browser, the recorder converts the recorded actions into JavaScript code that you can use with Elastic Synthetics or {heartbeat}.
+
+For more details on getting started with the Synthetics Recorder, refer to <<synthetics-recorder>>.
+====
+
+[discrete]
+[[synthetics-playwright]]
+== Playwright syntax
+
+Inside the callback for each step, you'll likely use a lot of Playwright syntax.
+Many Playwright classes are supported in the Elastic Synthetics library to simulate
+user workflows including tasks like:
+
+* Interacting with the https://playwright.dev/docs/api/class-browser[browser]
+  or the current https://playwright.dev/docs/api/class-page[page] (like in the example above).
+* Finding elements on a web page using https://playwright.dev/docs/api/class-locator[locators].
+* Simulating https://playwright.dev/docs/api/class-mouse[mouse],
+  https://playwright.dev/docs/api/class-touchscreen[touch], or
+  https://playwright.dev/docs/api/class-keyboard[keyboard] events.
+
+Visit the https://playwright.dev/docs[Playwright documentation] for information.
+
+[NOTE]
+====
+Playwright functionality that is not supported in Elastic Synthetics includes:
+
+* https://playwright.dev/docs/api/class-apirequest[APIRequest]
+* https://playwright.dev/docs/api/class-video[Video]
+* https://playwright.dev/docs/api/class-apiresponseassertions[Assertions]
+====
+
+The Elastic Synthetics library has alternatives to some Playwright functionality.
+The alternatives are designed to work better for synthetic monitoring.
+Do not use Playwright syntax to:
+
+* *Make assertions*. Use Elastic Synthetics's `expect` methods instead.
+  Read more in <<synthetics-make-assertions>>.
+* *Request parameter for the API tests.* Use Elastic Synthetic's `request`
+  parameter instead. Read more in <<synthetics-request-param>>.
+
+[discrete]
+[[synthetics-make-assertions]]
+= Make assertions
 
 A more complex step might wait for a page element to be selected
 and then make sure that it matches an expected value.
@@ -147,16 +222,151 @@ See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getA
 <2> Use the assertion library provided by the Synthetics agent to look for the
 expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
 
-[[synthetics-create-test-script-recorder]]
-[NOTE]
-====
-If you want to generate code by interacting with a web page directly, you can use the *Synthetics Recorder*.
+[discrete]
+[[synthetics-assertions-methods]]
+== Methods
 
-The recorder launches a https://www.chromium.org/Home/[Chromium browser] that will listen to each interaction you have with the web page and record them internally using Playwright.
-When you're done interacting with the browser, the recorder converts the recorded actions into JavaScript code that you can use with Elastic Synthetics or {heartbeat}.
+[cols="1,2"]
+|===
+| *`not()`*
+| If you know how to test something, `.not` lets you test its opposite.
 
-For more details on getting started with the Synthetics Recorder, refer to <<synthetics-recorder>>.
-====
+| *`resolves()`*
+| Use resolves to unwrap the value of a fulfilled promise so any other matcher can be chained. If the promise is rejected the assertion fails.
+
+| *`rejects()`*
+| Unwraps the reason of a rejected promise so any other matcher can be chained. If the promise is fulfilled the assertion fails.
+
+| *`toBe(expected)`*
+a| Checks that a value is what you expect. It uses `===` to check strict equality. Don't use `toBe` with floating-point numbers.
+
+*Parameters*
+
+* *`expected`* (_any_) +++<span style="color:#f04e98">Description...</span>+++
+
+| *`toBeCloseTo (expected, numDigits?)`*
+a| Using exact equality with floating point numbers is a bad idea. Rounding means that intuitive things fail.
+
+*Parameters*
+
+* *`expected`* (_number_) The expected value.
+* *`numDigits`* (_number_?) The number of digits.
+
+| *`toBeDefined ()`*
+| Ensure that a variable is not undefined.
+
+| *`toBeFalsy ()`*
+| +++<span style="color:#f04e98">Description...</span>+++.
+
+| *`toBeGreaterThan (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*:
+
+* *`expected`* (_any_) +++<span style="color:#f04e98">Description...</span>+++
+
+| *`toBeGreaterThanOrEqual (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*:
+
+* *`expected`* (_number_) +++<span style="color:#f04e98">Description...</span>+++
+
+| *`toBeInstanceOf (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*
+
+* *`expected`* (_number_) The expected value.
+
+| *`toBeLessThan (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*
+
+* *`expected`* (_number_) The expected value.
+
+| *`toBeLessThanOrEqual (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*
+
+* *`expected`* (_number_) The expected value.
+
+| *`toBeNull ()`*
+| +++<span style="color:#f04e98">Description...</span>+++.
+
+| *`toBeTruthy ()`*
+| +++<span style="color:#f04e98">Description...</span>+++.
+
+| *`toBeUndefined ()`*
+| +++<span style="color:#f04e98">Description...</span>+++.
+
+| *`toBeNaN ()`*
+| +++<span style="color:#f04e98">Description...</span>+++.
+
+| *`toContain (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*
+
+* *`expected`* (_number_) The expected value.
+
+| *`toContainEqual (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*
+
+* *`expected`* (_number_) The expected value.
+
+| *`toEqual (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*
+
+* *`expected`* (_number_) The expected value.
+
+| *`toHaveLength (expected)`*
+a| +++<span style="color:#f04e98">Description...</span>+++.
+
+*Parameters*
+
+* *`expected`* (_number_) The expected value.
+
+| *`toHaveProperty (keyPath, value?)`*
+a| Use to check if property at provided
+reference keyPath exists for an object. For checking deeply nested properties
+in an object you may use dot notation or an array containing the keyPath
+for deep references.
+
+Optionally, you can provide a value to check if it's equal to the value
+present at keyPath on the target object. This matcher uses 'deep equality'
+(like `toEqual()`) and recursively checks the equality of all fields.
+
+*Parameters*
+
+* *`keyPath`* (_string_ \| _Array<string>_) +++<span style="color:#f04e98">Description...</span>+++.
+* *`value?`* (_any_) +++<span style="color:#f04e98">Description...</span>+++.
+
+| *`toMatch (expected)`*
+a| Check that a string matches a regular expression.
+
+*Parameters*
+
+* *`expected`* (_string_) The expected value.
+
+| *`toMatchObject (expected)`*
+a| Used to check that a JavaScript object matches
+a subset of the properties of an object.
+
+*Parameters*
+
+* *`expected`* (_object_ \| _array_) The expected value.
+
+| *`toStrictEqual (expected)`*
+a| Use to test that objects have the same types as
+well as structure.
+|===
 
 [discrete]
 [[synthetics-request-param]]
