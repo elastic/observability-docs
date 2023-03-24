@@ -28,11 +28,19 @@ In general, these are types of privileges you'll work with:
 = Setup role
 
 Administrators who set up Synthetics typically need to enable Monitor Management.
-Enabling Monitor Management is an admin-level task that requires extra
-privileges. As a best practice, grant the setup role to administrators only, and
-use a more restrictive role for event publishing.
 
-Create a *setup role*, called something like `synthetics_setup`.
+Enabling Monitor Management is an admin-level task that requires extra privileges and
+must be completed just once by an admin before any users with the <<synthetics-write-privileges>>
+can create synthetic monitors. This applies to monitors created via both
+<<synthetics-get-started-project,projects>> and <<synthetics-get-started-ui,the UI>>.
+
+As a best practice, *grant the setup role to administrators only*, and use a more restrictive
+role for event publishing.
+
+[role="screenshot"]
+image::images/synthetics-enable-monitor-management.png[Synthetics app in Kibana on the Management tab before Monitor Management is enabled]
+
+Create a *setup role*, called something like `synthetics_setup`:
 
 . Start with the `editor` {ref}/built-in-roles.html[built-in role].
 This role grants full access to all features in {kib} (including the {observability} solution)
@@ -76,6 +84,8 @@ and read-only access to data indices.
 IMPORTANT: To minimize the privileges required by the writer role, use the
 <<synthetics-setup-privileges,setup role>> to enable Monitor Management.
 This section assumes another user has already enabled Monitor Management.
+
+Create a *writer role*, called something like `synthetics_writer`:
 
 . Start with the `editor` {ref}/built-in-roles.html[built-in role].
 This role grants full access to all features in {kib} (including the {observability} solution)
