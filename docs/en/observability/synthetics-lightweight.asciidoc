@@ -21,8 +21,8 @@ or <<synthetics-lightweight-projects>>.
 [[synthetics-lightweight-ui]]
 = {synthetics-app}
 
-To use the UI in the {synthetics-app}, <<synthetics-get-started-ui,go to the {synthetics-app}>>
-in {kib} to create and configure monitors.
+To use the UI in the {synthetics-app}, go to the {synthetics-app} in {kib} to create and configure monitors.
+For step-by-step instructions, refer to <<synthetics-get-started-ui>>.
 
 [role="screenshot"]
 image::images/uptime-set-up-ui.asciidoc.png[Synthetics Create monitor UI]
@@ -31,8 +31,8 @@ image::images/uptime-set-up-ui.asciidoc.png[Synthetics Create monitor UI]
 [[synthetics-lightweight-projects]]
 = {project-monitors-cap}
 
-To use YAML files in {project-monitors}, <<synthetics-get-started-project,Set up a project>>
-and configure monitors in YAML files in the `journeys` directory.
+To use YAML files in to create {project-monitors}, <<synthetics-get-started-project,set up a project>>
+and configure monitors in YAML files in the `lightweight` directory.
 
 In each YAML file, define a set of `monitors` to check your remote hosts.
 Each `monitor` item is an entry in a YAML list and begins with a dash (`-`).
@@ -40,7 +40,7 @@ You can define the type of monitor to use, the hosts to check, and other
 optional settings.
 
 The following example configures three monitors checking via the `http`, `icmp`, and `tcp`
-protocols and demonstrates how to use TCP Echo and HTTP response verification:
+protocols and demonstrates how to use TCP Echo response verification:
 
 [source,yaml]
 ----
@@ -62,15 +62,13 @@ heartbeat.monitors:
   check.send: "Check"
   check.receive: "Check"
   schedule: '@every 5s'
-heartbeat.scheduler:
-  limit: 10
 ----
 
 [[synthetics-monitor-options]]
-There are some common monitor configuration options that are the same for all monitors.
+There are some common monitor configuration options that are the same for all lightweight monitor types.
 For a complete list, refer to <<synthetics-lightweight-common-options>>.
 
-Each monitor type has additional configuration options that are specific to that monitor type.
+Each monitor type also has additional configuration options that are specific to that type.
 Refer to:
 
 * <<synthetics-lightweight-http>>
@@ -94,12 +92,11 @@ include::synthetics-reference/lightweight-config/common.asciidoc[]
 [[synthetics-lightweight-http]]
 == HTTP options
 
-// Is this still relevant?
 The options described here configure Synthetics to connect via HTTP and
 optionally verify that the host returns the expected response.
 
 Valid options for HTTP monitors include <<synthetics-lightweight-common-options,all common options>>
-and the following HTTP-specifc options:
+and the following HTTP-specific options:
 
 // Reference table
 include::synthetics-reference/lightweight-config/http.asciidoc[]
@@ -108,22 +105,19 @@ include::synthetics-reference/lightweight-config/http.asciidoc[]
 [[synthetics-lightweight-icmp]]
 == ICMP options
 
-// Is this still relevant?
 The options described here configure Synthetics to use ICMP (v4 and v6) Echo
-Requests to check the configured hosts. Please note that on most platforms you
-must execute Synthetics with elevated permissions to perform ICMP pings.
+Requests to check the configured hosts. On most platforms you must execute
+Synthetics with elevated permissions to perform ICMP pings.
 
-// Is this still relevant?
 On Linux, regular users may perform pings if the right file capabilities are set. Run
 `sudo setcap cap_net_raw+eip /path/to/heartbeat` to  grant Synthetics ping capabilities on Linux.
-Alternatively, one may grant ping permissions to the user Synthetics runs as. To grant ping permissions
-in this way, run `sudo sysctl -w net.ipv4.ping_group_range='myuserid myuserid'`.
+Alternatively, you can grant ping permissions to the user being used to run Synthetics.
+To grant ping permissions in this way, run `sudo sysctl -w net.ipv4.ping_group_range='myuserid myuserid'`.
 
-// Is this still relevant?
 Other platforms may require Synthetics to run as root or administrator to execute pings.
 
 Valid options for ICMP monitors include <<synthetics-lightweight-common-options,all common options>>
-and the following ICMP-specifc options:
+and the following ICMP-specific options:
 
 // Reference table
 include::synthetics-reference/lightweight-config/icmp.asciidoc[]
@@ -132,12 +126,11 @@ include::synthetics-reference/lightweight-config/icmp.asciidoc[]
 [[synthetics-lightweight-tcp]]
 == TCP options
 
-// Is this still relevant?
 The options described here configure Synthetics to connect via TCP and
 optionally verify the endpoint by sending and/or receiving a custom payload.
 
 Valid options for TCP monitors include <<synthetics-lightweight-common-options,all common options>>
-and the following TCP-specifc options:
+and the following TCP-specific options:
 
 // Reference table
 include::synthetics-reference/lightweight-config/tcp.asciidoc[]
@@ -146,9 +139,9 @@ include::synthetics-reference/lightweight-config/tcp.asciidoc[]
 [[synthetics-lightweight-data-types]]
 == Data types reference
 
-Values of configuration settings are interpreted as required by beats.
-If a value can not be correctly interpreted as the required type - for example a
-string is given when a number is required - the beat will fail to start up.
+Values of configuration settings are interpreted as required by Synthetics.
+If a value can't be correctly interpreted as the required type - for example a
+string is given when a number is required - Synthetics will fail to start up.
 
 [discrete]
 [[synthetics-lightweight-data-bool]]
@@ -167,8 +160,8 @@ disabled: false
 [[synthetics-lightweight-data-numbers]]
 === Number
 
-Number values require you to enter the number to use without using single or
-double quotes. Some settings only support a restricted number range though.
+Number values require you to enter the number _without_ single or
+double quotes. 
 
 [source,yaml]
 -----
@@ -177,12 +170,14 @@ negative: -1
 float: 5.4
 -----
 
+NOTE: Some settings only support a restricted number range.
+
 [discrete]
 [[synthetics-lightweight-data-string]]
 === String
 
 In http://www.yaml.org[YAML], multiple styles of string definitions are supported:
- double-quoted, single-quoted, unquoted.
+double-quoted, single-quoted, unquoted.
 
 The double-quoted style is specified by surrounding the string with `"`. This
 style provides support for escaping unprintable characters using `\`, but comes
@@ -192,10 +187,10 @@ The single-quoted style is specified by surrounding the string with `'`. This
 style supports no escaping (use `''` to quote a single quote). Only printable
 characters can be used when using this form.
 
-Unquoted style requires no quotes, but does not support any escaping plus care
-needs to be taken to not use any symbol that has a special meaning in YAML.
+Unquoted style requires no quotes, but does not support any escaping and can't
+include any symbol that has a special meaning in YAML.
 
-Note: Single-quoted style is recommended when defining regular expressions,
+NOTE: Single-quoted style is recommended when defining regular expressions,
 event format strings, windows file paths, or non-alphabetical symbolic characters.
 
 [discrete]
@@ -217,10 +212,10 @@ duration_disabled: -1s
 [[synthetics-lightweight-data-regex]]
 === Regular expression
 
-Regular expressions are special strings getting compiled into regular
+Regular expressions are special strings that are compiled into regular
 expressions at load time.
 
 As regular expressions and YAML use `\` for escaping
 characters in strings, it's highly recommended to use single quoted strings when
-defining regular expressions. When single quoted strings are used, `\` character
-is not interpreted by YAML parser as escape symbol.
+defining regular expressions. When single quoted strings are used, the `\` character
+is not interpreted by YAML parser as an escape symbol.

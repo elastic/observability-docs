@@ -23,16 +23,20 @@ a| *Required*. A unique identifier for this configuration. This should not chang
 *Examples*:
 
 [source,yaml]
+----
 id: uploader-service
+----
 
 [source,yaml]
+----
 id: http://example.net
+----
 
 [NOTE]
 ====
-When querying against indexed monitor data this is the field you will be aggregating with. Appears in the exported fields as `monitor.id`.
+When querying against indexed monitor data this is the field you will be aggregating with. It appears in the exported fields as `monitor.id`.
 
-If you do not set this explicitly the monitor's config will be hashed and a generated value used. This value will change with any options change to this monitor making aggregations over time between changes impossible. For this reason it is recommended that you set this manually.
+If you do not set an `id` explicitly, the monitor's config will be hashed and a generated value will be used. This value will change with any options change to this monitor making aggregations over time between changes impossible. For this reason, it's recommended that you set this manually.
 ====
 
 ////////////////////////
@@ -45,10 +49,14 @@ a| Human readable name for this monitor.
 *Examples*: 
 
 [source,yaml]
+----
 name: Uploader service
+----
 
 [source,yaml]
+----
 name: Example website
+----
 
 ////////////////////////
 service.name
@@ -69,7 +77,9 @@ a| Whether the module is enabled.
 *Example*:
 
 [source,yaml]
+----
 enabled: false
+----
 
 ////////////////////////
 schedule
@@ -78,11 +88,15 @@ schedule
 (<<synthetics-lightweight-data-duration,duration>>)
 a| *Required*. The task schedule.
 
+NOTE: Schedules with less than 1 minute resolution will be saved to the nearest minute. For example, `@every 5s` will be changed to `@every 60s` when the monitor is pushed using the CLI.
+
 *Example*:
-Run the task every 5 seconds from the time the monitor was started.
+Run the task every 5 minutes from the time the monitor was started.
 
 [source,yaml]
-schedule: @every 5s
+----
+schedule: @every 5m
+----
 
 ////////////////////////
 timeout
@@ -96,7 +110,9 @@ a| The total running time for each ping test. This is the total time allowed for
 *Example*:
 
 [source,yaml]
+----
 timeout: 2m
+----
 
 ////////////////////////
 tags
