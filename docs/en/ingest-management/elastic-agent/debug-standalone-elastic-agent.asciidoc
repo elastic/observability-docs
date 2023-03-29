@@ -26,13 +26,15 @@ Returns something like:
 
 [source,yaml]
 ----
-Status: HEALTHY
-Message: (no message)
-Applications:
-  * metricbeat  (HEALTHY)
-                Running
-  * filebeat    (STOPPING)
-                (no message)
+State: HEALTHY
+Message: Running
+Fleet State: STOPPED
+Fleet Message: (no message)
+Components:
+  * log           (HEALTHY)
+                  Healthy: communicating with pid '25423'
+  * filestream    (HEALTHY)
+                  Healthy: communicating with pid '25424'
 ----
 
 By default, this command returns the status in human-readable format. Use the
@@ -204,112 +206,15 @@ Returns something like:
 [[inspect-configuration]]
 == Inspect the {agent} configuration
 
-To inspect the {agent} configuration, run the `inspect` command. For example:
+To inspect the running {agent} configuration refer to <<elastic-agent-inspect-command>>.
+
+To analyze the current state of the agent, inspect log files, and see the running configuration
+of {agent} and the sub-processes it starts, run the `diagnostics` command. For example:
 
 [source,shell]
 ----
-elastic-agent inspect
-----
-
-Use the `--output` flag to inspect the configuration passed to other processes,
-such as {filebeat}. For example:
-
-[source,shell]
-----
-elastic-agent inspect output --output default --program filebeat
-----
-
-Returns something like:
-
-["source","yaml",subs="attributes"]
-----
-[default] filebeat:
-filebeat:
-  inputs:
-  - exclude_files:
-    - .gz$
-    id: logfile-system.auth-default-system
-    index: logs-system.auth-default
-    meta:
-      package:
-        name: system
-        version: {version}
-    multiline:
-      match: after
-      pattern: ^\s
-    name: system-1
-    paths:
-    - /var/log/auth.log*
-    - /var/log/secure*
-    processors:
-    - add_locale: null
-    - add_fields:
-        fields:
-          dataset: system.auth
-          namespace: default
-          type: logs
-        target: data_stream
-    - add_fields:
-        fields:
-          dataset: system.auth
-        target: event
-    - add_fields:
-        fields:
-          id: 3c4a8f14-561a-449f-8935-7485cd494bac
-          snapshot: false
-          version: {version}
-        target: elastic_agent
-    - add_fields:
-        fields:
-          id: 3c4a8f14-561a-449f-8935-7485cd494bac
-        target: agent
-    revision: 1
-    type: log
-  - exclude_files:
-    - .gz$
-    id: logfile-system.syslog-default-system
-    index: logs-system.syslog-default
-    meta:
-      package:
-        name: system
-        version: 1.6.4
-    multiline:
-      match: after
-      pattern: ^\s
-    name: system-1
-    paths:
-    - /var/log/messages*
-    - /var/log/syslog*
-    processors:
-    - add_locale: null
-    - add_fields:
-        fields:
-          dataset: system.syslog
-          namespace: default
-          type: logs
-        target: data_stream
-    - add_fields:
-        fields:
-          dataset: system.syslog
-        target: event
-    - add_fields:
-        fields:
-          id: 3c4a8f14-561a-449f-8935-7485cd494bac
-          snapshot: false
-          version: {version}
-        target: elastic_agent
-    - add_fields:
-        fields:
-          id: 3c4a8f14-561a-449f-8935-7485cd494bac
-        target: agent
-    revision: 1
-    type: log
-output:
-  elasticsearch:
-    api_key: your:apikey
-    hosts:
-    - https://5d87573b66ed4d7f6cd1d2d3f1e30bc5.us-central1.gcp.foundit.no:443
+elastic-agent diagnostics
 ----
 
 For more information about this command, refer to
-<<elastic-agent-inspect-command>>.
+<<elastic-agent-diagnostics-command>>.
