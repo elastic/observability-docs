@@ -25,7 +25,7 @@ The synthetics agent exposes an API for creating and running tests, including:
 `step`::        Actions within a journey that should be completed in a specific order.
                 Takes two parameters: a `name` (string) and a `callback` (function).
                 Learn more in <<synthetics-create-step>>.
-`expect`::      Check that a value meet a specific condition. There are several supported checks.
+`expect`::      Check that a value meets a specific condition. There are several supported checks.
                 Learn more in <<synthetics-make-assertions>>.
 `beforeAll`::   Runs a provided function once, before any `journey` runs.
                 If the provided function is a promise, the runner will wait for the
@@ -169,29 +169,28 @@ user workflows including tasks like:
 
 Visit the https://playwright.dev/docs[Playwright documentation] for information.
 
-[NOTE]
-====
-Playwright functionality that is not supported in Elastic Synthetics includes:
+However, not all Playwright functionality should be used with Elastic Synthetics.
 
-* https://playwright.dev/docs/api/class-apirequest[APIRequest]
-* https://playwright.dev/docs/api/class-video[Video]
-* https://playwright.dev/docs/api/class-apiresponseassertions[Assertions]
-====
-
-The Elastic Synthetics library has alternatives to some Playwright functionality.
-The alternatives are designed to work better for synthetic monitoring.
-Do not use Playwright syntax to:
+In some cases, there are alternatives to Playwright functionality built into the
+Elastic Synthetics library. These alternatives are designed to work better for
+synthetic monitoring. Do _not_ use Playwright syntax to:
 
 * *Make assertions*. Use Elastic Synthetics's `expect` methods instead.
   Read more in <<synthetics-make-assertions>>.
-* *Request parameter for the API tests.* Use Elastic Synthetic's `request`
+* *Make API requests.* Use Elastic Synthetic's `request`
   parameter instead. Read more in <<synthetics-request-param>>.
+
+There is also some Playwright functionality that is not supported out-of-the-box
+in Elastic Synthetics including:
+
+* https://playwright.dev/docs/api/class-video[Videos]
 
 [discrete]
 [[synthetics-make-assertions]]
 = Make assertions
 
-A more complex step might wait for a page element to be selected
+Check that a value meets a specific condition.
+A more complex `step` might wait for a page element to be selected
 and then make sure that it matches an expected value.
 
 For example, on a page using the following HTML:
@@ -212,17 +211,15 @@ You can verify that the `input` element with class `new-todo` has the expected `
 [source,js]
 ----
 step('Assert placeholder text', async () => {
-  const placeholderValue = await page.getAttribute(
-      'input.new-todo',
-      'placeholder'
-  ); <1>
-  expect(placeholderValue).toBe('What needs to be done?'); <2>
+  const input = await page.locator('input.new-todo'); <1>
+  expect(await input.getAttribute('placeholder')).toBe(
+    'What needs to be done?'
+  ); <2>
 });
 ----
-<1> Find the `input` element with class `new-todo` and get the value of the `placeholder` attribute.
-See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getAttribute` reference] for more information.
-<2> Use the assertion library provided by the Synthetics agent to look for the
-expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
+<1> Find the `input` element with class `new-todo`.
+<2> Use the assertion library provided by the Synthetics agent to check that
+the value of the `placeholder` attribute matches a specific string.
 
 [discrete]
 [[synthetics-assertions-methods]]
