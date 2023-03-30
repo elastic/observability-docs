@@ -25,6 +25,8 @@ The synthetics agent exposes an API for creating and running tests, including:
 `step`::        Actions within a journey that should be completed in a specific order.
                 Takes two parameters: a `name` (string) and a `callback` (function).
                 Learn more in <<synthetics-create-step>>.
+`expect`::      Check that a value meets a specific condition. There are several supported checks.
+                Learn more in <<synthetics-make-assertions>>.
 `beforeAll`::   Runs a provided function once, before any `journey` runs.
                 If the provided function is a promise, the runner will wait for the
                 promise to resolve before invoking the `journey`.
@@ -66,8 +68,20 @@ journey('Journey name', ({ page, browser, context, params, request }) => {
 });
 ----
 
-[horizontal]
-`name`::        A user-defined string to describe the journey.
+[discrete]
+[[synthetics-journey-ref]]
+== Arguments
+
+[cols="1,2"]
+|===
+| *`name`* (_string_)
+| A user-defined string to describe the journey.
+
+| *`callback`* (_function_)
+a| A function where you will add steps.
+
+*Instances*:
+
 `page`::        A https://playwright.dev/docs/api/class-page[page] object from Playwright
                 that lets you control the browser's current page.
 `browser`::     A {playwright-api-docs}[browser] object created by Playwright.
@@ -80,7 +94,7 @@ journey('Journey name', ({ page, browser, context, params, request }) => {
 `request`::     A request object that can be used to make API requests independently of the browser
                 interactions. For example, to get authentication credentials or tokens in service of a
                 browser-based test. See <<synthetics-request-param>> for more information.
-
+|===
 
 [discrete]
 [[synthetics-create-step]]
@@ -112,9 +126,71 @@ step('Load the demo page', () => {
   await page.goto('https://elastic.github.io/synthetics-demo/'); <1>
 });
 ----
-<1> See the https://playwright.dev/docs/api/class-page#page-goto[`page.goto` reference] for more information.
+<1> Go to the https://playwright.dev/docs/api/class-page#page-goto[`page.goto` reference] for more information.
 
-A more complex step might wait for a page element to be selected
+[discrete]
+[[synthetics-step-ref]]
+== Arguments
+
+[cols="1,2"]
+|===
+| *`name`* (_string_)
+| A user-defined string to describe the journey.
+
+| *`callback`* (_function_)
+| A function where you simulate user workflows using Synthetics and <<synthetics-playwright,Playwright>> syntax.
+|===
+
+[[synthetics-create-test-script-recorder]]
+[NOTE]
+====
+If you want to generate code by interacting with a web page directly, you can use the *Synthetics Recorder*.
+
+The recorder launches a https://www.chromium.org/Home/[Chromium browser] that will listen to each interaction you have with the web page and record them internally using Playwright.
+When you're done interacting with the browser, the recorder converts the recorded actions into JavaScript code that you can use with Elastic Synthetics or {heartbeat}.
+
+For more details on getting started with the Synthetics Recorder, refer to <<synthetics-recorder>>.
+====
+
+[discrete]
+[[synthetics-playwright]]
+== Playwright syntax
+
+Inside the callback for each step, you'll likely use a lot of Playwright syntax.
+Many Playwright classes are supported in the Elastic Synthetics library to simulate
+user workflows including tasks like:
+
+* Interacting with the https://playwright.dev/docs/api/class-browser[browser]
+  or the current https://playwright.dev/docs/api/class-page[page] (like in the example above).
+* Finding elements on a web page using https://playwright.dev/docs/api/class-locator[locators].
+* Simulating https://playwright.dev/docs/api/class-mouse[mouse],
+  https://playwright.dev/docs/api/class-touchscreen[touch], or
+  https://playwright.dev/docs/api/class-keyboard[keyboard] events.
+
+Visit the https://playwright.dev/docs[Playwright documentation] for information.
+
+However, not all Playwright functionality should be used with Elastic Synthetics.
+
+In some cases, there are alternatives to Playwright functionality built into the
+Elastic Synthetics library. These alternatives are designed to work better for
+synthetic monitoring. Do _not_ use Playwright syntax to:
+
+* *Make assertions*. Use Elastic Synthetics's `expect` methods instead.
+  Read more in <<synthetics-make-assertions>>.
+* *Make API requests.* Use Elastic Synthetic's `request`
+  parameter instead. Read more in <<synthetics-request-param>>.
+
+There is also some Playwright functionality that is not supported out-of-the-box
+in Elastic Synthetics including:
+
+* https://playwright.dev/docs/api/class-video[Videos]
+
+[discrete]
+[[synthetics-make-assertions]]
+= Make assertions
+
+Check that a value meets a specific condition.
+A more complex `step` might wait for a page element to be selected
 and then make sure that it matches an expected value.
 
 For example, on a page using the following HTML:
@@ -135,28 +211,47 @@ You can verify that the `input` element with class `new-todo` has the expected `
 [source,js]
 ----
 step('Assert placeholder text', async () => {
-  const placeholderValue = await page.getAttribute(
-      'input.new-todo',
-      'placeholder'
-  ); <1>
-  expect(placeholderValue).toBe('What needs to be done?'); <2>
+  const input = await page.locator('input.new-todo'); <1>
+  expect(await input.getAttribute('placeholder')).toBe(
+    'What needs to be done?'
+  ); <2>
 });
 ----
-<1> Find the `input` element with class `new-todo` and get the value of the `placeholder` attribute.
-See the https://playwright.dev/docs/api/class-page#page-get-attribute[`page.getAttribute` reference] for more information.
-<2> Use the assertion library provided by the Synthetics agent to look for the
-expected value. See https://jestjs.io/docs/expect[Jest expect docs] for more information.
+<1> Find the `input` element with class `new-todo`.
+<2> Use the assertion library provided by the Synthetics agent to check that
+the value of the `placeholder` attribute matches a specific string.
 
-[[synthetics-create-test-script-recorder]]
-[NOTE]
-====
-If you want to generate code by interacting with a web page directly, you can use the *Synthetics Recorder*.
+[discrete]
+[[synthetics-assertions-methods]]
+== Supported `expect` methods
 
-The recorder launches a https://www.chromium.org/Home/[Chromium browser] that will listen to each interaction you have with the web page and record them internally using Playwright.
-When you're done interacting with the browser, the recorder converts the recorded actions into JavaScript code that you can use with Elastic Synthetics or {heartbeat}.
+:jest: https://jestjs.io/docs
 
-For more details on getting started with the Synthetics Recorder, refer to <<synthetics-recorder>>.
-====
+* {jest}/expect#not[`not ()`]
+* {jest}/expect#resolves[`resolves ()`]
+* {jest}/expect#rejects[`rejects ()`]
+* {jest}/expect#tobevalue[`toBe (expected)`]
+* {jest}/expect#tobeclosetonumber-numdigits[`toBeCloseTo (expected, numDigits?)`]
+* {jest}/expect#tobedefined[`toBeDefined ()`]
+* {jest}/expect#tobefalsy[`toBeFalsy ()`]
+* {jest}/expect#tobegreaterthannumber\--bigint[`toBeGreaterThan (expected)`]
+* {jest}/expect#tobegreaterthanorequalnumber\--bigint[`toBeGreaterThanOrEqual (expected)`]
+* {jest}/expect#tobeinstanceofclass[`toBeInstanceOf (expected)`]
+* {jest}/expect#tobelessthannumber\--bigint[`toBeLessThan (expected)`]
+* {jest}/expect#tobelessthanorequalnumber\--bigint[`toBeLessThanOrEqual (expected)`]
+* {jest}/expect#tobenull[`toBeNull ()`]
+* {jest}/expect#tobetruthy[`toBeTruthy ()`]
+* {jest}/expect#tobeundefined[`toBeUndefined ()`]
+* {jest}/expect#tobenan[`toBeNaN ()`]
+* {jest}/expect#tocontainitem[`toContain (expected)`]
+* {jest}/expect#tocontainequalitem[`toContainEqual (expected)`]
+* {jest}/expect#toequalvalue[`toEqual (expected)`]
+* {jest}/expect#tohavelengthnumber[`toHaveLength (expected)`]
+* {jest}/expect#tohavepropertykeypath-value[`toHaveProperty (keyPath, value?)`]
+* {jest}/expect#tomatchregexp\--string[`toMatch (expected)`]
+* {jest}/expect#tomatchobjectobject[`toMatchObject (expected)`]
+* {jest}/expect#tostrictequalvalue[`toStrictEqual (expected)`]
+
 
 [discrete]
 [[synthetics-request-param]]
