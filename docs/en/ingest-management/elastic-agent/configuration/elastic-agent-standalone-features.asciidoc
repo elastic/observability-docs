@@ -1,0 +1,38 @@
+[[elastic-agent-standalone-feature-flags]]
+= Configure feature flags for standalone {agent}s
+
+++++
+<titleabbrev>Feature flags</titleabbrev>
+++++
+
+include::{fleet-repo-dir}/standalone-note.asciidoc[]
+
+The Feature Flags section of the `elastic-agent.yml` config file contains settings in {agent} that are disabled by default. Having these settings behind a feature flag prevents accidentally exposing any breaking changes that might be inconsistent with the naming formats expected in your configured {agent} output.
+
+To enable any of the settings listed on this page, change the associated `enabled` flag from `false` to `true`.
+
+[source,yaml]
+----
+agent.features:
+  mysetting:
+    enabled: true
+----
+
+[discrete]
+[[elastic-agent-standalone-feature-flag-settings]]
+== Feature flag configuration settings
+
+You can specify the following settings in the Feature Flag section of the
+`elastic-agent.yml` config file.
+
+Fully qualified domain name (FQDN)::
+When enabled, information provided about the current host through <<host-provider,host.name>> key is in FQDN format (`somehost.example.com` rather than `somehost`). This helps you to distinguish between hosts on different domains that have similar names. With `fqdn` enabled, the fully qualified hostname allows each host to be more easily identified when viewed in {kib}.
++
+To enable fully qualified domain names set `enabled: true` for the `fqdn` setting:
++
+["source","yaml",subs="attributes"]
+----
+agent.features:
+  fqdn:
+    enabled: true
+----
