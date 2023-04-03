@@ -1,17 +1,37 @@
 [[synthetics-role-read]]
 = Reader role
 
+For users who need to view and create visualizations that access Synthetics data,
+provide read access. Two types of read access are outlined below:
+
+* *General read access*: For most users, you can use <<synthetics-read-privileges-general>>,
+which grants read access to all {kib} apps and requires little configuration.
+* *Limited read access*: If you want to limit read access to the {synthetics-app} only,
+you can use <<synthetics-read-privileges-limited>>, which requires additional configuration.
+
+[discrete]
+[[synthetics-read-privileges-general]]
+= General read access
+
 For users who only need to view results in {kib},
 use the `viewer` {ref}/built-in-roles.html[built-in role].
 
-// [discrete]
-// [[synthetics-privileges-learn-more]]
-// = Learn more about privileges, roles, and users
+[discrete]
+[[synthetics-read-privileges-limited]]
+= Limited read access
 
-// Want to learn more about creating users and roles? See
-// {ref}/secure-cluster.html[Secure a cluster]. Also see:
+If you want to limit read access to the {synthetics-app} only, do _not_ use the
+`viewer` {ref}/built-in-roles.html[built-in role].
 
-// * {ref}/security-privileges.html[Security privileges] for a description of
-// available privileges
-// * {ref}/built-in-roles.html[Built-in roles] for a description of roles that
-// you can assign to users
+Instead to you can create a reader role, called something like `synthetics_reader_limited`,
+and grant the following privileges:
+
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+| {ref}/security-privileges.html#privileges-list-indices[Index]
+| `synthetics-*`: `read`
+| Read-only access to synthetics indices.
+
+|====
