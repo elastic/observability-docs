@@ -1,0 +1,140 @@
+:hardbreaks-option:
+
+[%header]
+|===
+| Option (type) | Description
+
+// type
+| [[monitor-type]] *`type`*
+(`"http"` \| `"icmp"` \| `"tcp"`)
+a| *Required*. The type of monitor to run. One of:
+
+* `http`: Connects via HTTP and optionally verifies that the host returns the expected response.
+* `icmp`: Uses an ICMP (v4 and v6) Echo Request to ping the configured hosts. Requires special permissions or root access.
+* `tcp`: Connects via TCP and optionally verifies the endpoint by sending and/or receiving a custom payload.
+
+////////////////////////
+id
+////////////////////////
+| [[monitor-id]] *`id`*
+(<<synthetics-lightweight-data-string,string>>)
+a| *Required*. A unique identifier for this configuration. This should not change with edits to the monitor configuration regardless of changes to any config fields.
+
+*Examples*:
+
+[source,yaml]
+----
+id: uploader-service
+----
+
+[source,yaml]
+----
+id: http://example.net
+----
+
+[NOTE]
+====
+When querying against indexed monitor data this is the field you will be aggregating with. It appears in the exported fields as `monitor.id`.
+
+If you do not set an `id` explicitly, the monitor's config will be hashed and a generated value will be used. This value will change with any options change to this monitor making aggregations over time between changes impossible. For this reason, it's recommended that you set this manually.
+====
+
+////////////////////////
+name
+////////////////////////
+| [[monitor-name]] *`name`*
+(<<synthetics-lightweight-data-string,string>>)
+a| Human readable name for this monitor.
+
+*Examples*: 
+
+[source,yaml]
+----
+name: Uploader service
+----
+
+[source,yaml]
+----
+name: Example website
+----
+
+////////////////////////
+service.name
+////////////////////////
+| [[monitor-service_name]] *`service.name`*
+(<<synthetics-lightweight-data-string,string>>)
+a| APM service name for this monitor. Corresponds to the `service.name` ECS field. Set this when monitoring an app that is also using APM to enable integrations between Synthetics and APM data in Kibana.
+
+////////////////////////
+enabled
+////////////////////////
+| [[monitor-enabled]] *`enabled`*
+(<<synthetics-lightweight-data-bool,boolean>>)
+a| Whether the module is enabled.
+
+*Default*: `true`
+
+*Example*:
+
+[source,yaml]
+----
+enabled: false
+----
+
+////////////////////////
+schedule
+////////////////////////
+| [[monitor-schedule]] *`schedule`*
+(<<synthetics-lightweight-data-duration,duration>>)
+a| *Required*. The task schedule.
+
+NOTE: Schedules with less than 1 minute resolution will be saved to the nearest minute. For example, `@every 5s` will be changed to `@every 60s` when the monitor is pushed using the CLI.
+
+*Example*:
+Run the task every 5 minutes from the time the monitor was started.
+
+[source,yaml]
+----
+schedule: @every 5m
+----
+
+////////////////////////
+timeout
+////////////////////////
+| [[monitor-timeout]] *`timeout`*
+(<<synthetics-lightweight-data-duration,duration>>)
+a| The total running time for each ping test. This is the total time allowed for testing the connection and exchanging data.
+
+*Default*: `16s`
+
+*Example*:
+
+[source,yaml]
+----
+timeout: 2m
+----
+
+////////////////////////
+tags
+////////////////////////
+| [[monitor-tags]] *`tags`*
+(list of <<synthetics-lightweight-data-string,string>>s)
+a| A list of tags that will be sent with the monitor event.
+
+*Examples*:
+
+[source,yaml]
+----
+tags:
+  - tag one
+  - tag two
+----
+
+[source,yaml]
+----
+tags: ["tag one", "tag two"]
+----
+
+|===
+
+:!hardbreaks-option:
