@@ -149,11 +149,13 @@ To enroll the {agent} in {fleet} and set up {fleet-server}:
 ----
 elastic-agent enroll --fleet-server-es <string>
                      --fleet-server-service-token <string>
+                     [--fleet-server-service-token-file <string>]
                      [--ca-sha256 <string>]
                      [--certificate-authorities <string>]
                      [--delay-enroll]
                      [--fleet-server-cert <string>] <1>
                      [--fleet-server-cert-key <string>]
+                     [--fleet-server-cert-key-passphrase-file <string>]
                      [--fleet-server-es-ca <string>]
                      [--fleet-server-es-ca-trusted-fingerprint <string>] <2>
                      [--fleet-server-es-insecure]
@@ -164,7 +166,7 @@ elastic-agent enroll --fleet-server-es <string>
                      [--force]
                      [--non-interactive]
                      [--help]
-                     [--tag <string>] 
+                     [--tag <string>]
                      [--url <string>] <3>
                      [global-flags]
 ----
@@ -207,6 +209,9 @@ Certificate to use for exposed {fleet-server} HTTPS endpoint.
 `--fleet-server-cert-key <string>`::
 Private key to use for exposed {fleet-server} HTTPS endpoint.
 
+`--fleet-server-cert-key-passphrase-file <string>`::
+Path to passphrase file for decrypting {fleet-server}'s private key if an encrypted private key is used.
+
 `--fleet-server-es <string>`::
 Start a {fleet-server} process when {agent} is started, and connect to the
 specified {es} URL.
@@ -247,6 +252,11 @@ Used when starting a self-managed {fleet-server} to allow a specific policy to b
 
 `--fleet-server-service-token <string>`::
 Service token to use for communication with {es}.
+Mutually exclusive with `--fleet-server-service-token-file`.
+
+`--fleet-server-service-token-file <string>`::
+Service token file to use for communication with {es}.
+Mutually exclusive with `--fleet-server-service-token`.
 
 `--force`::
 Force overwrite of current configuration without prompting for confirmation.
@@ -256,7 +266,7 @@ NOTE: If the {agent} is already installed on the host, using `--force` may
 result in unpredictable behavior with duplicate {agent}s appearing in {fleet}.
 
 `--non-interactive`::
-Install {agent} in a non-interactive mode. This flag is helpful when 
+Install {agent} in a non-interactive mode. This flag is helpful when
 using automation software or scripted deployments. If {agent} is
 already installed on the host, the installation will terminate.
 
@@ -473,7 +483,7 @@ elastic-agent install --url <string>
                       [--non-interactive]
                       [--help]
                       [--insecure ]
-                      [--tag <string>] 
+                      [--tag <string>]
                       [global-flags]
 ----
 
@@ -485,11 +495,13 @@ a `fleet-server` process alongside the `elastic-agent` service:
 
 elastic-agent install --fleet-server-es <string>
                       --fleet-server-service-token <string>
+                      [--fleet-server-service-token-file <string>]
                       [--ca-sha256 <string>]
                       [--certificate-authorities <string>]
                       [--delay-enroll]
                       [--fleet-server-cert <string>] <1>
                       [--fleet-server-cert-key <string>]
+                      [--fleet-server-cert-key-passphrase-file <string>]
                       [--fleet-server-es-ca <string>]
                       [--fleet-server-es-ca-trusted-fingerprint <string>] <2>
                       [--fleet-server-host <string>]
@@ -499,7 +511,7 @@ elastic-agent install --fleet-server-es <string>
                       [--force]
                       [--non-interactive]
                       [--help]
-                      [--tag <string>] 
+                      [--tag <string>]
                       [--url <string>] <3>
                       [--fleet-server-es-insecure]
                       [global-flags]
