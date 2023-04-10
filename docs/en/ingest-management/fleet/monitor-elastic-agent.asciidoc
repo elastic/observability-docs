@@ -23,25 +23,29 @@ To view the status of your {fleet}-managed agents, in {kib}, go to
 [role="screenshot"]
 image::images/agent-status.png[Agents tab showing status of each {agent}]
 
-{fleet} reports these statuses:
+{agent}s can have the following statuses:
 
 |===
 
-| **Healthy** | The {agent} is online and running as expected. There are no agent
-policy updates or automatic agent binary updates in progress, but the
-agent binary may still be out of date.
+| *Healthy* | {agent}s are enrolled and checked in. There are no agent policy updates or automatic agent binary updates in progress, but the agent binary may still be out of date. {agent}s continuously check in to the {fleet-server} for required updates. 
 
-| **Unhealthy** | The {agent} is online, but requires attention because it's
-reporting either agent or integration-level errors.
+| *Unhealthy* | {agent}s have not checked in to {fleet-server}. At this point, you may need to address the situation. 
 
-| **Updating** | The {agent} is online and updating the agent policy, updating the
-binary, or enrolling or unenrolling from {fleet}.
+| *Updating* | {agent}s are updating the agent policy, updating the binary, or enrolling or unenrolling from {fleet}.
 
-| **Offline** | The {agent} has not checked in during the expected time period.
+| *Offline* | {agent}s have stayed in an unhealthy status for a period of time. Offline agent's API keys remain valid. You can still see these {agent}s in the {fleet} UI and investigate them for further diagnosis if required.
 
-| **Inactive** | The {agent} is valid, but has been removed from the main {fleet} UI according to your <<set-inactivity-timeout,inactivity timeout>>.
+| *Inactive* | {agent}s have been offline for longer than the time set in your <<set-inactivity-timeout,inactivity timeout>>. These {agent}s are valid, but have been removed from the main {fleet} UI. 
+
+| *Unenrolled* | {agent}s have been manually unenrolled and their API keys have been removed from the system. You can <<unenroll-elastic-agent,unenroll>> an offline {agent} using {agent} actions if you determine it's offline and no longer valid. 
+
+These agents need to re-enroll in {fleet} to be operational again.
 
 |===
+
+The following diagram shows the flow of {agent} statuses:
+
+image::images/agent-status-diagram.png[Diagram showing the flow of Fleet Agent statuses]
 
 To filter the list of agents by status, click the **Status** dropdown and select
 one or more statuses.
