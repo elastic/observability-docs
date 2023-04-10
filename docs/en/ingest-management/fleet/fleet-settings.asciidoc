@@ -276,3 +276,34 @@ repository.
 **Make this host the default for all agent policies**. {agent}s
 use the default location if you don't select a different agent binary source
 in the agent policy.
+
+[discrete]
+[[fleet-agent-hostname-format-settings]]
+== Host name format settings
+
+These settings control the format of information provided about the current host through the <<host-provider,host.name>> key, in events produced by {agent}.
+
+[cols="2*<a"]
+|===
+|
+[id="ls-hostname"]
+**Hostname**
+
+| When this setting is selected, information about the current host is in a non-fully-qualified format (`somehost`, rather than `somehost.example.com`). This is the default reporting format.
+
+// =============================================================================
+
+|
+[id="ls-hostname-fqdn"]
+**Fully Qualified Domain Name (FQDN)**
+
+| When this setting is selected, information about the current host is in FQDN format (`somehost.example.com` rather than `somehost`). This helps you to distinguish between hosts on different domains that have similar names. The fully qualified hostname allows each host to be more easily identified when viewed in {kib}, for example.
+
+For FQDN reporting to work as expected, the hostname of the current host must either:
+
+* Have a CNAME entry defined in DNS.
+* Have one of its corresponding IP addresses respond successfully to a reverse DNS lookup.
+
+If neither pre-requisite is satisfied, `host.name` continues to report the hostname of the current host in a non-fully-qualified format.
+
+|===
