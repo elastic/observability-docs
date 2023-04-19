@@ -3,25 +3,28 @@
 
 beta::[]
 
-Configuring probabilistic profiling is a viable option to reduce storage costs.
+Probabilistic profiling allows you to reduce storage costs by collecting a representative sample of profiling data. 
+Over time and across the Universal Profiling agent fleet, this configuration results in approximately 50% of deployed agents collecting profiles at any given time. 
+This reduces storage costs with the trade-off that profile collection is not enabled at all times on all Universal Profiling agents.
 
-The option `-probabilistic-threshold` expects an unsigned integer as argument. If set to a value
-between 1 and 99 will enable probabilistic profiling. Every probabilistic interval a random number
-between 0 and 99 is chosen. If the given probabilistic threshold is greater than this random
-number, the agent will collect profiles from this system for the duration of the interval.
+[[discrete]]
+== Configure probabilistic profiling
 
-The option `-probabilistic-interval` expects a time duration and defines the time interval for
-which probabilistic profiling will be enabled or disabled. Its default value is 1 minute.
+To configure probabilistic profiling,  set the `-probabilistic-threshold` and `probabilistic-interval` options.
 
-The following example shows how to configure the Universal Profiling Agent with a threshold of 50
-and an interval of 2 minutes and 30 seconds:
+Set the `-probabilistic-threshold` option to a unsigned integer between 1 and 99 to enable probabilistic profiling. At every probabilistic interval, a random number
+between 0 and 99 is chosen. If the probabilistic threshold that you've set is greater than this random
+number, the agent collects profiles from this system for the duration of the interval.
+
+Set the `-probabilistic-interval` option to a time duration to define the time interval for
+which probabilistic profiling is either enabled or disabled. The default value is 1 minute.
+
+[[discrete]]
+== Example
+
+The following example shows how to configure the Universal Profiling agent with a threshold of 50 and an interval of 2 minutes and 30 seconds:
 
 [source,bash]
 ----
 sudo pf-host-agent/pf-host-agent -probabilistic-threshold=50 -probabilistic-interval=2m30s ...'
 ----
-
-Over time and across the Universal Profiling Agent fleet, this configuration is expected to result
-in ~50% of deployed agents collecting profiles at any given time. This reduces storage costs by
-accepting the trade-off of not having profile collection enabled all the time on all Universal
-Profiling Agents.
