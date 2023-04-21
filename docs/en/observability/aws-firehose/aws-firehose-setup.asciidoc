@@ -44,6 +44,7 @@ Confirm by clicking *Install AWS* in the popup.
 [role="screenshot"]
 image::./images/firehose-integrations-install-assets.png[AWS integration settings page with the "Install AWS assets" button highlighted]
 
++
 [[aws-firehose-create-delivery-stream]] 
 . Create a delivery stream in Amazon Kinesis Data Firehose.
 + 
@@ -54,74 +55,47 @@ Click *Create delivery stream*.
 image::./images/firehose-create-delivery-stream.png[Amazon Kinesis dashboard with the "Create delivery stream" button highlighted]
 +
 Configure the delivery stream using the following settings:
-+ 
 [discrete]
 [[aws-firehose-config-source-and-destination]]
-// <h5>
-=== Choose source and destination
-+
+// <h6>
+=== Choose source and destination   
 Unless you are streaming data from Kinesis Data Streams, set source to *Direct PUT* (see <<aws-firehose-send-data-to-delivery-stream>> for more details on data sources).
 +
 Set destination to *Elastic*.
-+
 [discrete]
 [[aws-firehose-config-delivery-stream-name]]
-// <h5>
+// <h6>
 === Delivery stream name
-+
 Provide a meaningful name that will allow you to identify this delivery stream later.
-+ 
 [discrete]
 [[aws-firehose-config-transform-records]]
-// <h5>
+// <h6>
 === Transform records - optional
-+
 For advanced use cases, source records can be transformed by invoking a custom Lambda function.
 When using Elastic integrations, this should not be required. 
 +
 [role="screenshot"]
 image::./images/firehose-config-1.png[Amazon Kinesis Data Firehose delivery stream settings showing 'Choose source and destination', 'Delivery stream name' and 'Transform records' sections]
-+
 [discrete]
 [[aws-firehose-config-destination-settings]]
-// <h5>
-=== Destination settings
-+
-[discrete]
-[[aws-firehose-config-destination-settings-elastic-endpoint-url]]
 // <h6>
-==== Elastic endpoint URL
+=== Destination settings
 Set *Elastic endpoint URL* to point to your {es} cluster running in {ecloud}.
 This endpoint can be found in the {ess-console}[{ecloud} console].
 An example is `\https://my-deployment-28u274.es.eu-west-1.aws.found.io`.
 +
-[discrete]
-[[aws-firehose-config-destination-settings-api-key]]
-// <h6>
-==== API key
 *API key* should be a Base64 encoded Elastic API key, which can be created in {kib} by following the instructions under {kibana-ref}/api-keys.html[API Keys].
 If you are using an API key with “Restrict privileges”, be sure to review the {ref}/security-privileges.html#privileges-list-indices[Indices privileges] to provide at least  "auto_configure" & "write" permissions for the indices you will be using with this delivery stream.
 +
-[discrete]
-[[aws-firehose-config-destination-settings-content-encoding]]
-// <h6>
-==== Content encoding
 We recommend leaving *Content encoding* set to *GZIP* for improved network efficiency. 
 +
-[discrete]
-[[aws-firehose-config-destination-settings-retry-duration]]
-// <h6>
-==== Retry duration
 *Retry duration* determines how long Firehose continues retrying the request in the event of an error.
 A duration of 60-300s should be suitable for most use cases.
 +
-[discrete]
-[[aws-firehose-config-destination-settings-parameters]]
-// <h6>
-==== Parameters
+*Parameters*:
 
 * When using Elastic integrations, setting the *`es_datastream_name`* parameter is required.
-+ 
++
 Elastic integrations use data streams with specific naming conventions, and Firehose records need to be routed to the relevant data stream to use preconfigured index mappings, ingest pipelines, and dashboards.
 +
 _A separate Firehose delivery stream is required for each log type in AWS to make use of Elastic integrations._
@@ -161,7 +135,7 @@ The following is a list of common AWS log types and the *`es_datastream_name`* v
 
 |===
 +
-As per the {fleet-guide}/data-streams.html[data stream naming conventions], the "namespace" is a user-configurable arbitrary grouping and can be changed from `default` to fit your use case. For example, you may want to organize WAF Logs per environment into `logs-aws.waf-production` and `logs-aws.waf-qa` data streams for more granular control over rollover, retention, and security permissions.
+As per the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming conventions], the "namespace" is a user-configurable arbitrary grouping and can be changed from `default` to fit your use case. For example, you may want to organize WAF Logs per environment into `logs-aws.waf-production` and `logs-aws.waf-qa` data streams for more granular control over rollover, retention, and security permissions.
 +
 For log types not listed above, review the relevant https://docs.elastic.co/integrations/aws[integration documentation] to determine the correct *`es_datastream_name`* value.
 The data stream components can be found in the example event for each integration.
@@ -179,19 +153,24 @@ When set to `true`, each log record will contain an additional field named `even
 This parameter will increase the data volume in Elasticsearch and should be used with care.
 
 +
-[discrete]
-[[aws-firehose-config-destination-settings-buffer-size]]
-// <h6>
-==== Buffer size
 Elastic requires a *Buffer size* of 1MiB to avoid exceeding the {es} `http.max_content_length` setting (typically 100MB) when the buffer is uncompressed.
-[discrete]
-[[aws-firehose-config-destination-settings-buffer-interval]]
-// <h6>
-==== Buffer interval
++
 The default *Buffer interval* of 60s is recommended to ensure data freshness in Elastic.
 [role="screenshot"]
 image::./images/firehose-config-2.png[Amazon Kinesis Data Firehose delivery stream settings showing 'Destination settings' section]
 
++
+[discrete]
+[[aws-firehose-config-backup-settings]]
+// <h6>
+=== Backup settings
+It's recommended to configure S3 backup for failed records.
+It's then possible to configure workflows to automatically re-try failed records, for example using {observability-guide}aws-elastic-serverless-forwarder.html[Elastic Serverless Forwarder].
+[role="screenshot"]
+image::./images/firehose-config-3.png[Amazon Kinesis Data Firehose delivery stream settings showing 'Backup settings' section]
+Whilst Firehose guarantees at-least-once delivery of data to the destination, if your data is highly sensitive, it's also recommended to backup all records to S3 in case there are any ingest issues in Elasticsearch.
+
++
 [[aws-firehose-send-data-to-delivery-stream]] 
 . Send data to the Firehose delivery stream.
 +
