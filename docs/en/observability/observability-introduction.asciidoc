@@ -2,77 +2,115 @@
 [role="xpack"]
 = What is Elastic {observability}?
 
-{observability} provides you with granular insights and context into the behavior
-of applications running in your environments. At Elastic, we view observability as an
-attribute of any system that you build and want to monitor. Being able to detect
-and fix root cause events quickly within an observable system is what we consider
-a minimum requirement for any analyst.
-
-https://www.elastic.co/observability[Elastic {observability}] provides you with a
-single stack to unify your logs, infrastructure metrics, uptime data, application traces, user experience data, and synthetics.
-Ingest your data directly to {es}, where you can further process and enhance the data,
-before visualizing it in {kib}.
-
-image::images/observability.png[Elastic {observability}]
+{observability} provides granular insights and context into the behavior of applications running in your environments. 
+It's is an important part of any system that you build and want to monitor. 
+Being able to detect and fix root cause events quickly within an observable system should be a minimum requirement for any analyst.
 
 Search, monitor, and apply analytics in real time to events happening across all of
 your environments. Analyze the logs for a specific transaction, monitor the performance metrics
 for the host or container that it ran in, trace the transaction, and check the overall
 service availability.
 
-[float]
-[[logs-overview]]
-== Logs data
+https://www.elastic.co/observability[Elastic {observability}] provides a
+single stack to unify your logs, infrastructure metrics, uptime data, application traces, user experience data, synthetics, and universal profiling.
+Ingest your data directly to {es}, where you can further process and enhance the data,
+before visualizing it and adding alerts in {kib}. 
 
-Analyze log data from your hosts, services, Kubernetes, Apache, and many more. To view a
-live stream of your logs and to filter, pin, or highlight the data you need, drill-down into the {logs-app}.
-
-[float]
-[[metrics-overview]]
-== Infrastructure data
-
-Monitor system and service metrics from your servers, Docker, Kubernetes, Prometheus, along with other
-services and applications. To monitor and filter your data by hosts, pods, containers,
-or EC2 instances, drill-down into the {infrastructure-app}. You can also create custom groupings such as
-availability zones or namespaces.
+//Add new data flow graphic
 
 [float]
 [[apm-overview]]
-== APM data
+== Application performance monitoring (APM)
 
-To instrument your code and collect performance data and errors at runtime, install APM agents
-like Java, Go, .NET, and many more. To quickly find the APM traces for underlying services,
-drill-down into the {apm-app}.
+Instrument your code and collect performance data and errors at runtime by installing APM agents
+like Java, Go, .NET, and many more. 
+
+On the {observability} **Overview** page, the *Services* chart shows the total number of services running within your environment and the total number of transactions per minute that were captured by the Elastic APM
+agent instrumenting those services.
+
+[role="screenshot"]
+image::images/apm.png[Summary of Services on the {observability} overview page]
+
+You can then drill down into the {apm-app} by clicking *Show service inventory* to quickly find the APM traces for underlying services.
+
+For more information, see <<apm,Application performance monitoring (APM)>>.
 
 [float]
-[[uptime-overview]]
-== Uptime data
+[[metrics-overview]]
+== Infrastructure monitoring
 
-Install and configure {heartbeat} on your servers to monitor host availability, service
-uptime, web site endpoints, and API monitoring. For detailed
-monitor summaries, with support for monitors from multiple locations, drill-down into
-the {uptime-app}.
+Monitor system and service metrics from your servers, Docker, Kubernetes, Prometheus, and other
+services and applications. 
+
+On the {observability} **Overview** page, the *Hosts* table shows your top hosts with the most significant resource footprints. These metrics help you evaluate host efficiency and determine if resource consumption is impacting end-users.
+
+[role="screenshot"]
+image::images/metrics-summary.png[Summary of Hosts on the {observability} overview page]
+
+You can then drill down into the {infrastructure-app} by clicking *Show inventory*. Here you can monitor and filter your data by hosts, pods, containers,or EC2 instances and create custom groupings such as availability zones or namespaces.
+
+For more information, see <<analyze-metrics,Infrastructure Monitoring>>.
 
 [float]
 [[user-experience-overview]]
-== User experience data
+== Real user monitoring (RUM)
 
-{user-experience} data, powered by the APM Real User Monitoring (RUM) agent,
-provides a way to quantify and analyze the perceived performance of your web application.
+Quantify and analyze the perceived performance of your web application with {user-experience} data, powered by the APM RUM agent. Unlike testing environments, {user-experience} data reflects real-world user experiences.
+
+On the {observability} **Overview** page, the *{user-experience}* chart provides a snapshot of core web vitals for the service with the most traffic.
+
+[role="screenshot"]
+image::images/obs-overview-ue.png[Summary of {user-experience} metrics on the {observability} overview page]
+
+You can then drill down into the {user-experience} dashboard by clicking *Show dashboard* too see data by URL, operating system, browser, and location.
+
+For more information, see <<user-experience,{user-experience}>>.
+
+[float]
+[[logs-overview]]
+== Log monitoring
+
+Analyze log data from your hosts, services, Kubernetes, Apache, and many more.
+
+On the {observability} **Overview** page, the *Log Events* chart helps you detect and inspect possible log anomalies across each of your ingested log sources to determine if the log rate is outside of your expected bounds.
+
+[role="screenshot"]
+image::images/log-rate.png[Summary of Log Events on the {observability} overview page]
+
+You can then drill-down into the {logs-app} by clicking *Show log stream* to view a live stream of your logs and filter, pin, or highlight the data you need.
+
+For more information, see <<monitor-logs,Log monitoring>>.
 
 [float]
 [[synthetic-monitoring-overview]]
-== Synthetic monitoring data
+== Synthetic monitoring
 
-beta[] Synthetic monitoring allows you to simulate actions and requests that an end-user would perform
-on your site at predefined intervals and in a controlled environment.
+beta[] Simulate actions and requests that an end-user would perform on your site at predefined intervals and in a controlled environment.
 The end result is rich, consistent, and repeatable data that you can trend and alert on.
+
+For more information, see <<monitor-uptime-synthetics,Synthetic monitoring>>.
+
+[float]
+[[universal-profiling-overview]]
+== Universal Profiling
+beta[] Build stack traces to get visibility into your system without application source code changes or instrumentation. Use flamegraphs to explore your systems performance and identify the most expensive lines of code,  increase CPU resource efficiency, debug performance regressions, and reduce cloud spend.
+
+For more information, see <<universal-profiling,Universal Profiling>>.
 
 [float]
 [[alerts-overview]]
 == Alerting
 
-To help keep you aware of potential issues in your environments, the {logs-app}, {infrastructure-app},
-{apm-app}, and the {uptime-app} all integrate with {kib}’s alerting
-and actions feature. It provides a set of built-in actions and specific threshold rules
-for you to use and enables central management of all rules from {kib} Management.
+Stay aware of potential issues in your environments with {kib}’s alerting
+and actions feature that integrates with the {logs-app}, {infrastructure-app}, and
+{apm-app}. It provides a set of built-in actions and specific threshold rules
+ and enables central management of all rules from {kib} Management.
+
+On the {observability} **Overview** page, the *Alerts* table provides a snapshot of alerts occurring within the specified time frame. The table includes the alert status, when it was last updated, the reason for the alert, and more.
+
+[role="screenshot"]
+image::images/alerts-overview.png[Summary of Alerts on the {observability} overview page]
+
+You can then see more details on these alerts by clicking *Show alerts*. 
+
+For more information, see <<create-alerts,Alerting>>.
