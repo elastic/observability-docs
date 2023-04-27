@@ -1,9 +1,13 @@
-[[ingest-traces]]
-= Ingest application traces with {agent}
+[[traces-apm-get-started]]
+= Get started with application traces and APM
 
 ++++
-<titleabbrev>Ingest traces</titleabbrev>
+<titleabbrev>Traces and APM</titleabbrev>
 ++++
+
+//TODO: Ask Brandon--can I rename this file? I guess we will need to coordinate
+//with a corresponding update for APM. I just think it's good to rip of the
+//bandaid and give these files accurate names. WDYT?
 
 // THIS CONTENT IS ALSO USED IN THE APM GUIDE
 // tag::apm-quick-start[]
@@ -17,36 +21,32 @@ This guide describes how to:
 For feedback and questions, please contact us in the {forum}[discuss forum].
 
 [discrete]
-[[fleet-prereqs-traces]]
+[[ingest-prereqs-traces]]
 == Prerequisites
 
-You need {es} for storing and searching your data, and {kib} for visualizing and
-managing it. You can use our {ess-product}[hosted {ess}] on {ecloud}
-(recommended), or self-manage the {stack} on your own hardware.
+//TODO: Ask Brandon if it's Ok to make this a shared region. I'm thinking "no"
+//because it will get weird, but maybe if we use the full path in the include,
+//it will be OK?
 
-Here's what you need for each deployment type:
+To follow the steps in this guide, you need an {stack} deployment that includes:
 
-include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/prereq-widget.asciidoc[]
+* {es} for storing and searching data
+* {kib} for visualizing and managing data
+* Kibana user with `All` privileges on {fleet} and Integrations. Since many
+Integrations assets are shared across spaces, users need the Kibana privileges
+in all spaces.
+* Integrations Server (included by default in every {ess} deployment)
 
-[discrete]
-[[set-up-fleet-traces]]
-== Step 1: Set up {fleet}
+To get started quickly, spin up a deployment of our hosted {ess}]. The {ess} is
+available on AWS, GCP, and Azure. {ess-trial}[Try it out for free].
 
-Use {fleet} in {kib} to get APM data into the {stack}.
-
-The first time you use {fleet}, you might need to set it up and add a
-{fleet-server}:
-
-include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/add-fleet-server/widget.asciidoc[]
-
-For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
-
-NOTE: The APM integration does not support running {agent} in standalone mode;
-you must use {fleet} to manage {agent}.
+TIP: Not using {fleet}? Advanced users who want to configure and manage
+{agent}s manually can
+{fleet-guide}/install-standalone-elastic-agent.html[run agents standalone].
 
 [discrete]
 [[add-apm-integration]]
-== Step 2: Configure the APM integration
+== Step 1: Configure the APM integration
 
 {ecloud} runs a hosted version of {integrations-server} that includes the APM integration.
 Self-managed users will need to add the APM integration before configuring it.
@@ -55,7 +55,9 @@ include::./tab-widgets/add-apm-integration/widget.asciidoc[]
 
 [discrete]
 [[add-agent-to-fleet-traces]]
-== Step 3: Install and run an {agent} on your machine
+== Step 2: Install and run an {agent} on your machine
+
+//TODO: Ask Brandon how to handle references to self managed users here
 
 ****
 This step is optional for both {ess} and self-managed users as
@@ -84,7 +86,7 @@ include::{ingest-docs-root}/docs/en/ingest-management/elastic-agent/install-flee
 
 [discrete]
 [[add-apm-integration-agents]]
-== Step 4: Install APM agents
+== Step 3: Install APM agents
 
 APM agents are written in the same language as your service.
 To monitor a new service, you must install the agent and configure it with a service name,
@@ -118,7 +120,7 @@ endif::[]
 
 [discrete]
 [[view-apm-integration-data]]
-== Step 5: View your data
+== Step 4: View your data
 
 Back in {kib}, under {observability}, select APM.
 You should see application performance monitoring data flowing into the {stack}!
