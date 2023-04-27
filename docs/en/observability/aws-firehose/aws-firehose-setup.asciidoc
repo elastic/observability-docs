@@ -1,0 +1,186 @@
+[[aws-firehose-setup-guide]]
+// <h3>
+= Amazon Kinesis Data Firehose setup guide
+
+preview::[]
+
+[[aws-firehose-prerequisites]]
+// <h4>
+== Prerequisites
+
+* You have an AWS account where you can create a Firehose delivery stream.
+
+* You have a deployment in {ecloud} running {stack} version 7.17 or greater on AWS.
+
+[[aws-firehose-limitations]]
+// <h4>
+== Limitations
+
+* When using https://www.elastic.co/integrations[Elastic integrations] with Firehose, only a single log type may be sent per delivery stream, e.g. VPC Flow Logs.
+This is due to how Firehose records are routed into {ref}/data-streams.html[data streams] in {es}.
++
+It is possible to combine multiple log types in one delivery stream, but this will preclude the use of Elastic integrations (by default all Firehose logs are sent to the `logs-generic-default` data stream).
+
+* It is not possible to configure a delivery stream to send data to Elastic Cloud via PrivateLink (VPC endpoint).
+This is a current limitation in Firehose, which we are working with AWS to resolve. 
+
+[[aws-firehose-instructions]]
+// <h4>
+== Instructions
+
+. [[aws-firehose-install-integrations]] Install the relevant integrations in {kib}.
++
+--
+In order to make the most of your data, install AWS integrations to load index templates, ingest pipelines, and dashboards into {kib}. 
+
+In {kib}, navigate to *Management > Integrations* in the sidebar. 
+ 
+Find the *AWS* integration by searching or browsing the catalog.
+
+[role="screenshot"]
+image::./images/firehose-integrations-page.png[Integrations catalogue with the "AWS" integration highlighted]
+ 
+Navigate to the *Settings* tab and click *Install AWS assets*.
+Confirm by clicking *Install AWS* in the popup. 
+ 
+[role="screenshot"]
+image::./images/firehose-integrations-install-assets.png[AWS integration settings page with the "Install AWS assets" button highlighted]
+--
+ 
+. [[aws-firehose-create-delivery-stream]] Create a delivery stream in Amazon Kinesis Data Firehose.
++
+--
+Sign into the AWS console and navigate to Amazon Kinesis.
+Click *Create delivery stream*.
+ 
+[role="screenshot"]
+image::./images/firehose-create-delivery-stream.png[Amazon Kinesis dashboard with the "Create delivery stream" button highlighted]
+
+Configure the delivery stream using the following settings:
+[discrete]
+[[aws-firehose-config-source-and-destination]]
+// <h6>
+=== Choose source and destination   
+Unless you are streaming data from Kinesis Data Streams, set source to *Direct PUT* (see <<aws-firehose-send-data-to-delivery-stream>> for more details on data sources).
+
+Set destination to *Elastic*.
+[discrete]
+[[aws-firehose-config-delivery-stream-name]]
+// <h6>
+=== Delivery stream name
+Provide a meaningful name that will allow you to identify this delivery stream later.
+[discrete]
+[[aws-firehose-config-transform-records]]
+// <h6>
+=== Transform records - optional
+For advanced use cases, source records can be transformed by invoking a custom Lambda function.
+When using Elastic integrations, this should not be required. 
+
+[role="screenshot"]
+image::./images/firehose-config-1.png[Amazon Kinesis Data Firehose delivery stream settings showing 'Choose source and destination', 'Delivery stream name' and 'Transform records' sections]
+[discrete]
+[[aws-firehose-config-destination-settings]]
+// <h6>
+=== Destination settings
+Set *Elastic endpoint URL* to point to your {es} cluster running in {ecloud}.
+This endpoint can be found in the {ess-console}[{ecloud} console].
+An example is `\https://my-deployment-28u274.es.eu-west-1.aws.found.io`.
+
+*API key* should be a Base64 encoded Elastic API key, which can be created in {kib} by following the instructions under {kibana-ref}/api-keys.html[API Keys].
+If you are using an API key with “Restrict privileges”, be sure to review the {ref}/security-privileges.html#privileges-list-indices[Indices privileges] to provide at least  "auto_configure" & "write" permissions for the indices you will be using with this delivery stream.
+
+We recommend leaving *Content encoding* set to *GZIP* for improved network efficiency. 
+
+*Retry duration* determines how long Firehose continues retrying the request in the event of an error.
+A duration of 60-300s should be suitable for most use cases.
+
+*Parameters*:
+
+* When using Elastic integrations, setting the *`es_datastream_name`* parameter is required.
++
+Elastic integrations use data streams with specific naming conventions, and Firehose records need to be routed to the relevant data stream to use preconfigured index mappings, ingest pipelines, and dashboards.
++
+_A separate Firehose delivery stream is required for each log type in AWS to make use of Elastic integrations._
++
+The following is a list of common AWS log types and the *`es_datastream_name`* value that needs to be set to route the logs to the correct integration.
++
+[cols="1,3"]
+|===
+| AWS log type | *`es_datastream_name`* value
+
+| https://docs.elastic.co/en/integrations/aws/cloudfront[Cloudfront]
+| `logs-aws.cloudfront_logs-default`
+
+| https://docs.elastic.co/en/integrations/aws/ec2[EC2 (via Cloudwatch)]
+| `logs-aws.ec2_logs-default`
+
+| https://docs.elastic.co/en/integrations/aws/elb[ELB]
+| `logs-aws.elb_logs-default`
+
+| https://docs.elastic.co/en/integrations/aws/firewall[Network firewall]
+| `logs-aws.firewall_logs-default`
+
+| https://docs.elastic.co/en/integrations/aws/route53[Route 53 public DNS queries]
+| `logs-aws.route53_public_logs-default`
+
+| https://docs.elastic.co/en/integrations/aws/route53[Route 53 resolver queries]
+| `logs-aws.route53_resolver_logs-default`
+
+| https://docs.elastic.co/en/integrations/aws/s3[S3 server access]
+| `logs-aws.s3access-default`
+
+| https://docs.elastic.co/en/integrations/aws/vpcflow[VPC Flow Logs]
+| `logs-aws.vpcflow-default`
+
+| https://docs.elastic.co/en/integrations/aws/waf[WAF]
+| `logs-aws.waf-default`
+
+|===
++
+As per the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming conventions], the "namespace" is a user-configurable arbitrary grouping and can be changed from `default` to fit your use case. For example, you may want to organize WAF Logs per environment into `logs-aws.waf-production` and `logs-aws.waf-qa` data streams for more granular control over rollover, retention, and security permissions.
++
+For log types not listed above, review the relevant https://docs.elastic.co/integrations/aws[integration documentation] to determine the correct *`es_datastream_name`* value.
+The data stream components can be found in the example event for each integration.
++
+[role="screenshot"]
+image::./images/firehose-integration-data-stream.png[AWS WAF integration documentation showing a sample event with the data stream components highlighted]
+
+* The *`include_cw_extracted_fields`* parameter is optional and can be set when using a CloudWatch logs subscription filter as the Firehose data source. 
+When set to `true`, extracted fields generated by the filter pattern in the subscription filter will be collected.
+Setting this parameter can add many fields into each record and _may significantly increase data volume in Elasticsearch_.
+As such, use of this parameter should be carefully considered and used only when the extracted fields are required for specific filtering and/or aggregation.
+
+* The *`include_event_original`* field is optional and _should only be used for debugging purposes_.
+When set to `true`, each log record will contain an additional field named `event.original`, which contains the raw (unprocessed) log message.
+This parameter will increase the data volume in Elasticsearch and should be used with care.
++
+Elastic requires a *Buffer size* of 1MiB to avoid exceeding the {es} `http.max_content_length` setting (typically 100MB) when the buffer is uncompressed.
++
+The default *Buffer interval* of 60s is recommended to ensure data freshness in Elastic.
+[role="screenshot"]
+image::./images/firehose-config-2.png[Amazon Kinesis Data Firehose delivery stream settings showing 'Destination settings' section]
+
+[discrete]
+[[aws-firehose-config-backup-settings]]
+// <h6>
+=== Backup settings
+It's recommended to configure S3 backup for failed records.
+It's then possible to configure workflows to automatically re-try failed records, for example using {observability-guide}/aws-elastic-serverless-forwarder.html[Elastic Serverless Forwarder].
+[role="screenshot"]
+image::./images/firehose-config-3.png[Amazon Kinesis Data Firehose delivery stream settings showing 'Backup settings' section]
+Whilst Firehose guarantees at-least-once delivery of data to the destination, if your data is highly sensitive, it's also recommended to backup all records to S3 in case there are any ingest issues in Elasticsearch.
+--
+
+. [[aws-firehose-send-data-to-delivery-stream]] Send data to the Firehose delivery stream.
++
+--
+Consult the https://docs.aws.amazon.com/firehose/latest/dev/basic-write.html[AWS documentation] for details on how to configure a variety of log sources to send data to Firehose delivery streams.
+
+Several services support writing data directly to delivery streams, including Cloudwatch logs. 
+In addition, there are other ways to create streaming data pipelines to Firehose, e.g. https://aws.amazon.com/blogs/big-data/streaming-data-from-amazon-s3-to-amazon-kinesis-data-streams-using-aws-dms/[using AWS DMS].
+
+An example workflow for sending VPC Flow Logs to Firehose would be: 
+ 
+* Publish VPC Flow Logs to a Cloudwatch log group. To learn how, refer to the https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs-cwl.html[AWS documentation about publishing flow logs].
+* Create a subscription filter in the CloudWatch log group to the Firehose delivery stream. To learn how, refer to the https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#FirehoseExample[AWS documentation about using subscription filters].
+--
