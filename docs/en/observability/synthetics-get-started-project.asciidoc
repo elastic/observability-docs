@@ -21,16 +21,16 @@ To try this beta functionality, first you need to enable it in {kib}:
 
 . Go to **{observability}** -> **Synthetics (beta)**.
 . On the **Management** tab, review the terms and conditions and
-  click **Enable** to start using the {synthetics-app}.
-
+click **Enable** to start using the {synthetics-app}.
++
 [IMPORTANT]
 ======
 To enable Monitor Management, you must be logged into {kib} as a user with
-the following privileges:
-
-* {ref}/security-privileges.html#privileges-list-cluster[Cluster privileges]: `monitor`, `read_ilm`, `read_pipeline`, and at least one of `manage_own_api_key`, `manage_security`, or `manage_api_key`
-* {ref}/security-privileges.html#privileges-list-indices[Indices privileges] for `synthetics-*`: `view_index_metadata`, `create_doc`, `auto_configure`
+the privileges described in <<synthetics-role-setup>>.
 ======
+
+[role="screenshot"]
+image::images/synthetics-enable-monitor-management.png[Synthetics app in Kibana on the Management tab before Monitor Management is enabled]
 
 Working with projects requires working with the Elastic Synthetics CLI tool, which
 can be invoked via the `npx @elastic/synthetics` command. Before getting started
@@ -91,6 +91,9 @@ for authentication with your {stack}:
 .. Click **Settings**.
 .. Switch to the **Project API Keys** tab.
 .. Click **Generate Project API key**.
++
+IMPORTANT: To generate a Project API key, you must be logged in as a user with the privileges
+described in <<synthetics-role-write>>.
 +
 [role="screenshot"]
 image::images/synthetics-monitor-management-api-key.png[Project API Keys tab in Synthetics settings]
@@ -191,6 +194,12 @@ with the {kib} URL for the deployment from which to fetch available locations.
 
 [discrete]
 = View in {kib}
+
+
+[NOTE]
+====
+When a monitor is created or updated, the first run might not occur immediately, but the time it takes for the first run to occur will be less than the monitor's configured frequency. For example, if you create a monitor and configure it to run every 10 minutes, the first run will occur within 10 minutes of being created. After the first run, the monitor will begin running regularly based on the configured frequency. You can run a manual test if you want to see the results more quickly.
+====
 
 Then, go to the {synthetics-app} in {kib}. You should see your newly pushed monitors running.
 You can also go to the *Management* tab to see the monitors' configuration settings.
