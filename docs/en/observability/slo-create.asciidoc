@@ -14,10 +14,14 @@ To create an SLO, you need to:
 [discrete]
 [[define-sli]]
 == Define your SLI
+//Maybe we can do more here, why/when you should use each of these?
+
 You can choose one of the following SLI types:
-* *Custom KQL* — This indicator is based on any elasticsearch index or index pattern you have. You simply define two queries, one that yields the good events and one that yields the total events from your index.
-* *APM latency* — This indicator is based on the APM data that we receive from your instrumented services. We need the service name and the latency threshold at a minimum, but you can also provide an environment, transaction type, transaction name and a custom filter on the APM metrics data. 
-* *APM availability* — This indicator is based on the APM data that we receive from your instrumented services. We need the service name and the list of good status codes at a minimum, but you can also provide an environment, transaction type, transaction name and a custom filter on the APM metrics data. 
+
+[horizontal]
+*Custom KQL*:: This indicator is based on any elasticsearch index or index pattern you have. You simply define two queries, one that yields the good events and one that yields the total events from your index.
+*APM latency*:: This indicator is based on the APM data that we receive from your instrumented services. We need the service name and the latency threshold at a minimum, but you can also provide an environment, transaction type, transaction name and a custom filter on the APM metrics data. 
+*APM availability*:: This indicator is based on the APM data that we receive from your instrumented services. We need the service name and the list of good status codes at a minimum, but you can also provide an environment, transaction type, transaction name and a custom filter on the APM metrics data. 
 
 [discrete]
 [[custom-kql-sli]]
@@ -32,6 +36,8 @@ When defining a custom KQL SLI, you need to set the following fields:
 
 [discrete]
 [[apm-latency-sli]]
+//This can probably be combined with the APM availability section since the only difference are the Threshold and Good status codes fields.
+
 === APM latency
 When defining an APM latency SLI, you need to set the following fields:
 
@@ -62,14 +68,25 @@ After defining your SLI, you need to set your objectives.
 [discrete]
 [[slo-budgeting-method]]
 === Budgeting method
+//can we be more specific here? Equations used possibly?
+You can select either an *occurrences* or a *timeslices* budgeting method: 
+
+[horizontal]
+*Occurences*:: Uses the number of good events and the number of total events to compute the SLO.
+*Timeslices*:: Breaks the overall time window into smaller slices of a defined duration and uses the number of good slices over the number of total slices to compute the SLO.
+               * *Timeslice target (%)* - Individual timeslices target that determines if the slice is good or bad.
+               * *Timeslice window (in minutes)* - The size of the timeslice window size.
+//
 
 [discrete]
 [[slo-time-window]]
 === Time window
+Select the durations over which you want to compute your SLO. Then time window uses the data from the defined rolling period. For example, the last 30 days. 
 
 [discrete]
 [[slo-target]]
 === Target/SLO (%)
+The SLO target objective in percentage.
 
 [discrete]
 [[slo-describe]]
@@ -79,6 +96,6 @@ After setting your objectives, give your SLO a name, a short description, and ad
 [discrete]
 [[slo-alert-checkbox]]
 == SLO burn rate alert rule
-When the *Create an SLO burn rate alert rule* checkbox is selected, the *Create rule* window will open immediately after you click the *Create SLO* button.
+When the *Create an SLO burn rate alert rule* checkbox is selected, the *Create rule* window opens immediately after you click the *Create SLO* button.
 Here you can define your SLO burn rate alert rule. 
 For more information, see <<slo-burn-rate-alert, Create an SLO burn rate rule>>.
