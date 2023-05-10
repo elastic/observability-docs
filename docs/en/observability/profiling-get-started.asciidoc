@@ -1,0 +1,179 @@
+[[profiling-get-started]]
+= Get started with Universal Profiling
+
+++++
+<titleabbrev>Get started</titleabbrev>
+++++
+
+beta::[]
+
+On this page, you'll learn how to configure and use Universal Profiling. This page covers:
+
+* Prerequisites to setting up Universal Profiling
+* Setting up Universal Profiling in your {ecloud} deployment
+* Installing the host-agent
+* Installing the Universal Profiling Agent integration
+
+We would appreciate feedback on your experience with this product and any other profiling pain points you may have.
+See the <<profiling-send-feedback, send feedback>> section of the troubleshooting documentation for more information.
+
+
+[discrete]
+[[profiling-prereqs]]
+== Prerequisites
+
+Before setting up Universal Profiling, make sure you meet the following requirements:
+
+* An {stack} deployment on http://cloud.elastic.co[{ecloud}] at version 8.7.0 or higher. Universal Profiling is currently only available on Elastic Cloud.
+* The workloads you're profiling must be running on Linux machines with x86_64 CPUs and kernel version >= 4.15.
+* The Integrations Server must be enabled on your {ecloud} deployment.
+* Credentials (username and password) for the `superuser` Elasticsearch role (typically, the `elastic` user).
+
+[discrete]
+[[profiling-prereqs-interpreters]]
+=== Interpreters
+
+Universal Profiling is a system-wide profiling solution with additional support for PHP, Python, Java (or any JVM language), Go, Rust, C/C++, Node.js/V8, Ruby, and Perl.
+
+The minimum supported versions of each interpreter are:
+
+* JVM/JDK: 7
+* Python: 3.6
+* V8: 8.1.0
+* Perl: 5.28
+* PHP: 7.3
+* Ruby: 2.5
+
+[discrete]
+[[profiling-prereqs-config-example]]
+=== Deployment configuration example
+
+The following deployment configuration example was tested to support profiling data from a fleet of up to 500 hosts, each with 8 or 16 CPU cores, for a total of roughly 6000 cores:
+
+[options,header]
+|====
+| Component | Size per zone (memory)  | Zones
+| {es} | 64 GB | 2
+| Kibana | 8 GB | 1
+| Integrations Server | 8 GB | 1
+|====
+
+Even if you're profiling a smaller fleet, we recommend configuring at least two zones for Elasticsearch and 4 GB of memory each for the Integrations Server and Kibana.
+
+[discrete]
+[[profiling-set-up-on-cloud]]
+== Set up Universal Profiling on an {ecloud} deployment
+
+To set up Universal Profiling on your {ecloud} deployment, you need to:
+
+- Enable the Universal Profiling app in Kibana
+- Configure data ingestion
+
+[discrete]
+[[profiling-enable-kibana]]
+=== Enable Universal Profiling in Kibana
+
+You'll receive instructions on enabling Universal Profiling at the email you used in your https://docs.google.com/forms/d/e/1FAIpQLSd-SWVgvhO7Z_jAfaV9_bFGa0dUZPuX0JORzPGS8SDP7G-dVQ/viewform[sign-up form].
+
+Once enabled, Universal Profiling in Kibana is located under *Observability* in the navigation menu.
+
+[discrete]
+[[profiling-configure-data-ingestion]]
+=== Configure data ingestion
+
+After enabling Universal Profiling on your deployment for the first time, select any subheading under **Universal Profiling** in the navigation menu to open the following page:
+
+[role="screenshot"]
+image::images/profiling-setup-popup.png[]
+
+Click *Set up Universal Profiling* to configure data ingestion.
+
+NOTE: To configure data ingestion, you need elevated privileges, typically the `elastic` user.
+
+If you're upgrading from a previous version with Universal Profiling enabled, see the <<profiling-upgrade,upgrade guide>>.
+
+IMPORTANT: When upgrading, you must remove all existing profiling data.
+We still recommend upgrading as the latest version contains several improvements and new features.
+
+[discrete]
+[[profiling-install-host-agent]]
+== Install the host-agent
+
+The host-agent profiles your fleet. You need to install and configure it on every machine that you want to profile.
+The host-agent needs  `root` / `CAP_SYS_ADMIN` privileges to run.
+
+After clicking *Set up Universal Profiling* in the previous step, you'll see the instructions for installing the host-agent.
+You can also find these instructions by clicking the *Add data* button in the top-right corner of the page.
+
+The following is an example of the provided instructions for {k8s}:
+
+[role="screenshot"]
+image::images/profiling-k8s-hostagent.png[]
+
+[discrete]
+[[profiling-agent-config-notes]]
+=== Host-agent configuration notes
+
+Consider the following when configuring your host-agent:
+
+* The instructions in Kibana work well for testing environments. For production environments, we recommend setting an immutable version.
+
+* The host-agent versioning scheme is **not aligned with the {stack} version scheme**.
+
+* The OS packages downloaded from `releases.prodfiler.com` have a version in their file name.
+
+* You can find a list of container image versions in the
+https://container-library.elastic.co/r/observability/profiling-agent[Elastic container library repository].
+
+* For {k8s} deployments, the Helm chart version is already used to configure the same container image, unless
+overwritten with the `version` parameter in the Helm values file.
+
+[discrete]
+[[profiling-install-integration]]
+== Install the Universal Profiling Agent integration
+
+If you do not wish to install the host agent in standalone mode as shown in <<profiling-install-host-agent>>, you can allow the Elastic Agent to orchestrate the installation instead by using the Universal Profiling Agent integration.
+
+To install the Universal Profiling Agent integration, you need to:
+
+. Collect relevant information from the APM configuration.
+. Use that information to add the Universal Profiling Agent integration.
+
+See the steps in the following sections for more information.
+
+[discrete]
+[[find-apm-configuration]]
+=== Collect APM configuration information
+
+{ecloud} runs a hosted version of the {integrations-server} that includes the APM integration.
+To find your APM integration and collect the information needed to install the Universal Profiling Agent integration, follow these steps:
+
+. Under **Management** in the {kib} left navigation, go to **Fleet → Agent policies** and select **Elastic Cloud agent policy**.
+
+. Select **Elastic APM** from the **Name** column.
+
+. Under the *General*  heading, find the *Server configuration* section and write down the value in the *URL* field.
+
+. Scroll down to **Agent authorization**. Under **Maximum number of API keys of Agent authentication**, write down the value in the **Secret token** field.
+
+Continue to the next section to use the information you've collected to add the Universal Profiling Agent integration.
+
+[discrete]
+[[add-integration]]
+=== Add integration
+
+. Under **Management** in the left navigation, select **Integrations**.
+
+. Turn on **Display beta integrations** in the left sidebar.
+
+. In the **Search for integrations** text field, enter `Universal Profiling Agent`.
+
+. Select the **Universal Profiling Agent** card.
+
+. Click **Add Universal Profiling Agent**.
+
+. In **Universal Profiling Agent → Settings**, add the information you collected from the <<find-apm-configuration>> section:
+.. Add the URL from <<find-apm-configuration>> to the **Universal Profiling collector endpoint** field.
+.. Add the secret token from <<find-apm-configuration>> to the **Authorization** field.
+
+. Click **Save and continue**.

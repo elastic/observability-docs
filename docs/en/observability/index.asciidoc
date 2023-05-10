@@ -26,9 +26,13 @@ include::{docs-root}/shared/attributes.asciidoc[]
 :apm-repo-dir:         {apm-server-root}/docs
 :beats-repo-dir:       {beats-root}/libbeat/docs
 :shared:               {observability-docs-root}/docs/en/shared
-:kibana-repo-dir:      {kibana-root}/docs 
+:kibana-repo-dir:      {kibana-root}/docs
 
-:synthetics_version: v1.0.0-beta.37
+:synthetics_version: v1.0.0-beta.40
+:project-monitors: project monitors
+:project-monitors-cap: Project monitors
+:synthetics-app: Synthetics app
+:private-location: Private Location
 
 // What is Observability?
 include::observability-introduction.asciidoc[leveloffset=+1]
@@ -36,41 +40,22 @@ include::observability-introduction.asciidoc[leveloffset=+1]
 // What's new
 include::whats-new.asciidoc[leveloffset=+1]
 
-// Send data to Elasticsearch
-include::add-observability-data.asciidoc[leveloffset=+1]
+// Get started with Elastic Observability
+include::observability-get-started.asciidoc[leveloffset=+1]
 
-include::spin-up-stack.asciidoc[leveloffset=+2]
+include::logs-metrics-get-started.asciidoc[leveloffset=+2]
 
-include::deploy-agent-to-send-data.asciidoc[leveloffset=+2]
+//TOOD: Rename this file to traces-get-started in a follow-on PR
+include::ingest-traces.asciidoc[leveloffset=+2]
 
-include::ingest-logs-metrics-uptime.asciidoc[leveloffset=+3]
-
-include::ingest-traces.asciidoc[leveloffset=+3]
-
-include::ingest-splunk.asciidoc[leveloffset=+3]
-
-include::deploy-beats-to-send-data.asciidoc[leveloffset=+2]
-
-include::ingest-logs.asciidoc[leveloffset=+3]
-
-include::ingest-metrics.asciidoc[leveloffset=+3]
-
-include::ingest-uptime.asciidoc[leveloffset=+3]
-
-include::instrument-apps.asciidoc[leveloffset=+3]
-
-// AWS Serverless Forwarder
-include::aws-elastic-serverless-forwarder.asciidoc[leveloffset=+2]
-
-// Observability overview page
-include::observability-ui.asciidoc[leveloffset=+1]
+include::splunk-get-started.asciidoc[leveloffset=+2]
 
 // APM
 include::apm.asciidoc[leveloffset=+1]
 
-// Logs
-include::application-logs.asciidoc[leveloffset=+1]
+include::application-logs.asciidoc[leveloffset=+2]
 
+// Logs
 include::monitor-logs.asciidoc[leveloffset=+1]
 
 include::tail-logs.asciidoc[leveloffset=+2]
@@ -82,36 +67,51 @@ include::inspect-log-anomalies.asciidoc[leveloffset=+2]
 include::configure-logs-sources.asciidoc[leveloffset=+2]
 
 // Infrastructure
-include::analyze-metrics.asciidoc[leveloffset=+1]
+include::monitor-infra/analyze-metrics.asciidoc[leveloffset=+1]
 
-include::view-infrastructure-metrics.asciidoc[leveloffset=+2]
+include::monitor-infra/view-infrastructure-metrics.asciidoc[leveloffset=+2]
 
-include::monitor-servers.asciidoc[leveloffset=+2]
+include::monitor-infra/monitor-servers.asciidoc[leveloffset=+3]
 
-include::monitor-kubernetes-pods.asciidoc[leveloffset=+2]
+include::monitor-infra/monitor-kubernetes-pods.asciidoc[leveloffset=+3]
 
-include::monitor-docker-containers.asciidoc[leveloffset=+2]
+include::monitor-infra/monitor-docker-containers.asciidoc[leveloffset=+3]
 
-include::monitor-aws-services.asciidoc[leveloffset=+2]
+include::monitor-infra/monitor-aws-services.asciidoc[leveloffset=+3]
 
-include::explore-metrics.asciidoc[leveloffset=+2]
+include::monitor-infra/explore-metrics.asciidoc[leveloffset=+2]
 
-include::inspect-metric-anomalies.asciidoc[leveloffset=+2]
+include::monitor-infra/analyze-hosts.asciidoc[leveloffset=+2]
 
-include::configure-metrics-sources.asciidoc[leveloffset=+2]
+include::monitor-infra/inspect-metric-anomalies.asciidoc[leveloffset=+2]
+
+include::monitor-infra/configure-metrics-sources.asciidoc[leveloffset=+2]
 
 // AWS monitoring
 // Will eventually be replaced by cloud monitoring when other providers are covered
 include::cloud-monitoring/aws/monitor-amazon-intro.asciidoc[leveloffset=+1]
 
-// Uptime & Synthetic monitoring
-include::monitor-uptime-synthetics.asciidoc[leveloffset=+1]
+// Uptime
+include::uptime-intro.asciidoc[leveloffset=+1]
+
+include::uptime-get-started-heartbeat.asciidoc[leveloffset=+2]
+
+include::uptime-analyze.asciidoc[leveloffset=+2]
+include::uptime-view-monitor-status.asciidoc[leveloffset=+3]
+include::uptime-analyze-monitors.asciidoc[leveloffset=+3]
+include::uptime-inspect-duration-anomalies.asciidoc[leveloffset=+3]
+
+include::configure-uptime-settings.asciidoc[leveloffset=+2]
+
+include::troubleshoot-uptime-mapping-issues.asciidoc[leveloffset=+2]
+
+// Synthetics
+include::synthetics-intro.asciidoc[leveloffset=+1]
 
 :playwright-url:      https://playwright.dev/
 :playwright-api-docs: https://playwright.dev/docs/api/class-playwright
 
 include::synthetics-get-started.asciidoc[leveloffset=+2]
-include::synthetics-get-started-heartbeat.asciidoc[leveloffset=+3]
 include::synthetics-get-started-project.asciidoc[leveloffset=+3]
 include::synthetics-get-started-ui.asciidoc[leveloffset=+3]
 
@@ -125,11 +125,7 @@ include::synthetics-lightweight.asciidoc[leveloffset=+2]
 
 include::synthetics-manage-monitors.asciidoc[leveloffset=+2]
 
-include::uptime-analyze.asciidoc[leveloffset=+2]
-include::view-monitor-status.asciidoc[leveloffset=+3]
-include::synthetics-visualize.asciidoc[leveloffset=+3]
-include::analyze-monitors.asciidoc[leveloffset=+3]
-include::inspect-uptime-duration-anomalies.asciidoc[leveloffset=+3]
+include::synthetics-analyze.asciidoc[leveloffset=+2]
 
 include::synthetics-private-location.asciidoc[leveloffset=+2]
 
@@ -137,16 +133,36 @@ include::synthetics-command-reference.asciidoc[leveloffset=+2]
 
 include::synthetics-configuration.asciidoc[leveloffset=+2]
 
-include::configure-uptime-settings.asciidoc[leveloffset=+2]
+include::synthetics-settings.asciidoc[leveloffset=+2]
+
+include::synthetics-roles.asciidoc[leveloffset=+2]
+include::synthetics-role-setup.asciidoc[leveloffset=+3]
+include::synthetics-role-write.asciidoc[leveloffset=+3]
+include::synthetics-role-read.asciidoc[leveloffset=+3]
 
 include::synthetics-manage-retention.asciidoc[leveloffset=+2]
 
-include::troubleshoot-uptime-mapping-issues.asciidoc[leveloffset=+2]
+include::synthetics-traffic-filters.asciidoc[leveloffset=+2]
 
 include::synthetics-migrate-integration.asciidoc[leveloffset=+2]
 
 // User experience
 include::user-experience.asciidoc[leveloffset=+1]
+
+// Universal Profiling
+include::universal-profiling.asciidoc[leveloffset=+1]
+
+include::profiling-get-started.asciidoc[leveloffset=+2]
+
+include::profiling-advanced-configuration.asciidoc[leveloffset=+2]
+include::profiling-tag-data-query.asciidoc[leveloffset=+3]
+include::profiling-add-symbols.asciidoc[leveloffset=+3]
+include::profiling-use-a-proxy.asciidoc[leveloffset=+3]
+include::profiling-probabilistic-profiling.asciidoc[leveloffset=+3]
+
+include::profiling-upgrade.asciidoc[leveloffset=+2]
+
+include::profiling-troubleshooting.asciidoc[leveloffset=+2]
 
 // Alerting
 include::create-alerts.asciidoc[leveloffset=+1]
