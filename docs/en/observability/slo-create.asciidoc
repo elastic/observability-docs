@@ -24,36 +24,49 @@ From here, complete the following to create an SLO:
 [[define-sli]]
 == Define your SLI
 
-You can choose one of the following SLI types:
+The type of SLI you use depends on the location of your data is located. If you''re creating an SLO based on raw logs coming from your services, you can use a custom KQL SLI. If you're creating an SLO based on services using application performance monitoring (APM), you can use a APM latency or APM availability SLI. See the following table for more on each type of SLI:
 
-* *Custom KQL* — This indicator is based on any elasticsearch index or index pattern you have. You simply define two queries, one that yields the good events and one that yields the total events from your index.
-* *APM latency* — This indicator is based on the APM data that we receive from your instrumented services. We need the service name and the latency threshold at a minimum, but you can also provide an environment, transaction type, transaction name and a custom filter on the APM metrics data. 
-* *APM availability* — This indicator is based on the APM data that we receive from your instrumented services. We need the service name and the list of good status codes at a minimum, but you can also provide an environment, transaction type, transaction name and a custom filter on the APM metrics data. 
+[cols="1,1"]
+|===
+
+|*Custom KQL* 
+|This indicator is based on any elasticsearch index or index pattern you have. You define two queries, one that yields the good events and one that yields the total events from your index. 
+
+*Example:* You could define a custom KQL indicator based on the `service-logs` with the good query defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the total query defined as `nested.field.env : “production”`. 
+|*APM latency* 
+|This indicator is based on the APM data that we receive from your instrumented services. 
+
+*Example:* You could define an indicator on an APM service named `banking-service` for the `production` environment, and the transaction name `POST /deposit` with a latency threshold value of 300ms.
+|*APM availability* 
+|This indicator is based on the APM data that we receive from your instrumented services. 
+
+*Example:* You could define an indicator on an APM service named `search-service` for the `prod` environment, and the transaction name `POST /search` with the good status codes set to `[200, 300, 400]`.
+|===
 
 [discrete]
 [[custom-kql-sli]]
 === Custom KQL
-When defining a custom KQL SLI, you need to set the following fields:
+When defining a custom KQL SLI, you see the following fields:
 
-* *Index* — The index or index pattern you want to base the SLI upon
-* *Timestamp field* — The timestamp field used by the index
-* *Query filter* — A filter to apply on the index
-* *Good query* — The KQL query yielding the good events to take into account for computing the SLI
-* *Total query* — The KQL query yielding all events to take into account for computing the SLI
+* *Index* — The index or index pattern you want to base the SLI upon.
+* *Timestamp field* — The timestamp field used by the index.
+* *Query filter* — A filter to apply on the index.
+* *Good query* — The KQL query yielding the good events to take into account for computing the SLI.
+* *Total query* — The KQL query yielding all events to take into account for computing the SLI.
 
 [discrete]
 [[apm-latency-sli]]
 
 === APM latency or availability
-When defining an APM latency or APM availability SLI, you need to set the following fields:
+When defining an APM latency or APM availability SLI, you see the following fields:
 
-* *Service name* — The APM service name
-* *Service environment* — Either "all" or the specific environment
-* *Transaction type* — Either "all" or the specific transaction type
-* *Transaction name* — Either "all" or the specific transaction name
-* *Threshold (latency only)* — The latency threshold in milliseconds (ms) to consider the request as good
+* *Service name* — The APM service name.
+* *Service environment* — Either `all` or the specific environment.
+* *Transaction type* — Either `all` or the specific transaction type.
+* *Transaction name* — Either `all` or the specific transaction name.
+* *Threshold (latency only)* — The latency threshold in milliseconds (ms) to consider the request as good.
 * *Good status codes (availability only)* — The list of status codes used to differentiate the good and bad requests. Default: [2xx, 3xx, 4xx].
-* *Query filter* — An optional query filter on the APM data
+* *Query filter* — An optional query filter on the APM data.
 
 [discrete]
 [[set-slo]]
@@ -71,7 +84,7 @@ You can select either an *occurrences* or a *timeslices* budgeting method:
 |*Occurrences*
 | Uses the number of good events and the number of total events to compute the SLO.
 
-*Example*: You have a 30 day rolling SLO with a 95% target, and over the past 30 days there were 1,355,700 total events. The error budget is `100-95 = 5%``, or about 66,785 bad events tolerated before violating the SLO.
+*Example:* You have a 30 day rolling SLO with a 95% target, and over the past 30 days there were 1,355,700 total events. The error budget is `100-95 = 5%``, or about 66,785 bad events tolerated before violating the SLO.
 
 If we had 1,300,000 good events over the same period, the observed value is `Good Events / Total Events = 0.95891421 => 95.89%`.
 |*Timeslices*
@@ -80,7 +93,7 @@ If we had 1,300,000 good events over the same period, the observed value is `Goo
 *Timeslice target (%)* - Individual timeslices target that determines if the slice is good or bad.
 *Timeslice window (in minutes)* - The size of the timeslice window size.
 
-*Example*: A 30 days rolling SLO defined with 5 min slices has a total of `30*24*12 = 8640` slices.
+*Example:* A 30 days rolling SLO defined with 5 min slices has a total of `30*24*12 = 8640` slices.
 If the SLO target is 98%, we have a `100-98 = 2%`` error budget or `8640 * 0.02 = 172` bad slices available before we violate the SLO.
 |===
 
