@@ -5,22 +5,22 @@
 <titleabbrev>Monitor Kinesis data streams</titleabbrev>
 ++++
 
-Amazon Kinesis Data Streams is a serverless streaming data service that can
-capture, process, and store data streams at any scale. You can use Amazon
-Kinesis Data Streams for real-time collection and processing of large streams of
-data records.
+https://aws.amazon.com/kinesis/data-streams/[Amazon Kinesis Data Streams]
+is a real-time data streaming service that you can use to capture, process, and
+store large amounts of data from a variety of sources, including websites,
+mobile applications, IoT devices, and more.
 
-Like most AWS services, Amazon Kinesis Data Streams and Amazon CloudWatch are
-integrated so you can collect, view, and analyze CloudWatch metrics for your
-Kinesis data streams, such as tracking shard usage and recording related
-operations for each Kinesis data stream. The Elastic
+Amazon Kinesis Data Streams and Amazon CloudWatch are integrated so that you can
+collect and monitor CloudWatch metrics for your Kinesis data streams, such as
+tracking shard usage and recording related operations for each Kinesis data
+stream. The Elastic
 {integrations-docs}/aws/kinesis[Amazon Kinesis Data Stream integration] collects
 metrics from Amazon CloudWatch using {agent}.
 
 By default, Kinesis Data Streams sends stream-level (basic level) metrics to
 CloudWatch every minute automatically. There is also shard-level data (enhanced
 level) that is sent to CloudWatch every minute and incurs an additional cost per
-stream. To get this level of data, you must specifically enable it for each
+stream. To get shard-level data, you must specifically enable it for each
 stream by using the AWS Kinesis `enable-enhanced-monitoring` API. For example
 
 [source,shell]
@@ -71,187 +71,44 @@ image::images/kinesis-dashboard.png[Screenshot showing the Kinesis overview dash
 [[metrics-to-watch-kinesis]]
 == Metrics to watch
 
-Here are the key metrics that you should watch, organized by category. For a
-full list of fields exported by the integration, refer to the
-{integrations-docs}/aws/kinesis[Amazon Kinesis Data Stream integration] docs.
+This section lists the key metrics that you should watch, organized by
+category. For a full description of fields exported by the integration, refer to
+the {integrations-docs}/aws/kinesis[Amazon Kinesis Data Stream integration]
+docs.
 
-.GetRecords 
-|===
-| Field | Description | Unit | Type
-
-| `aws.kinesis.metrics.GetRecords.Bytes.avg`
-| The average number of bytes retrieved from the Kinesis stream, measured over the specific time period. 
-| Bytes
-| double
-
-| `aws.kinesis.metrics.GetRecords.IteratorAgeMilliseconds.avg`
-| The average age of the last record in all GetRecords calls made against a Kinesis stream, measured over the specified time period. Age is the difference between the current time and when the last record of the GetRecords call was written to the stream.
-| Milliseconds
-| double
-
-| `aws.kinesis.metrics.GetRecords.Latency.avg`
-| The average time taken per GetRecords operation, measured over the specified time period.
-| Milliseconds
-| double
-
-| `aws.kinesis.metrics.GetRecords.Records.avg`
-| The average number of records retrieved from the shard, measured over the specified time period.
-| Count
-| double
-
-| `aws.kinesis.metrics.GetRecords.Records.sum`
-| The total number of records retrieved from the shard, measured over the specified time period.
-| Count
-| long
-
-| `aws.kinesis.metrics.GetRecords.Success.avg`
-| The average number of successful GetRecords operations per stream, measured over the specified time period.
-| Count
-| double
-
-| `aws.kinesis.metrics.GetRecords.Success.sum`
-| The total number of successful GetRecords operations per stream, measured over the specified time period.
-| Count
-| long
-
-| `aws.kinesis.metrics.ReadProvisionedThroughputExceeded.avg`
-| The average number of GetRecords calls throttled for the stream over the specified time period.
-| Count
-| double
-
-| `aws.kinesis.metrics.IteratorAgeMilliseconds.avg`
-| The average age of the last record in all GetRecords calls made against a shard, measured over the specified time period. Age is the difference between the current time and when the last record of the GetRecords call was written to the stream.
-| Milliseconds
-| double
-|===
-
-.PutRecord
-|===
-| Field | Description | Unit | Type
-
-| `aws.kinesis.metrics.PutRecord.Bytes.avg`
-| The average number of bytes put to the Kinesis stream using the PutRecord operation over the specified time period.
-| Bytes
-| double
-
-| `aws.kinesis.metrics.PutRecord.Latency.avg`
-| The average time taken per PutRecord operation measured over the specified time period.
-| Milliseconds
-| double
-
-| `aws.kinesis.metrics.PutRecord.Success.avg`
-| The percentage of successful PutRecord operations per Kinesis stream, measured over the specified time period. 
-| Count
-| double
-|===
-
-
-.PutRecords
-|===
-| Field | Description | Unit |Type
-
-| `aws.kinesis.metrics.PutRecords.Bytes.avg`
-| The average number of bytes put to the Kinesis stream using the PutRecords operation over the specified time period.
-| Bytes
-| double
-
-| `aws.kinesis.metrics.PutRecords.Latency.avg`
-| The average time taken per PutRecords operation measured over the specified time period.
-| Milliseconds
-| double
-
-| `aws.kinesis.metrics.PutRecords.Success.avg`
-| The average number of PutRecords operations where at least one record succeeded, per Kinesis stream, measured over the specified time period. 
-| Count
-| double
-
-| `aws.kinesis.metrics.PutRecords.TotalRecords.sum`
-| The total number of records sent in a PutRecords operation per Kinesis data stream, measured over the specified time period.
-| Count
-| long
-
-| `aws.kinesis.metrics.PutRecords.SuccessfulRecords.sum`
-| The total number of successful records in a PutRecords operation per Kinesis data stream, measured over the specified time period.
-| Count
-| long
-
-| `aws.kinesis.metrics.PutRecords.FailedRecords.sum`
-| The total number of records rejected due to internal failures in a PutRecords operation per Kinesis data stream, measured over the specified time period.
-| Count
-| long
-
-| `aws.kinesis.metrics.PutRecords.ThrottleRecords.sum`
-| The total number of records rejected due to throttling in a PutRecords operation per Kinesis data stream, measured over the specified time period.
-| Count
-| long
-
-| `aws.kinesis.metrics.WriteProvisionedThroughputExceeded.avg`
-| The average number of records rejected due to the throttling for the stream over the specified time period. 
-| Count
-| double
-|===
-
-.Incoming and Outgoing
-|===
-| Field | Description | Unit | Type
-
-| `aws.kinesis.metrics.IncomingBytes.avg`
-| The average number of bytes successfully put to the Kinesis stream over the specified time period. This metric includes bytes from PutRecord and PutRecords operations.
-| Bytes
-| double
-
-| `aws.kinesis.metrics.IncomingRecords.avg`
-| The average number of records successfully put to the Kinesis stream over the specified time period. This metric includes record counts from PutRecord and PutRecords operations.
-| Count
-| double
-
-| `aws.kinesis.metrics.OutgoingBytes.avg`
-| The average number of bytes retrieved from the shard, measured over the specified time period. This metric represents the bytes returned in a single GetRecords operation or published in a single SubscribeToShard event for the shard in the specified time period.
-| Bytes
-| double
-
-| `aws.kinesis.metrics.OutgoingRecords.avg`
-| The average number of records retrieved from the shard, measured over the specified time period. This metric represents the records returned in a single GetRecords operation or published in a single SubscribeToShard event for the shard in the specified time period.
-| Count
-| double
-
-| `aws.kinesis.metrics.OutgoingRecords.sum`
-| The total number of records retrieved from the shard, measured over the specified time period.
-| Count
-| long
-|===
-
-.SubscribeToShard
-|===
-| Field | Description | Unit | Type
-
-| `aws.kinesis.metrics.SubscribeToShard.RateExceeded.avg`
-| This metric is emitted when a new subscription attempt fails because there already is an active subscription by the same consumer or if you exceed the number of calls per second allowed for this operation.
-| Count
-| long
-
-| `aws.kinesis.metrics.SubscribeToShard.Success.avg`
-| This metric records whether the SubscribeToShard subscription was successfully established. The subscription only lives for at most 5 minutes. Therefore the metric gets emitted at least once every 5 minutes.
-| Count
-| double
-
-| `aws.kinesis.metrics.SubscribeToShardEvent.Bytes.avg`
-| The average number of bytes received from the shard, measured over the specified time period.
-| Bytes
-| double
-
-| `aws.kinesis.metrics.SubscribeToShardEvent.MillisBehindLatest.avg`
-| The average number of records received from the shard, measured over the specified time period.
-| Count
-| double
-
-| `aws.kinesis.metrics.SubscribeToShardEvent.Success.avg`
-| This metric is emitted every time an event is published successfully. It is only emitted when there’s an active subscription.
-| Count
-| double
-
-| `aws.kinesis.metrics.SubscribeToShardEvent.Records.sum`
-| The total number of records received from the shard, measured over the specified time period.
-| Count
-| long
-|===
+* GetRecords
+** `aws.kinesis.metrics.GetRecords.Bytes.avg`
+** `aws.kinesis.metrics.GetRecords.IteratorAgeMilliseconds.avg`
+** `aws.kinesis.metrics.GetRecords.Latency.avg`
+** `aws.kinesis.metrics.GetRecords.Records.avg`
+** `aws.kinesis.metrics.GetRecords.Records.sum`
+** `aws.kinesis.metrics.GetRecords.Success.avg`
+** `aws.kinesis.metrics.GetRecords.Success.sum`
+** `aws.kinesis.metrics.ReadProvisionedThroughputExceeded.avg`
+** `aws.kinesis.metrics.IteratorAgeMilliseconds.avg`
+* PutRecord
+** `aws.kinesis.metrics.PutRecord.Bytes.avg`
+** `aws.kinesis.metrics.PutRecord.Latency.avg`
+** `aws.kinesis.metrics.PutRecord.Success.avg`
+* PutRecords
+** `aws.kinesis.metrics.PutRecords.Bytes.avg`
+** `aws.kinesis.metrics.PutRecords.Latency.avg`
+** `aws.kinesis.metrics.PutRecords.Success.avg`
+** `aws.kinesis.metrics.PutRecords.TotalRecords.sum`
+** `aws.kinesis.metrics.PutRecords.SuccessfulRecords.sum`
+** `aws.kinesis.metrics.PutRecords.FailedRecords.sum`
+** `aws.kinesis.metrics.PutRecords.ThrottleRecords.sum`
+** `aws.kinesis.metrics.WriteProvisionedThroughputExceeded.avg`
+* Incoming and outgoing
+** `aws.kinesis.metrics.IncomingBytes.avg`
+** `aws.kinesis.metrics.IncomingRecords.avg`
+** `aws.kinesis.metrics.OutgoingBytes.avg`
+** `aws.kinesis.metrics.OutgoingRecords.avg`
+** `aws.kinesis.metrics.OutgoingRecords.sum`
+* SubscribeToShard
+** `aws.kinesis.metrics.SubscribeToShard.RateExceeded.avg`
+** `aws.kinesis.metrics.SubscribeToShard.Success.avg`
+** `aws.kinesis.metrics.SubscribeToShardEvent.Bytes.avg`
+** `aws.kinesis.metrics.SubscribeToShardEvent.MillisBehindLatest.avg`
+** `aws.kinesis.metrics.SubscribeToShardEvent.Success.avg`
+** `aws.kinesis.metrics.SubscribeToShardEvent.Records.sum`

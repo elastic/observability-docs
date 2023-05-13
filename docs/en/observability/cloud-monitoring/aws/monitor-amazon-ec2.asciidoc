@@ -5,7 +5,8 @@
 <titleabbrev>Monitor EC2</titleabbrev>
 ++++
 
-Amazon Elastic Compute Cloud (Amazon EC2) enables you to provision compute
+https://aws.amazon.com/ec2/Amazon[Elastic Compute Cloud (Amazon EC2)] enables
+you to provision compute
 resources, on demand, in the form of virtual servers called instances. A range
 of instance types are available with different CPU, memory, storage, and
 networking capacity. Popular preconfigured Amazon Machine Images (AMIs) are
@@ -73,52 +74,15 @@ Amazon EC2 provides a large selection of instance types. Monitoring key metrics
 about your instances is a cost-effective way to determine whether to upgrade,
 change, or downsize your instances.
 
-This section describes the key metrics that you should watch, organized by
-category. For a full list of exported fields, refer to the
+This section lists the key metrics that you should watch, organized by
+category. For a full description of exported fields, refer to the
 {integrations-docs}/aws/ec2[Amazon EC2 integration docs].
 
 [discrete]
 === CPU utilization
 
-Here are the key CPU utilization metrics you should monitor.
-
-|===
-| Field | Description | Type
-
-| `host.cpu.usage`
-OR
-`aws.ec2.metrics.CPUUtilization.avg`
-| Percent CPU used which is normalized by the number of CPU cores and it ranges from 0 to 1.
-
-Scaling factor: 1000.
-
-For example: For a two core host, this value should be the average of the two cores, between 0 and 1.
-| scaled_float
-
-| `aws.ec2.metrics.CPUCreditBalance.avg`
-| The number of earned CPU credits that an instance has accrued since it was launched or started.
-| long
-
-| `aws.ec2.metrics.CPUCreditUsage.avg`
-| The number of CPU credits spent by the instance for CPU utilization.
-| long
-
-| `aws.ec2.metrics.CPUSurplusCreditBalance.avg`
-| The number of surplus credits that have been spent by an unlimited instance when its CPUCreditBalance value is zero.
-| long
-
-| `aws.ec2.metrics.CPUSurplusCreditsCharged.avg`
-| The number of spent surplus credits that are not paid down by earned CPU credits, and which thus incur an additional charge.
-| long
-|===
-
-NOTE: The credit metrics shown in this table are available on burstable performance
-instances only. To learn more about burstable performance instances, refer to
-the
-https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/burstable-performance-instances.html[Amazon EC2 documentation].
-
-****
-**What to look for in CPU utilization metrics**
+Here are the key CPU utilization metrics you should monitor and what to look
+for in these metrics:
 
 `aws.ec2.metrics.CPUUtilization.avg`::
 This measures the percentage of allocated EC2 compute units that are currently
@@ -157,8 +121,6 @@ The CPU surplus credit balance metric tracks the accumulated balance. The CPU
 surplus credit charged measures extra credits that will result in additional
 charges.
 
-****
-
 [discrete]
 === Disk I/O
 
@@ -184,36 +146,7 @@ these are only available for instances built on the Nitro System. For all other
 instance types, disk I/O for EBS volumes must be monitored via the Elastic
 {integrations-docs}/aws/ebs[Amazon EBS integration].
 
-Here are the key disk I/O metrics you should monitor.
-
-|===
-| Field | Description | Type
-
-| `host.disk.read.bytes` & `host.disk.write.bytes`
-OR
-`aws.ec2.metrics.DiskReadBytes.sum` &
-`aws.ec2.metrics.DiskWriteBytes.sum`
-| Bytes read/written from/to all instance store volumes available to the instance.
-| long
-
-| `aws.ec2.metrics.DiskReadBytes.rate` &
-`aws.ec2.metrics.DiskWriteBytes.rate`
-| Bytes read/written per second from/to all instance store volumes available to the instance.
-| long
-
-| `aws.ec2.metrics.DiskReadOps.sum` &
-`aws.ec2.metrics.DiskWriteOps.sum`
-| Completed read/write operations from/to all instance store volumes available to the instance in a specified period of time.
-| long
-
-| `aws.ec2.metrics.DiskReadOps.rate` &
-`aws.ec2.metrics.DiskWriteOps.rate`
-| Completed read/write operations per second from/to all instance store volumes available to the instance in a specified period of time.
-| long
-|===
-
-****
-**What to look for in disk I/O metrics**
+Here are the key disk I/O metrics you should monitor and what to look for:
 
 `aws.ec2.metrics.DiskReadBytes.sum` & `aws.ec2.metrics.DiskWriteBytes.sum`::
 `aws.ec2.metrics.DiskReadBytes.rate` & `aws.ec2.metrics.DiskWriteBytes.rate`::
@@ -238,7 +171,6 @@ you can consider a move to faster SSD disks.
 +
 Disk read/write operations count per second provides the average read/write IOPS
 for the specified period of time.
-****
 
 [discrete]
 === Network
@@ -257,34 +189,7 @@ overhead for applications that transmit large amounts of data.
 AWS provides various configuration options like placement groups and enhanced
 networking to optimize network performance.
 
-Here are the key network metrics you should monitor.
-
-|===
-| Field | Description | Type
-
-| `host.network.ingress.bytes & host.network.egress.bytes`
-OR
-`aws.ec2.metrics.NetworkIn.sum` & `aws.ec2.metrics.NetworkOut.sum`
-| The number of bytes received/sent out on all network interfaces by the instance.
-| long
-
-| `aws.ec2.metrics.NetworkIn.rate` & `aws.ec2.metrics.NetworkOut.rate`
-| The number of bytes per second received/sent out on all network interfaces by the instance.
-| long
-
-| `host.network.ingress.packets` & `host.network.egress.packets`
-OR
-`aws.ec2.metrics.NetworkPacketsIn.sum` & `aws.ec2.metrics.NetworkPacketsOut.sum`
-| The number of packets received/sent out on all network interfaces by the instance.
-| long
-
-| `aws.ec2.metrics.NetworkPacketsIn.rate` & `aws.ec2.metrics.NetworkPacketsOut.rate`
-| The number of packets per second received/sent out on all network interfaces by the instance.
-| long
-|===
-
-****
-**What to look for in network metrics**
+Here are the key network metrics you should monitor and what to look for:
 
 `aws.ec2.metrics.NetworkIn.sum` & `aws.ec2.metrics.NetworkOut.sum`::
 `aws.ec2.metrics.NetworkIn.rate` & `aws.ec2.metrics.NetworkOut.rate`::
@@ -298,31 +203,11 @@ When looking at a set of EC2 instance data, if you see a considerable difference
 in network traffic load, you may require a load balancer to distribute the load
 more evenly across the related instances and be able to achieve better
 performance.
-****
 
 [discrete]
 === Status check
 
-Here are the key status check metrics you should monitor.
-
-|===
-| Field | Description | Type
-
-| `aws.ec2.metrics.StatusCheckFailed.avg`
-| Reports whether the instance has passed both the instance status check and the system status check in the last minute.
-| long
-
-| `aws.ec2.metrics.StatusCheckFailed_Instance.avg`
-| Reports whether the instance has passed the instance status check in the last minute.
-| long
-
-| `aws.ec2.metrics.StatusCheckFailed_System.avg`
-| Reports whether the instance has passed the system status check in the last minute.
-| long
-|===
-
-****
-**What to look for in status check metrics**
+Here are the key status check metrics you should monitor and what to look for:
 
 `aws.ec2.metrics.StatusCheckFailed.avg`::
 This check reports whether the instance has passed both the instance status
@@ -369,4 +254,3 @@ store volumes are ephemeral, and all data is lost when the instance is stopped.
 +
 This check returns 0 (passed) if an instance passes the system status check or 1
 (failed) if it fails.
-****
