@@ -5,17 +5,16 @@ Application logs provide valuable insight into events that have occurred within 
 
 The ingestion of those logs requires to deal with two aspects:
 
-- log format: plaintext or ECS (structured JSON) logs (see <<log-type, below>> for details)
-- logs ingestion: how those logs are sent and written to Elasticsearch using a tool like {filebeat}.
+- <<log-type,log format>>: plaintext or ECS (structured JSON) logs.
+- <<ingest-application-logs,logs ingestion>>: how those logs are sent and written to Elasticsearch using a tool like {filebeat}.
 
 The choice of the log format influences the log ingestion strategy.
-For simplicity, this documentation will focus on {filebeat}, but any log ingestion tool could be used
-with equivalent configuration.
+For simplicity, this documentation will focus on {filebeat}, but any log ingestion tool could be used with equivalent configuration.
 
 Using an APM agent provides extra features:
-- log correlation: ability to correlate logs to APM traces
+- <<log-correlation,log correlation>>: ability to correlate logs to APM traces
 - log reformatting: reformat logs to ECS
-- log sending: reformat and send logs without extra ingestion tool
+- <<apm-agent-log-sending,log sending>>: reformat and send logs without extra ingestion tool
 
 [float]
 [[log-types]]
@@ -81,16 +80,19 @@ or in any of the agent-specific ingestion guides:
 There are four main ways to ingest application logs into the {stack}.
 Your use case will help determine the method that's right for you.
 
-* <<overview-plaintext-with-filebeat>>
-* <<overview-ecs-with-filebeat>>
-* <<overview-ecs-reformatting-with-filebeat>>
+Here {filebeat} is used for reference, but any equivalent ingestion tool
+could be used with equivalent configuration.
+
+* <<overview-plaintext-logs>>
+* <<overview-ecs-logging-logs>>
+* <<overview-log-reformatting>>
 * <<overview-apm-agent-log-sending>>
 
 [float]
-[[overview-plaintext-with-filebeat]]
-=== Plaintext logs with {filebeat}
+[[overview-plaintext-logs]]
+=== Plaintext logs
 
-// tag::plaintext-with-filebeat[]
+// tag::plaintext-logs[]
 Use {filebeat} to parse and ingest raw, plain-text application logs.
 
 **Requirements**
@@ -110,15 +112,15 @@ Use {filebeat} to parse and ingest raw, plain-text application logs.
 * Must parse application logs to be useful—meaning writing and maintaining Grok patterns and spending CPU cycles on parsing
 * Parsing is tied to the application log format, meaning it can differ per application and needs to be maintained over time
 * Log correlation requires modifying the application log format and inject IDs in log messages
-// end::plaintext-with-filebeat[]
+// end::plaintext-logs[]
 
-Learn more: <<plaintext-with-filebeat>>.
+Learn more: <<plaintext-logs>>.
 
 [float]
-[[overview-ecs-with-filebeat]]
-=== ECS loggers with {filebeat}
+[[overview-ecs-logging-logs]]
+=== ECS logging
 
-// tag::ecs-with-filebeat[]
+// tag::ecs-logging-logs[]
 Elastic Common Schema (ECS) loggers format your logs into ECS-compatible JSON,
 removing the need to manually parse logs.
 
@@ -140,15 +142,15 @@ removing the need to manually parse logs.
 
 * Not all frameworks are supported
 * Requires modification of the application and its log configuration
-// end::ecs-with-filebeat[]
+// end::ecs-logging-logs[]
 
-Learn more: <<ecs-with-filebeat>>
+Learn more: <<ecs-logging-logs>>
 
 [float]
-[[overview-ecs-reformatting-with-filebeat]]
-=== ECS reformatting with {filebeat}
+[[overview-log-reformatting]]
+=== Log reformatting
 
-// tag::ecs-reformatting-with-filebeat[]
+// tag::log-reformatting[]
 Elastic APM agents can automatically reformat application logs to Elastic Common Schema (ECS) format
 without needing to add an ECS logger dependency or modify the application.
 
@@ -174,9 +176,9 @@ All the benefits of using ECS logging, without having to modify the application 
 
 * Ruby
 * {apm-java-ref}/logs.html[Java]
-// end::ecs-reformatting-with-filebeat[]
+// end::log-reformatting[]
 
-Learn more: <<ecs-reformatting-with-filebeat>>
+Learn more: <<reformatting-logs>>
 
 [float]
 [[overview-apm-agent-log-sending]]
@@ -210,10 +212,10 @@ The Elastic APM agent for your programming language.
 
 Learn more: <<apm-agent-log-sending>>
 
-[[plaintext-with-filebeat]]
-== Plaintext logs with Filebeat
+[[plaintext-logs]]
+== Plaintext logs
 
-include::application-logs.asciidoc[tag=plaintext-with-filebeat]
+include::application-logs.asciidoc[tag=plaintext-logs]
 
 [float]
 === Step 1: Use {filebeat} to ingest logs
@@ -248,10 +250,10 @@ Use the <<apm,APM>> or <<monitor-logs,Logs>> UI to search, filter, and visualize
 * {ref}/ingest.html[Ingest pipelines]
 * {ref}/grok-processor.html[Grok processor]
 
-[[ecs-with-filebeat]]
-== ECS logging with Filebeat
+[[ecs-logging-logs]]
+== ECS logging
 
-include::application-logs.asciidoc[tag=ecs-with-filebeat]
+include::application-logs.asciidoc[tag=ecs-logging-logs]
 
 [float]
 === Get started
@@ -266,10 +268,10 @@ See the guide for your favorite logging framework:
 * {ecs-logging-python-ref}/installation.html[Python]
 * {ecs-logging-ruby-ref}/setup.html[Ruby]
 
-[[ecs-reformatting-with-filebeat]]
-== APM agent ECS reformatting with Filebeat
+[[reformatting-logs]]
+== APM agent ECS reformatting
 
-include::application-logs.asciidoc[tag=ecs-reformatting-with-filebeat]
+include::application-logs.asciidoc[tag=reformatting-logs]
 
 [float]
 === Step 1: Enable APM agent reformatting
