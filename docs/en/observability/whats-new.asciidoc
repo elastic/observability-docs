@@ -3,15 +3,133 @@
 
 Here are the highlights of what's new and improved in {minor-version}.
 
-coming[8.0.0]
-
-// Other versions:
-// {observability-guide-all}/8.1/whats-new.html[8.1] |
-// {observability-guide-all}/8.0/whats-new.html[8.0] |
-// {observability-guide-all}/7.17/whats-new.html[7.17] |
+Other versions:
+{observability-guide-all}/8.7/whats-new.html[8.7] |
+{observability-guide-all}/8.6/whats-new.html[8.6] |
+{observability-guide-all}/8.5/whats-new.html[8.5] |
+{observability-guide-all}/8.4/whats-new.html[8.4] |
+{observability-guide-all}/8.3/whats-new.html[8.3] |
+{observability-guide-all}/8.2/whats-new.html[8.2] |
+{observability-guide-all}/8.1/whats-new.html[8.1] |
+{observability-guide-all}/8.0/whats-new.html[8.0] |
+{observability-guide-all}/7.17/whats-new.html[7.17] |
 
 // tag::whats-new[]
 
-// What's new content goes in here. Don't uncomment or remove the tags surrounding this content :)
+[discrete]
+== Synthetic Monitoring Goes GA
+
+Elastic Observability's brand new cutting-edge Synthetic Monitoring solution, designed for seamless GitOps management and SRE-focused workflows is now Generally Available. Gain end-to-end visibility with our global managed testing infrastructure, proactively identify and resolve issues, and ensure exceptional user experiences. Elevate your monitoring capabilities and transform your application's performance with the power of Elastic.
+
+[discrete]
+=== Enhanced SRE Capabilities
+
+Our Synthetic Monitoring product bolsters your SRE experience with dedicated error detail pages and issue triage. Compare successful and failed test runs, analyze performance trends, receive proactive alerts, and integrate with incident management tools for optimized end-user experiences.
+
+[discrete]
+=== Streamlined GitOps Management
+
+Our industry-leading synthetic monitoring solution lets you manage monitors as code. Write tests pre-production, then push them into synthetic monitoring for post-production testing. Minimize release-testing lag, reuse scripts, and manage monitors effortlessly. Get version control, RBAC, and centralized test code benefits via source control.
+Broad Coverage Capabilities
+
+Our front-end synthetic monitoring complements APM and Infrastructure Observability, offering critical visibility into your application's workflows and third-party dependencies. Without it, SREs can't fully understand an application's ecosystem, making it vital for optimal performance and superior user experiences.
+
+[discrete]
+=== Comprehensive Managed Testing Infrastructure
+
+Our Elastic-first managed service in Synthetic Monitoring offers global testing coverage with no hardware management needed. Conduct lightweight to full browser tests, and enjoy automatic scaling, built-in security, and seamless Elastic Observability integration. We also support Private Testing Locations for specific needs. Focus on delivering exceptional user experiences with our managed infrastructure.
+
+image::images/whats-new-synthetics-monitors.png[]
+
+// image::images/whats-new-synthetics-projects.png[]
+
+image::images/whats-new-synthetics-results.png[]
+
+https://www.elastic.co/observability/synthetic-monitoring
+
+[discrete]
+== Ingest logs from Amazon Kinesis Data Firehose
+
+https://aws.amazon.com/kinesis/data-firehose/[Amazon Kinesis Data Firehose] is an extract, transform, and load (ETL) streaming data pipeline service that reliably captures, transforms, and delivers streaming data. Users configure data producers to send data to Kinesis Data Firehose and, with {kinesis-firehose-ref}/aws-firehose-setup-guide.html[this new GA integration], Kinesis Data Firehose delivers the data to Elastic cloud in AWS. Elastic appears as a drop-down option when configuring the Kinesis delivery stream in the AWS console UI, and along with pre-filled default values for most configuration settings, this makes it a direct, easy, agentless setup process to send log data to Elastic. 
+
+image::images/whats-new-amazon-kinesis-data-firehose.png[]
+
+Refer to the {kinesis-firehose-ref}/aws-firehose-setup-guide.html[setup guide] for more information.
+// or to this tech blog that offers some example configurations
+
+
+[discrete]
+== APM Server binary
+
+When the Elastic APM Server Integration was introduced with version 7.16, documentation was updated and the standalone APM Server binary was termed “legacy” and stated to be deprecated in a future release.
+
+After careful consideration of learnings and feedback, the APM Server binary (legacy, standalone) will not be deprecated. With version 8.8, we are returning full support for (standalone) APM Server binary for self-managed deployments. The documentation is reworked accordingly, completely removing the “Legacy” terminology and deprecation notices.  Moving forward, customers can choose between two equal options - running the APM Server binary directly, or Fleet managed.
+
+
+[discrete]
+== Service Level Objectives Beta
+
+Introducing new Service Level Objectives (SLOs) management in Elastic Observability, which provides a powerful new way to measure and monitor your service quality over time.
+
+SLOs allow you to set clear, measurable targets for your service performance, based on factors like availability, response times, error rates, and other key metrics. You can define SLOs based on different types of data sources, such as custom KQL queries, APM latency or availability data, and more to come.
+
+image::images/whats-new-slo-create-new.png[]
+
+Once you've defined your SLOs, you can monitor them in real time, with detailed dashboards and alerts that help you quickly identify and troubleshoot any issues that may arise. You can also track your progress against your SLO targets over time, with a clear view of your error budgets and burn rates.
+
+image::images/whats-new-slo-list.png[]
+
+Included is support for https://sre.google/workbook/alerting-on-slos/#6:~:text=6%3A%20Multiwindow%2C%20Multi%2DBurn%2DRate%20Alerts[multiwindow burn rate alerting] on SLOs as defined by the Google SRE book. The idea behind this alert is to get alerted when the burn rate of your SLO is above a defined threshold for two different lookback windows: a long and a shorter one defined as 1/12th the long window. If you set the long window to 1h, the short window will be set to 5min.
+
+Then for each lookback window, we compute the burn rate as the error rate divided by the error budget. When both burn rates are above the threshold, we trigger an alert.
+
+image::images/whats-new-slo-create-rule.png[]
+
+[discrete]
+== Enhanced rule definition with context attributes
+
+Users can now enhance Observability alert rule definition with context attributes. For example, alerts can be based on specific variables, such as: transaction types, error groups, host names, or cloud region. This allows for more granular controls on alerting in order to reduce alert fatigue and make notifications more actionable.
+
+image::images/whats-new-enhanced-rule.png[]
+
+[discrete]
+== Alert details view
+
+Alert details pages have been added for APM latency alerts. The Alert details page provides users detailed information on the alert, including alert history and related information. Users can use the alert detail page to gather information necessary to define the impact, urgency, and next steps for resolving an alert. APM latency gets the first alert detail page for triaging alerts, but many more are coming for other Observability alerts in upcoming releases.
+
+image::images/whats-new-alert-details-view.png[]
+
+[discrete]
+== Easier filtering, previewing hosts and viewing logs and alerts in Infrastructure Hosts 
+
+******
+We want your feedback! Want to provide feedback and preview early builds of the Hosts feature? https://ela.st/hosts-whats-new-opt-in[Let us know!]
+******
+
+The <<analyze-hosts,Hosts>> feature now allows you to view and filter by metadata (as well as processes) in the new preview fly-out available on each host to make it easier to compare similar hosts:
+
+_Previewing a host to view metadata and processes_
+
+image::images/whats-new-infrastructure-hosts-preview.png[]
+
+You can also search the logs for your hosts using the new logs tab to find the logs to help you further your investigations:
+
+_Searching logs for your hosts_
+
+image::images/whats-new-infrastructure-hosts-search-logs.png[]
+
+The new alerts tab shows you at a glance if there are any active alerts in your hosts so you can dig into any active issues:
+
+_Viewing active alerts_
+
+image::images/whats-new-infrastructure-hosts-view-active-alerts.png[]
+
+There is also now a host limit to allow you to run quicker queries by limiting the number of hosts being returned in your query so you don’t lose focus in your workflow:
+
+_Setting a host limit_
+
+image::images/whats-new-infrastructure-hosts-set-limit.png[]
+
+There have also been various UI improvements such as a sticky universal search bar so you can see and manipulate your queries from anywhere on the page and also viewport-based loading of metrics charts to improve the responsiveness of the page.
 
 // end::whats-new[]
