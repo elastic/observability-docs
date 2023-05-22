@@ -1,7 +1,23 @@
 [[application-logs]]
-= Monitor application logs
+= Application logs
 
 Application logs provide valuable insight into events that have occurred within your services and applications.
+
+There are two aspects to consider when monitoring application logs:
+
+- <<log-types,log format>>: are your logs plaintext or Elastic Common Schema (ECS) logs (structured JSON)
+- <<ingest-application-logs,log ingestion>>: the tool you use to send and write logs to Elasticsearch
+
+The format of your logs (structured or plaintext) influences your log ingestion strategy.
+For simplicity, this documentation uses {filebeat} for ingestion, but any log ingestion tool can be used with an equivalent configuration.
+
+Application logs can be correlated to APM services with <<log-correlation,log correlation>>.
+
+Using an APM agent provides extra features:
+
+- <<log-correlation,log correlation>>: correlate logs to APM traces
+- <<log-reformatting,log reformatting>>: reformat logs to ECS
+- <<apm-agent-log-sending,log sending>>: reformat and send logs without extra ingestion tool
 
 [float]
 [[log-types]]
@@ -32,11 +48,28 @@ For example, the same example shown above might look like this when structured w
 {"@timestamp":"2019-08-06T14:08:40.199Z", "log.level":"DEBUG", "message":"init find form", "service.name":"spring-petclinic","process.thread.name":"http-nio-8080-exec-8","log.logger":"org.springframework.samples.petclinic.owner.OwnerController","transaction.id":"28b7fb8d5aba51f1","trace.id":"2869b25b5469590610fea49ac04af7da"}
 ----
 
+There are two ways to make your application write ECS-formatted logs:
+- use an {ecs-logging-ref}/intro.html[ECS logging] library
+- use an APM agent and <<log-reformatting,log reformatting>>
+
+[float]
+[[log-reformatting]]
+== Log reformatting
+
+Elastic APM agents can automatically reformat application logs to Elastic Common Schema (ECS) format
+without needing to add an ECS logger dependency or modify the application.
+
+This feature is supported for the following APM agents:
+* Ruby
+* Python
+* {apm-java-ref}/logs.html[Java]
+
 [float]
 [[log-correlation]]
 == Log correlation
 
 Log correlation works at two levels:
+
 - at service level: annotation with `service.name`, `service.version` and `service.environment` allow to link logs with APM services
 - at trace level: annotation with `trace.id` and `transaction.id` allow to link logs with traces
 
@@ -67,16 +100,19 @@ or in any of the agent-specific ingestion guides:
 There are four main ways to ingest application logs into the {stack}.
 Your use case will help determine the method that's right for you.
 
-* <<overview-plaintext-with-filebeat>>
-* <<overview-ecs-with-filebeat>>
-* <<overview-ecs-reformatting-with-filebeat>>
+Here, {filebeat} is used for reference, but any ingestion tool
+can be used with an equivalent configuration.
+
+* <<overview-plaintext-logs>>
+* <<overview-ecs-logging-logs>>
+* <<overview-log-reformatting>>
 * <<overview-apm-agent-log-sending>>
 
 [float]
-[[overview-plaintext-with-filebeat]]
-=== Plaintext logs with {filebeat}
+[[overview-plaintext-logs]]
+=== Plaintext logs
 
-// tag::plaintext-with-filebeat[]
+// tag::plaintext-logs[]
 Use {filebeat} to parse and ingest raw, plain-text application logs.
 
 **Requirements**
@@ -96,15 +132,15 @@ Use {filebeat} to parse and ingest raw, plain-text application logs.
 * Must parse application logs to be useful—meaning writing and maintaining Grok patterns and spending CPU cycles on parsing
 * Parsing is tied to the application log format, meaning it can differ per application and needs to be maintained over time
 * Log correlation requires modifying the application log format and inject IDs in log messages
-// end::plaintext-with-filebeat[]
+// end::plaintext-logs[]
 
-Learn more: <<plaintext-with-filebeat>>.
+Learn more: <<plaintext-logs>>.
 
 [float]
-[[overview-ecs-with-filebeat]]
-=== ECS loggers with {filebeat}
+[[overview-ecs-logging-logs]]
+=== ECS logging
 
-// tag::ecs-with-filebeat[]
+// tag::ecs-logging-logs[]
 Elastic Common Schema (ECS) loggers format your logs into ECS-compatible JSON,
 removing the need to manually parse logs.
 
@@ -126,15 +162,15 @@ removing the need to manually parse logs.
 
 * Not all frameworks are supported
 * Requires modification of the application and its log configuration
-// end::ecs-with-filebeat[]
+// end::ecs-logging-logs[]
 
-Learn more: <<ecs-with-filebeat>>
+Learn more: <<ecs-logging-logs>>
 
 [float]
-[[overview-ecs-reformatting-with-filebeat]]
-=== ECS reformatting with {filebeat}
+[[overview-log-reformatting]]
+=== Log reformatting
 
-// tag::ecs-reformatting-with-filebeat[]
+// tag::log-reformatting[]
 Elastic APM agents can automatically reformat application logs to Elastic Common Schema (ECS) format
 without needing to add an ECS logger dependency or modify the application.
 
@@ -159,10 +195,11 @@ All the benefits of using ECS logging, without having to modify the application 
 **Supported APM agents/languages**
 
 * Ruby
+* Python
 * {apm-java-ref}/logs.html[Java]
-// end::ecs-reformatting-with-filebeat[]
+// end::log-reformatting[]
 
-Learn more: <<ecs-reformatting-with-filebeat>>
+Learn more: <<reformatting-logs>>
 
 [float]
 [[overview-apm-agent-log-sending]]
@@ -196,10 +233,10 @@ The Elastic APM agent for your programming language.
 
 Learn more: <<apm-agent-log-sending>>
 
-[[plaintext-with-filebeat]]
-== Plaintext logs with Filebeat
+[[plaintext-logs]]
+== Plaintext logs
 
-include::application-logs.asciidoc[tag=plaintext-with-filebeat]
+include::application-logs.asciidoc[tag=plaintext-logs]
 
 [float]
 === Step 1: Use {filebeat} to ingest logs
@@ -234,10 +271,10 @@ Use the <<apm,APM>> or <<monitor-logs,Logs>> UI to search, filter, and visualize
 * {ref}/ingest.html[Ingest pipelines]
 * {ref}/grok-processor.html[Grok processor]
 
-[[ecs-with-filebeat]]
-== ECS logging with Filebeat
+[[ecs-logging-logs]]
+== ECS logging
 
-include::application-logs.asciidoc[tag=ecs-with-filebeat]
+include::application-logs.asciidoc[tag=ecs-logging-logs]
 
 [float]
 === Get started
@@ -252,10 +289,10 @@ See the guide for your favorite logging framework:
 * {ecs-logging-python-ref}/installation.html[Python]
 * {ecs-logging-ruby-ref}/setup.html[Ruby]
 
-[[ecs-reformatting-with-filebeat]]
-== APM agent ECS reformatting with Filebeat
+[[reformatting-logs]]
+== APM agent ECS reformatting
 
-include::application-logs.asciidoc[tag=ecs-reformatting-with-filebeat]
+include::application-logs.asciidoc[tag=log-reformatting]
 
 [float]
 === Step 1: Enable APM agent reformatting
