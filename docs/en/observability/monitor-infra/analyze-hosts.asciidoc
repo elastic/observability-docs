@@ -17,14 +17,14 @@ backed by an easy-to-use interface called Lens. On the **Hosts** page, you can
 view health and performance metrics to help you quickly:
 
 * Analyze and compare hosts without having to build new dashboards.
-//* Identify which hosts trigger the most alerts.
+* Identify which hosts trigger the most alerts.
 * Troubleshoot and resolve issues quickly.
-//* View historical data to rule out false alerts and identify root causes.
+* View historical data to rule out false alerts and identify root causes.
 * Filter and search the data to focus on the hosts you care about the most.
 
-To access the **Hosts** page, go to **{observability} -> Infrastructure**, and
-then click **Hosts**. If the view is not enabled, click **Enable host view** to
-begin exploring.
+To access this page from the main {kib} menu, go to
+**{observability} -> Infrastructure**, and then click **Hosts**. If the view is
+not enabled, click **Enable host view** to begin exploring.
 
 include::view-infrastructure-metrics.asciidoc[tag=add-metrics-tip]
 
@@ -44,6 +44,9 @@ about the host, such as CPU usage, load, memory usage, and network traffic.
 including normalized load, CPU usage, memory usage, network inbound, network
 outbound, disk read IOPS, and disk write IOPS. Place your cursor over a line to
 view metrics at a specific point in time.
+
+For information about how the metrics on this page are calculated, refer to
+<<analyze-hosts-fields>>.
 
 [discrete]
 [[analyze-hosts-filter-view]]
@@ -104,12 +107,12 @@ For more information about using Lens, refer to the
 [[analyze-hosts-inspect-data]]
 == Inspect and download metrics
 
-From the **Hosts** page, you can access a text-based view of the data underlying
+On the **Metrics** tab, you can access a text-based view of the data underlying
 your metrics visualizations and optionally download the data to a
 comma-separated (CSV) file.
 
-Under **Metrics**, hover your cursor over a visualization, then in the
-upper-right corner, click the ellipsis icon to inspect the data.
+Hover your cursor over a visualization, then in the upper-right corner, click
+the ellipsis icon to inspect the data.
 
 [role="screenshot"]
 image::images/hosts-inspect.png[Screenshot showing option to inspect data]
@@ -121,6 +124,33 @@ Notice that you can change the view to **View: Requests** to explore the request
 used to fetch the data and the response returned from {es}. You can click links
 to further inspect and analyze the request in the **Dev Console** or
 **Search Profiler**.
+
+[discrete]
+[[analyze-hosts-view-logs]]
+== View logs
+
+On the **Logs** tab, view logs for the systems you are monitoring, and search for
+specific log entries. Click **Open in Logs** to tail your log files. For more
+information, refer to <<tail-logs>>.
+
+[role="screenshot"]
+image::images/hosts-logs.png[Screenshot showing Logs view]
+
+[discrete]
+[[analyze-hosts-view-alerts]]
+== View alerts
+
+On the **Alerts** tab, view active alerts to pinpoint problems. Use this view
+to figure out which hosts triggered alerts and identify root causes.
+
+From the **Actions** menu, you can choose to:
+
+* Add the alert to a new or existing case.
+* View rule details.
+* View alert details.
+
+[role="screenshot"]
+image::images/hosts-view-alerts.png[Screenshot showing Alerts view]
 
 [discrete]
 [[analyze-hosts-fields]]
@@ -141,7 +171,9 @@ with data.
 |====
 | Metric                    | Description
 
-| **# of CPUs**             | Number of CPU cores  Field Calculation: count(system.cpu.cores)
+| **# of CPUs**             | Number of CPU cores
+
+**Field Calculation**: `count(system.cpu.cores)`
 
 | **CPU Usage**             | Percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores.
 This includes both time spent on user space and kernel space.
