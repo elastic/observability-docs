@@ -348,6 +348,17 @@ function migrate {
     rename_regular_index "profiling-symbols-private"
   fi
 
+  echo "Renaming existing fields..."
+  curl -s -f -o /dev/null -X PUT -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/profiling-events-*/_mapping" -H 'Content-Type: application/json' -d'
+  {
+    "properties": {
+      "profiling.project.id": {
+        "type": "alias",
+        "path": "service.name"
+      }
+    }
+  }'
+
   echo "Enabling Universal Profiling index template management and disabling wildcard deletes..."
   curl -s -f -o /dev/null -X PUT -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cluster/settings" -H 'Content-Type: application/json' -d'
   {
