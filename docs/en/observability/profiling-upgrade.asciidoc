@@ -190,7 +190,7 @@ function sanity_check_cluster {
   fi
 
   printf "Checking that Elastic Universal Profiling has not been enabled yet ... "
-  local indices_created=$(curl -s -f -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cat/indices/*.profiling-v1*?expand_wildcards=all")
+  local indices_created=$(curl -s -f -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cat/indices/*.profiling-v001*?expand_wildcards=all")
   if [ "$indices_created" == "" ]; then
     printf "[OK]\n"
   else
@@ -220,7 +220,7 @@ function rename_kv_index {
   # delete this alias for all indices
   curl -s -f -o /dev/null -X DELETE -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/$alias_name*/_alias/$alias_name-next"
   local creation_date=$(curl -s -f -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/$old_index_name/_settings" | jq -r "..|.creation_date?|values")
-  curl -s -f -o /dev/null -X POST -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/$old_index_name/_clone/.$alias_name-v1-000001" -H 'Content-Type: application/json' -d"
+  curl -s -f -o /dev/null -X POST -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/$old_index_name/_clone/.$alias_name-v001-000001" -H 'Content-Type: application/json' -d"
   {
     \"settings\": {
       \"index.hidden\": true,
@@ -249,7 +249,7 @@ function rename_regular_index {
   }'
   local creation_date=$(curl -s -f -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/$index_name/_settings" | jq -r "..|.creation_date?|values")
 
-  curl -s -f -o /dev/null -X POST -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/$index_name/_clone/.$index_name-v1" -H 'Content-Type: application/json' -d"
+  curl -s -f -o /dev/null -X POST -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/$index_name/_clone/.$index_name-v001" -H 'Content-Type: application/json' -d"
   {
     \"settings\": {
       \"index.hidden\": true,
@@ -260,7 +260,7 @@ function rename_regular_index {
 
   curl -s -f -o /dev/null -X DELETE -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/$index_name"
   # Create the alias in a separate call after we've deleted the index
-  curl -s -f -o /dev/null -X POST -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/.$index_name-v1/_alias/$index_name" -H 'Content-Type: application/json' -d'
+  curl -s -f -o /dev/null -X POST -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/.$index_name-v001/_alias/$index_name" -H 'Content-Type: application/json' -d'
   {
     "is_write_index": true
   }'
