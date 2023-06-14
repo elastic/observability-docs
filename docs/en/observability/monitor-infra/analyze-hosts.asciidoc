@@ -12,9 +12,9 @@ We'd love to get your feedback!
 https://docs.google.com/forms/d/e/1FAIpQLScRHG8TIVb1Oq8ZhD4aks3P1TmgiM58TY123QpDCcBz83YC6w/viewform[Tell us what you think!]
 ****
 
-The **Hosts** page provides a metrics-driven view of your entire infrastructure
-backed by an easy-to-use interface called Lens. On the **Hosts** page, you can
-view health and performance metrics to help you quickly:
+The **Hosts** page provides a metrics-driven view of your infrastructure backed
+by an easy-to-use interface called Lens. On the **Hosts** page, you can view
+health and performance metrics to help you quickly:
 
 * Analyze and compare hosts without having to build new dashboards.
 * Identify which hosts trigger the most alerts.
@@ -35,15 +35,21 @@ The **Hosts** page provides a few different ways to view host metrics:
 
 * Overview tiles show the number of hosts returned by your search plus
 averages of key metrics, including CPU usage, memory usage, and throughput.
-* The host list shows all the hosts returned by your search with a
-breakdown of metrics for each host. You may need to page through the list or
-change the number of rows displayed on each page to see all of your hosts.
+* The Host limit controls the maximum number of hosts shown on the page. The
+default is 20, which means the page shows data for the top 20 hosts based on the
+most recent timestamps. You can increase the host limit to see data for more
+hosts, but doing so may impact query performance.
+* The Hosts table shows a breakdown of metrics for each host. You may need to
+page through the list or change the number of rows displayed on each page to see
+all of your hosts.
 * Each host name is an active link to an overview page with additional metrics
 about the host, such as CPU usage, load, memory usage, and network traffic.
-* The **Metrics** view shows metrics trending over time for the top 20 hosts,
-including normalized load, CPU usage, memory usage, network inbound, network
-outbound, disk read IOPS, and disk write IOPS. Place your cursor over a line to
-view metrics at a specific point in time.
+* Table columns are sortable, but note that the sorting behavior is applied to
+the already returned data set.
+* The **Metrics** view shows metrics trending over time, including normalized
+load, CPU usage, memory usage, network inbound, network outbound, disk read
+IOPS, and disk write IOPS. Place your cursor over a line to view metrics at a
+specific point in time.
 
 For information about how the metrics on this page are calculated, refer to
 <<analyze-hosts-fields>>.
@@ -56,8 +62,9 @@ The **Hosts** page provides several mechanisms for filtering the data on the
 page:
 
 * Enter a search query to show metrics that match your search criteria. For example,
-to see metrics for all hosts running on linux, enter `host.os.type : "linux".
-Otherwise you’ll see metrics for all your monitored hosts.
+to see metrics for hosts running on linux, enter `host.os.type : "linux"`.
+Otherwise you’ll see metrics for all your monitored hosts (up to the number of
+hosts specified by the host limit).
 * Select additional criteria to filter the view:
 ** In the **Operating System** list, select one or more operating systems
 and include (or exclude) metrics for those hosts.
@@ -129,19 +136,27 @@ to further inspect and analyze the request in the **Dev Console** or
 [[analyze-hosts-view-logs]]
 == View logs
 
-On the **Logs** tab, view logs for the systems you are monitoring, and search for
-specific log entries. Click **Open in Logs** to tail your log files. For more
-information, refer to <<tail-logs>>.
+On the **Logs** tab, view logs for the systems you are monitoring and search
+for specific log entries. This view shows logs for all of the hosts returned by
+the current query.
 
 [role="screenshot"]
 image::images/hosts-logs.png[Screenshot showing Logs view]
+
+TIP: This view uses the log sources and column settings specified in the
+Logs UI. To add log sources or columns (such as host name), refer to
+<<configure-data-sources>>.
+
+Click **Open in Logs** to tail your log files. For more information, refer to
+<<tail-logs>>.
 
 [discrete]
 [[analyze-hosts-view-alerts]]
 == View alerts
 
 On the **Alerts** tab, view active alerts to pinpoint problems. Use this view
-to figure out which hosts triggered alerts and identify root causes.
+to figure out which hosts triggered alerts and identify root causes. This view
+shows alerts for all of the hosts returned by the current query.
 
 From the **Actions** menu, you can choose to:
 
@@ -159,6 +174,9 @@ image::images/hosts-view-alerts.png[Screenshot showing Alerts view]
 The **Hosts** page displays metrics from indices that match the index patterns
 specified on the **Settings page**. For example, the default patterns are
 `metrics-*` and `metricbeat-*`.
+
+Log sources are specified on the **Settings page** of the Logs app. For example,
+the default patters are `logs-*,filebeat-*,kibana_sample_data_logs*`.
 
 The following sections describe the fields used to populate the **Hosts** page
 with data.
