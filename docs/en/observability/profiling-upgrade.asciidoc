@@ -18,12 +18,33 @@ we will remove this requirement completely.
 
 To upgrade Universal Profiling, you need to:
 
-. Perform a stack upgrade in {ecloud}
 . Stop profiling data ingestion
+. Perform a stack upgrade in {ecloud}
 . *When upgrading from version 8.8.0 or more recent*: Migrate existing profiling data
 . *When upgrading from versions prior to 8.8.0*: Delete existing profiling data and setup Universal Profiling from scratch
 
 . Start profiling data ingestion
+
+[discrete]
+[[profiling-stop-ingestion]]
+=== Stop profiling data ingestion
+
+During the Universal Profiling upgrade, you must stop data ingestion.
+
+If you have an automated host-agent setup and control of the *full* fleet of machines where the host-agent is installed, deleting
+all host-agent deployments stops ingestion.
+
+If you do not have direct control of all host-agent deployments, you can stop data ingestion by stopping incoming requests to the
+Integrations Server. To do this:
+
+. Locate the deployment you wish to upgrade in https://cloud.elastic.co[{ecloud}].
+. Click the *Manage deployment* icon next to your deployment to open the deployment settings.
+. Scroll down to the *Instances* section and locate all Integrations Server instances.
+. Click the three vertical dots in the upper-right corner of the Integrations Server card.
+. Select *Stop routing requests*.
+. Repeat this process for all Integrations Server instances.
+
+NOTE: When stopping incoming requests, host-agent replicas back off and retry connecting to the {ecloud} endpoint at increasing time intervals.
 
 [discrete]
 [[profiling-upgrade-in-cloud]]
@@ -38,25 +59,6 @@ To perform a stack upgrade in {ecloud}:
 . Verify the upgrade was successful under **Your deployment → Activity** in the navigation menu.
 
 [discrete]
-[[profiling-stop-ingestion]]
-=== Stop profiling data ingestion
-
-During the Universal Profiling upgrade, you must stop data ingestion.
-
-If you have an automated host-agent setup and control of the *full* fleet of machines where the host-agent is installed, deleting
-all host-agent deployments stops ingestion.
-
-If you do not have direct control of all host-agent deployments, you can stop data ingestion by stopping incoming requests to the
-Integrations Server. To do this:
-
-. From the deployment settings, scroll down to the *Instances* section and locate all Integrations Server instances.
-. Click the three vertical dots in the upper-right corner of the Integrations Server card.
-. Select *Stop routing requests*.
-. Repeat this process for all Integrations Server instances.
-
-NOTE: When stopping incoming requests, host-agent replicas back off and retry connecting to the {ecloud} endpoint at increasing time intervals.
-
-[discrete]
 [[profiling-migrate-data]]
 === Migrate existing profiling data
 
@@ -65,7 +67,7 @@ When upgrading to version 8.9, you can use a migration script to migrate existin
 * The cluster has been upgraded from 8.8 to 8.9.
 * The migration is performed on a Linux workstation with `jq` and `curl` installed.
 
-If you meet these requirements, follow the steps below to run the migration script. If not, we suggest <<profiling-delete-data, deleting your existing profiling data>> and <<profiling-from-scratch, setting up Universal Profiling from scratch>>.
+If you meet these requirements, follow the steps below to migrate your data. If not, we suggest <<profiling-delete-data, deleting your existing profiling data>> and <<profiling-from-scratch, setting up Universal Profiling from scratch>>.
 
 You should also verify that you have a recent snapshot of your data so you can restore it if there's an error during the migration.
 
@@ -393,10 +395,7 @@ function main {
   sanity_check_cluster
   migrate
 
-  echo "Migration has finished. Please perform the following tasks:"
-  echo ""
-  echo "* Start profiling data ingestion"
-  echo "* Enable Elastic Universal Profiling in Kibana"
+  echo "Migration has finished. You can now start profiling data ingestion."
 }
 
 main
