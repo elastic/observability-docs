@@ -281,7 +281,7 @@ function migrate {
 
   echo "Deleting obsolete indices..."
   curl -s -f -o /dev/null -X DELETE -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/.profiling-ilm-lock"
-  curl -s -f -o /dev/null -X DELETE -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/profiling-returnpads-private,profiling-sq-executables,profiling-sq-leafframes,profiling-symbols?ignore_unavailable=true"
+  curl -s -f -o /dev/null -X DELETE -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/profiling-sq-executables,profiling-sq-leafframes,profiling-symbols?ignore_unavailable=true"
   # We rely only on the "next" indices
   delete_index_by_alias profiling-stackframes
   delete_index_by_alias profiling-stacktraces
@@ -333,10 +333,14 @@ function migrate {
   rename_kv_index "profiling-stacktraces"
   rename_kv_index "profiling-executables"
 
-  # profiling-symbols-private may or may not be present
+  # profiling-symbols-private and profiling-returnpads-private may or may not be present
   status_code=$(curl -s -o /dev/null -w "%{http_code}" -I -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/profiling-symbols-private")
   if [ "$status_code" == "200" ]; then
     rename_regular_index "profiling-symbols-private"
+  fi
+  status_code=$(curl -s -o /dev/null -w "%{http_code}" -I -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/profiling-returnpads-private")
+  if [ "$status_code" == "200" ]; then
+    rename_regular_index "profiling-returnpads-private"
   fi
 
   echo "Renaming existing fields..."
