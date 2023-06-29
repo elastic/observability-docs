@@ -31,7 +31,7 @@ To build the docs:
 2. Run the `build_docs` script, passing in the path to the `index.asciidoc` and resource paths to other repos that contain source files. For example, to build the Observability Guide and open it in the browser, run:
 
 ```
-../docs/build_docs --doc ./docs/en/observability/index.asciidoc --chunk 1 --resource ../beats/libbeat/docs --resource ../apm-server/docs/guide --resource ../kibana/docs --resource ../ingest-docs/docs --open
+../docs/build_docs --doc ./docs/en/observability/index.asciidoc --chunk 1 --resource ../apm-server/docs/guide --resource ../kibana/docs --resource ../ingest-docs/docs --open
 ```
 
 The above command assumes that [elastic/docs](https://github.com/elastic/docs), [elastic/beats](https://github.com/elastic/beats), [elastic/kibana](https://github.com/elastic/kibana), and [elastic/apm-server](https://github.com/elastic/apm-server) are checked out into the same parent directory.
