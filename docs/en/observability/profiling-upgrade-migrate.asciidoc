@@ -179,13 +179,13 @@ function sanity_check_cluster {
     exit 1
   fi
 
-  printf "Checking for cluster health green ... "
-  local status=$(curl -s -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cluster/health?wait_for_status=green&wait_for_no_initializing_shards=true&wait_for_no_relocating_shards=true" | jq -r ".status")
-  if [ "$status" == "green" ]; then
-    printf "[OK]\n"
-  else
-    printf "[FAILED: %s]\n" "$status"
+  printf "Checking cluster health ... "
+  local status=$(curl -s -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cluster/health?wait_for_status=yellow&wait_for_no_initializing_shards=true&wait_for_no_relocating_shards=true" | jq -r ".status")
+  if [ "$status" == "red" ]; then
+    printf "[FAILED: status is red]\n"
     exit 1
+  else
+    printf "[OK: status is %s]\n" "$status"
   fi
 
   printf "Checking that Elastic Universal Profiling has not been enabled yet ... "
@@ -372,7 +372,7 @@ function migrate {
   curl -s -f -o /dev/null -X POST -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_ilm/start"
 
   printf "Checking cluster health ... "
-  local status=$(curl -s -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cluster/health?wait_for_status=green&wait_for_no_initializing_shards=true&wait_for_no_relocating_shards=true" | jq -r ".status")
+  local status=$(curl -s -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cluster/health?wait_for_status=yellow&wait_for_no_initializing_shards=true&wait_for_no_relocating_shards=true" | jq -r ".status")
   if [ "$status" == "red" ]; then
     printf "[ERROR: status is red]\n"
   else
