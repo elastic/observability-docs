@@ -190,6 +190,19 @@ function sanity_check_cluster {
     printf "[FAILED]\n"
     exit 1
   fi
+
+  printf "Checking minimum required index version ... "
+  local min_index_version=$(curl -s -f -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/profiling-*/_settings/index.version.created" | jq -r "..|.created?|values" | sort | uniq | head -n 1)
+  if [[ "$min_index_version" == 808* ]]; then
+    printf "[OK]\n"
+  else
+    {
+      echo "Indices are too old. Dumping indices and index versions..."
+      curl -s -f -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/profiling-*/_settings/index.version.created?pretty"
+    } >> "elastic_universal_profiling_migration_log.txt"
+    printf "[FAILED: your cluster contains indices from a version before 8.8.0]\n"
+    exit 1
+  fi
 }
 
 function delete_index_by_alias {
@@ -266,7 +279,7 @@ function migrate {
     echo "Indices and aliases before migration"
     curl -s -f -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cat/indices/*profiling*?v&s=index&expand_wildcards=all"
     curl -s -f -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cat/aliases/*profiling*?v&expand_wildcards=all"
-  }  > "elastic_universal_profiling_migration_log.txt"
+  }  >> "elastic_universal_profiling_migration_log.txt"
 
   echo "Allowing wildcard deletes ..."
   curl -s -f -o /dev/null -X PUT -k -u "$ES_USER":"$ES_PASSWORD" "$ES_HOST/_cluster/settings" -H 'Content-Type: application/json' -d'
@@ -382,6 +395,7 @@ function migrate {
 }
 
 function main {
+  echo "Starting migration" > "elastic_universal_profiling_migration_log.txt"
   check_preconditions
   ask_user_prerequisites
   sanity_check_cluster
