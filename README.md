@@ -1,2 +1,2 @@
-# serverless-general-docs
-Staging location for Serverless general docs
+# staging-serverless-observability-docs
+Staging location for Serverless observability docs
