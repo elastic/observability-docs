@@ -1,7 +1,7 @@
 [[logs-stream]]
 = Stream a custom log file
 
-In this guide, you'll learn how to take a log file or directory from your host and send it to Elasticsearch using an {agent} in standalone mode. From there, you'll learn how to extract relevant information from logs, and transform the data into a standardized format for further processing and analysis. 
+In this guide, you'll learn how to take a log file or directory from your host and send it to Elasticsearch using an {agent} in standalone mode. From there, you'll learn how to query your log data and set up . 
 
 [discrete]
 [[logs-stream-prereq]]
@@ -78,14 +78,14 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/run-standalone
 [[logs-stream-configure-data-streams]]
 == Configure data streams
 
-{agent} uses data streams to store time series data across multiple indices while giving you a single named resource for requests.
+The {agent} uses data streams to store time series data across multiple indices while giving you a single named resource for requests.
 You can configure data streams to reduce the number of fields per index, have more granular control, have more flexibility, and require fewer ingest permissions.
 
 The Elastic data stream naming scheme splits datasets into different data streams using the following naming convention:
 
 - type: Generic type describing the data. In this case, logs.
 - dataset: Describes the data ingested and its structure. This field can contain anything that makes sense to signify the source of the data. The default value is `generic`.
-- namespace: User-configurable arbitrary grouping. Useful for grouping data. The default value is `default`.
+- namespace: User-configurable arbitrary input that's useful for grouping data. The default value is `default`.
 
 Data streams are named in the following way:
 
@@ -112,13 +112,8 @@ See the following example logs information from the `elastic-agent.yml` file for
 [[logs-stream-query-datastreams]]
 === Filter by data streams
 
-You can leverage data streams to filter by a specific data type (logs, metrics etc.), dataset (nginx.access, prometheus) or namespace. The following are examples of common queries pertaining to specific datatypes, datasets, or namespaces:
+Once you've updated your data streams, you can use them to filter and query your log data. From *Observability > Logs > Stream*, use the search bar to search for your `data_stream.dataset` and `data_stream.type`. The following examples are common queries pertaining to specific data types, datasets, or namespaces:
 
-- `data_stream.type: logs`
-- `data_stream.dataset: nginx.access`
-- `data_stream.type: logs AND data_stream.namespace: web-frontend`
-
-
-
-
-
+- `data_stream.type: logs` to show `logs` data streams.
+- `data_stream.dataset: nginx.access` shows data streams with an `nginx.access` dataset.
+- `data_stream.type: logs AND data_stream.namespace: web-frontend` shows data streams with a type of `logs` and a namespace of `web-frontend`
