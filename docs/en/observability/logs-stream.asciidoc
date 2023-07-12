@@ -1,0 +1,124 @@
+[[logs-stream]]
+= Stream a custom log file
+
+In this guide, you'll learn how to take a log file or directory from your host and send it to Elasticsearch using an {agent} in standalone mode. From there, you'll learn how to extract relevant information from logs, and transform the data into a standardized format for further processing and analysis. 
+
+[discrete]
+[[logs-stream-prereq]]
+= Prerequisites
+
+include::logs-metrics-get-started.asciidoc[tag=monitoring-prereqs]
+
+[discrete]
+[[logs-stream-install-config-agent]]
+= Installing and configure the standalone {agent}
+
+To install and configure the standalone {agent} to send your log data to {es}, you need to complete a few steps:
+
+. Download and extract the {agent} installation package.
+. Configure the {agent} using the Custom Logs integration.
+. Install and start the {agent}.
+
+[discrete]
+[[logs-stream-extract-agent]]
+== Step 1: Download and extract the {agent} installation package
+
+On your host, download and extract the installation package:
+
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/download-widget.asciidoc[]
+
+[discrete]
+[[logs-stream-agent-config]]
+== Step 2: Configure the {agent}
+
+Use the Custom Logs integration in {kib} to create and download an {agent} policy:
+
+. Go to the {kib} home page and click *Add integrations*.
++
+--
+[role="screenshot"]
+image::images/add-integrations.png[{kib} home page]
+--
+
+. In the search bar, search for *custom* and select *Custom Logs*.
+. Click *Add Custom Logs* in the upper-right corner.
++
+--
+[role="screenshot"]
+image::images/add-custom-logs.png[add custom logs button location]
+--
+
+. Click *Install {agent}*.
+. Click *standalone mode*.
++
+--
+[role="screenshot"]
+image::images/standalone-link.png[link to running agents in standalone mode]
+--
+. Add your the path to your log file in the *Log file path* text box and click *Save and continue*.
+. Click *Copy to clipboard* and paste the configuration in the `elastic-agent.yml` file located on your host where you extracted your {agent} installation package.
+. Replace `ES_USERNAME` and `ES_PASSWORD` in the policy with your Elasticsearch credentials.
+
+[discrete]
+[[logs-stream-install-agent]]
+== Step 3: Install and start the {agent}
+With your configuration set, you're ready to install the {agent}. From the agent directory, run the the 
+command that corresponds with your system to install the {agent} and start it as a service.
+
+NOTE: On macOS, Linux (tar package), and Windows, run the `install` command to
+install {agent} as a managed service and start the service. The DEB and RPM
+packages include a service unit for Linux systems with
+systemd, so just enable then start the service.
+
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/run-standalone-widget.asciidoc[]
+
+//need to determine the best way to show users their logs once sent to ES. Not sure if we want to use the logs app if it's going away or Discover.
+
+[discrete]
+[[logs-stream-configure-data-streams]]
+== Configure data streams
+
+{agent} uses data streams to store time series data across multiple indices while giving you a single named resource for requests.
+You can configure data streams to reduce the number of fields per index, have more granular control, have more flexibility, and require fewer ingest permissions.
+
+The Elastic data stream naming scheme splits datasets into different data streams using the following naming convention:
+
+- type: Generic type describing the data. In this case, logs.
+- dataset: Describes the data ingested and its structure. This field can contain anything that makes sense to signify the source of the data. The default value is `generic`.
+- namespace: User-configurable arbitrary grouping. Useful for grouping data. The default value is `default`.
+
+Data streams are named in the following way:
+
+`{type}-{dataset}-{namespace}`
+
+When ingesting a log file with the {agent}, the data ends up in `logs-generic-default` by default.
+
+[discrete]
+[[logs-stream-configure-datastreams]]
+=== Update data streams
+
+You can update data streams in the `elastic-agent.yml` file. For file location after installing the {agent}, refer to {fleet-guide}/installation-layout.html[installation layout]. 
+
+See the following example logs information from the `elastic-agent.yml` file for more information:
+
+//need to add an example here
+
+[source,yml]
+----------------------------------
+
+----------------------------------
+
+[discrete]
+[[logs-stream-query-datastreams]]
+=== Filter by data streams
+
+You can leverage data streams to filter by a specific data type (logs, metrics etc.), dataset (nginx.access, prometheus) or namespace. The following are examples of common queries pertaining to specific datatypes, datasets, or namespaces:
+
+- `data_stream.type: logs`
+- `data_stream.dataset: nginx.access`
+- `data_stream.type: logs AND data_stream.namespace: web-frontend`
+
+
+
+
+
