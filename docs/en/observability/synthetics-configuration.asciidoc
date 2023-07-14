@@ -52,17 +52,52 @@ An object that defines any variables your tests require.
 [[synthetics-configuration-playwright-options]]
 = `playwrightOptions`
 
-For available options, see the https://playwright.dev/docs/test-configuration[Playwright documentation].
+For all available options, refer to the https://playwright.dev/docs/test-configuration[Playwright documentation]. 
 
-[NOTE]
-====
+Below are details on a few Playwright options that are particularly relevant to Elastic Synthetics including timeouts, timezones, and device emulation.
+
+[discrete]
+[[synthetics-configuration-playwright-options-timeouts]]
+== Timeouts
+
 Playwright has two types of timeouts that are used in Elastic Synthetics:
 https://playwright.dev/docs/test-timeouts#action-and-navigation-timeouts[action and navigation timeouts].
 
 Elastic Synthetics uses a default action and navigation timeout of 50 seconds.
 You can override this default using https://playwright.dev/docs/api/class-testoptions#test-options-action-timeout[`actionTimeout`] and https://playwright.dev/docs/api/class-testoptions#test-options-navigation-timeout[`navigationTimeout`]
 in `playwrightOptions`.
-====
+
+[discrete]
+[[synthetics-configuration-playwright-options-timezones]]
+== Timezones
+
+By default monitors will run in the ??? timezone, but you can specify a timezone in
+`playwrightOptions` on a per monitor or global basis.
+
+To set the timezone for all monitors in the project, set https://playwright.dev/docs/emulation#locale--timezone[`locale` and `timezoneId`]
+in the configuration file:
+
+[source,js]
+----
+playwrightOptions: {
+  locale: 'en-AU',
+  timezoneId: 'Australia/Brisbane',
+}
+----
+
+To set the timezone for a specific monitor, add these options to a journey using
+<<synthetics-monitor-use,`monitor.use`>>.
+
+// Uncomment note when this is added to the Synthetics Service
+
+//////
+[NOTE]
+=====
+The timezone can also be set using the {synthetics-app}.
+If you specify a timezone in the configuration file or using `monitor.use` in the journey code,
+that timezone with take precedence over the timezone set in the {synthetics-app}.
+=====
+//////
 
 [discrete]
 [[synthetics-config-device-emulation]]
