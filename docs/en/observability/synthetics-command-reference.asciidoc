@@ -21,38 +21,53 @@ You will not need to use most command line flags -- they have been implemented
 purely to interact with the {synthetics-app}.
 However, there are some you may find useful:
 
-*`--debug`*::
-Prints debug info.
-
-*`--match <name>`*::
+`--match <string>`::
 Filters journey with the name or a matching tag.
 
-*`--tags <name...>`*::
+`--tags Array<string>`::
 Filters journey with the given tag(s).
 
-*`--reporter`*::
+`--reporter <junit|default|json>`::
 One of `junit`, `default`, or `json`. Use the JUnit reporter to provide easily parsed output to CI
 servers like Jenkins.
 
-*`--inline`*::
+`--inline`::
 Instead of reading from a file, `cat` inline scripted journeys and pipe them through `stdin`.
 For example, `cat path/to/file.js | npx @elastic/synthetics --inline`.
 
-*`--playwright-options <jsonstring>`*::
-JSON object to pass in custom Playwright options for the agent.
-Options passed will be merged with Playwright options defined in your synthetics.config.js file. Options defined via `--playwright-options` 
-take precedence.
+`--params <jsonstring>`::
+A JSON object that defines any variables your tests require.
+Read more in <<synthetics-params-secrets>>.
 +
+Params passed will be merged with params defined in your
+<<synthetics-configuration-params,`synthetics.config.js` file>>.
+Params defined via the CLI take precedence.
+
+`--playwright-options <jsonstring>`::
+JSON object to pass in custom Playwright options for the agent.
 For more details on relevant Playwright options, refer to the
 <<synthetics-configuration-playwright-options,the configuration docs>>.
++
+Options passed will be merged with Playwright options defined in your
+<<synthetics-configuration-playwright-options,`synthetics.config.js` file>>.
+Options defined via the CLI take precedence.
 
-*`--screenshots <on|off|only-on-failure>`*::
-Captures screenshots for every step in the journey.
+`--screenshots <on|off|only-on-failure>`::
+Control whether or not to capture screenshots.
+Options include `'on'`, `'off'`, or `'only-on-failure'`.
++
+This can also be set in the configuration file using
+<<synthetics-configuration-monitor,`monitor.screenshot`>>.
+The value defined via the CLI will take precedence.
 
-*`--no-throttling`*::
+`--no-throttling`::
 Does not apply throttling.
++
+Throttling can also be disabled in the configuration file using
+<<synthetics-configuration-monitor,`monitor.throttling`>>.
+The value defined via the CLI will take precedence.
 
-*`-h, --help`*::
+`-h, --help`::
 Shows help for the `npx @elastic/synthetics` command.
 
 [NOTE]
@@ -60,6 +75,12 @@ Shows help for the `npx @elastic/synthetics` command.
 The `--tags` and `--match` flags for filtering are only supported when you grep or
 run synthetic tests locally. Filtering is _not_ supported in any other subcommands
 like `init`, `push`, and `locations`.
+=====
+
+[NOTE]
+=====
+For debugging synthetic tests locally, you can set an environment variable,
+`DEBUG=synthetics`, to capture Synthetics agent logs when running `npx @elastic/synthetics`.
 =====
 
 [discrete]
@@ -111,7 +132,7 @@ However there are some limitations when using external packages:
 * Native node modules will not work as expected due to platform inconsistency. 
 ====
 
-`--auth`::
+`--auth <string>`::
 API key used for {kibana-ref}/api-keys.html[{kib} authentication].
 +
 If you are pushing to a <<private-locations,{private-location}>>, you must use an API key generated in 8.4 or higher.
@@ -119,13 +140,57 @@ If you are pushing to a <<private-locations,{private-location}>>, you must use a
 To create an API key, you must be logged into {kib} as a user with the privileges described in
 <<synthetics-role-write>>.
 
-`--url`::
-The {kib} URL for the deployment to which you want to upload the monitors.
-
-`--project`::
+`--project <string>`::
 A unique id associated with your project.
 It will be used for logically grouping monitors.
++
 If you used <<elastic-synthetics-init-command, `init` to create a project>>, this is the `<name-of-project>` you specified.
++
+This can also be set in the configuration file using
+<<synthetics-configuration-project,`project.id`>>.
+The value defined via the CLI will take precedence.
+
+`--url <string>`::
+The {kib} URL for the deployment to which you want to upload the monitors.
++
+This can also be set in the configuration file using
+<<synthetics-configuration-project,`project.url`>>.
+The value defined via the CLI will take precedence.
+
+`--space <string>`::
+The identifier of the target {kibana-ref}/xpack-spaces.html[{kib} space] for the pushed monitors.
+Spaces help you organize pushed monitors.
+Pushes to the "default" space if not specified.
++
+This can also be set in the configuration file using
+<<synthetics-configuration-project,`project.space`>>.
+The value defined via the CLI will take precedence.
+
+`--schedule <number>`::
+The interval (in minutes) at which the monitor should run.
++
+This can also be set in the configuration file using
+<<synthetics-configuration-monitor,`monitor.schedule`>>.
+The value defined via the CLI will take precedence.
+
+https://github.com/elastic/synthetics/blob/{synthetics_version}/src/locations/public-locations.ts#L28-L37[`--locations Array<SyntheticsLocationsType>`]::
+Where to deploy the monitor. Monitors can be deployed in multiple locations so that you can detect differences in availability and response times across those locations.
++
+To list available locations, refer to <<elastic-synthetics-locations-command>>.
++
+This can also be set in the configuration file using
+<<synthetics-configuration-monitor,`monitor.locations` in the configuration file>>.
+The value defined via the CLI will take precedence.
+
+`--private-locations Array<string>`::
+The <<synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas 
+`locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
++
+To list available {private-location}s, refer to <<elastic-synthetics-locations-command>>.
++
+This can also be set in the configuration file using
+<<synthetics-configuration-monitor,`monitor.privateLocations` in the configuration file>>.
+The value defined via the CLI will take precedence.
 
 `--yes`::
 The `push` command includes interactive prompts to prevent you from accidentally deleting or duplicating monitors.
@@ -152,8 +217,8 @@ Run `npx @elastic/synthetics locations` with no flags to list all the available 
 
 To list both locations on Elastic's global managed infrastructure and {private-locations}, include:
 
-`--url`::
+`--url <string>`::
 The {kib} URL for the deployment from which to fetch all available public and {private-location}s.
 
-`--auth`::
+`--auth <string>`::
 API key used for {kibana-ref}/api-keys.html[{kib} authentication].
