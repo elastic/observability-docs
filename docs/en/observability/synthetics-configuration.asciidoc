@@ -13,30 +13,52 @@ in Playwright-specific methods, for example, `ignoreHTTPSErrors`, `extraHTTPHead
 [[synthetics-config-file]]
 
 Create a `synthetics.config.js` or `synthetics.config.ts` file in the root of the
-synthetics project and specify the options:
+synthetics project and specify the options. For example:
 
-[source,js]
+[source,ts]
 ----
-import { SyntheticsConfig } from '@elastic/synthetics'
+import type { SyntheticsConfig } from '@elastic/synthetics';
 
-const config: SyntheticsConfig = {
-  params: {
-    url: 'https://www.elastic.co'
-  },
-  playwrightOptions: {
-    ignoreHTTPSErrors: true, // ignores all HTTPS errors during navigation
-    extraHTTPHeaders: {
-      'foo': 'bar' // additional HTTP headers to be sent with every request
-    }
-  },
-  monitor: {
-    schedule: 10,
-    locations: [ 'us-east4-a' ],
+export default env => {
+  const config: SyntheticsConfig = {
+    params: {
+      url: 'https://www.elastic.co',
+    },
+    playwrightOptions: {
+      ignoreHTTPSErrors: false,
+    },
+    /**
+     * Configure global monitor settings
+     */
+    monitor: {
+      schedule: 10,
+      locations: [ 'us_east' ],
+    },
+    /**
+     * Project monitors settings
+     */
+    project: {
+      id: 'my-project',
+      url: 'https://abc123',
+      space: 'custom-space',
+    },
+  };
+  if (env !== 'development') {
+    /**
+     * Override configuration specific to environment
+     * For example, config.params.url = ""
+     */
   }
-}
-
-export default config;
+  return config;
+};
 ----
+
+[NOTE]
+=====
+`env` in the example above is the environment you are pushing from
+_not_ the environment where monitors will run. In other words, `env`
+corresponds to the configured `NODE_ENV`.
+=====
 
 The configuration file can either export an object, or a function that when
 called should return the generated configuration. To know more about configuring
@@ -46,7 +68,8 @@ the tests based on environments, look at the <<synthetics-dynamic-configs, dynam
 [[synthetics-configuration-params]]
 = `params`
 
-An object that defines any variables your tests require.
+A JSON object that defines any variables your tests require.
+Read more in <<synthetics-params-secrets>>.
 
 [discrete]
 [[synthetics-configuration-playwright-options]]
@@ -123,6 +146,26 @@ const config: SyntheticsConfig = {
 
 export default config;
 ----
+
+[discrete]
+[[synthetics-configuration-project]]
+= `project`
+
+Information about the project.
+
+id (`string`)::
+A unique id associated with your project.
+It will be used for logically grouping monitors.
++
+If you used <<elastic-synthetics-init-command, `init` to create a project>>, this is the `<name-of-project>` you specified.
+
+url (`string`)::
+The {kib} URL for the deployment to which you want to upload the monitors.
+
+space (`string`)::
+The identifier of the target {kibana-ref}/xpack-spaces.html[{kib} space] for the pushed monitors.
+Spaces help you organize pushed monitors.
+Pushes to the "default" space if not specified.
 
 [discrete]
 [[synthetics-configuration-monitor]]
