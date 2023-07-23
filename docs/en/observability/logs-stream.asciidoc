@@ -1,7 +1,7 @@
 [[logs-stream]]
 = Stream a log file
 
-In this guide, you'll learn how to take a log file or directory from your host and send it to Elasticsearch using the {agent} in standalone mode. From there, you'll learn how to set up data streams to have more control and flexibility when querying and filtering your log data. 
+In this guide, you'll learn how to take a log file from your host and send it to Elasticsearch using a standalone {agent}. You'll configure the {agent} and your data streams using the Custom Logs integration. From there, you'll learn how to query your logs and use the data streams you've set up to have more control and flexibility when filtering your log data. 
 
 [discrete]
 [[logs-stream-prereq]]
@@ -31,9 +31,14 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/download-widge
 [[logs-stream-agent-config]]
 == Step 2: Configure the {agent}
 
-Use the Custom Logs integration in {kib} to create and download an {agent} policy:
+You can use the Custom Logs integration in {kib} to create and download an {agent} policy. 
+Your agent policy sets the path to your log file and sets up your data streams.
+Data streams store time series data across multiple indices while giving you a single named resource for requests.
+You can configure data streams to reduce the number of fields per index, have more granular control, have more flexibility, and require fewer ingest permissions.
 
-. Go to the {kib} home page and click *Add integrations*.
+Complete the following steps to create and download your {agent} policy:
+
+. Go to the {kib} home page and click *Add integrations*:
 +
 --
 [role="screenshot"]
@@ -41,7 +46,7 @@ image::images/add-integrations.png[{kib} home page]
 --
 
 . In the search bar, search for *custom* and select *Custom Logs*.
-. Click *Add Custom Logs* in the upper-right corner.
+. Click *Add Custom Logs* in the upper-right corner:
 +
 --
 [role="screenshot"]
@@ -49,13 +54,21 @@ image::images/add-custom-logs.png[add custom logs button location]
 --
 
 . Click *Install {agent}*.
-. Click *standalone mode*.
+. Click *standalone mode*:
 +
 --
 [role="screenshot"]
 image::images/standalone-link.png[link to running agents in standalone mode]
 --
 . Add your the path to your log file in the *Log file path* text box and click *Save and continue*.
+. Set the name for your dataset data stream in the *Dataset name* field. The dataset name describes the data ingested and its structure. This field can contain anything that makes sense to signify the source of the data. The default value is `generic`.
+. Click *Advanced options* to open the *Integration settings*.
++
+--
+[role="screenshot"]
+image::images/custom-log-advanced-options.png[open integration settings]
+--
+. Set the name for your namespace data stream in the *Namespace* field. The namespace is useful for grouping data such as an environment (dev, prod, or qa), a team, or a strategic business unit. Using a namespace makes it easier to search data from a given source by using a matching pattern. The default value is `default`.
 . Click *Copy to clipboard* and paste the configuration in the `elastic-agent.yml` file located on your host where you extracted your {agent} installation package.
 . Replace `ES_USERNAME` and `ES_PASSWORD` in the policy with your Elasticsearch credentials.
 
@@ -72,41 +85,16 @@ systemd, so just enable then start the service.
 
 include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/run-standalone-widget.asciidoc[]
 
-//need to determine the best way to show users their logs once sent to ES. Not sure if we want to use the logs app if it's going away or Discover.
-
-[discrete]
-[[logs-stream-configure-data-streams]]
-== Configure data streams
-
-The {agent} uses data streams to store time series data across multiple indices while giving you a single named resource for requests.
-You can configure data streams to reduce the number of fields per index, have more granular control, have more flexibility, and require fewer ingest permissions.
-
-The Elastic data stream naming scheme splits datasets into different data streams using the following naming convention:
-
-- type: Generic type describing the data. In this case, logs.
-- dataset: Describes the data ingested and its structure. This field can contain anything that makes sense to signify the source of the data. The default value is `generic`.
-- namespace: User-configurable arbitrary input that's useful for grouping data. The default value is `default`.
-
-Data streams are named in the following way:
-
-`{type}-{dataset}-{namespace}`
-
-When ingesting a log file with the {agent}, the data ends up in `logs-generic-default` by default.
-
-For more information, see {ref}/data-streams.html[Data streams].
-
-[discrete]
-[[logs-stream-configure-datastreams]]
-=== Update data streams
-
-You can update data streams in the `elastic-agent.yml` file under *inputs*. For file location after installing the {agent}, refer to {fleet-guide}/installation-layout.html[installation layout]. 
-
 [discrete]
 [[logs-stream-query-datastreams]]
-=== Filter by data streams
+== View and search your data
 
-Once you've updated your data streams, you can use them to filter and query your log data. From *Observability > Logs > Stream*, use the search bar to search for your `data_stream.dataset` and `data_stream.type`. The following examples are common queries pertaining to specific data types, datasets, or namespaces:
+With your {agent} and data streams set up, you can filter and search your log data. In {kib}, navigate to *Observability → Logs → Stream*, use the search bar to search for your `data_stream.dataset` and `data_stream.type`. 
+
+See the following examples for ways to search specific data types, datasets, or namespaces:
 
 - `data_stream.type: logs` to show `logs` data streams.
 - `data_stream.dataset: nginx.access` shows data streams with an `nginx.access` dataset.
 - `data_stream.type: logs AND data_stream.namespace: web-frontend` shows data streams with a type of `logs` and a namespace of `web-frontend`
+
+For more information on the data stream naming scheme, see {fleet-guide}/data-streams.html#data-streams[Data streams].
