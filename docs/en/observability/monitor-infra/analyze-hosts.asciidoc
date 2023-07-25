@@ -1,16 +1,10 @@
 [[analyze-hosts]]
-= Analyze and compare hosts on the Hosts page
+= Analyze and compare hosts
 
-++++
-<titleabbrev>Analyze and compare hosts</titleabbrev>
-++++
-
-****
-This functionality is in technical preview and may be changed or removed in a future release. Elastic will apply best effort to fix any issues, but features in technical preview are not subject to the support SLA of official GA features.
+beta[]
 
 We'd love to get your feedback!
 https://docs.google.com/forms/d/e/1FAIpQLScRHG8TIVb1Oq8ZhD4aks3P1TmgiM58TY123QpDCcBz83YC6w/viewform[Tell us what you think!]
-****
 
 The **Hosts** page provides a metrics-driven view of your infrastructure backed
 by an easy-to-use interface called Lens. On the **Hosts** page, you can view
@@ -23,13 +17,15 @@ health and performance metrics to help you quickly:
 * Filter and search the data to focus on the hosts you care about the most.
 
 To access this page from the main {kib} menu, go to
-**{observability} -> Infrastructure**, and then click **Hosts**. If the view is
-not enabled, click **Enable host view** to begin exploring.
-
-include::view-infrastructure-metrics.asciidoc[tag=add-metrics-tip]
+**{observability} -> Infrastructure**, and then click **Hosts**.
 
 [role="screenshot"]
 image::images/hosts.png[Screenshot of the Hosts page]
+
+To learn more about the metrics shown on this page, refer to the
+<<metrics-reference>> documentation.
+
+include::view-infrastructure-metrics.asciidoc[tag=add-metrics-tip]
 
 The **Hosts** page provides a few different ways to view host metrics:
 
@@ -50,9 +46,6 @@ the already returned data set.
 load, CPU usage, memory usage, network inbound, network outbound, disk read
 IOPS, and disk write IOPS. Place your cursor over a line to view metrics at a
 specific point in time.
-
-For information about how the metrics on this page are calculated, refer to
-<<analyze-hosts-fields>>.
 
 [discrete]
 [[analyze-hosts-filter-view]]
@@ -77,20 +70,6 @@ filters to set other visualizations on the page to the same time and/or host.
 
 To learn more about filtering data in {kib}, refer to
 {kibana-ref}/kibana-concepts-analysts.html[{kib} concepts].
-
-[NOTE]
-.Limitation on filtering by service names
-====
-You may see queries where either the expected hosts are not returned, or where returned hosts do not return metrics.
-This may happen when your filter returns events that do not contain all of the fields and/or values specified within your search.
-
-For example, if you search for `service.name : myservice`, you will return all hosts where there are events
-containing both `service.name : myservice` and where `host.name` exists.
-You may find that some metrics show as `0` when there are no events which contain both
-`host.name` and `service.name : myservice` and the metric you are looking for -- like `system.memory.actual.used.pct` for Memory Usage.
-
-TIP: You can configure which indices you are searching in the Settings page.
-====
 
 [discrete]
 [[analyze-hosts-open-in-lens]]
@@ -166,92 +145,3 @@ From the **Actions** menu, you can choose to:
 
 [role="screenshot"]
 image::images/hosts-view-alerts.png[Screenshot showing Alerts view]
-
-[discrete]
-[[analyze-hosts-fields]]
-== Fields used to populate the Hosts page
-
-The **Hosts** page displays metrics from indices that match the index patterns
-specified on the **Settings page**. For example, the default patterns are
-`metrics-*` and `metricbeat-*`.
-
-Log sources are specified on the **Settings page** of the Logs app. For example,
-the default patterns are `logs-*,filebeat-*,kibana_sample_data_logs*`.
-
-The following sections describe the fields used to populate the **Hosts** page
-with data.
-
-[discrete]
-[[analyze-hosts-fields-metrics]]
-=== Metrics
-
-[options="header"]
-|====
-| Metric                    | Description
-
-| **# of CPUs**             | Number of CPU cores
-
-**Field Calculation**: `count(system.cpu.cores)`
-
-| **CPU Usage**             | Percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores.
-This includes both time spent on user space and kernel space.
-
-100% means all CPUs of the host are busy.
-
-**Field Calculation**: `avg(system.cpu.user.pct + system.cpu.system.pct) / system.cpu.cores)`
-
-| **Disk Latency**          | Time spent to service disk requests.
-
-**Field Calculation**: `avg(system.diskio.read.time + system.diskio.write.time) / (system.diskio.read.count + system.diskio.write.count)`
-| **Disk Read IOPS**        | Average number of bytes read from the device per second.
-
-**Field Calculation:** `counter_rate(max(system.diskio.read.bytes)`
-| **Disk Write IOPS**       | Average number of bytes written from the device per second.
-
-**Field Calculation**: `counter_rate(max(system.diskio.write.bytes)`
-| **Memory Total**          | Total available memory.
-
-**Field Calculation**: `avg(system.memory.total)`
-| **Memory Usage**          | Percentage of main memory usage excluding page cache.
-
-This includes resident memory for all processes plus memory used by the kernel structures and code apart from the page cache.
-
-A high level indicates a situation of memory saturation for the host.
-For example, 100% means the main memory is entirely filled with memory that can't be reclaimed, except by swapping out.
-
-**Field Calculation:** `avg(system.memory.actual.used.pct)`
-| **Network Inbound (RX)**  | Number of bytes which have been received per second on the public interfaces of the hosts.
-
-**Field Calculation:** `avg(host.network.ingress.bytes / (metricset.period / 1000))`
-| **Network Outbound (TX)** | Number of bytes which have been sent per second on the public interfaces of the hosts.
-
-**Field Calculation:** `avg(host.network.egress.bytes / (metricset.period / 1000))`
-| **Normalized Load**       | 1 minute load average normalized by the number of CPU cores.
-
-Load average gives an indication of the number of threads that are runnable
-(either busy running on CPU, waiting to run or waiting for a blocking IO operation to complete).
-
-100% means the 1 minute load average is equal to the number of CPU cores of the host.
-For example, with a 32 CPU cores host, if 1 min load average is 32, the value reported here is 100%.
-If 1 min load average is 48, the value reported here is 150%.
-
-**Field Calculation:** `average(system.load.1) / max(system.load.cores)`
-|====
-
-[discrete]
-[[analyze-hosts-fields-fields]]
-=== Fields
-
-[options="header"]
-|====
-| Field                | Description
-| **Name**             | Name of host.
-
-**Field Calculation:** `host.name`
-| **Operating System** | Operating System of host.
-
-**Field Calculation:** `host.os.name`
-| **Cloud Provider**   | Cloud Provider host is running on.
-
-**Field Calculation:** `cloud.provider`
-|====
