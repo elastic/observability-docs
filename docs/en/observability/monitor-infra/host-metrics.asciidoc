@@ -1,0 +1,211 @@
+[[host-metrics]]
+= Host metrics
+
+Learn about key host metrics displayed in the {infrastructure-app}:
+
+* <<key-metrics-hosts,Hosts>>
+* <<key-metrics-cpu,CPU usage>>
+* <<key-metrics-memory,Memory>>
+* <<key-metrics-log,Log>>
+* <<key-metrics-network,Network>>
+* <<key-metrics-network,Disk>>
+
+
+[discrete]
+[[key-metrics-hosts]]
+== Hosts metrics
+
+[options="header"]
+|===
+| Metric                    | Description
+
+
+| **Hosts**                 | Number of hosts returned by your search criteria.
+
+**Field Calculation:** `count(system.cpu.cores)`
+
+|===
+
+[discrete]
+[[key-metrics-cpu]]
+== CPU usage metrics
+
+[options="header"]
+|===
+| Metric                      | Description
+
+| **CPU Usage (%)**          | Percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. This includes both time spent on user space and kernel space. 
+
+100% means all CPUs of the host are busy.
+
+**Field Calculation:** `(average(system.cpu.user.pct) + average(system.cpu.system.pct)) / max(system.cpu.cores)`
+
+| **CPU Usage - iowait (%)** | The percentage of CPU time spent in wait (on disk).
+
+**Field Calculation:** `average(system.cpu.iowait.pct) / max(system.cpu.cores)`
+
+| **CPU Usage - irq (%)**     | The percentage of CPU time spent servicing and handling hardware interrupts.
+
+**Field Calculation:** `average(system.cpu.irq.pct) / max(system.cpu.cores)`
+
+| **CPU Usage - nice (%)**   | The percentage of CPU time spent on low-priority processes.
+
+**Field Calculation:** `average(system.cpu.nice.pct) / max(system.cpu.cores)`
+
+| **CPU Usage - softirq (%)** | The percentage of CPU time spent servicing and handling software interrupts.
+
+**Field Calculation:** `average(system.cpu.softirq.pct) / max(system.cpu.cores)`
+
+| **CPU Usage - steal (%)**   | The percentage of CPU time spent in involuntary wait by the virtual CPU while the hypervisor was servicing another processor. Available only on Unix.
+
+**Field Calculation:** `average(system.cpu.steal.pct) / max(system.cpu.cores)`
+
+| **CPU Usage - system (%)**  | The percentage of CPU time spent in kernel space.
+
+**Field Calculation:** `average(system.cpu.system.pct) / max(system.cpu.cores)`
+
+| **CPU Usage - user (%)**    | The percentage of CPU time spent in user space. On multi-core systems, you can have percentages that are greater than 100%. For example, if 3 cores are at 60% use, then the system.cpu.user.pct will be 180%.
+
+**Field Calculation:** `average(system.cpu.user.pct) / max(system.cpu.cores)`
+
+| **Load (1m)**              | 1 minute load average.
+
+Load average gives an indication of the number of threads that are runnable (either busy running on CPU, waiting to run, or waiting for a blocking IO operation to complete). 
+
+**Field Calculation:** average(system.load.1)
+
+| **Load (5m)**              | 5 minute load average.
+
+Load average gives an indication of the number of threads that are runnable (either busy running on CPU, waiting to run, or waiting for a blocking IO operation to complete). 
+
+**Field Calculation:** `average(system.load.5)`
+
+| **Load (15m)**             | 15 minute load average.
+
+Load average gives an indication of the number of threads that are runnable (either busy running on CPU, waiting to run, or waiting for a blocking IO operation to complete). 
+
+**Field Calculation:** `average(system.load.15)`
+
+| **Normalized Load**        | 1 minute load average normalized by the number of CPU cores. 
+
+Load average gives an indication of the number of threads that are runnable (either busy running on CPU, waiting to run, or waiting for a blocking IO operation to complete). 
+
+100% means the 1 minute load average is equal to the number of CPU cores of the host. 
+
+Taking the example of a 32 CPU cores host, if the 1 minute load average is 32, the value reported here is 100%. If the 1 minute load average is 48, the value reported here is 150%.
+
+**Field Calculation:**  `average(system.load.1) / max(system.load.cores)`
+
+|===
+
+[discrete]
+[[key-metrics-memory]]
+== Memory metrics
+
+[options="header"]
+|===
+| Metric                            | Description
+
+| **Memory Cache**                 | Memory (page) cache.
+
+**Field Calculation:** `average(system.memory.used.bytes ) - average(system.memory.actual.used.bytes)`
+
+| **Memory Free**                  | Total available memory.
+
+**Field Calculation:** `max(system.memory.total) - average(system.memory.actual.used.bytes)`
+
+| **Memory Free (excluding cache)** | Total available memory excluding the page cache.
+
+**Field Calculation:** `system.memory.free`
+
+| **Memory Total**    | Total memory capacity.
+
+**Field Calculation:** `avg(system.memory.total)`
+
+| **Memory Usage (%)**       | Percentage of main memory usage excluding page cache. 
+
+This includes resident memory for all processes plus memory used by the kernel structures and code apart from the page cache.
+
+A high level indicates a situation of memory saturation for the host. For example, 100% means the main memory is entirely filled with memory that can't be reclaimed, except by swapping out.
+
+**Field Calculation:** `average(system.memory.actual.used.pct)`
+
+| **Memory Used**             | Main memory usage excluding page cache.
+
+**Field Calculation:** `average(system.memory.actual.used.bytes)`
+
+|===
+
+[discrete]
+[[key-metrics-log]]
+== Log metrics
+
+[options="header"]
+|===
+| Metric                            | Description
+
+| **Log Rate**                     | Derivative of the cumulative sum of the document count scaled to a 1 second rate. This metric relies on the same indices as the logs.
+
+**Field Calculation:** `cumulative_sum(doc_count)`
+|===
+
+[discrete]
+[[key-metrics-network]]
+== Network metrics
+
+[options="header"]
+|===
+| Metric                             | Description
+
+| **Network Inbound (RX)**           | Number of bytes that have been received per second on the public interfaces of the hosts.
+
+**Field Calculation:**  `average(host.network.ingress.bytes) * 8 / (max(metricset.period, kql='host.network.ingress.bytes: *') / 1000)`
+
+| **Network Inbound (TX)**            | Number of bytes that have been sent per second on the public interfaces of the hosts.
+
+**Field Calculation:**  `average(host.network.egress.bytes) * 8 / (max(metricset.period, kql='host.network.egress.bytes: *') / 1000)`
+
+|===
+
+[discrete]
+[[key-metrics-disk]]
+== Disk metrics
+
+[options="header"]
+|===
+| Metric                            | Description
+
+| **Disk Latency**                 | Time spent to service disk requests.
+
+**Field Calculation:**  `average(system.diskio.read.time + system.diskio.write.time) / (system.diskio.read.count + system.diskio.write.count)`
+
+| **Disk Read IOPS**               | Average count of read operations from the device per second.
+
+**Field Calculation:**  `counter_rate(max(system.diskio.read.count), kql='system.diskio.read.count: *')`
+
+| **Disk Read Throughput**         | Average number of bytes read from the device per second.
+
+**Field Calculation:**  `counter_rate(max(system.diskio.read.bytes), kql='system.diskio.read.bytes: *')`
+
+| **Disk Space Available**         | Disk space available.
+
+**Field Calculation:**  `average(system.filesystem.free)`
+
+| **Disk Space Availability (%)**  | Percentage of disk space available.
+
+**Field Calculation:**  `1-average(system.filesystem.used.pct)`
+
+| **Disk Space Usage (%)**         | Percentage of disk space used.
+
+**Field Calculation:**  `average(system.filesystem.used.pct)`
+
+| **Disk Write IOPS**              | Average count of write operations from the device per second.
+
+**Field Calculation:**  `counter_rate(max(system.diskio.write.count), kql='system.diskio.write.count: *')`
+
+| **Disk Write Throughput**        | Average number of bytes written from the device per second.
+
+**Field Calculation:**  `counter_rate(max(system.diskio.write.bytes), kql='system.diskio.write.bytes: *')`
+
+|===
+
