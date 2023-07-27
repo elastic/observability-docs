@@ -13,7 +13,7 @@ include::logs-metrics-get-started.asciidoc[tag=monitoring-prereqs]
 [[logs-stream-install-config-agent]]
 = Install and configure the standalone {agent}
 
-To install and configure the standalone {agent} to send your log data to {es}, you need to complete a few steps:
+Install and configure the standalone {agent} to send your log data to {es} by completing the following steps:
 
 . Download and extract the {agent} installation package.
 . Configure the {agent} using the Custom Logs integration.
@@ -67,8 +67,24 @@ image::images/standalone-link.png[link to running agents in standalone mode]
 image::images/custom-log-advanced-options.png[open integration settings]
 --
 . Set the name for your namespace data stream in the *Namespace* field. The namespace is useful for grouping data such as an environment (dev, prod, or qa), a team, or a strategic business unit. Using a namespace makes it easier to search data from a given source by using a matching pattern. The default value is `default`.
-. Click *Copy to clipboard* and paste the configuration in the `elastic-agent.yml` file located on your host where you extracted your {agent} installation package.
-. Replace `ES_USERNAME` and `ES_PASSWORD` in the policy with your Elasticsearch credentials.
+. Click *Save and continue*.
+. Click *Copy to clipboard* and paste the configuration in the `elastic-agent.yml` file located on your host where you extracted the {agent} installation package.
+. We recommend using an API key to grant the agent access to {es}. To create an API key for your agent, see {fleet-guide}/grant-access-to-elasticsearch.html#create-api-key-standalone-agent[Create API keys for standalone agents].
+. Replace `username: '${ES_USERNAME}'` and `password: '${ES_PASSWORD}'` with `api_key: '{YourAPIKey}'` in the `elastic-agent.yml` file, and add the API key you created in the previous step. For example:
++
+[source,yaml]
+----
+[...]
+outputs:
+  default:
+    type: elasticsearch
+    hosts:
+      - 'https://da4e3a6298c14a6683e6064ebfve9ace.us-central1.gcp.cloud.es.io:443'
+    api_key: _Nj4oH0aWZVGqM7MGop8:349p_U1ERHyIc4Nm8_AYkw
+[...]
+----
++
+NOTE: The format of the key is <id>:<key>. Make sure you selected *Beats* when you created your API key. Base64 encoded API keys are not currently supported in this configuration.
 
 [discrete]
 [[logs-stream-install-agent]]
@@ -87,12 +103,26 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/run-standalone
 [[logs-stream-query-datastreams]]
 == View and search your data
 
-With your {agent} and data streams set up, you can filter and search your log data. In {kib}, navigate to *Observability → Logs → Stream*, and use the search bar to search for your `data_stream.type`, `data_stream.dataset`, and `data_stream.namespace`. 
+With your {agent} and data streams configured, you can now view, filter, and search your log data. In {kib}, navigate to *Observability → Logs → Stream*, and use the search bar to search for your `data_stream.type`, `data_stream.dataset`, and `data_stream.namespace`. 
 
 See the following examples for ways to search specific data types, datasets, or namespaces:
 
 - `data_stream.type: logs` to show `logs` data streams.
 - `data_stream.dataset: nginx.access` shows data streams with an `nginx.access` dataset.
-- `data_stream.type: logs AND data_stream.namespace: web-frontend` shows data streams with a type of `logs` and a namespace of `web-frontend`
+- `data_stream.namespace: web-frontend` shows data streams with a namespace of `web-frontend`
 
-For more information, see {fleet-guide}/data-streams.html#data-streams[Data streams].
+The following example shows the search results for logs with a dataset of `apm.error` and a namespace of `default`:
+
+--
+[role="screenshot"]
+image::images/stream-logs-example.png[example search query on the logs stream page in {kib}]
+--
+
+[discrete]
+[[logs-stream-whats-next]]
+== What's next?
+
+For more information on deploying and managing logs in Elastic Observability, see the following links:
+
+- The <<logs-checklist>> consolidates links to documentation on sending log data, configuring logs, and analyzing logs.
+- <<monitor-logs>> has information on visualizing and analyzing logs.
