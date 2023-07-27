@@ -1,0 +1,127 @@
+[[logs-stream]]
+= Stream a log file
+
+In this guide, you'll learn how to take a log file from your host and send it to Elasticsearch using a standalone {agent}. You'll configure the {agent} and your data streams using the Custom Logs integration. From there, you'll learn how to query your logs and use the data streams you've set up to have more control and flexibility when filtering your log data. 
+
+[discrete]
+[[logs-stream-prereq]]
+= Prerequisites
+
+include::logs-metrics-get-started.asciidoc[tag=monitoring-prereqs]
+
+[discrete]
+[[logs-stream-install-config-agent]]
+= Install and configure the standalone {agent}
+
+Install and configure the standalone {agent} to send your log data to {es} by completing the following steps:
+
+. Download and extract the {agent} installation package.
+. Configure the {agent} using the Custom Logs integration.
+. Install and start the {agent}.
+
+[discrete]
+[[logs-stream-extract-agent]]
+== Step 1: Download and extract the {agent} installation package
+
+On your host, download and extract the installation package that corresponds with your system:
+
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/download-widget.asciidoc[]
+
+[discrete]
+[[logs-stream-agent-config]]
+== Step 2: Configure the {agent}
+
+You can use the Custom Logs integration in {kib} to create and download an {agent} policy. 
+Your agent policy sets the path to your log file and sets up your data streams.
+
+Complete the following steps to create and download your {agent} policy:
+
+. Go to the {kib} home page and click *Add integrations*:
++
+--
+[role="screenshot"]
+image::images/add-integrations.png[{kib} home page]
+--
+
+. In the search bar, search for *custom* and select *Custom Logs*.
+. Click *Add Custom Logs* in the upper-right corner:
++
+--
+[role="screenshot"]
+image::images/add-custom-logs.png[add custom logs button location]
+--
+
+. Click *Install {agent}*.
+. Click *standalone mode*:
++
+--
+[role="screenshot"]
+image::images/standalone-link.png[link to running agents in standalone mode]
+--
+. Add the path to your log file in the *Log file path* field.
+. Set the name for your dataset data stream in the *Dataset name* field. The dataset name describes the data ingested and its structure. This field can contain anything that signifies the source of the data. The default value is `generic`.
+. Click *Advanced options* to open the *Integration settings*.
++
+--
+[role="screenshot"]
+image::images/custom-log-advanced-options.png[open integration settings]
+--
+. Set the name for your namespace data stream in the *Namespace* field. The namespace is useful for grouping data such as an environment (dev, prod, or qa), a team, or a strategic business unit. Using a namespace makes it easier to search for data from a given source by using a matching pattern. The default value is `default`.
+. Click *Save and continue*.
+. Click *Copy to clipboard*, and paste the configuration in the `elastic-agent.yml` file located on your host where you extracted the {agent} installation package.
+. We recommend using an API key to grant the agent access to {es}. To create an API key for your agent, see {fleet-guide}/grant-access-to-elasticsearch.html#create-api-key-standalone-agent[Create API keys for standalone agents].
+. Replace `username: '${ES_USERNAME}'` and `password: '${ES_PASSWORD}'` with `api_key:` in the `elastic-agent.yml` file, and add the API key you created in the previous step. For example:
++
+[source,yaml]
+----
+[...]
+outputs:
+  default:
+    type: elasticsearch
+    hosts:
+      - 'https://da4e3a6298c14a6683e6064ebfve9ace.us-central1.gcp.cloud.es.io:443'
+    api_key: _Nj4oH0aWZVGqM7MGop8:349p_U1ERHyIc4Nm8_AYkw
+[...]
+----
++
+NOTE: The format of the key is <id>:<key>. Make sure you selected *Beats* when you created your API key. Base64 encoded API keys are not currently supported in this configuration.
+
+[discrete]
+[[logs-stream-install-agent]]
+== Step 3: Install and start the {agent}
+With your configuration set, you're ready to install the {agent}. From the agent directory, run the the command that corresponds with your system to install the {agent} as a service. Do *not* enroll the agent in Fleet.
+
+NOTE: On macOS, Linux (tar package), and Windows, run the `install` command to
+install {agent} as a managed service and start the service. The DEB and RPM
+packages include a service unit for Linux systems with
+systemd, so just enable then start the service.
+
+include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/run-standalone-widget.asciidoc[]
+
+[discrete]
+[[logs-stream-query-datastreams]]
+= View and search your data
+
+With your {agent} and data streams configured, you can now view, filter, and search your log data. In {kib}, navigate to *Observability → Logs → Stream*, and use the search bar to search for your `data_stream.type`, `data_stream.dataset`, and `data_stream.namespace`. 
+
+See the following examples for ways to search specific data types, datasets, or namespaces:
+
+- `data_stream.type: logs` shows `logs` data streams.
+- `data_stream.dataset: nginx.access` shows data streams with an `nginx.access` dataset.
+- `data_stream.namespace: web-frontend` shows data streams with `web-frontend` namespace.
+
+The following example shows the search results for logs with an `apm.error` dataset and a `default` namespace:
+
+--
+[role="screenshot"]
+image::images/stream-logs-example.png[example search query on the logs stream page in {kib}]
+--
+
+[discrete]
+[[logs-stream-whats-next]]
+= What's next?
+
+For more information on deploying and managing logs in Elastic Observability, see the following links:
+
+- The <<logs-checklist>> consolidates links to documentation on sending log data, configuring logs, and analyzing logs.
+- <<monitor-logs>> has information on visualizing and analyzing logs.
