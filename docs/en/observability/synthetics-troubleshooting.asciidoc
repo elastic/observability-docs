@@ -74,6 +74,18 @@ If you have configured a monitor but don't see any results for that monitor in t
 Do not configure any ingest pipelines, or output via Logstash as this will prevent Synthetics from working properly and is not <<synthetics-support-matrix,supported>>.
 
 [discrete]
+[[synthetics-troubleshooting-no-agent-running]]
+== Browser monitor configured to run on a {private-location} not running to schedule
+
+If you have browser monitors configured to run on a {private-location} but notice one or more of them are not running to their schedule, there may be too many monitors trying to run concurrently, causing some of them to skip their scheduled run.
+
+Due to the aditional hardware overhead of running browser monitors, we limit each {private-location} to only run two browser monitors at the same time. Depending on how many browser monitors you have configured to run on the {private-location} and their schedule, the {private-location} may not be able to run them all because that would need more than two simultaneous browser tests to be running.
+
+When this happens, you will see a message in the logs such as `2 tasks have missed their schedule deadlines by more than 1 second in the last 15s` (these will be visible from inside the Agent diagnostic .zip file, and the numbers/periods may be different in your logs).
+
+If this is happening, you can either increase the number of concurrent browser monitors allowed (as described in <<synthetics-private-location-scaling>>, paying attention to the scaling and hardware requirements documented), or create multiple {private-location}s and spread your browser monitors across them more evenly (effectively horizontally scaling your {private-location}s).
+
+[discrete]
 [[synthetics-troubleshooting-get-help]]
 = Get help
 
