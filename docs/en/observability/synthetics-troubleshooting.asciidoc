@@ -77,11 +77,18 @@ Do not configure any ingest pipelines, or output via Logstash as this will preve
 [[synthetics-troubleshooting-no-agent-running]]
 == Browser monitor configured to run on a {private-location} not running to schedule
 
-If you have browser monitors configured to run on a {private-location} but notice one or more of them are not running to their schedule, there may be too many monitors trying to run concurrently, causing some of them to skip their scheduled run.
+If you have browser monitors configured to run on a {private-location} but notice one or more of them are not running to their schedule, this could be because:
 
-Due to the aditional hardware overhead of running browser monitors, we limit each {private-location} to only run two browser monitors at the same time. Depending on how many browser monitors you have configured to run on the {private-location} and their schedule, the {private-location} may not be able to run them all because that would need more than two simultaneous browser tests to be running.
+* Your monitor runs for longer than the frequency you have set
+* There may be too many monitors trying to run concurrently, causing some of them to skip their scheduled run
 
-When this happens, you will see a message in the logs such as `2 tasks have missed their schedule deadlines by more than 1 second in the last 15s` (these will be visible from inside the Agent diagnostic .zip file, and the numbers/periods may be different in your logs).
+You may also see a message in the logs such as `2 tasks have missed their schedule deadlines by more than 1 second in the last 15s` (these will be visible from inside the Agent diagnostic .zip file, and the numbers/periods may be different in your logs).
+
+It's worth checking the first condition initially. Check the total duration of your monitor and ensure it's less than your scheduled frequency. For example, if you have a monitor that takes 90 seconds to run in total, setting a schedule of 1 minute will cause this problem. After 1 minute, the test is still running and so another one will not be started. In effect, this monitor will end up running every 2 minutes even though you have configured it to run every 1 minute.
+
+If this is not the case for you, then there may be too many browser monitors attempting to run on the {private-location}.
+
+Due to the additional hardware overhead of running browser monitors, we limit each {private-location} to only run two browser monitors at the same time. Depending on how many browser monitors you have configured to run on the {private-location} and their schedule, the {private-location} may not be able to run them all because that would need more than two simultaneous browser tests to be running.
 
 If this is happening, you can either increase the number of concurrent browser monitors allowed (as described in <<synthetics-private-location-scaling>>, paying attention to the scaling and hardware requirements documented), or create multiple {private-location}s and spread your browser monitors across them more evenly (effectively horizontally scaling your {private-location}s).
 
