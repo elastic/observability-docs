@@ -31,60 +31,42 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/download-widge
 [[logs-stream-agent-config]]
 == Step 2: Configure the {agent}
 
-You can use the Custom Logs integration in {kib} to create and download an {agent} policy. 
-Your agent policy sets the path to your log file and sets up your data streams.
+Configure the {agent} by updating the 'elastic-agent.yml' in the folder where you extracted the installation package.
 
-Complete the following steps to create and download your {agent} policy:
+The following is an example of a simple standalone {agent} configuration:
 
-. Go to the {kib} home page and click *Add integrations*:
-+
---
-[role="screenshot"]
-image::images/add-integrations.png[{kib} home page]
---
-
-. In the search bar, search for *custom* and select *Custom Logs*.
-. Click *Add Custom Logs* in the upper-right corner:
-+
---
-[role="screenshot"]
-image::images/add-custom-logs.png[add custom logs button location]
---
-
-. Click *Install {agent}*.
-. Click *standalone mode*:
-+
---
-[role="screenshot"]
-image::images/standalone-link.png[link to running agents in standalone mode]
---
-. Add the path to your log file in the *Log file path* field.
-. Set the name for your dataset data stream in the *Dataset name* field. The dataset name describes the data ingested and its structure. This field can contain anything that signifies the source of the data. The default value is `generic`.
-. Click *Advanced options* to open the *Integration settings*.
-+
---
-[role="screenshot"]
-image::images/custom-log-advanced-options.png[open integration settings]
---
-. Set the name for your namespace data stream in the *Namespace* field. The namespace is useful for grouping data such as an environment (dev, prod, or qa), a team, or a strategic business unit. Using a namespace makes it easier to search for data from a given source by using a matching pattern. The default value is `default`.
-. Click *Save and continue*.
-. Click *Copy to clipboard*, and paste the configuration in the `elastic-agent.yml` file located on your host where you extracted the {agent} installation package.
-. We recommend using an API key to grant the agent access to {es}. To create an API key for your agent, see {fleet-guide}/grant-access-to-elasticsearch.html#create-api-key-standalone-agent[Create API keys for standalone agents].
-. Replace `username: '${ES_USERNAME}'` and `password: '${ES_PASSWORD}'` with `api_key:` in the `elastic-agent.yml` file, and add the API key you created in the previous step. For example:
-+
 [source,yaml]
 ----
-[...]
 outputs:
   default:
     type: elasticsearch
-    hosts:
-      - 'https://da4e3a6298c14a6683e6064ebfve9ace.us-central1.gcp.cloud.es.io:443'
-    api_key: _Nj4oH0aWZVGqM7MGop8:349p_U1ERHyIc4Nm8_AYkw
-[...]
+    hosts: '<your-elasticsearch-url>:<port>'
+    api_key: 'your-api-key'
+inputs:
+  - id: your-log-id
+    type: logfile
+    data_stream:
+      namespace: default
+    streams:
+      - id: your-log-stream-id
+        data_stream:
+          dataset: generic
+        paths:
+          - /var/log/your-logs.log
 ----
+
+To configure your {agent}, set the values for the fields in the example configuration:
+
+. `hosts` – Your {es} URL and the port.
+. `api-key` – An API key to grant the agent access to {es}. To create an API key for your agent, see {fleet-guide}/grant-access-to-elasticsearch.html#create-api-key-standalone-agent[Create API keys for standalone agents].
 +
-NOTE: The format of the key is <id>:<key>. Make sure you selected *Beats* when you created your API key. Base64 encoded API keys are not currently supported in this configuration.
+NOTE: The API key format should be <id>:<key>. Make sure you selected *Beats* when you created your API key. Base64 encoded API keys are not currently supported in this configuration.
+. `inputs.id` – A unique identifier for your input.
+. `type` – The type of input. For collectings logs, set this to `logfile`.
+. `data_stream.namespace` – The name for your namespace data stream. The namespace is useful for grouping data such as an environment (dev, prod, or qa), a team, or a strategic business unit. Using a namespace makes it easier to search for data from a given source by using a matching pattern. The default value is `default`.
+. `streams.id` – A unique identifier for your stream of log data. 
+. `data_stream.dataset` – the name for your dataset data stream. You can name this data stream anything that signifies the source of the data. The default value is `generic`.
+. `paths` – the path to your log file.
 
 [discrete]
 [[logs-stream-install-agent]]
@@ -123,7 +105,7 @@ image::images/stream-logs-example.png[example search query on the logs stream pa
 
 If you're not seeing your log files in {kib}, check the following in the `elastic-agent.yml` file:
 
-NOTE: After installing the {agent}, the `elastic-agent.yml` file is copied to the directory described in the {fleet-guide}/installation-layout.html[installation layout].
+NOTE: After installing the {agent}, you need to update the `elastic-agent.yml` in the directory described in the {fleet-guide}/installation-layout.html[installation layout].
 
 - Verify that the path to your logs file under `paths` is correct.
 - Verify that your API key is in <id>:<key> format. If not, your API key may be in an unsupported format, and you'll need to create an API key in *Beats* format. 
