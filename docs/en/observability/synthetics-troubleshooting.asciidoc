@@ -69,28 +69,39 @@ To fix this, make sure there is an agent configured to run against the agent pol
 [[synthetics-troubleshooting-no-direct-es-connection]]
 == No results from a monitor
 
-If you have configured a monitor but don't see any results for that monitor in the {synthetics-app}, whether running them from Elastic's global managed testing infrastructure, or from {private-location}s, ensure Synthetics has a direct connection to {es}.
+If you have configured a monitor but don't see any results for that monitor in the {synthetics-app}, whether running them from Elastic's global managed testing infrastructure or from {private-location}s, ensure Synthetics has a direct connection to {es}.
 
-Do not configure any ingest pipelines, or output via Logstash as this will prevent Synthetics from working properly and is not <<synthetics-support-matrix,supported>>.
+Do not configure any ingest pipelines or output via Logstash as this will prevent Synthetics from working properly and is not <<synthetics-support-matrix,supported>>.
 
 [discrete]
 [[synthetics-troubleshooting-missing-browser-schedules]]
 == Browser monitor configured to run on a {private-location} not running to schedule
 
-If you have browser monitors configured to run on a {private-location} but notice one or more of them are not running to their schedule, this could be because:
+If you have browser monitors configured to run on a {private-location} but notice one or more of them are not running as scheduled, this could be because:
 
-* Your monitor runs for longer than the frequency you have set
+* The time it takes for your monitor to run is longer than the frequency you have set
 * There may be too many monitors trying to run concurrently, causing some of them to skip their scheduled run
 
-You may also see a message in the logs such as `2 tasks have missed their schedule deadlines by more than 1 second in the last 15s` (these will be visible from inside the Agent diagnostic .zip file, and the numbers/periods may be different in your logs).
+You may also see a message in the logs such as `2 tasks have missed their schedule deadlines by more than 1 second in the last 15s`. These will be visible from inside the Agent diagnostic ZIP file, and the numbers and time periods may be different in your logs.
 
-It's worth checking the first condition initially. Check the total duration of your monitor and ensure it's less than your scheduled frequency. For example, if you have a monitor that takes 90 seconds to run in total, setting a schedule of 1 minute will cause this problem. After 1 minute, the test is still running and so another one will not be started. In effect, this monitor will end up running every 2 minutes even though you have configured it to run every 1 minute.
+Start by identifying the cause of the issue. First, check if the time it takes the monitor to run is less than the scheduled frequency:
 
-If this is not the case for you, then there may be too many browser monitors attempting to run on the {private-location}.
+1. Go to the Synthetics app.
+2. Click the monitor, then click **Go to monitor**.
+3. Go to the [Overview tab](https://www.elastic.co/guide/en/observability/current/synthetics-analyze.html#synthetics-analyze-individual-monitors-overview) to see the _Avg. duration_. You can also view the duration for individual runs in the [History tab](https://www.elastic.co/guide/en/observability/current/synthetics-analyze.html#synthetics-analyze-individual-monitors-history).
+4. Compare the duration to the scheduled frequency. If the duration is _greater than_ the scheduled frequency, for example if the monitor that takes 90 seconds to run and its scheduled frequency is 1 minute, the next scheduled run will not occur because the current one is still running so you may see results for every other scheduled run.
 
-Due to the additional hardware overhead of running browser monitors, we limit each {private-location} to only run two browser monitors at the same time. Depending on how many browser monitors you have configured to run on the {private-location} and their schedule, the {private-location} may not be able to run them all because that would need more than two simultaneous browser tests to be running.
+To fix this, you can either:
 
-If this is happening, you can either increase the number of concurrent browser monitors allowed (as described in <<synthetics-private-location-scaling>>, paying attention to the scaling and hardware requirements documented), or create multiple {private-location}s and spread your browser monitors across them more evenly (effectively horizontally scaling your {private-location}s).
+* Change the frequency so the monitor runs less often.
+* Refactor the monitor so it can run in a shorter amount of time.
+
+If the duration is _less than_ the scheduled frequency or the suggestion above do not fix the issue, then there may be too many browser monitors attempting to run on the Private Location. Due to the additional hardware overhead of running browser monitors, we limit each Private Location to only run two browser monitors at the same time. Depending on how many browser monitors you have configured to run on the Private Location and their schedule, the Private Location may not be able to run them all because that would need more than two simultaneous browser tests to be running.
+
+To fix this issue, you can either:
+
+* Increase the number of concurrent browser monitors allowed (as described in [Scaling Private Locations](https://observability-docs_3105.docs-preview.app.elstc.co/guide/en/observability/master/synthetics-private-location.html#synthetics-private-location-scaling), paying attention to the scaling and hardware requirements documented).
+* Create multiple Private Locations and spread your browser monitors across them more evenly (effectively horizontally scaling your Private Locations).
 
 [discrete]
 [[synthetics-troubleshooting-get-help]]
