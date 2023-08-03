@@ -1,0 +1,51 @@
+---
+id: serverlessObservabilityApmAgentsIos
+slug: /serverless/observability/apm-agents-ios
+title: iOS
+# description: Description to be written
+tags: [ 'serverless', 'observability', '' ]
+---
+
+
+<div id="intro"></div>
+
+The Elastic APM iOS Agent measures the performance of your mobile applications in real-time.
+
+<div id="how-it-works"></div>
+
+## How does the agent work?
+The Elastic APM iOS Agent uses the [OpenTelemetry-Swift SDK](https://github.com/open-telemetry/opentelemetry-swift).
+The agent automatically traces URLSessions and provides distributed traces annotated with device information along
+with your back-end services instrumented with Open-Telemetry.
+
+The agent also captures any custom open-telemetry traces or measurements created using the OpenTelemetry-Swift API.
+
+<div id="manual-instrumentation"></div>
+
+## How to add instrumentation
+This agent will configure the OpenTelementry-Swift `TracerProvider` and `MetricProvider`, and set them as the global OpenTelemetry providers. They can be accessed through the OpenTelemetry SDK as follows:
+
+```swift
+let tracerProvider = OpenTelemetry.instance.tracerProvider
+let meterProvider = OpenTelemetry.instance.meterProvider
+```
+
+These objects can be used to acquire new tracers and meters that will send their captured data to the Elastic APM Server. More details on how to use OpenTelemetry to instrument your app can be found in the [OpenTelemetry.io Swift manual instrumentation docs](https://opentelemetry.io/docs/instrumentation/swift/manual).
+
+Examples can be found in [opentelemetry-swift/examples](https://github.com/open-telemetry/opentelemetry-swift/tree/main/Examples).
+
+<div id="additional-components"></div>
+
+## Additional components
+APM Agents work in conjunction with the [APM Server](((apm-guide-ref))/index.html), [((es))](((ref))/index.html), and [((kib))](((kibana-ref))/index.html).
+The [APM Guide](((apm-guide-ref))/index.html) provides details on how these components work together,
+and provides a matrix outlining [Agent and Server compatibility](((apm-guide-ref))/agent-server-compatibility.html).
+
+## Open Telemetry Components
+The iOS Agent utilizes several OpenTelemetry-Swift libraries to provide automatic instrumentation of your applications and services. Details about these instrumentation libraries can be found in the official [opentelementry.io Swift Libraries documentation](https://opentelemetry.io/docs/instrumentation/swift/libraries/).
+
+For network instrumentation, the agent uses `NSURLSessionInstrumentation`. This provides network instrumentation in the form of spans and enables distributed tracing for all instrumented downstream services.
+
+Detailed information on the device, operating system, and application is provided by `SDKResourceExtension`. More information on which data points are captured can be found in the  [opentelementry.io SDKResourceExtension documentation](https://opentelemetry.io/docs/instrumentation/swift/manual/#SDKResourceExtension).
+
+Elastic maps OpenTelemetry attributes to Elastic-specific fields. Details of these mappings can be found in the [Elastic Mobile Agent Spec](https://github.com/elastic/apm/tree/main/specs/agents/mobile).

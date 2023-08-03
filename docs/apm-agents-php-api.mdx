@@ -1,0 +1,661 @@
+---
+id: serverlessObservabilityApmAgentsPhpApi
+slug: /serverless/observability/apm-agents-php-api
+title: API
+# description: Description to be written
+tags: [ 'serverless', 'observability', '' ]
+---
+
+
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/php)
+</DocCallOut>
+</DocIf>
+
+<div id="public-api"></div>
+
+The public API of the Elastic APM PHP agent lets you
+customize and manually create spans and transactions.
+
+* <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="elasticapm">ElasticApm</DocLink> - Public API entry point
+* <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface">TransactionInterface</DocLink>
+* <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface">SpanInterface</DocLink>
+* <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="manual-distributed-tracing">Manual distributed tracing</DocLink>
+
+<div id="api-elasticapm-class"></div>
+
+## ElasticApm
+This is the entry point of the public API.
+It allows to start transactions, gives you access to the current transaction, etc.
+
+To use the API, you invoke the static methods on the class `\Elastic\Apm\ElasticApm`.
+
+<div id="api-elasticapm-class-begin-current-transaction"></div>
+
+### `ElasticApm::beginCurrentTransaction`
+Begins a new transaction and sets it as the current transaction.
+Use this method to create a custom transaction.
+Note that when automatic instrumentation is used
+the agent begins a new transaction automatically
+whenever your application receives an incoming HTTP request
+so you only need to use this method to create custom transactions.
+
+<DocCallOut title="Note">
+You must call <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface-greaterend">`TransactionInterface->end`</DocLink> when the transaction has ended.
+</DocCallOut>
+
+The best practice is to use a `try`-`finally` block.
+For example:
+
+```php
+use Elastic\Apm\ElasticApm;
+
+$transaction = ElasticApm::beginCurrentTransaction(
+    'transaction_name',
+    'transaction_type'
+);
+try {
+    // do your thing ...
+} finally {
+    $transaction->end();
+}
+```
+
+See <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface">TransactionInterface</DocLink> on how to customize a transaction.
+
+<div id="api-elasticapm-class-capture-current-transaction"></div>
+
+### `ElasticApm::captureCurrentTransaction`
+This is a convenience API that ensures <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface-greaterend">`TransactionInterface->end`</DocLink> is called
+when the transaction has ended.
+This API:
+
+* Begins a new transaction
+* Sets the new transaction as the current transaction
+* Executes the provided `callable` as the new transaction
+* Ends the new transaction
+* Returns the value returned by the provided `callable`
+
+For example:
+
+```php
+use Elastic\Apm\ElasticApm;
+use Elastic\Apm\TransactionInterface;
+
+ElasticApm::captureCurrentTransaction(
+    'transaction_name',
+    'transaction_type',
+    function (TransactionInterface $transaction) {
+        // do your thing...
+    }
+);
+```
+
+See <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface">TransactionInterface</DocLink> on how to customize a transaction.
+
+<div id="api-elasticapm-class-get-current-transaction"></div>
+
+### `ElasticApm::getCurrentTransaction`
+Returns the current transaction.
+
+```php
+use Elastic\Apm\ElasticApm;
+
+$transaction = ElasticApm::getCurrentTransaction();
+```
+
+See <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface">TransactionInterface</DocLink> on how to customize a transaction.
+
+<div id="api-transaction-interface"></div>
+
+## TransactionInterface
+A transaction describes an event captured by an Elastic APM agent monitoring a service.
+Transactions help combine multiple <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface">Spans</DocLink> into logical groups,
+and they are the first <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface">Span</DocLink> of a service.
+More information on Transactions and Spans is available
+in the [APM data model](((apm-guide-ref))/data-model.html) documentation.
+
+See <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="elasticapmgetcurrenttransaction">`ElasticApm::getCurrentTransaction`</DocLink> on how to get a reference to the current transaction.
+
+<div id="api-transaction-interface-get-current-span"></div>
+
+### `TransactionInterface->getCurrentSpan`
+Returns the current span for this transaction.
+
+Example:
+
+```php
+$span = $transaction->getCurrentSpan();
+```
+
+<div id="api-transaction-interface-begin-current-span"></div>
+
+### `TransactionInterface->beginCurrentSpan`
+Begins a new span with the current span as the new span's parent and
+sets the new span as the current span for this transaction.
+If this transaction's doesn't have the current span
+then the transaction itself is set as the new span's parent.
+
+<DocCallOut title="Note">
+You must call <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface-greaterend">`SpanInterface->end`</DocLink> when the span has ended.
+</DocCallOut>
+
+The best practice is to use a `try`-`finally` block.
+For example:
+
+```php
+$span = $transaction->beginCurrentSpan(
+    'span_name',
+    'span_type',
+    'span_sub-type', // optional
+    'span_action' // optional
+);
+try {
+    // do your thing ...
+} finally {
+    $span->end();
+}
+```
+
+<div id="api-transaction-interface-capture-current-span"></div>
+
+### `TransactionInterface->captureCurrentSpan`
+This is a convenience API that ensures <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface-greaterend">`SpanInterface->end`</DocLink> is called
+when the span has ended.
+This API
+
+* Begins a new span with this transaction's current span as the new span's parent and
+    sets the new span as the current span for this transaction.
+    If this transaction's doesn't have a current span
+    then the transaction itself is set as the new span's parent.
+
+* Executes the provided `callable` as the new span
+* Ends the new transaction
+* Returns the value returned by the provided `callable`
+
+For example:
+
+```php
+$parentSpan->captureCurrentSpan(
+    'span_name',
+    'span_type',
+    function (SpanInterface $childSpan) {
+        // do your thing...
+    },
+    'span_sub-type', // optional
+    'span_action' // optional
+);
+```
+
+<div id="api-transaction-interface-begin-child-span"></div>
+
+### `TransactionInterface->beginChildSpan`
+Begins a new span with this transaction as the new span's parent.
+
+<DocCallOut title="Note">
+You must call <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface-greaterend">`SpanInterface->end`</DocLink> when the span has ended.
+</DocCallOut>
+
+The best practice is to use `try`-`finally` block.
+For example:
+
+```php
+$span = $transaction->beginChildSpan(
+    'span_name',
+    'span_type',
+    'span_sub-type', // optional
+    'span_action' // optional
+);
+try {
+    // do your thing ...
+} finally {
+    $span->end();
+}
+```
+
+<div id="api-transaction-interface-capture-child-span"></div>
+
+### `TransactionInterface->captureChildSpan`
+This is a convenience API that ensures <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface-greaterend">`SpanInterface->end`</DocLink> is called
+when the span has ended.
+This API
+
+* Begins a new span with this transaction as the new span's parent
+* Executes the provided `callable` as the new span and
+* Ends the new span
+* Returns the value returned by the provided `callable`
+
+For example:
+
+```php
+$transaction->captureChildSpan(
+    'span_name',
+    'span_type',
+    function (SpanInterface $span) {
+        // do your thing...
+    },
+    'span_sub-type', // optional
+    'span_action' // optional
+);
+```
+
+<div id="api-transaction-interface-set-name"></div>
+
+### `TransactionInterface->setName`
+Sets the name of the transaction.
+Transaction name is generic designation of a transaction in the scope of a single service (e.g., `GET /users/:id`).
+
+Example:
+
+```php
+$transaction->setName('GET /users/:id');
+```
+
+<div id="api-transaction-interface-set-type"></div>
+
+### `TransactionInterface->setType`
+Sets the type of the transaction.
+Transaction type is a keyword of specific relevance in the service's domain.
+For example `request`, `backgroundjob`, etc.
+
+Example:
+
+```php
+$transaction->setType('my custom transaction type');
+```
+
+<div id="api-transaction-interface-set-label"></div>
+
+### `TransactionInterface->context()->setLabel`
+Sets a label by a key.
+Labels are a flat mapping of user-defined string keys and string, number, or boolean values.
+
+<DocCallOut title="Note">
+The labels are indexed in Elasticsearch so that they are searchable and aggregatable.
+Take special care when using user provided data, like URL parameters,
+as a label key because it can lead to [Elasticsearch mapping explosion](((ref))/mapping.html#mapping-limit-settings).
+</DocCallOut>
+
+Example:
+
+```php
+$transaction->context()->setLabel('my label with string value', 'some text');
+$transaction->context()->setLabel('my label with int value', 123);
+$transaction->context()->setLabel('my label with float value', 4.56);
+```
+
+<div id="api-transaction-interface-get-id"></div>
+
+### `TransactionInterface->getId`
+Gets the ID of the transaction.
+Transaction ID is a hex encoded 64 random bits (== 8 bytes == 16 hex digits) ID.
+
+If this transaction represents a noop, this method returns an unspecified dummy ID.
+
+Example:
+
+```php
+$transactionId = $transaction->getId();
+```
+
+<div id="api-transaction-interface-get-trace-id"></div>
+
+### `TransactionInterface->getTraceId`
+Gets the trace ID of the transaction.
+Trace ID is a hex encoded 128 random bits (== 16 bytes == 32 hex digits) ID of the correlated trace.
+
+The trace ID is consistent across all transactions and spans which belong to the same logical trace,
+even for transactions and spans which happened in another service
+(given this service is also monitored by Elastic APM).
+
+If this transaction represents a noop, this method returns an unspecified dummy ID.
+
+Example:
+
+```php
+$traceId = $transaction->getTraceId();
+```
+
+<div id="api-transaction-interface-get-parent-id"></div>
+
+### `TransactionInterface->getParentId`
+Gets ID of the parent transaction or span.
+
+See <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface-greatergetid">`TransactionInterface->getId`</DocLink> and {/* <DocLink id="enApmAgentPhpPublicApi" section="spaninterface-greatergetid">`SpanInterface->getId`</DocLink> */}.
+
+The root transaction of a trace does not have a parent, so `null` is returned.
+
+If this transaction represents a noop, this method returns an unspecified dummy ID.
+
+Example:
+
+```php
+$parentId = $transaction->getParentId();
+```
+
+<div id="api-transaction-interface-ensure-parent-id"></div>
+
+### `TransactionInterface->ensureParentId()`
+If the transaction does not have a parent-ID yet,
+calling this method generates a new ID,
+sets it as the parent-ID of this transaction,
+and returns it as a `string`.
+
+This enables the correlation of the spans the JavaScript Real User Monitoring (RUM) agent creates for the initial page load
+with the transaction of the backend service.
+If your backend service generates the HTML page dynamically,
+initializing the JavaScript RUM agent with the value of this method allows analyzing the time spent in the browser vs in the backend services.
+
+An example of using this API in Laravel application can be found at https://github.com/elastic/opbeans-php/.
+
+Add `isElasticApmEnabled`, `elasticApmCurrentTransaction` properties to the view
+([see the relevant part in opbeans-php's `AppServiceProvider.php`](https://github.com/elastic/opbeans-php/blob/22df4af76a879d8ce7237d90e953e312fb98e792/app/Providers/AppServiceProvider.php#L33))
+and add a snippet similar to the following one to the body of your HTML page,
+preferably before other JS libraries
+([see opbeans-php's `rendered_by_frontend.blade.php`](https://github.com/elastic/opbeans-php/blob/22df4af76a879d8ce7237d90e953e312fb98e792/resources/views/rendered_by_frontend.blade.php))
+:
+
+```html
+@if ($isElasticApmEnabled)
+    <script>
+        window.rumConfig = {
+            serviceName: "{{ $elasticApmJsServiceName }}",
+            serviceVersion: "{{ $elasticApmJsServiceVersion }}",
+            serverUrl: "{{ $elasticApmJsServerUrl }}",
+            pageLoadTraceId: "{{ $elasticApmCurrentTransaction->getTraceId() }}",
+            pageLoadSpanId: "{{ $elasticApmCurrentTransaction->ensureParentId() }}",
+            pageLoadSampled: {{ $elasticApmCurrentTransaction->isSampled() ? "true" : "false" }}
+        }
+    </script>
+@endif
+```
+
+See the [JavaScript RUM agent documentation](((apm-rum-ref))) for more information.
+
+<div id="api-transaction-interface-set-result"></div>
+
+### `TransactionInterface->setResult`
+Sets the result of the transaction.
+
+Transaction result is optional and can be set to `null`.
+For HTTP-related transactions, the result is HTTP status code formatted like `HTTP 2xx`.
+
+Example:
+
+```php
+$transaction->setResult('my custom transaction result');
+```
+
+<div id="api-transaction-interface-end"></div>
+
+### `TransactionInterface->end`
+Ends the transaction and queues it to be reported to the APM Server.
+
+It is illegal to call any mutating methods (for example any `set...` method is a mutating method) on a transaction instance which has already ended.
+
+Example:
+
+```php
+$transaction->end();
+```
+
+<div id="api-span-interface"></div>
+
+## SpanInterface
+A span contains information about a specific code path, executed as part of a transaction.
+
+If for example a database query happens within a recorded transaction,
+a span representing this database query may be created.
+In such a case the name of the span will contain information about the query itself,
+and the type will hold information about the database type.
+
+See <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface-greatergetcurrentspan">`TransactionInterface->getCurrentSpan`</DocLink> on how to get the current span.
+
+<div id="api-span-interface-set-name"></div>
+
+### `SpanInterface->setName`
+Sets the name of the span.
+Span name is generic designation of a span in the scope of a transaction.
+
+Example:
+
+```php
+$span->setName('SELECT FROM customer');
+```
+
+<div id="api-span-interface-set-type"></div>
+
+### `SpanInterface->setType`
+Sets the type of the span.
+Span type is a keyword of specific relevance in the service's domain.
+For example `db`, `external`, etc.
+
+Example:
+
+```php
+$span->setType('my custom span type');
+```
+
+<div id="api-span-interface-set-subtype"></div>
+
+### `SpanInterface->setSubtype`
+Sets the sub-type of the span.
+Span sub-type is a further sub-division of the type.
+For example, `mysql`, `postgresql`, or `elasticsearch` for the type `db`, `http` for the type `external`, etc.
+
+Span sub-type is optional and can be set to `null`.
+Span sub-type default value is `null`.
+
+Example:
+
+```php
+$span->setSubtype('my custom span sub-type');
+```
+
+<div id="api-span-interface-set-action"></div>
+
+### `SpanInterface->setAction`
+Sets the action of the span.
+Span action is the specific kind of event within the sub-type represented by the span.
+For example `query` for type/sub-type `db`/`mysql`, `connect` for type/sub-type `db`/`cassandra`, etc.
+
+Span action is optional and can be set to `null`.
+Span action default value is `null`.
+
+Example:
+
+```php
+$span->setAction('my custom span action');
+```
+
+<div id="api-span-interface-set-label"></div>
+
+### `SpanInterface->context()->setLabel`
+Sets a label by a key.
+Labels are a flat mapping of user-defined string keys and string, number, or boolean values.
+
+<DocCallOut title="Note">
+The labels are indexed in Elasticsearch so that they are searchable and aggregatable.
+Take special care when using user provided data, like URL parameters,
+as a label key because it can lead to [Elasticsearch mapping explosion](((ref))/mapping.html#mapping-limit-settings).
+</DocCallOut>
+
+Example:
+
+```php
+$span->context()->setLabel('my label with string value', 'some text');
+$span->context()->setLabel('my label with int value', 123);
+$span->context()->setLabel('my label with float value', 4.56);
+```
+
+<div id="api-span-interface-get-id"></div>
+
+### `SpanInterface->getId`
+Gets the ID of the span.
+Span ID is a hex encoded 64 random bits (== 8 bytes == 16 hex digits) ID.
+
+If this span represents a noop, this method returns an unspecified dummy ID.
+
+Example:
+
+```php
+$spanId = $span->getId();
+```
+
+<div id="api-span-interface-get-trace-id"></div>
+
+### `SpanInterface->getTraceId`
+Gets the trace ID of the span.
+Trace ID is a hex encoded 128 random bits (== 16 bytes == 32 hex digits) ID of the correlated trace.
+
+The trace ID is consistent across all transactions and spans which belong to the same logical trace,
+even for transactions and spans which happened in another service
+(given this service is also monitored by Elastic APM).
+
+If this span represents a noop, this method returns an unspecified dummy ID.
+
+Example:
+
+```php
+$traceId = $span->getTraceId();
+```
+
+<div id="api-span-interface-get-transaction-id"></div>
+
+### `SpanInterface->getTransactionId`
+Gets ID of the correlated transaction.
+See <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface-greatergetid">`TransactionInterface->getId`</DocLink>.
+
+If this span represents a noop, this method returns an unspecified dummy ID.
+
+Example:
+
+```php
+$transactionId = $span->getTransactionId();
+```
+
+<div id="api-span-interface-get-parent-id"></div>
+
+### `SpanInterface->getParentId`
+Gets ID of the parent transaction or span.
+If this span is the root span of the correlated transaction then its parent is the correlated transaction,
+otherwise, its parent is the parent span.
+See <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="transactioninterface-greatergetid">`TransactionInterface->getId`</DocLink> and {/* <DocLink id="enApmAgentPhpPublicApi" section="spaninterface-greatergetid">`SpanInterface->getId`</DocLink> */}.
+
+If this span represents a noop, this method returns an unspecified dummy ID.
+
+Example:
+
+```php
+$parentId = $span->getParentId();
+```
+
+<div id="api-span-interface-begin-child-span"></div>
+
+### `SpanInterface->beginChildSpan`
+Begins a new span with this span as the new span's parent.
+
+<DocCallOut title="Note">
+You must call <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface-greaterend">`SpanInterface->end`</DocLink> when the span has ended.
+</DocCallOut>
+
+The best practice is to use a `try`-`finally` block.
+For example:
+
+```php
+$childSpan = $parentSpan->beginChildSpan(
+    'span_name',
+    'span_type',
+    'span_sub-type', // optional
+    'span_action' // optional
+);
+try {
+    // do your thing ...
+} finally {
+    $childSpan->end();
+}
+```
+
+<div id="api-span-interface-capture-child-span"></div>
+
+### `SpanInterface->captureChildSpan`
+This is a convenience API that ensures <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface-greaterend">`SpanInterface->end`</DocLink> is called
+when the span has ended.
+This API
+
+* Begins a new span with this span as the new span's parent
+* Executes the provided `callable` as the new span
+* Ends the new span
+* Returns the value returned by the provided `callable`
+
+For example:
+
+```php
+$parentSpan->captureChildSpan(
+    'span_name',
+    'span_type',
+    function (SpanInterface $childSpan) {
+        // do your thing...
+    },
+    'span_sub-type', // optional
+    'span_action' // optional
+);
+```
+
+<div id="api-span-interface-end"></div>
+
+### `SpanInterface->end`
+Ends the span and queues it to be reported to the APM Server.
+
+It is illegal to call any mutating methods (for example any `set...` method is a mutating method) on a span instance which has already ended.
+
+Example:
+
+```php
+$span->end();
+```
+
+<div id="api-manual-distributed-tracing"></div>
+
+## Manual distributed tracing
+Elastic APM PHP agent automatically propagates distributed tracing context for <DocLink id="serverlessObservabilityApmAgentsPhpSupportedTechnologies">supported technologies</DocLink>.
+If your service communicates over a different, unsupported protocol,
+you can manually propagate distributed tracing context from a sending service
+to a receiving service using the agent's API.
+
+Distributed tracing data consists of multiple key-value pairs.
+For example for HTTP protocol these pairs are passed as request headers.
+
+At the sending service you must add key-value pairs to the outgoing request.
+Use `injectDistributedTracingHeaders()` API to get the distributed tracing data
+from the corresponding instance of <DocLink id="serverlessObservabilityApmAgentsPhpApi" section="spaninterface">SpanInterface</DocLink> or {/* <DocLink id="enApmAgentPhpPublicApi" section="transactioninterface">TransactionInterface</DocLink> */}
+
+For example assuming the outgoing request is associated with `$span`  :
+
+```php
+$span->injectDistributedTracingHeaders(
+    function (string $headerName, string $headerValue) use ($myRequest): void {
+        $myRequest->addHeader($headerName, $headerValue);
+    }
+);
+```
+
+At the receiving service you must pass key-value pairs from the sending side to `ElasticApm::newTransaction` API.
+
+Example:
+
+```php
+$myTransaction = ElasticApm::newTransaction('my TX name', 'my TX type')
+    ->distributedTracingHeaderExtractor(
+        function (string $headerName) use ($myRequest): ?string {
+            return $myRequest->hasHeader($headerName)
+                ? $myRequest->getHeader($headerName)
+                : null;
+        }
+    )->begin();
+```

@@ -1,0 +1,158 @@
+---
+id: serverlessObservabilityApmAgentsNodejsGetStarted
+slug: /serverless/observability/apm-agents-nodejs-get-started
+title: Get started
+# description: Description to be written
+tags: [ 'serverless', 'observability', '' ]
+---
+
+
+{/* import SharedSetUpFilterSensitiveInfo from './transclusion/shared-set-up/filter-sensitive-info.mdx' */}
+{/* import SharedSetUpCompatibilityLink from './transclusion/shared-set-up/compatibility-link.mdx' */}
+{/* import SharedSetUpTroubleshootingLink from './transclusion/shared-set-up/troubleshooting-link.mdx' */}
+
+export let framework = "Azure Functions"
+
+<div id="azure-functions"></div>
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/nodejs/current/azure-functions.html)
+</DocCallOut>
+
+</DocIf>
+
+The Node.js APM Agent can trace function invocations in an [Azure Functions](https://learn.microsoft.com/en-us/azure/azure-functions/) app.
+
+<div id="azure-functions-prerequisites"></div>
+
+## Prerequisites
+
+You need an APM Server to send APM data to. Follow the
+[APM Quick start](((apm-guide-ref))/apm-quick-start.html) if you have not set one up
+yet. You will need your **APM server URL** and an APM server **secret token** (or
+**API key**) for configuring the APM agent below.
+
+You will also need an Azure Function app to monitor. If you do not have an
+existing one, you can follow [this Azure guide](https://learn.microsoft.com/en-us/azure/azure-functions/create-first-function-cli-node#create-supporting-azure-resources-for-your-function)
+to create one.
+
+<DocCallOut title="Important" color="warning">
+
+If you use `func init --javascript ...` as suggested in this Azure guide,
+then it is recommended that you **uninstall** the `azure-functions-core-tools`
+dependency by running `npm uninstall azure-functions-core-tools` and
+[install it separately](https://github.com/Azure/azure-functions-core-tools#installing).
+Having `azure-functions-core-tools` as a "devDependency" in your package.json
+will result in unreasonably large deployments that will be very slow to publish
+and will run your Azure Function app VM out of disk space.
+
+</DocCallOut>
+
+You can also take a look at and use this [Azure Functions example app with Elastic APM already integrated](https://github.com/elastic/apm-agent-nodejs/tree/main/examples/an-azure-function-app/).
+
+<div id="azure-functions-setup"></div>
+
+## Step 1: Add the APM agent dependency
+
+Add the `elastic-apm-node` module as a dependency of your application:
+
+```bash
+npm install elastic-apm-node --save  # or 'yarn add elastic-apm-node'
+```
+
+## Step 2: Start the APM agent
+
+For the APM agent to instrument Azure Functions, it needs to be started when the
+Azure host starts its Node.js worker processes. The best way to do so is by
+using an app-level entry point (support for this was added for Node.js Azure
+Functions [here](https://github.com/Azure/azure-functions-nodejs-worker/issues/537)).
+
+1. Create a module to start the APM agent. For example, a file at the root of your repository named "initapm.js":
+
+    ```javascript
+    // initapm.js
+    require('elastic-apm-node').start({
+    [^1]
+    })
+    ```
+    [^1]: Optional {/* <DocLink id="enApmAgentNodejsConfiguration">configuration options</DocLink> */} can be added here.
+
+1. Add a "main" entry to your package.json pointing to the app init file.
+
+    ```json
+    ...
+    "main": "initapm.js",
+    ...
+    ```
+
+    If your application already has a "main" init file, you can instead add the
+    `require('elastic-apm-node').start()` to top of that file.
+
+## Step 3: Configure the APM agent
+
+The APM agent can be {/* <DocLink id="enApmAgentNodejsConfiguringTheAgent">configured</DocLink> */} with options to the
+`.start()` method or with environment variables. Using environment variables
+allows one to use [application settings in the Azure Portal](https://learn.microsoft.com/en-us/azure/azure-functions/functions-how-to-use-azure-function-app-settings?tabs=portal#settings) which allows hiding values and updating settings
+without needing to re-deploy code.
+
+Open _Configuration > Application settings_ for your Function App in the Azure Portal
+and set:
+
+```yaml
+ELASTIC_APM_SERVER_URL: <your APM server URL from the prerequisites step>
+ELASTIC_APM_SECRET_TOKEN: <your APM secret token from the prerequisites step>
+```
+
+For example:
+
+{/* ![Configuring the APM Agent in the Azure Portal](images/azure-functions/-azure-functions-configuration.png) */}
+
+For local testing via `func start` you can set these environment variables in
+your terminal, or in the "local.settings.json" file. See the {/* <DocLink id="enApmAgentNodejsConfiguration">agent configuration guide</DocLink> */} for full details on supported
+configuration variables.
+
+## Step 4: (Re-)deploy your Azure Function app
+
+```bash
+func azure functionapp publish <APP_NAME>
+```
+
+Now, when you invoke your Azure Functions, you should see your application
+show up as a Service in the APM app in Kibana and see APM transactions for
+function invocations.  Tracing data is forwarded to APM server after a period
+of time, so allow a minute or so for data to appear.
+
+<div id="azure-functions-limitations"></div>
+
+## Limitations
+
+This instrumentation does not send an APM transaction or error to APM server when
+a handler has an `uncaughtException` or `unhandledRejection`.
+The Azure Functions Node.js reference [has a section](https://learn.microsoft.com/en-ca/azure/azure-functions/functions-reference-node#use-async-and-await) with best practices for avoiding these cases.
+
+Azure Functions instrumentation currently does _not_ collect system metrics in
+the background because of a concern with unintentionally increasing Azure
+Functions costs (for Consumption plans).
+
+<div id="azure-functions-filter-sensitive-information"></div>
+
+## Filter sensitive information
+
+{/* <SharedSetUpFilterSensitiveInfo /> */}
+
+<div id="azure-functions-compatibility"></div>
+
+## Compatibility
+
+{/* <SharedSetUpCompatibilityLink /> */}
+
+<div id="azure-functions-troubleshooting"></div>
+
+## Troubleshooting
+
+{/* <SharedSetUpTroubleshootingLink /> */}
