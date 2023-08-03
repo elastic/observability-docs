@@ -5,3 +5,94 @@ title: Get started
 # description: Description to be written
 tags: [ 'serverless', 'observability', '' ]
 ---
+
+
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/php)
+</DocCallOut>
+</DocIf>
+
+<div id="setup"></div>
+
+<div id="setup-prerequisites"></div>
+
+## Prerequisites
+
+### Operating system
+The agent is currently only available for the Linux operating system.
+
+### PHP
+The agent supports PHP versions 7.2-8.2.
+
+### curl
+The agent requires `libcurl` 7.58 or later.
+
+<div id="setup-installation"></div>
+
+## Installation
+
+Install the agent using one of the [packages for supported platforms](https://github.com/elastic/apm-agent-php/releases/latest).
+
+<div id="setup-rpm"></div>
+
+### Using RPM package (RHEL/CentOS, Fedora)
+
+```bash
+rpm -ivh <package-file>.rpm
+```
+
+<div id="setup-deb"></div>
+
+### Using DEB package (Debian, Ubuntu 18+)
+
+```bash
+dpkg -i <package-file>.deb
+```
+
+<div id="setup-apk"></div>
+
+### Using APK package (Alpine)
+
+```bash
+apk add --allow-untrusted <package-file>.apk
+```
+
+<div id="build-from-source"></div>
+
+### Build from source
+
+If you can’t find your distribution, you can install the agent by building it from the source.
+
+<DocCallOut title="Note">
+The agent is currently only available for Linux operating system.
+</DocCallOut>
+
+1. Download the agent source from https://github.com/elastic/apm-agent-php/.
+1. Execute the following commands to build the agent and install it:
+
+```bash
+cd src/ext
+phpize
+CFLAGS="-std=gnu99" ./configure --enable-elastic_apm
+make clean
+make
+sudo make install
+```
+
+Enable the extension by adding the following to your `php.ini` file:
+
+```php
+extension=elastic_apm.so
+elastic_apm.bootstrap_php_part_file=<repo root>/src/bootstrap_php_part.php
+```
+
+To work, the agent needs both the built `elastic_apm.so`
+and the downloaded source files.
+So if you would like to build `elastic_apm.so` on one machine and
+then deploy it on a different machine, you will need to copy both
+the built `elastic_apm.so` and the downloaded source files.

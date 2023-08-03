@@ -5,3 +5,265 @@ title: Get started
 # description: Description to be written
 tags: [ 'serverless', 'observability', '' ]
 ---
+
+
+<div id="setup"></div>
+
+export let source_highlighter = "coderay"
+
+<div id="requirements"></div>
+
+## Requirements
+
+This project requires Swift `5.7`, and is intended for use in Swift-base mobile apps.
+
+Other platform requires:
+
+| platform | version |
+|---|---|
+| `iOS` | `11` |
+| `macOS` | `10.13` |
+| `tvOS` | `v11` |
+| `watchOS` | `3` |
+
+<div id="add-agent-dependency"></div>
+
+## Add the Agent dependency
+Add the Elastic APM iOS Agent to your Xcode project or your `Package.swift`.
+
+Here are instructions for adding a [package dependency](https://developer.apple.com/documentation/swift_packages/adding_package_dependencies_to_your_app) to a standard Xcode poject.
+
+Details of adding dependencies to your Package.swift can be found on ['Add a Dependency on Another Swift Package'](https://developer.apple.com/documentation/xcode/creating_a_standalone_swift_package_with_xcode#3578941).
+Below is a helpful code-snippet:
+
+`package.swift`:
+
+```swift
+Package(
+    dependencies:[
+         .package(name: "apm-agent-ios", url: "https://github.com/elastic/apm-agent-ios.git", from: "0.6.0"),
+    ],
+  targets:[
+    .target(
+        name: "MyApp",
+        dependencies: [
+            .product(name: "iOSAgent", package: "apm-agent-ios")
+        ]
+    ),
+])
+```
+
+<div id="initialize"></div>
+
+## Initialize the agent
+Once the Agent has been added as a dependency, it must be initialized.
+
+If you're using `SwiftUI` to build your app add the following to your `App.swift`:
+
+```swift
+import SwiftUI
+import iOSAgent
+
+@main
+struct MyApp: App {
+    init() {
+        var config = AgentConfigBuilder()
+                       .withServerUrl(URL(string:"http://127.0.0.1:8200"))  [^1]
+                       .withSecretToken("<SecretToken>")  [^2]
+                       .build()
+                        
+        Agent.start(with: config)
+    }
+    var body: some Scene {
+        WindowGroup {
+            ContentView()
+        }
+    }
+}
+```
+[^1]: APM Server URL
+[^2]: Set secret token for APM server connection
+
+If you're not using `SwiftUI` you can alternatively add the same thing to your AppDelegate file:
+
+`AppDelegate.swift`
+
+```swift
+import UIKit
+import iOSAgent
+@main
+class AppDelegate: UIResponder, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+var config = AgentConfigBuilder()
+                       .withServerUrl(URL(string:"http://127.0.0.1:8200"))  [^1]
+                       .withSecretToken("<SecretToken>")  [^2]
+
+        Agent.start(with: config)
+        return true
+    }
+}
+```
+[^1]: APM Server URL
+[^2]: Set secret token for APM server connection
+
+<div id="instrumentation-config"></div>
+
+## Instrumentation Configuration
+
+An optional parameter for configuring instrumentation is also available on `Agent.start`:
+
+```swift
+    ...
+
+    let instrumentationConfig = InstrumentationConfigBuilder()
+                                         .withCrashReporting(true)
+                                         .build()
+
+    Agent.start(with: config, instrumentationConfig)
+```
+
+<div id="config-opts"></div>
+
+### Configuration Options
+
+<div id="with-crash-reporting"></div>
+
+#### `withCrashReporting(_ enable: Bool) -> Self`
+* **Type:** Bool
+* **Default:** true
+
+Toggle for crash reporting. Enabled by default. Since only one crash reporter can be set in iOS, this allows for 3rd party crash reporter preference without conflict.
+
+<div id="with-app-metrics"></div>
+
+#### `withAppMetricInstrumentation(_ enable: Bool) -> Self`
+* **Type:** Bool
+* **Default:** true
+
+Toggles AppMetric instrumentation.
+
+<div id="with-url-session-instrumentation"></div>
+
+#### `withURLSessionInstrumentation(_ enable: Bool) -> Self`
+* **Type:** Bool
+* **Default:** true
+
+Toggles network instrumentation.
+
+<div id="with-view-controller-instrumentation"></div>
+
+#### `withViewControllerInstrumentation(_ enable: Bool) -> Self`
+* **Type:** Bool
+* **Default:** true
+
+Toggles view controller instrumentation.
+
+<div id="with-System-Metrics"></div>
+
+#### `withSystemMetrics(_ enable: Bool) -> Self`
+* **Type:** Bool
+* **Default:** true
+
+Toggles metric generation for memory and cpu usage.
+
+<div id="with-Lifecycle-Events"></div>
+
+#### `withLifecycleEvents(_ enable: Bool) -> Self`
+* **Type:** Bool
+* **Default:** true
+
+Toggles event generation for lifecycle events.
+
+<div id="view-instrumentation"></div>
+
+## View instrumentation
+
+The agent provides SwiftUI.View and UIViewController instrumentation, where the load time of a View is measured using spans.
+All Views simultaneously loaded will be grouped under the same starting span.
+The spans' names will be dictated by the following rules, from least to highest precedence:
+
+1. `<view's class name> - view appearing`
+1. `<navigation title> - view appearing`
+1. The `name` passed to View extension method  `reportName(_ name: String) -> View`
+
+The View's class name will be a swift name-mangled string, and is the least desirable naming method. If it's possible, set a navigation title on your views:
+
+`AllProductsList.swift`
+
+```swift
+struct AllProductsList: View {
+    @EnvironmentObject var modelData : ModelData
+
+    var body: some View {
+        VStack {
+            List(modelData.products, id: \.id) { product in
+                AdminProductRow(product: product)
+
+            }
+        }.onAppear  {
+            modelData.loadProducts()
+        }.navigationTitle("All Products")
+    }
+}
+```
+
+You'll see "All Products - view appearing" in Kibana.
+
+If it isn't possible to set a navigation title, use `reportName(_ name: String) -> View` to set the name that will show in Kibana:
+
+`AllProductsList.swift`
+
+```swift
+struct AllProductsList: View {
+    @EnvironmentObject var modelData : ModelData
+
+    var body: some View {
+        VStack {
+            List(modelData.products, id: \.id) { product in
+                AdminProductRow(product: product)
+
+            }
+        }.onAppear  {
+            modelData.loadProducts()
+        }.reportName("All Products - view appearing")
+    }
+}
+```
+
+<DocCallOut title="Note">
+The entire string `All Products - view appearing` must be inserted to match the default formatting used for the other two naming options.
+</DocCallOut>
+
+<div id="metrickit-instrumentation"></div>
+
+## MetricKit Instrumentation
+Available for iOS 13 and greater, the agent provides instrumentation of key MetricKit data points:
+
+* Application Launch times
+* Application responsiveness
+* Application exit counts
+
+Technical details on the metric generated can be found in the [Mobile spec](https://github.com/elastic/apm/blob/main/specs/agents/mobile/metrics.md#application-metrics)
+
+<div id="app-launch-time"></div>
+
+### `application.launch.time`
+This histogram metric provides launch duration broken down by `first draw`, `first draw (optimized)`, and `resumed`. More details about the MetricKit data point can be found in the [Apple documentation](https://developer.apple.com/documentation/metrickit/mxapplaunchmetric).
+
+<div id="hangtime"></div>
+
+### `application.responsiveness.hangtime`
+A histogram of the different durations of time in which the app is too busy to handle user interaction responsively.
+More details about the MetricKit data point can be found in the [Apple documentation](https://developer.apple.com/documentation/metrickit/mxappresponsivenessmetric).
+
+<div id="exits"></div>
+
+### `application.exits`
+A count of application exits categorized by various attributes: `foreground` or `background`, and `normal` or abnormal, where abnormal exits are further subdivided.
+More details can be found in the [Apple documentation](https://developer.apple.com/documentation/metrickit/mxappexitmetric).
+
+<div id="app-lifecycle-events"></div>
+
+## Application Lifecycle Events
+In v0.5.0 the application lifecycle events are automatically instrumented.
+The technical details can be found in the [Mobile spec](https://github.com/elastic/apm/blob/main/specs/agents/mobile/events.md#application-lifecycle-events).
