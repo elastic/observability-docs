@@ -1,0 +1,99 @@
+---
+id: serverlessObservabilityApmAgentsOtelCollectMetrics
+slug: /serverless/observability/apm-agents-opentelemetry-collect-metrics
+title: Collect metrics
+# description: Description to be written
+tags: [ 'serverless', 'observability', 'reference' ]
+---
+
+
+{/* import TabWidgetsOpenKibanaWidget from './transclusion/tab-widgets/open-kibana-widget.mdx' */}
+
+<div id="open-telemetry-collect-metrics"></div>
+
+<DocCallOut title="Important" color="warning">
+When collecting metrics, please note that the [`DoubleValueRecorder`](https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html)
+and [`LongValueRecorder`](https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html) metrics are not yet supported.
+</DocCallOut>
+
+Here's an example of how to capture business metrics from a Java application.
+
+```java
+// initialize metric
+Meter meter = GlobalMetricsProvider.getMeter("my-frontend");
+DoubleCounter orderValueCounter = meter.doubleCounterBuilder("order_value").build();
+
+public void createOrder(HttpServletRequest request) {
+
+   // create order in the database
+   ...
+   // increment business metrics for monitoring
+   orderValueCounter.add(orderPrice);
+}
+```
+
+See the [Open Telemetry Metrics API](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/metrics/api.md)
+for more information.
+
+<div id="open-telemetry-verify-metrics"></div>
+
+## Verify OpenTelemetry metrics data
+
+Use **Discover** to validate that metrics are successfully reported to ((kib)).
+
+1. Launch ((kib)):
+
+    {/* <TabWidgetsOpenKibanaWidget /> */}
+
+1. Open the main menu, then click **Discover**.
+1. Select `apm-*` as your index pattern.
+1. Filter the data to only show documents with metrics: `processor.name :"metric"`
+1. Narrow your search with a known OpenTelemetry field. For example, if you have an `order_value` field, add `order_value: *` to your search to return
+    only OpenTelemetry metrics documents.
+
+<div id="open-telemetry-visualize"></div>
+
+## Visualize in ((kib))
+
+TSVB within ((kib)) is the recommended visualization for OpenTelemetry metrics. TSVB is a time series data visualizer that allows you to use the
+((es)) aggregation framework's full power. With TSVB, you can combine an infinite number of aggregations to display complex data.
+
+{/* lint ignore ecommerce */}
+In this example eCommerce OpenTelemetry dashboard, there are four visualizations: sales, order count, product cache, and system load. The dashboard provides us with business
+KPI metrics, along with performance-related metrics.
+
+{/* ![OpenTelemetry visualizations](images/open-telemetry-collect-metrics/-ecommerce-dashboard.png) */}
+
+Let's look at how this dashboard was created, specifically the Sales USD and System load visualizations.
+
+1. Open the main menu, then click **Dashboard**.
+1. Click **Create dashboard**.
+1. Click **Save**, enter the name of your dashboard, and then click **Save** again.
+1. Let’s add a Sales USD visualization. Click **Edit**.
+1. Click **Create new** and then select **TSVB**.
+1. For the label name, enter Sales USD, and then select the following:
+
+* Aggregation: `Counter Rate`.
+* Field: `order_sum`.
+* Scale: `auto`.
+* Group by: `Everything`
+1. Click **Save**, enter Sales USD as the visualization name, and then click **Save and return**.
+1. Now let's create a visualization of load averages on the system. Click **Create new**.
+1. Select **TSVB**.
+1. Select the following:
+
+* Aggregation: `Average`.
+* Field: `system.cpu.load_average.1m`.
+* Group by: `Terms`.
+* By: `host.ip`.
+* Top: `10`.
+* Order by: `Doc Count (default)`.
+* Direction: `Descending`.
+1. Click **Save**, enter System load per host IP as the visualization name, and then click **Save and return**.
+
+    Both visualizations are now displayed on your custom dashboard.
+
+<DocCallOut title="Important" color="warning">
+By default, Discover shows data for the last 15 minutes. If you have a time-based index
+and no data displays, you might need to increase the time range.
+</DocCallOut>
