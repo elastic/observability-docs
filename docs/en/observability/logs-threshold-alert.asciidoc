@@ -13,9 +13,11 @@ image::images/log-threshold-alert.png[Log threshold alert configuration]
 
 The comparators available for conditions depend on the chosen field. The combinations available are:
 
-- Numeric fields: *more than*, *more than or equals*, *less than*, or *less than or equals*.
-- Aggregatable fields: *is* and *is not*.
-- Non-aggregatable fields: *matches*, *does not match*, *matches phrase*, *does not match phrase*.
+* Numeric fields: *more than*, *more than or equals*, *less than*, or *less than or equals*.
+* Aggregatable fields: *is* or *is not*.
+* Non-aggregatable fields: *matches*, *does not match*, *matches phrase*, *does not match phrase*.
+** *Matches* queries some or all of the contents of your entered value regardless of order. For example, `WITH message MATCHES your example message` looks for messages containing the words `your` and `example` and `message` and returns results with some or all of those words. 
+** *Matches phrase* queries the exact contents of your entered value. For example, `WITH message MATCHES your example message` looks for the phrase `your example message` and returns results with that exact phrase.
 
 There are several key supported use cases. You can create rules based on fields containing or matching a text pattern,
 rules based on a numeric field and arithmetic operator, or a single rule with multiple conditions.
@@ -109,6 +111,14 @@ After you select a connector, you must set the action frequency. You can choose 
 
 [role="screenshot"]
 image::images/log-threshold-run-when-selection.png[Configure when a rule is triggered]
+
+You can also further refine the conditions under which actions run by specifying that actions only run when they match a KQL query or when an alert occurs within a specific time frame:
+
+- *If alert matches query*: Enter a KQL query that defines field-value pairs or query conditions that must be met for notifications to send. The query only searches alert documents in the indices specified for the rule.
+- *If alert is generated during timeframe*: Set timeframe details. Notifications are only sent if alerts are generated within the timeframe you define.
+
+[role="screenshot"]
+image::images/logs-threshold-conditional-alert.png[Configure a conditional alert]
 
 [discrete]
 === Action variables

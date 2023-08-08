@@ -13,30 +13,52 @@ in Playwright-specific methods, for example, `ignoreHTTPSErrors`, `extraHTTPHead
 [[synthetics-config-file]]
 
 Create a `synthetics.config.js` or `synthetics.config.ts` file in the root of the
-synthetics project and specify the options:
+synthetics project and specify the options. For example:
 
-[source,js]
+[source,ts]
 ----
-import { SyntheticsConfig } from '@elastic/synthetics'
+import type { SyntheticsConfig } from '@elastic/synthetics';
 
-const config: SyntheticsConfig = {
-  params: {
-    url: 'https://www.elastic.co'
-  },
-  playwrightOptions: {
-    ignoreHTTPSErrors: true, // ignores all HTTPS errors during navigation
-    extraHTTPHeaders: {
-      'foo': 'bar' // additional HTTP headers to be sent with every request
-    }
-  },
-  monitor: {
-    schedule: 10,
-    locations: [ 'us-east4-a' ],
+export default env => {
+  const config: SyntheticsConfig = {
+    params: {
+      url: 'https://www.elastic.co',
+    },
+    playwrightOptions: {
+      ignoreHTTPSErrors: false,
+    },
+    /**
+     * Configure global monitor settings
+     */
+    monitor: {
+      schedule: 10,
+      locations: [ 'us_east' ],
+    },
+    /**
+     * Project monitors settings
+     */
+    project: {
+      id: 'my-project',
+      url: 'https://abc123',
+      space: 'custom-space',
+    },
+  };
+  if (env !== 'development') {
+    /**
+     * Override configuration specific to environment
+     * For example, config.params.url = ""
+     */
   }
-}
-
-export default config;
+  return config;
+};
 ----
+
+[NOTE]
+=====
+`env` in the example above is the environment you are pushing from
+_not_ the environment where monitors will run. In other words, `env`
+corresponds to the configured `NODE_ENV`.
+=====
 
 The configuration file can either export an object, or a function that when
 called should return the generated configuration. To know more about configuring
@@ -46,23 +68,63 @@ the tests based on environments, look at the <<synthetics-dynamic-configs, dynam
 [[synthetics-configuration-params]]
 = `params`
 
-An object that defines any variables your tests require.
+A JSON object that defines any variables your tests require.
+Read more in <<synthetics-params-secrets>>.
 
 [discrete]
 [[synthetics-configuration-playwright-options]]
 = `playwrightOptions`
 
-For available options, see the https://playwright.dev/docs/test-configuration[Playwright documentation].
+For all available options, refer to the https://playwright.dev/docs/test-configuration[Playwright documentation]. 
 
-[NOTE]
-====
+Below are details on a few Playwright options that are particularly relevant to Elastic Synthetics including timeouts, timezones, and device emulation.
+
+[discrete]
+[[synthetics-configuration-playwright-options-timeouts]]
+== Timeouts
+
 Playwright has two types of timeouts that are used in Elastic Synthetics:
 https://playwright.dev/docs/test-timeouts#action-and-navigation-timeouts[action and navigation timeouts].
 
 Elastic Synthetics uses a default action and navigation timeout of 50 seconds.
 You can override this default using https://playwright.dev/docs/api/class-testoptions#test-options-action-timeout[`actionTimeout`] and https://playwright.dev/docs/api/class-testoptions#test-options-navigation-timeout[`navigationTimeout`]
 in `playwrightOptions`.
-====
+
+[discrete]
+[[synthetics-configuration-playwright-options-timezones]]
+== Timezones and locales
+
+The Elastic global managed testing infrastructure does not currently set the timezone.
+For {private-location}s, the monitors will use the timezone of the host machine running
+the {agent}. This is not always desirable if you want to test how a web application
+behaves across different timezones. To specify what timezone to use when the monitor runs,
+you can use `playwrightOptions` on a per monitor or global basis.
+
+To use a timezone and/or locale for all monitors in the project, set
+https://playwright.dev/docs/emulation#locale%2D%2Dtimezone[`locale` and/or `timezoneId`]
+in the configuration file:
+
+[source,js]
+----
+playwrightOptions: {
+  locale: 'en-AU',
+  timezoneId: 'Australia/Brisbane',
+}
+----
+
+To use a timezone and/or locale for a _specific_ monitor, add these options to a
+journey using <<synthetics-monitor-use,`monitor.use`>>.
+
+// Uncomment note when this is added to the Synthetics Service
+
+//////
+[NOTE]
+=====
+The timezone can also be set using the {synthetics-app}.
+If you specify a timezone in the configuration file or using `monitor.use` in the journey code,
+that timezone with take precedence over the timezone set in the {synthetics-app}.
+=====
+//////
 
 [discrete]
 [[synthetics-config-device-emulation]]
@@ -84,6 +146,26 @@ const config: SyntheticsConfig = {
 
 export default config;
 ----
+
+[discrete]
+[[synthetics-configuration-project]]
+= `project`
+
+Information about the project.
+
+id (`string`)::
+A unique id associated with your project.
+It will be used for logically grouping monitors.
++
+If you used <<elastic-synthetics-init-command, `init` to create a project>>, this is the `<name-of-project>` you specified.
+
+url (`string`)::
+The {kib} URL for the deployment to which you want to upload the monitors.
+
+space (`string`)::
+The identifier of the target {kibana-ref}/xpack-spaces.html[{kib} space] for the pushed monitors.
+Spaces help you organize pushed monitors.
+Pushes to the "default" space if not specified.
 
 [discrete]
 [[synthetics-configuration-monitor]]
@@ -126,6 +208,15 @@ with the {kib} URL for the deployment from which to fetch available locations.
 Control the monitor's download speeds, upload speeds, and latency to simulate your application's behavior on slower or laggier networks. Set to `false` to disable throttling altogether.
 `screenshot` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/common_types.ts#L192[`ScreenshotOptions`])::
 Control whether or not to capture screenshots. Options include `'on'`, `'off'`, or `'only-on-failure'`.
+
+`alert` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/dsl/monitor.ts#L47-L54[`AlertConfig`])::
+Enable or disable alerts. Read more about alerts in <<synthetics-settings-alerting>>.
++
+`status.enabled` (`boolean`):::
+Enable monitor status alerts.
++
+`tls.enabled` (`boolean`):::
+Enable TLS certificate alerts.
 // end::monitor-config-options[]
 
 For information on configuring monitors individually, refer to <<synthetics-monitor-use>>.
