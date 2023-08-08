@@ -1,34 +1,38 @@
 [[synthetics-scaling-and-architecting]]
-= Scaling and Architecting a Synthetics Deployment
+= Scaling and architecting a Synthetics deployment
 
-While for simple use cases little to no planning needs to be taken in the implementation of *{synthetics-app}*, 
-for complex use cases and at a high scale this section describes advanced considerations for any *{synthetics-app}*
-implementation
+Use these advanced considerations when using the {synthetics-app}
+for large and complex use cases.
 
 [discrete]
 [[synthetics-no-ccs-ccr]]
-= *{synthetics-app}* does not work with CCS/CCR
+= Do not use the {synthetics-app} with CCS/CCR
 
-In complex environments a common pattern may be to have multiple task-specific Elastic stack deployments with one centralized
-overview cluster using CCS or CCR to centralize Kibana dashboards and apps. *{synthetics-app}* by design does not support this
-pattern. Configure your Synthetic monitors directly on the Kibana instance you want to view / manage them on instead.
+In complex environments it's common to have multiple task-specific {stack}
+deployments with one  centralized overview cluster using CCS or CCR to centralize {kib}
+dashboards and apps. *Do not use this pattern with the {synthetics-app}*.
+Instead, configure your synthetic monitors directly on the {kib} instance where you
+want to view and manage them.
 
-This limitation is a requirement for the rich user experience *{synthetics-app}* provides.
-Unlike the majority of Kibana apps *{synthetics-app}* relies heavily on state stored in Kibana shared objects in order
-to provide a rich user experience. Since Kibana Saved Objects cannot be shared via CCS/CCR the *{synthetics-app}* will not show
-any user data even if CCS/CCR is configured.
+The {synthetics-app} does _not_ work with CCS/CCR because it would limit the rich
+user experience that the {synthetics-app} provides.
+Unlike the majority of {kib} apps, the {synthetics-app} relies heavily on state stored
+in {kib} shared objects in order to provide a rich user experience.
+Because {kib} saved objects cannot be shared via CCS/CCR, the {synthetics-app}
+will not show any user data even if CCS/CCR is configured.
 
 [discrete]
 [[synthetics-tagging]]
-= Managing large numbers of Synthetic monitors with tags
+= Manage large numbers of Synthetic monitors with tags
 
-When managing larger numbers of Synthetic monitors use tags to keep things manageable. Many of the views in the *{synthetics-app}*
-are tag-aware, and can group data by tag. 
+When managing larger numbers of synthetic monitors use tags to keep them organized.
+Many of the views in the {synthetics-app} are tag-aware, and can group data by tag. 
 
 [discrete]
 [[synthetics-custom-dashboards]]
-= Creating custom dashboards
+= Create custom dashboards
 
-Where the *{synthetics-app}* does not provide a UI for your exact needs Kibana dashboards[INSERT LINK HERE] can be used. 
-See https://www.elastic.co/guide/en/beats/heartbeat/current/exported-fields.html[Heartbeat's exported fields] for a complete accounting
-of fields used by *{synthetics-app}*.
+If the {synthetics-app} does not provide a UI for your exact needs, you can use 
+{kibana-ref}/dashboard.html[{kib} dashboards] to build custom visualizations.
+For a complete accounting of fields used by the {synthetics-app}, refer to
+{heartbeat-ref}/exported-fields.html[{heartbeat}'s exported fields].
