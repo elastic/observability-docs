@@ -1,0 +1,266 @@
+
+
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/java)
+</DocCallOut>
+
+</DocIf>
+
+<div id="opentelemetry-bridge"></div>
+
+The Elastic APM OpenTelemetry bridge allows creating Elastic APM `Transactions` and `Spans`,
+using the OpenTelemetry API. OpenTelemetry metrics are also collected.
+In other words,
+it translates the calls to the OpenTelemetry API to Elastic APM and thus allows for reusing existing instrumentation.
+
+<DocCallOut title="Note">
+While manual instrumentations using the OpenTelemetry API can be adapted to the Elastic APM Java agent, it's not possible to use the instrumentations from
+[opentelemetry-java-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation) in the context of the Elastic APM Java agent.
+However, you can use [opentelemetry-java-instrumentation](https://github.com/open-telemetry/opentelemetry-java-instrumentation) (aka the OpenTelemetry Java agent)
+and send the data to APM Server.
+See the [OpenTelemetry integration docs](((apm-guide-ref))/open-telemetry.html) for more details.
+</DocCallOut>
+
+The first span of a service will be converted to an Elastic APM
+[`Transaction`](((apm-guide-ref))/data-model-transactions.html),
+subsequent spans are mapped to Elastic APM
+[`Span`](((apm-guide-ref))/data-model-spans.html).
+
+<div id="otel-getting-started"></div>
+
+### Getting started
+The first step in getting started with the OpenTelemetry API bridge is to declare a dependency to the API:
+
+<p id="pomxml"><strong>pom.xml</strong></p>
+
+```xml
+<dependency>
+    <groupId>io.opentelemetry</groupId>
+    <artifactId>opentelemetry-api</artifactId>
+    <version>${version.opentelemetry}</version>
+</dependency>
+```
+
+<p id="buildgradle"><strong>build.gradle</strong></p>
+
+```groovy
+compile "io.opentelemetry:opentelemetry-api:$openTelemetryVersion"
+```
+
+The minimum required OpenTelemetry version is 1.0.1.
+
+<div id="otel-init-tracer"></div>
+
+### Initialize tracer
+
+There's no separate dependency needed for the bridge itself.
+The Java agent hooks into `GlobalOpenTelemetry` to return it's own implementation of `OpenTelemetry`
+that is connected to the internal tracer of the agent.
+
+```java
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Tracer;
+
+OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+Tracer tracer = openTelemetry.getTracer("");
+
+```
+
+To disable that behavior,
+and to rely on the standard discovery mechanism of `GlobalOpenTelemetry`,
+you can set <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="disable_instrumentations-added[100changing-this-value-at-runtime-is-possible-since-version-1150]">`disable_instrumentations`</DocLink> to `opentelemetry`.
+
+<div id="otel-set-attribute"></div>
+
+### Add custom metadata to a span
+
+If you like the spans created by the Elastic APM Java agent's auto-instrumentation,
+but you want to add a custom label,
+you can use the OpenTelemetry API to get ahold of the current span and call `setAttribute`:
+
+```java
+Span.current().setAttribute("foo", "bar");
+```
+
+<div id="otel-set-behavioral-attribute"></div>
+
+### Customize span tracing
+
+We utilize the `setAttribute()` API not only to <DocLink id="serverlessObservabilityApmAgentsJavaApi" section="add-custom-metadata-to-a-span">add custom metadata</DocLink>, but also as a way to customize some
+special tracing features through corresponding custom attributes listed below. Such attributes are not added to span metadata. For example:
+
+```java
+Span.current().setAttribute("co.elastic.discardable", false);
+```
+
+<div id="otel-config-discardable"></div>
+
+#### `co.elastic.discardable`
+
+By default, spans may be discarded, for example if <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="span_min_duration-added[1160]">`span_min_duration` (added[1.16.0])</DocLink> is set and the span does not exceed the configured
+threshold. Use this attribute to make a span non-discardable by setting it to `false`.
+
+<DocCallOut title="Note">
+making a span non-discardable implicitly makes the entire stack of active spans non-discardable as well. Child spans can still be
+discarded.
+</DocCallOut>
+
+| Key | Value type | Default |
+|---|---|---|
+| `co.elastic.discardable` | `boolean` | `true` |
+
+<div id="otel-create-transaction-span"></div>
+
+### Create a child of the active span
+
+This is an example for adding a custom span to the span created by the Java agent's auto-instrumentation.
+
+```java
+// if there's an active span, it will implicitly be the parent
+// in case there's no parent, the custom span will become a Elastic APM transaction
+Span custom = tracer.spanBuilder("my custom span").startSpan();
+// making your child the current one makes the Java agent aware of this span
+// if the agent creates spans in the context of myTracedMethod() (such as outgoing requests),
+// they'll be added as a child of your custom span
+try (Scope scope = custom.makeCurrent()) {
+    myTracedMethod();
+} catch (Exception e) {
+    custom.recordException(e);
+    throw e;
+} finally {
+    custom.end();
+}
+```
+
+To learn more about the OpenTelemetry API,
+head over do [their documentation](https://opentelemetry.io/docs/java/manual_instrumentation/).
+
+<div id="otel-metrics"></div>
+
+### Metrics
+
+<DocCallOut template="technical_preview" />
+The Elastic APM Java Agent supports collecting metrics defined via OpenTelemetry.
+You can either use the <DocLink id="serverlessObservabilityApmAgentsJavaApi" section="api-usage">OpenTelemetry API</DocLink> or the <DocLink id="serverlessObservabilityApmAgentsJavaApi" section="using-a-customized-meterprovider">OpenTelemetry SDK</DocLink> in case you need more customizations.
+
+In both cases the Elastic APM Agent will respect the <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="disable_metrics-added[130]">`disable_metrics`</DocLink> and <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="metrics_interval-added[130]">`metrics_interval`</DocLink> settings for OpenTelemetry metrics.
+
+You can use the <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="custom_metrics_histogram_boundaries-added[1370]-experimental">`custom_metrics_histogram_boundaries`</DocLink> setting to customize histogram bucket boundaries.
+Alternatively you can use OpenTelemetry `Views` to define histogram buckets on a per-metric basis when providing your own `MeterProvider`.
+
+<div id="otel-metrics-api"></div>
+
+### API Usage
+
+You can define metrics and report metric data via `GlobalOpenTelemetry`:
+
+```java
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.metrics.LongCounter;
+import io.opentelemetry.api.metrics.Meter;
+
+Meter myMeter = GlobalOpenTelemetry.getMeter("my_meter");
+LongCounter counter = meter.counterBuilder("my_counter").build();
+counter.add(42);
+```
+
+We don't require you to setup an OpenTelemetry `MeterProvider` within `GlobalOpenTelemetry` yourself.
+The Elastic APM Java Agent will detect if no `MeterProvider` was configured and will provide its own automatically in this case.
+If you provide your own `MeterProvider` (see <DocLink id="serverlessObservabilityApmAgentsJavaApi" section="using-a-customized-meterprovider">Using a customized MeterProvider</DocLink>), the agent will use the provided instance.
+
+<div id="otel-metrics-sdk"></div>
+
+### Using a customized MeterProvider
+
+In some cases using just the <DocLink id="serverlessObservabilityApmAgentsJavaApi" section="api-usage">OpenTelemetry API for metrics</DocLink> might not be flexible enough.
+Some example use cases are:
+
+ * Using OpenTelemetry Views (e.g. to customize histogram buckets on a per-metric basis)
+ * Exporting metrics to other tools in addition to Elastic APM (e.g. prometheus)
+
+For these use cases you can just setup you OpenTelemetry SDK `MeterProvider`.
+The Elastic APM Agent will take care of installing an additional `MetricExporter` via instrumentation,
+which will ship the metric data to Elastic APM.
+This requires using OpenTelemetry version `1.16.0` or newer.
+
+To create your own `MeterProvider`, you will need to add the OpenTelemetry Metric SDK as dependency to your project:
+
+<p id="pomxml"><strong>pom.xml</strong></p>
+
+```xml
+<dependency>
+    <groupId>io.opentelemetry</groupId>
+    <artifactId>opentelemetry-sdk-metrics</artifactId>
+    <version>${version.opentelemetry}</version>
+</dependency>
+```
+
+<p id="buildgradle"><strong>build.gradle</strong></p>
+
+```groovy
+compile "io.opentelemetry:opentelemetry-sdk-metrics:$openTelemetryVersion"
+```
+
+Afterwards you can create and use your own `MeterProvider` as shown below:
+
+```java
+import io.opentelemetry.sdk.metrics.SdkMeterProvider;
+import io.opentelemetry.api.metrics.DoubleHistogram;
+import io.opentelemetry.api.metrics.Meter;
+import io.opentelemetry.api.metrics.MeterProvider;
+import io.opentelemetry.exporter.prometheus.PrometheusHttpServer;
+import io.opentelemetry.sdk.metrics.InstrumentSelector;
+import io.opentelemetry.sdk.metrics.View;
+
+//Elastic APM MetricReader will be registered automatically by the agent
+SdkMeterProvider meterProvider = SdkMeterProvider.builder()
+    .registerMetricReader(PrometheusHttpServer.create())
+    .registerView(
+        InstrumentSelector.builder().setName("my_histogram").build(),
+        View.builder().setAggregation(Aggregation.explicitBucketHistogram(List.of(1.0, 5.0))).build()
+    )
+    .build();
+
+Meter testMeter = meterProvider.get("my_meter");
+DoubleHistogram my_histogram = testMeter.histogramBuilder("my_histogram").build();
+
+my_histogram.record(0.5);
+```
+
+<div id="otel-caveats"></div>
+
+### Caveats
+Not all features of the OpenTelemetry API are supported.
+
+<div id="otel-propagation"></div>
+
+#### In process context propagation
+Entries that are added to the current context,
+`Context.current().with(...).makeCurrent()` cannot be retrieved via `Context.current().get(...)`.
+
+<div id="otel-references"></div>
+
+#### Span References
+Spans can only have a single parent (`SpanBuilder#setParent`)
+
+<div id="otel-baggage"></div>
+
+#### Baggage
+Baggage support has been added in version `1.41.0`.
+
+<div id="otel-events"></div>
+
+#### Events
+Events are silently dropped, for example `Span.current().addEvent("my event")`.
+
+<div id="otel-anntations"></div>
+
+#### Annotations
+[OpenTelemetry instrumentation annotations](https://opentelemetry.io/docs/instrumentation/java/automatic/annotations/) are currently ignored by Elastic APM agent and are thus not supported (see [#2753](https://github.com/elastic/apm-agent-java/issues/2753)).

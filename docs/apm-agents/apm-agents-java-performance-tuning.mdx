@@ -89,12 +89,12 @@ We provide several options to tune the startup, targeted at three startup use ca
     time cost - typically because you don't want to miss any traces/transactions right from the
     beginning of the application, or some types of actions only happen at initialization and need
     to be instrumented before the first instance is created (such as setting up Prepared Statements).
-    In this use case, use the `-javaagent` command-line flag as per {/* <DocLink id="enApmAgentJavaSetupJavaagent">Manual setup with `-javaagent` flag</DocLink> */}
+    In this use case, use the `-javaagent` command-line flag as per <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted">Manual setup with `-javaagent` flag</DocLink>
 
 1. Fastest start (asynchronously)
     The application can accept instrumentation missing before the application starts
     and also accept missing some initial traces and transactions.
-    In this use case you can attach to the application after startup with {/* <DocLink id="enApmAgentJavaSetupAttachCli">Automatic setup with `apm-agent-attach-cli.jar`</DocLink> */}
+    In this use case you can attach to the application after startup with <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted">Automatic setup with `apm-agent-attach-cli.jar`</DocLink>
     or if you are using the `-javaagent` command-line flag you can start the agent asynchronously
     by setting the `elastic.apm.start_async` property (since 1.29.0), eg `java -Delastic.apm.start_async ...`
     (you can use `elastic.apm.delay_agent_premain_ms=0` in earlier versions)
@@ -135,7 +135,7 @@ It’s important to note that the latency of an application won’t be affected 
 even if you sample at 100%.
 However, the background reporter thread has some work to do when serializing and gzipping events.
 
-The sample rate can be changed by altering the {/* <DocLink id="enApmAgentJavaConfigCore" section="transaction_sample_rate-performance">`transaction_sample_rate` (performance)</DocLink> */}.
+The sample rate can be changed by altering the <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="transaction_sample_rate-performance">`transaction_sample_rate` (performance)</DocLink>.
 
 ### Stack trace collection
 
@@ -143,12 +143,12 @@ If a span, e.g., a captured JDBC query, takes longer than 5ms,
 we capture the stack trace so that you can easily find the code path which lead to the query.
 Stack traces can be quite long, taking up bandwidth and disk space, and also requiring object allocations.
 But because we are processing the stack trace asynchronously, it adds very little latency.
-Upping the {/* <DocLink id="enApmAgentJavaConfigStacktrace" section="span_stack_trace_min_duration-performance">`span_stack_trace_min_duration` (performance)</DocLink> */} or disabling stack trace collection altogether can gain you a bit of performance if needed.
+Upping the <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="span_stack_trace_min_duration-performance">`span_stack_trace_min_duration` (performance)</DocLink> or disabling stack trace collection altogether can gain you a bit of performance if needed.
 
 ### Recording headers and cookies
 
 By default, the Java agent records all request and response headers, including cookies.
-Disabling {/* <DocLink id="enApmAgentJavaConfigCore" section="capture_headers-performance">`capture_headers` (performance)</DocLink> */} can save allocations, network bandwidth, and disk space.
+Disabling <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="capture_headers-performance">`capture_headers` (performance)</DocLink> can save allocations, network bandwidth, and disk space.
 
 <div id="circuit-breaker"></div>
 
@@ -156,8 +156,8 @@ Disabling {/* <DocLink id="enApmAgentJavaConfigCore" section="capture_headers-pe
 
 When enabled, the agent periodically polls stress monitors to detect system/process/JVM stress state.
 If ANY of the monitors detects a stress indication, the agent will become inactive, as if the
-{/* <DocLink id="enApmAgentJavaConfigCore" section="recording-added[1150]">`recording`</DocLink> */} configuration option has been set to `false`, thus reducing resource consumption to a minimum.
+<DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="recording-added[1150]">`recording`</DocLink> configuration option has been set to `false`, thus reducing resource consumption to a minimum.
 When inactive, the agent continues polling the same monitors in order to detect whether the stress state
 has been relieved. If ALL monitors approve that the system/process/JVM is not under stress anymore, the
 agent will resume and become fully functional.
-For fine-grained Circuit Breaker configurations please refer to {/* <DocLink id="enApmAgentJavaConfigCircuitBreaker">Circuit-Breaker configuration options</DocLink> */}.
+For fine-grained Circuit Breaker configurations please refer to <DocLink id="serverlessObservabilityApmAgentsJavaConfigure">Circuit-Breaker configuration options</DocLink>.

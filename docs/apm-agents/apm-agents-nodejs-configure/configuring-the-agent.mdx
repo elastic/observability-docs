@@ -1,0 +1,75 @@
+
+
+<div id="configuring-the-agent"></div>
+
+There are multiple ways to configure the Node.js agent. In order of precedence:
+
+1. APM Agent Central Configuration via Kibana.
+    (supported options are marked with <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="dynamic-configuration"><DocBadge>Dynamic</DocBadge> </DocLink>)
+
+1. Environment variables.
+
+1. If calling the `apm.start()` function, supply a <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="agent-configuration-object">configurations object</DocLink> as the first argument.
+
+1. Via the <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="agent-configuration-file">agent configuration file</DocLink>.
+
+For information on the available configuration properties and the expected names of environment variables, see the <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure">Configuration options</DocLink> documentation.
+
+<div id="dynamic-configuration"></div>
+
+### Dynamic configuration
+
+Configuration options marked with the <DocBadge>Dynamic</DocBadge> badge can be changed at runtime
+when set from a supported source.
+
+The Node.js Agent supports [Central configuration](((apm-app-ref))/agent-configuration.html),
+which allows you to fine-tune certain configurations via the APM app in Kibana.
+This feature is enabled in the Agent by default, with <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="centralconfig">`centralConfig`</DocLink>.
+
+<div id="agent-configuration-object"></div>
+
+### Agent configuration object
+
+To use the optional `options` argument, pass it into the `apm.start()` method:
+
+```js
+var apm = require('elastic-apm-node').start({
+  // add configuration options here
+})
+```
+
+This example shows how to configure the agent to only be active in production:
+
+```js
+// Add this to the VERY top of the first file loaded in your app
+require('elastic-apm-node').start({
+  // Override service name from package.json
+  // Allowed characters: a-z, A-Z, 0-9, -, _, and space
+  serviceName: '',
+
+  // Use if APM Server requires a token
+  secretToken: '',
+
+  // Use if APM Server uses API keys for authentication
+  apiKey: '',
+
+  // Set custom APM Server URL (default: http://127.0.0.1:8200)
+  serverUrl: '',
+
+  // Only activate the agent if it's running in production
+  active: process.env.NODE_ENV === 'production'
+})
+```
+
+<div id="agent-configuration-file"></div>
+
+### Agent configuration file
+
+The Node.js agent looks for a file named `elastic-apm-node.js` in the current working directory.
+You can specify a custom path for this file with the <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="configfile">`configFile`</DocLink> configuration option.
+
+{/* The include that was here is another page */}
+
+{/* The include that was here is another page */}
+
+{/* The include that was here is another page */}

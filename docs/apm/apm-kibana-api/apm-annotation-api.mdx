@@ -1,0 +1,130 @@
+
+
+{/* import ApiUsingTheAPIs from './transclusion/apm/api/using-the-APIs.mdx' */}
+
+<div id="apm-annotation-api"></div>
+
+The Annotation API allows you to annotate visualizations in the APM app with significant events, like deployments,
+allowing you to easily see how these events are impacting the performance of your existing applications.
+
+By default, annotations are stored in a newly created `observability-annotations` index.
+The name of this index can be changed in your `config.yml` by editing `xpack.observability.annotations.index`.
+If you change the default index name, you'll also need to <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enKibanaApmAppAnnotationUserCreate">update your user privileges</DocLink> */} accordingly.
+
+The following APIs are available:
+
+* <DocLink id="serverlessObservabilityApmKibanaApi" section="create-or-update-annotation">Create or update annotation</DocLink> to create an annotation for APM.
+
+<div id="use-annotation-api"></div>
+
+### How to use APM APIs
+
+<DocAccordion buttonContent="Expand for required headers, privileges, and usage details">
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <ApiUsingTheAPIs  /> */}
+
+
+</DocAccordion>
+
+<div id="apm-annotation-create"></div>
+
+### Create or update annotation
+
+<div id="apm-annotation-config-req"></div>
+
+#### Request
+
+`POST /api/apm/services/:serviceName/annotation`
+
+<div id="apm-annotation-config-req-body"></div>
+
+#### Request body
+
+`service` 
+    : (required, object) Service identifying the configuration to create or update.
+
+    <DocAccordion buttonContent="Properties of `service`" initialIsOpen>
+
+        `version`  
+            : (required, string) Version of service.
+
+        `environment`  
+            : (optional, string) Environment of service.
+
+    </DocAccordion>
+
+`@timestamp` 
+    : (required, string) The date and time of the annotation. Must be in [ISO 8601](https://www.w3.org/TR/NOTE-datetime) format.
+
+`message` 
+    : (optional, string) The message displayed in the annotation. Defaults to `service.version`.
+
+`tags` 
+    : (optional, array) Tags are used by the APM app to distinguish APM annotations from other annotations.
+    Tags may have additional functionality in future releases. Defaults to `[apm]`.
+    While you can add additional tags, you cannot remove the `apm` tag.
+
+<div id="apm-annotation-config-example"></div>
+
+#### Example
+
+The following example creates an annotation for a service named `opbeans-java`.
+
+```curl
+curl -X POST \
+  http://localhost:5601/api/apm/services/opbeans-java/annotation \
+-H 'Content-Type: application/json' \
+-H 'kbn-xsrf: true' \
+-H 'Authorization: Basic YhUlubWZhM0FDbnlQeE6WRtaW49FQmSGZ4RUWXdX' \
+-d '{
+      "@timestamp": "2020-05-08T10:31:30.452Z",
+      "service": {
+        "version": "1.2"
+      },
+      "message": "Deployment 1.2"
+    }'
+```
+
+<div id="apm-annotation-config-body"></div>
+
+#### Response body
+
+```js
+{
+  "_index": "observability-annotations",
+  "_id": "Lc9I93EBh6DbmkeV7nFX",
+  "_version": 1,
+  "_seq_no": 12,
+  "_primary_term": 1,
+  "found": true,
+  "_source": {
+    "message": "Deployment 1.2",
+    "@timestamp": "2020-05-08T10:31:30.452Z",
+    "service": {
+      "version": "1.2",
+      "name": "opbeans-java"
+    },
+    "tags": [
+      "apm",
+      "elastic.co",
+      "customer"
+    ],
+    "annotation": {
+      "type": "deployment"
+    },
+    "event": {
+      "created": "2020-05-09T02:34:43.937Z"
+    }
+  }
+}
+```
+
+{/*
+
+<DocCallOut>
+
+</DocCallOut>
+
+*/}
+

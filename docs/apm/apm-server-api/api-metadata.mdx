@@ -1,0 +1,67 @@
+
+
+{/* import V2Metadata from './transclusion/spec/v2/metadata.json' */}
+
+<div id="api-metadata"></div>
+
+Every new connection to the APM Server starts with a `metadata` stanza.
+This provides general metadata concerning the other objects in the stream.
+
+Rather than send this metadata information from the agent multiple times,
+the APM Server hangs on to this information and applies it to other objects in the stream as necessary.
+
+<DocCallOut title="Tip">
+Metadata is stored under `context` when viewing documents in ((es)).
+</DocCallOut>
+
+* <DocLink id="serverlessObservabilityApmServerApi" section="kubernetes-data">Kubernetes data</DocLink>
+* <DocLink id="serverlessObservabilityApmServerApi" section="metadata-schema">Metadata Schema</DocLink>
+
+<div id="api-kubernetes-data"></div>
+
+### Kubernetes data
+
+APM agents automatically read Kubernetes data and send it to the APM Server.
+In most instances, agents are able to read this data from inside the container.
+If this is not the case, or if you wish to override this data, you can set environment variables for the agents to read.
+These environment variable are set via the Kubernetes [Downward API](https://kubernetes.io/docs/tasks/inject-data-application/environment-variable-expose-pod-information/#use-pod-fields-as-values-for-environment-variables).
+Here's how you would add the environment variables to your Kubernetes pod spec:
+
+```yaml
+         - name: KUBERNETES_NODE_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: spec.nodeName
+          - name: KUBERNETES_POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: KUBERNETES_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+          - name: KUBERNETES_POD_UID
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.uid
+```
+
+The table below maps these environment variables to the APM metadata event field:
+
+| Environment variable | Metadata field name |
+|---|---|
+| `KUBERNETES_NODE_NAME` | system.kubernetes.node.name |
+| `KUBERNETES_POD_NAME` | system.kubernetes.pod.name |
+| `KUBERNETES_NAMESPACE` | system.kubernetes.namespace |
+| `KUBERNETES_POD_UID` | system.kubernetes.pod.uid |
+
+<div id="api-metadata-schema"></div>
+
+### Metadata Schema
+
+APM Server uses JSON Schema to validate requests. The specification for metadata is defined on
+[GitHub]({book['github_repo_link']}/docs/spec/v2/metadata.json) and included below:
+
+{/* <DocCode language="json">
+  {JSON.stringify(V2Metadata, null, 2)}
+</DocCode> */}

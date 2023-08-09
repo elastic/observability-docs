@@ -1,0 +1,250 @@
+
+
+<div id="span-api"></div>
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/nodejs/current/span-api.html)
+</DocCallOut>
+
+</DocIf>
+
+A span measures the duration of a single event.
+When a span is created it will measure the time until <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="spanend[endtime]">`span.end()`</DocLink> is called.
+
+To get a `Span` object,
+you need to call <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmstartspan[name][-type][-subtype][-action][-options]">`apm.startSpan()`</DocLink>.
+
+To see an example of using custom spans,
+see the <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure">Custom Spans in Node.js</DocLink> article.
+
+<div id="span-transaction"></div>
+
+### `span.transaction`
+
+_Added in: v0.1.0_
+
+* **Type:** Transaction
+
+A reference to the parent transaction object.
+
+All spans belong to a transaction.
+
+<div id="span-name"></div>
+
+### `span.name`
+
+_Added in: v0.1.0_
+
+* `{book['type-string']}` **Default:** `unnamed`
+
+The name of the span.
+This can also be set via <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmstartspan[name][-type][-subtype][-action][-options]">`apm.startSpan()`</DocLink>.
+
+<div id="span-type"></div>
+
+### `span.type`
+
+_Added in: v0.1.0_
+
+_Split components into `type`, `subtype` and `action` in: v3.0.0_
+
+* `{book['type-string']}` **Default:** `custom`
+
+The type of span.
+This can also be set via <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmstartspan[name][-type][-subtype][-action][-options]">`apm.startSpan()`</DocLink>.
+
+The type is used to group similar spans together.
+For instance,
+all spans of MySQL queries are given the type `db`,
+with a subtype of `mysql` and an action of `query`.
+
+In the above example, `db` is considered the type.
+Though there are no naming restrictions for the type,
+the following are standardized across all Elastic APM agents:
+`app`, `db`, `cache`, `template`, and `ext`.
+
+<div id="span-subtype"></div>
+
+### `span.subtype`
+
+_Added in: v0.1.0_
+
+* `{book['type-string']}` **Default:** `custom`
+
+The subtype of the span.
+This can also be set via <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmstartspan[name][-type][-subtype][-action][-options]">`apm.startSpan()`</DocLink>.
+
+The subtype is typically the name of a module or library.
+For example,
+MySQL queries have a subtype of `mysql`.
+
+<div id="span-action"></div>
+
+### `span.action`
+
+_Added in: v0.1.0_
+
+* `{book['type-string']}` **Default:** `custom`
+
+The action of the span.
+This can also be set via <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmstartspan[name][-type][-subtype][-action][-options]">`apm.startSpan()`</DocLink>.
+
+The action is typically a specific function name or a general description of specific functionality.
+For example,
+a database query would generally have an action of `query`.
+
+<div id="span-traceparent"></div>
+
+### `span.traceparent`
+
+_Added in: v2.9.0_
+
+Get the serialized traceparent string of the span.
+
+<div id="span-set-label"></div>
+
+#### `span.setLabel(name, value[, stringify ### true])`
+
+_Added in: v2.1.0_
+_Renamed from `span.setTag()` to `span.setLabel()`: v2.10.0_
+_Added `stringify` argument in: v3.11.0_
+
+* `name` `{book['type-string']}`
+    Any periods (`.`), asterisks (`*`), or double quotation marks (`"`) will be replaced by underscores (`_`),
+    as those characters have special meaning in Elasticsearch
+
+* `value` `{book['type-string']}` | `{book['type-number']}` | `{book['type-boolean']}`
+* `stringify` `{book['type-boolean']}`
+    Defaults to `true`. When true, if a non-string `value` is given, it is
+    converted to a string before being sent to the APM Server.
+
+Set a label on the span.
+You can set multiple labels on the same span.
+
+<div id="span-add-labels"></div>
+
+#### `span.addLabels({ [name]: value }[, stringify ### true])`
+
+_Added in: v2.1.0_
+_Renamed from `span.addTags()` to `span.addLabels()`: v2.10.0_
+_Added `stringify` argument in: v3.11.0_
+
+* `labels` `{book['type-object']}` Contains key/value pairs:
+    * `name` `{book['type-string']}`
+        Any periods (`.`), asterisks (`*`), or double quotation marks (`"`) will be replaced by underscores (`_`),
+        as those characters have special meaning in Elasticsearch
+
+    * `value` `{book['type-string']}` | `{book['type-number']}` | `{book['type-boolean']}`
+* `stringify` `{book['type-boolean']}`
+    Defaults to `true`. When true, if a non-string `value` is given, it is
+    converted to a string before being sent to the APM Server.
+
+Add several labels on the span.
+You can add labels multiple times.
+
+<div id="span-ids"></div>
+
+### `span.ids`
+
+_Added in: v2.17.0_
+
+Produces an object containing `span.id` and `trace.id`.
+This enables log correlation to APM traces with structured loggers.
+
+```js
+{
+  "trace.id": "abc123",
+  "span.id": "abc123"
+}
+```
+
+<div id="span-to-string"></div>
+
+### `span.toString()` <DocBadgeDeprecated tipContent="Deprecated in v3.23.0">v3.23.0</DocBadgeDeprecated>
+
+_Added in: v2.17.0_
+_Deprecated in: v3.23.0_
+
+Produces a string representation of the span to inject in log messages.
+This enables log correlation to APM traces with text-only loggers.
+
+```js
+"trace.id=abc123 span.id=abc123"
+```
+
+Relying on the format of `span.toString()` has been **deprecated** and may
+change in v4 of the agent. Prefer the use of <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="spanids">`span.ids`</DocLink> or
+<DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmcurrenttraceids">`apm.currentTraceIds`</DocLink>. The v3 format may be reproduced
+via:
+
+```js
+const { stringify } = require('querystring')
+console.log( stringify(span.ids, ' ', '=')) )
+```
+
+<div id="span-end"></div>
+
+### `span.end([endTime])`
+
+_Added in: v0.1.0_
+
+* `endTime` `{book['type-number']}` The time when the span ended.
+    Must be a Unix Time Stamp representing the number of milliseconds since January 1, 1970, 00:00:00 UTC.
+    Sub-millisecond precision can be achieved using decimals.
+    If not provided,
+    the current time will be used
+
+End the span.
+If the span has already ended,
+nothing happens.
+
+<div id="span-outcome"></div>
+
+### `span.outcome`
+_Added in: v3.12.0_
+
+The Node.js agent automatically sets an `outcome` property on spans.  This property will be one of three values:
+
+- `success`: Indicates the span's operation was a success.
+
+- `failure`: Indicates the span's operation was _not_ a success.
+
+- `unknown`: Indicates the agent was unable to determine whether the span's operation was a success or not. An `unknown` outcome removes a transaction from error rate considerations.
+
+What constitutes a success or failure will depend on the span type.
+
+For the general case, a span's outcome is considered a failure if the Node.js agent captures an error during the execution of the work a span represents.
+
+However, for exit spans that represent an HTTP request, the `outcome` is based on the status code of the HTTP response.  A status code less than `400` is considered a success.  A status code greater or equal to `400` is considered a failure.
+
+<div id="span-setoutcome"></div>
+
+### `span.setOutcome(outcome)`
+
+_Added in: v3.12.0_
+
+* `outcome` `{book['type-string']}`
+
+The `setOutcome` method allows an end user to override the Node.js agent's default setting of a span's `outcome` property.  The `setOutcome` method accepts a string of either `success`, `failure`, or `unknown`, and will force the agent to report this value for a specific span.
+
+<div id="span-setservicetarget"></div>
+
+### `span.setServiceTarget(type, name)`
+
+_Added in: v3.39.0_
+
+* `type` `{book['type-string']}` | null The target service type, usually the same value as `span.subtype`, e.g. "mysql".
+* `name` `{book['type-string']}` | null The target service name, an optional scoping of the service. For databases it is typically the database name.
+
+Manually set the `service.target.type` and `service.target.name` fields that identify a downstream service. They are used for [Service Maps](https://www.elastic.co/guide/en/kibana/current/service-maps.html) and [Dependencies](https://www.elastic.co/guide/en/kibana/current/dependencies.html) in the Kibana APM app.  The values are only used for "exit" spans -- spans representing outgoing communication, marked with `exitSpan: true` at span creation.
+
+If false-y values (e.g. `null`) are given for both `type` and `name`, then `service.target` will explicitly be excluded from this span. This may impact Service Maps and other Kibana APM app reporting for this service.
+
+If this method is not called, the service target values are inferred from other span fields ([spec](https://github.com/elastic/apm/blob/main/specs/agents/tracing-spans-service-target.md#field-values)).
+
+`service.target.*` fields are ignored for APM Server before v8.3.

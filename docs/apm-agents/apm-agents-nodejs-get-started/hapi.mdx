@@ -1,0 +1,160 @@
+
+
+{/* import SharedSetUpIntroduction from './transclusion/shared-set-up/introduction.mdx' */}
+{/* import SharedSetUpAdvancedConfiguration from './transclusion/shared-set-up/advanced-configuration.mdx' */}
+{/* import SharedSetUpPerformanceMonitoring from './transclusion/shared-set-up/performance-monitoring.mdx' */}
+{/* import SharedSetUpUnknownRoots from './transclusion/shared-set-up/unknown-roots.mdx' */}
+{/* import SharedSetUpErrorLogging from './transclusion/shared-set-up/error-logging.mdx' */}
+{/* import SharedSetUpFilterSensitiveInfo from './transclusion/shared-set-up/filter-sensitive-info.mdx' */}
+{/* import SharedSetUpAddYourOwnData from './transclusion/shared-set-up/add-your-own-data.mdx' */}
+{/* import SharedSetUpCompatibilityLink from './transclusion/shared-set-up/compatibility-link.mdx' */}
+{/* import SharedSetUpTroubleshootingLink from './transclusion/shared-set-up/troubleshooting-link.mdx' */}
+
+export let framework = "hapi"
+
+<div id="hapi"></div>
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/nodejs/current/hapi.html)
+</DocCallOut>
+
+</DocIf>
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpIntroduction framework={framework} /> */}
+
+
+<div id="hapi-installation"></div>
+
+### Installation
+
+Add the `elastic-apm-node` module as a dependency to your application:
+
+```bash
+npm install elastic-apm-node --save
+```
+
+<div id="hapi-initialization"></div>
+
+### Initialization
+
+It's important that the agent is started before you require **any** other modules in your Node.js application - i.e. before `hapi`, `http`, etc.
+
+This means that you should probably require and start the agent in your application's main file (usually `index.js`, `server.js` or `app.js`).
+
+Here's a simple hapi example with the Elastic APM agent installed:
+
+```js
+// Add this to the VERY top of the first file loaded in your app
+const apm = require('elastic-apm-node').start({
+  // Override service name from package.json
+  // Allowed characters: a-z, A-Z, 0-9, -, _, and space
+  serviceName: '',
+
+  // Use if APM Server requires a token
+  secretToken: '',
+
+  // Use if APM Server uses API keys for authentication
+  apiKey: '',
+
+  // Set custom APM Server URL (default: http://127.0.0.1:8200)
+  serverUrl: '',
+})
+
+const Hapi = require('@hapi/hapi')
+
+const init = async () => {
+  const server = Hapi.server({ port: 3000, host: 'localhost' })
+
+  server.route({
+    method: 'GET',
+    path: '/',
+    handler: (request, h) => {
+      return 'hello world'
+    }
+  })
+
+  await server.start()
+  console.log('Server running on %s', server.info.uri)
+}
+
+init()
+```
+
+The agent will now monitor the performance of your hapi application and record any uncaught exceptions.
+
+<div id="hapi-advanced-configuration"></div>
+
+#### Advanced configuration
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpAdvancedConfiguration  /> */}
+
+
+<div id="hapi-full-documentation"></div>
+
+#### Full documentation
+
+* <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure">Setup and Configuration</DocLink>
+* <DocLink id="serverlessObservabilityApmAgentsNodejsApi">API Reference</DocLink>
+
+<div id="hapi-performance-monitoring"></div>
+
+### Performance monitoring
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpPerformanceMonitoring framework={framework}  /> */}
+
+
+<div id="hapi-unknown-routes"></div>
+
+#### Unknown routes
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpUnknownRoots framework={framework}  /> */}
+
+
+<div id="hapi-error-logging"></div>
+
+### Error logging
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpErrorLogging  /> */}
+
+
+<div id="hapi-filter-sensitive-information"></div>
+
+### Filter sensitive information
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpFilterSensitiveInfo  /> */}
+
+
+<div id="hapi-add-your-own-data"></div>
+
+### Add your own data
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpAddYourOwnData  /> */}
+
+
+<div id="hapi-compatibility"></div>
+
+### Compatibility
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpCompatibilityLink  /> */}
+
+
+<div id="hapi-troubleshooting"></div>
+
+### Troubleshooting
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpTroubleshootingLink  /> */}
+

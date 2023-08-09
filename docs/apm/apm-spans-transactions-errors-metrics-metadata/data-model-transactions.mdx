@@ -1,0 +1,77 @@
+
+
+{/* import DataStreamsTracesDataStreams from './transclusion/data-streams/traces-data-streams.mdx' */}
+{/* import GeneratedTransactions from './transclusion/data/elasticsearch/generated/transactions.json' */}
+
+<div id="data-model-transactions"></div>
+
+**Transactions** are a special kind of <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">span</DocLink> that have additional attributes associated with them.
+They describe an event captured by an Elastic ((apm-agent)) instrumenting a service.
+You can think of transactions as the highest level of work you’re measuring within a service.
+As an example, a transaction might be a:
+
+* Request to your server
+* Batch job
+* Background job
+* Custom transaction type
+
+Agents decide whether to sample transactions or not,
+and provide settings to control sampling behavior.
+If sampled, the <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">spans</DocLink> of a transaction are sent and stored as separate documents.
+Within one transaction there can be 0, 1, or many spans captured.
+
+A transaction contains:
+
+* The timestamp of the event
+* A unique id, type, and name
+* Data about the environment in which the event is recorded:
+    * Service - environment, framework, language, etc.
+    * Host - architecture, hostname, IP, etc.
+    * Process - args, PID, PPID, etc.
+    * URL - full, domain, port, query, etc.
+    * <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata" section="user-context">User</DocLink> - (if supplied) email, ID, username, etc.
+* Other relevant information depending on the agent. Example: The JavaScript RUM agent captures transaction marks,
+    which are points in time relative to the start of the transaction with some label.
+
+In addition, agents provide options for users to capture custom <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">metadata</DocLink>.
+Metadata can be indexed - <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata" section="labels">`labels`</DocLink>, or not-indexed - <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata" section="custom-context">`custom`</DocLink>.
+
+Transactions are grouped by their `type` and `name` in the APM UI's
+[Transaction overview](((kibana-ref))/transactions.html).
+If you're using a supported framework, APM agents will automatically handle the naming for you.
+If you're not, or if you wish to override the default,
+all agents have API methods to manually set the `type` and `name`.
+
+* `type` should be a keyword of specific relevance in the service's domain,
+    e.g. `request`, `backgroundjob`, etc.
+
+* `name` should be a generic designation of a transaction in the scope of a single service,
+    e.g. `GET /users/:id`, `UsersController#show`, etc.
+
+<DocCallOut title="Tip">
+Most agents limit keyword fields (e.g. `labels`) to 1024 characters,
+non-keyword fields (e.g. `span.db.statement`) to 10,000 characters.
+</DocCallOut>
+
+### Data streams
+
+Transactions are stored with spans in the following data streams:
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <DataStreamsTracesDataStreams  /> */}
+
+
+See <DocLink id="serverlessObservabilityApmDataStreams">Data streams</DocLink> to learn more.
+
+### Example transaction document
+
+This example shows what transaction documents can look like when indexed in ((es)).
+
+<DocAccordion buttonContent="Expand ((es)) document">
+
+{/* <DocCode language="json">
+  {JSON.stringify(GeneratedTransactions, null, 2)}
+</DocCode> */}
+
+</DocAccordion>
+

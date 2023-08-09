@@ -1,0 +1,119 @@
+
+
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/java)
+</DocCallOut>
+
+</DocIf>
+
+<div id="setup"></div>
+
+There are three different ways to set up the Elastic APM Java Agent:
+
+1. <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted">Manual setup with `-javaagent` flag</DocLink>
+    Manually set up and configure the agent with the `-javaagent` JVM option. No application code change required, requires
+    application restart.
+
+1. <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted">Automatic setup with `apm-agent-attach-cli.jar`</DocLink>
+    Automatically set up the agent without needing to alter the configuration of your JVM or application server. No application code
+    nor JVM options changes required, allows attaching to a running JVM.
+
+1. <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted">Programmatic API setup to self-attach</DocLink>
+    Set up the agent with a one-line code change and an extra `apm-agent-attach` dependency. No modification of JVM options,
+    the agent artifact is embedded within the packaged application binary.
+
+<div id="get-started-configuration"></div>
+
+### Configuration
+
+Once you've set up the Agent, see the <DocLink id="serverlessObservabilityApmAgentsJavaConfigure">configuration guide</DocLink> on how to configure Elastic APM.
+
+<div id="ssl-setup"></div>
+
+### SSL/TLS communication with APM Server
+
+If [SSL/TLS communication](((apm-guide-ref))/agent-tls.html) is enabled on the APM Server, make sure to check out the <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted">SSL setup guide</DocLink>.
+
+<div id="aws-lambda-setup"></div>
+
+### Monitoring AWS Lambda Functions (Experimental)
+
+Learn how to set up AWS Lambda functions tracing in our <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted">Lambda setup guide</DocLink>.
+
+<div id="security-manager"></div>
+
+### Using with Security Manager enabled
+
+The agent should work as expected on JVMs with an enabled `SecurityManager`, provided that it is granted with `java.security.AllPermission`.
+Make sure that the following snippet is added to an effective* policy (replace with the real path** to the agent jar):
+```
+grant codeBase "file:</path/to/elastic-apm-agent.jar>" {
+    permission java.security.AllPermission;
+};
+```
+If you see a `java.lang.SecurityException` exception (for example a - `java.security.AccessControlException`) after verifying the above
+`grant` snippet is effectively applied, open an issue in our [GitHub repo](https://github.com/elastic/apm-agent-java) with a description
+and the full stack trace.
+
+\* it is possible to have multiple policy files taking effect at the same time on a single JVM. The policy entry above can be added
+to an existing policy or can be appended through the `java.security.policy` system property. See
+[documentation](https://docs.oracle.com/javase/8/docs/technotes/guides/security/PolicyFiles.html) for more details.
+
+\*\* you can make use of the [property
+expansion](https://docs.oracle.com/javase/8/docs/technotes/guides/security/PolicyFiles.html#PropertyExp) capability for specifying the agent jar path.
+
+<div id="supported-technologies"></div>
+
+### Supported technologies
+
+Please check <DocLink id="serverlessObservabilityApmAgentsJavaSupportedTechnologies">supported technologies</DocLink>
+for details on if the Elastic APM agent supports auto-instrumentation of the technologies your application is using.
+
+<div id="bootstrap-checks"></div>
+
+### Bootstrap checks
+
+In some cases, the agent needs to take a decision to abort very early, before almost any initialization process takes place,
+for example- when it is attached to a non-supported JVM version. This decision is based on what we call "bootstrap checks".
+If any of the bootstrap checks fails, the agent will log an error to the standard error stream and abort.
+It is possible to disable bootstrap checks by setting the `elastic.apm.disable_bootstrap_checks` System property, or the
+`ELASTIC_APM_DISABLE_BOOTSTRAP_CHECKS` environment variable, to `true`.
+
+<div id="jvm-filtering"></div>
+
+#### JVM Filtering
+In some cases, users may cast a too-wide net to instrument their Java processes, for example when setting the `JAVA_TOOL_OPTIONS`
+environment variable globally on a host/container on which many JVMs run.
+In such cases, users may want to exclude JVMs from being instrumented, or to specifically allow when necessary.
+For this purpose, we have the following bootstrap configuration options available:
+{/* [cols="1,1,1"] */}
+|  |  |  |
+|---|---|---|
+| System property name | Env variable name | Description |
+| `elastic.apm.bootstrap_allowlist` | `ELASTIC_APM_BOOTSTRAP_ALLOWLIST` | If set, the agent will be enabled **only** on JVMs of which command matches one of the patterns in the provided list |
+| `elastic.apm.bootstrap_exclude_list` | `ELASTIC_APM_BOOTSTRAP_EXCLUDE_LIST` | If set, the agent will be disabled on JVMs that contain a System property with one of the provided names in the list |
+
+The allowlist option expects a comma-separated list of wild-card patterns. Such patterns may contain wildcards (`*`), which match zero
+or more characters. Examples: `foo\*bar\*baz\*, \*foo\*`. Matching is case-insensitive by default. Prepending an element with
+`(?-i)}` makes the matching case-sensitive. The patterns are matched against the JVM command as it is stored in the `sun.java.command`
+system property.
+
+Some examples:
+
+1. Allow JVM attachment only on Tomcat and a proprietary Java app:
+    `-Delastic.apm.bootstrap_allowlist=*org.apache.catalina.startup.Bootstrap*,my.cool.app.*`
+
+1. Disable when some custom System properties are set:
+    `-Delastic.apm.bootstrap_exclude_list=custom.property.1,custom.property.2`
+
+{/* The include that was here is another page */}
+{/* The include that was here is another page */}
+{/* The include that was here is another page */}
+{/* The include that was here is another page */}
+{/* The include that was here is another page */}

@@ -1,0 +1,87 @@
+
+
+<div id="api-config"></div>
+
+APM Server exposes an API endpoint that allows agents to query the server for configuration changes.
+More information on this feature is available in [((apm-agent)) configuration in ((kib))](((kibana-ref))/agent-configuration.html).
+
+<div id="api-config-endpoint"></div>
+
+### Agent configuration endpoint
+
+The Agent configuration endpoint accepts both `HTTP GET` and `HTTP POST` requests.
+If <DocLink id="serverlessObservabilityApmApiKeys">API keys</DocLink> or a <DocLink id="serverlessObservabilityApmSecretToken">Secret token</DocLink> is configured, requests to this endpoint must be authenticated.
+
+<div id="api-config-api-get"></div>
+
+#### HTTP GET
+
+`service.name` is a required query string parameter.
+
+```bash
+http(s)://{hostname}:{port}/config/v1/agents?service.name=SERVICE_NAME
+```
+
+<div id="api-config-api-post"></div>
+
+#### HTTP POST
+
+Encode parameters as a JSON object in the body.
+`service.name` is a required parameter.
+
+```bash
+http(s)://{hostname}:{port}/config/v1/agents
+{
+  "service": {
+      "name": "test-service",
+      "environment": "all"
+  },
+  "CAPTURE_BODY": "off"
+}
+```
+
+<div id="api-config-api-response"></div>
+
+#### Responses
+
+* Successful - `200`
+* APM Server is configured to fetch agent configuration from ((es)) but the configuration is invalid - `403`
+* APM Server is starting up or ((es)) is unreachable - `503`
+
+<div id="api-config-api-example"></div>
+
+#### Example request
+
+Example Agent configuration `GET` request including the service name "test-service":
+
+```sh
+curl -i http://127.0.0.1:8200/config/v1/agents?service.name=test-service
+```
+
+Example Agent configuration `POST` request including the service name "test-service":
+
+```sh
+curl -X POST http://127.0.0.1:8200/config/v1/agents \
+  -H "Authorization: Bearer secret_token" \
+  -H 'content-type: application/json' \
+  -d '{"service": {"name": "test-service"}}'
+```
+
+<div id="api-config-api-ex-response"></div>
+
+#### Example response
+
+```sh
+HTTP/1.1 200 OK
+Cache-Control: max-age=30, must-revalidate
+Content-Type: application/json
+Etag: "7b23d63c448a863fa"
+Date: Mon, 24 Feb 2020 20:53:07 GMT
+Content-Length: 98
+
+{
+    "capture_body": "off",
+    "transaction_max_spans": "500",
+    "transaction_sample_rate": "0.3"
+}
+```

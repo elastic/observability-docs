@@ -1,0 +1,63 @@
+
+
+{/* import LambdaAttributesSelector from '../../lambda/transclusion/lambda-selector/lambda-attributes-selector.mdx' */}
+{/* import ExtensionArnReplacement from '../../lambda/transclusion/lambda-selector/extension-arn-replacement.mdx' */}
+{/* import LambdaPythonArnReplacement from './transclusion/lambda/python-arn-replacement.mdx' */}
+{/* import AddExtensionLayerWidget from '../../lambda/transclusion/add-extension/add-extension-layer-widget.mdx' */}
+{/* import LambdaConfigureLambdaWidget from './transclusion/lambda/configure-lambda-widget.mdx' */}
+
+<div id="lambda-support"></div>
+
+export let layer_section_type = "with-agent"
+
+export let apm_aws_repo_dir = "./lambda"
+
+The Python APM Agent can be used with AWS Lambda to monitor the execution of your AWS Lambda functions.
+
+### Prerequisites
+
+You need an APM Server to send APM data to. Follow the [APM Quick start](((apm-guide-ref))/apm-quick-start.html) if you have not set one up yet. For the best-possible performance, we recommend setting up APM on ((ecloud)) in the same AWS region as your AWS Lambda functions.
+
+### Step 1: Select the AWS Region and Architecture
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaAttributesSelector  /> */}
+
+
+### Step 2: Add the APM Layers to your Lambda function
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <ExtensionArnReplacement  /> */}
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaPythonArnReplacement  /> */}
+
+
+Both the [((apm-lambda-ext))](((apm-lambda-ref))/aws-lambda-arch.html) and the Python APM Agent are added to your Lambda function as [AWS Lambda Layers](https://docs.aws.amazon.com/lambda/latest/dg/invocation-layers.html). Therefore, you need to add the corresponding Layer ARNs (identifiers) to your Lambda function.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <AddExtensionLayerWidget layer_section_type={layer_section_type} /> */}
+
+
+### Step 3: Configure APM on AWS Lambda
+
+The ((apm-lambda-ext)) and the APM Python agent are configured through environment variables on the AWS Lambda function.
+
+For the minimal configuration, you will need the _APM Server URL_ to set the destination for APM data and an [_APM Secret Token_](((apm-guide-ref))/secret-token.html).
+If you prefer to use an [APM API key](((apm-guide-ref))/api-key.html) instead of the APM secret token, use the `ELASTIC_APM_API_KEY` environment variable instead of `ELASTIC_APM_SECRET_TOKEN` in the following configuration.
+
+For production environments, we recommend [using the AWS Secrets Manager to store your APM authentication key](((apm-lambda-ref))/aws-lambda-secrets-manager.html) instead of providing the secret value as plaintext in the environment variables.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaConfigureLambdaWidget  /> */}
+
+\<1> The [`ELASTIC_APM_SEND_STRATEGY`](((apm-lambda-ref))/aws-lambda-config-options.html#_elastic_apm_send_strategy) defines when APM data is sent to your Elastic APM backend. To reduce the execution time of your lambda functions, we recommend to use the `background` strategy in production environments with steady load scenarios.
+
+You can optionally <DocLink id="serverlessObservabilityApmAgentsPythonConfigure">fine-tune the Python agent</DocLink> or the [configuration of the ((apm-lambda-ext))](((apm-lambda-ref))/aws-lambda-config-options.html).
+
+That's it. After following the steps above, you're ready to go!  Your Lambda
+function invocations should be traced from now on.  Spans will be captured for
+<DocLink id="serverlessObservabilityApmAgentsPythonSupportedTechnologies">supported technologies</DocLink>. You can also use
+<DocLink id="serverlessObservabilityApmAgentsPythonApi" section="elasticapmcapture_span">`capture_span`</DocLink> to capture custom spans, and you can
+retrieve the `Client` object for capturing exceptions/messages using
+<DocLink id="serverlessObservabilityApmAgentsPythonApi" section="elasticapmget_client">`get_client`</DocLink>.

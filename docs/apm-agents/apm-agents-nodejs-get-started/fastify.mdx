@@ -1,0 +1,159 @@
+
+
+{/* import SharedSetUpAdvancedConfiguration from './transclusion/shared-set-up/advanced-configuration.mdx' */}
+{/* import SharedSetUpPerformanceMonitoring from './transclusion/shared-set-up/performance-monitoring.mdx' */}
+{/* import SharedSetUpUnknownRoots from './transclusion/shared-set-up/unknown-roots.mdx' */}
+{/* import SharedSetUpErrorLogging from './transclusion/shared-set-up/error-logging.mdx' */}
+{/* import SharedSetUpFilterSensitiveInfo from './transclusion/shared-set-up/filter-sensitive-info.mdx' */}
+{/* import SharedSetUpAddYourOwnData from './transclusion/shared-set-up/add-your-own-data.mdx' */}
+{/* import SharedSetUpCompatibilityLink from './transclusion/shared-set-up/compatibility-link.mdx' */}
+{/* import SharedSetUpTroubleshootingLink from './transclusion/shared-set-up/troubleshooting-link.mdx' */}
+
+export let framework = "Fastify"
+
+<div id="fastify"></div>
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/nodejs/current/fastify.html)
+</DocCallOut>
+
+</DocIf>
+
+Getting Elastic APM set up for your Fastify app is easy,
+and there are various ways you can tweak it to fit your needs.
+
+Follow the guide below to get started, and for more advanced topics,
+check out the <DocLink id="serverlessObservabilityApmAgentsNodejsApi">API Reference</DocLink>.
+
+<div id="fastify-installation"></div>
+
+### Installation
+
+Add the `elastic-apm-node` module as a dependency to your application:
+
+```bash
+npm install elastic-apm-node --save
+```
+
+<div id="fastify-initialization"></div>
+
+### Initialization
+
+It's important that the agent is started before you require **any** other modules in your Node.js application - i.e. before `fastify`, `http`, etc.
+
+This means that you should probably require and start the agent in your application's main file (usually `index.js`, `server.js` or `app.js`).
+
+Here's a simple Fastify example with the Elastic APM agent installed:
+
+```js
+// Add this to the VERY top of the first file loaded in your app
+var apm = require('elastic-apm-node').start({
+  // Override service name from package.json
+  // Allowed characters: a-z, A-Z, 0-9, -, _, and space
+  serviceName: '',
+
+  // Use if APM Server requires a token
+  secretToken: '',
+
+  // Use if APM Server uses API keys for authentication
+  apiKey: '',
+
+  // Set custom APM Server URL (default: http://127.0.0.1:8200)
+  serverUrl: '',
+})
+
+// Require the framework and instantiate it
+var fastify = require('fastify')({
+  logger: true
+})
+
+// Declare a route
+fastify.get('/', function (request, reply) {
+  reply.send({ hello: 'world' })
+})
+
+// Run the server!
+fastify.listen(3000, function (err, address) {
+  if (err) throw err
+  fastify.log.info(`server listening on ${address}`)
+})
+```
+
+The agent will now monitor the performance of your Fastify application and record any uncaught exceptions.
+
+<div id="fastify-advanced-configuration"></div>
+
+#### Advanced configuration
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpAdvancedConfiguration  /> */}
+
+
+<div id="fastify-full-documentation"></div>
+
+#### Full documentation
+
+* <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure">Setup and Configuration</DocLink>
+* <DocLink id="serverlessObservabilityApmAgentsNodejsApi">API Reference</DocLink>
+
+<div id="fastify-performance-monitoring"></div>
+
+### Performance monitoring
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpPerformanceMonitoring framework={framework}  /> */}
+
+
+<div id="fastify-unknown-routes"></div>
+
+#### Unknown routes
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpUnknownRoots framework={framework}  /> */}
+
+
+<div id="fastify-error-logging"></div>
+
+### Error logging
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpErrorLogging  /> */}
+
+
+<div id="fastify-filter-sensitive-information"></div>
+
+### Filter sensitive information
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpFilterSensitiveInfo  /> */}
+
+
+<div id="fastify-add-your-own-data"></div>
+
+### Add your own data
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpAddYourOwnData  /> */}
+
+
+<div id="fastify-compatibility"></div>
+
+### Compatibility
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpCompatibilityLink  /> */}
+
+See also: [Fastify's own LTS documentation.](https://www.fastify.io/docs/latest/LTS/)
+
+<div id="fastify-troubleshooting"></div>
+
+### Troubleshooting
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <SharedSetUpTroubleshootingLink  /> */}
+

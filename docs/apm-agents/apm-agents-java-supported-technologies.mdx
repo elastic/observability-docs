@@ -36,9 +36,9 @@ you can vote for it by participating in our
 [survey](https://docs.google.com/forms/d/e/1FAIpQLScd0RYiwZGrEuxykYkv9z8Hl3exx_LKCtjsqEo1OWx8BkLrOQ/viewform?usp=sf_link).
 We will use the results to add support for the most requested technologies.
 
-Other options are to add a dependency to the agent's {/* <DocLink id="enApmAgentJavaPublicApi">public API</DocLink> */}
+Other options are to add a dependency to the agent's <DocLink id="serverlessObservabilityApmAgentsJavaApi">public API</DocLink>
 in order to programmatically create custom transactions and spans, or to create
-your own {/* <DocLink id="enApmAgentJavaPluginApi">plugin</DocLink> */} that will instrument the technology you want instrumented.
+your own <DocLink id="serverlessObservabilityApmAgentsJavaApi">plugin</DocLink> that will instrument the technology you want instrumented.
 
 If you want to extend the auto-instrumentation capabilities of the agent,
 the [contributing guide](https://github.com/elastic/apm-agent-java/blob/main/CONTRIBUTING.md) should get you started.
@@ -63,7 +63,7 @@ As of version 1.33.0, Java 7 support is deprecated and will be removed in a futu
 |---|---|---|
 | Oracle JDK | 7u60+*, 8u40+, 9, 10, 11, 17, 20 | `--module-path` has not been tested yet |
 | OpenJDK | 7u60+*, 8u40+, 9, 10, 11, 17, 20 | `--module-path` has not been tested yet |
-| IBM J9 VM | 8 service refresh 5+ (build 2.9 or 8.0.5.0) | {/* <DocLink id="enApmAgentJavaMethodSamplingBased">Sampling profiler</DocLink> */} is not supported |
+| IBM J9 VM | 8 service refresh 5+ (build 2.9 or 8.0.5.0) | <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentJavaMethodSamplingBased">Sampling profiler</DocLink> */} is not supported |
 | HP-UX JVM | 7.0.10+*, 8.0.02+ |  |
 | SAP JVM | 8.1.065+ |  |
 
@@ -96,8 +96,8 @@ the JVM arguments, or setting `ELASTIC_APM_DISABLE_BOOTSTRAP_CHECKS=true` for th
 | Spring Webflux | 5.2.3+ | Creates transactions for incoming HTTP requests, supports annotated and functional endpoints. | 1.24.0 (experimental), 1.34.0 (GA) |
 | JavaServer Faces | 2.2.x, 2.3.x, 3.0.x | If you are using JSF, transactions are named based on the requested Facelets and spans are captured for visibility into execution and rendering | 1.0.0, `jakarta.faces` since 1.28.0 |
 | Spring Boot | 1.5+, 2.x, 3.x | Supports embedded Tomcat, Jetty and Undertow | 1.0.0, 3.x since 1.38.0 |
-| JAX-RS | 2.x, 3.x | The transactions are named based on your resources (`ResourceClass#resourceMethod`).  Note that only the packages configured in {/* <DocLink id="enApmAgentJavaConfigStacktrace" section="application_packages">`application_packages`</DocLink> */} are scanned for JAX-RS resources.  If you don't set this option,  all classes are scanned.  This comes at the cost of increased startup times, however. |
-| JAX-WS |  | The transactions are named based on your `@javax.jws.WebService`, `@jakarta.jws.WebService` annotated classes and `@javax.jws.WebMethod`, `@jakarta.jws.WebMethod` annotated method names (`WebServiceClass#webMethod`).  Note that only the packages configured in {/* <DocLink id="enApmAgentJavaConfigStacktrace" section="application_packages">`application_packages`</DocLink> */} are scanned for JAX-WS resources.  If you don't set this option,  all classes are scanned.  This comes at the cost of increased startup times, however. |
+| JAX-RS | 2.x, 3.x | The transactions are named based on your resources (`ResourceClass#resourceMethod`).  Note that only the packages configured in <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="application_packages">`application_packages`</DocLink> are scanned for JAX-RS resources.  If you don't set this option,  all classes are scanned.  This comes at the cost of increased startup times, however. |
+| JAX-WS |  | The transactions are named based on your `@javax.jws.WebService`, `@jakarta.jws.WebService` annotated classes and `@javax.jws.WebMethod`, `@jakarta.jws.WebMethod` annotated method names (`WebServiceClass#webMethod`).  Note that only the packages configured in <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="application_packages">`application_packages`</DocLink> are scanned for JAX-WS resources.  If you don't set this option,  all classes are scanned.  This comes at the cost of increased startup times, however. |
 | Grails | 3+ |  | 1.17.0 |
 | Apache Struts | 2.x | The transactions are named based on your action (`ActionClass#actionMethod`). | 1.24.0 |
 | Vert.x Web | 3.6+ | Captures incoming HTTP requests as transactions | 1.24.0 (experimental) |
@@ -116,14 +116,14 @@ Other Servlet 3+ compliant servers will most likely work as well.
 
 | Server | Supported versions |
 |---|---|
-| {/* <DocLink id="enApmAgentJavaSetupJavaagent" section="apache-tomcat">Tomcat</DocLink> */} | 7.x, 8.5.x, 9.x, 10.x |
-| {/* <DocLink id="enApmAgentJavaSetupJavaagent" section="jboss-eapwildfly">WildFly</DocLink> */} | 8+ |
-| {/* <DocLink id="enApmAgentJavaSetupJavaagent" section="jboss-eapwildfly">JBoss EAP</DocLink> */} | 6.4, 7.0, 7.1, 7.2 |
-| {/* <DocLink id="enApmAgentJavaSetupJavaagent" section="jetty">Jetty</DocLink> */} (only the `ServletContextHandler` is supported) | 9.2, 9.3, 9.4 |
-| {/* <DocLink id="enApmAgentJavaSetupJavaagent" section="websphere-liberty">WebSphere Liberty</DocLink> */} | 8.5.5, 18.0.x |
-| {/* <DocLink id="enApmAgentJavaSetupJavaagent" section="generic-setup">Undertow Servlet</DocLink> */} | 1.4 |
-| {/* <DocLink id="enApmAgentJavaSetupJavaagent" section="payara">Payara</DocLink> */} | 4.x, 5.x |
-| {/* <DocLink id="enApmAgentJavaSetupJavaagent" section="oracle-weblogic">Oracle WebLogic</DocLink> */} | 12.2 |
+| <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="apache-tomcat">Tomcat</DocLink> | 7.x, 8.5.x, 9.x, 10.x |
+| <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="jboss-eapwildfly">WildFly</DocLink> | 8+ |
+| <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="jboss-eapwildfly">JBoss EAP</DocLink> | 6.4, 7.0, 7.1, 7.2 |
+| <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="jetty">Jetty</DocLink> (only the `ServletContextHandler` is supported) | 9.2, 9.3, 9.4 |
+| <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="websphere-liberty">WebSphere Liberty</DocLink> | 8.5.5, 18.0.x |
+| <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="generic-setup">Undertow Servlet</DocLink> | 1.4 |
+| <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="payara">Payara</DocLink> | 4.x, 5.x |
+| <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="oracle-weblogic">Oracle WebLogic</DocLink> | 12.2 |
 
 <div id="supported-databases"></div>
 
@@ -153,7 +153,7 @@ The spans are named after the schema `<method> <host>`, for example `GET elastic
 | Framework | Supported versions | Note | Since |
 |---|---|---|---|
 | Apache HttpClient | 4.3+ |  | 0.7.0 (4.3+)   1.8.0 (4.0+) |
-| Apache HttpClient (Legacy) | 3.0+ | Requires setting {/* <DocLink id="enApmAgentJavaConfigCore" section="instrument_ancient_bytecode-added[1350]">`instrument_ancient_bytecode`</DocLink> */} to `true` | 1.35.0 |
+| Apache HttpClient (Legacy) | 3.0+ | Requires setting <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="instrument_ancient_bytecode-added[1350]">`instrument_ancient_bytecode`</DocLink> to `true` | 1.35.0 |
 | Apache HttpAsyncClient | 4.0+ |  | 1.6.0 |
 | Spring RestTemplate | 3.1.1+ |  | 0.7.0 |
 | OkHttp | 2, 3, 4 (4.4+ since 1.22.0) |  | 1.4.0 (synchronous calls via `Call#execute()`)  1.5.0 (async calls via `Call#enquene(Callback)`) |
@@ -396,7 +396,7 @@ When using a scheduling framework a transaction for every execution will be crea
       
     </DocCell>
     <DocCell>
-      The agent instruments any method defined in a package configured in {/* <DocLink id="enApmAgentJavaConfigStacktrace" section="application_packages">`application_packages`</DocLink> */} and annotated with one of the following:
+      The agent instruments any method defined in a package configured in <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="application_packages">`application_packages`</DocLink> and annotated with one of the following:
       `org.springframework.scheduling.annotation.Scheduled`
       `org.springframework.scheduling.annotation.Schedules`
       `javax.ejb.Schedule`
@@ -424,7 +424,7 @@ When using a scheduling framework a transaction for every execution will be crea
       The agent instruments the `execute` method of any class implementing `org.quartz.Job`, as well as the `executeInternal` method of any class extending `org.springframework.scheduling.quartz.QuartzJobBean`, and creates a transaction with the type `scheduled`, representing the job execution
       
       <DocCallOut title="Note">
-      only classes from the quartz-jobs dependency will be instrumented automatically. For the instrumentation of other jobs the package must be added to the {/* <DocLink id="enApmAgentJavaConfigStacktrace" section="application_packages">`application_packages`</DocLink> */} parameter.
+      only classes from the quartz-jobs dependency will be instrumented automatically. For the instrumentation of other jobs the package must be added to the <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="application_packages">`application_packages`</DocLink> parameter.
       </DocCallOut>
       
       
@@ -448,7 +448,7 @@ When using a scheduling framework a transaction for every execution will be crea
       
     </DocCell>
     <DocCell>
-      The agent instruments the `run` method in a package configured in {/* <DocLink id="enApmAgentJavaConfigStacktrace" section="application_packages">`application_packages`</DocLink> */} of any class extending `java.util.TimerTask`, and creates a transaction with the type `scheduled`, representing the job execution
+      The agent instruments the `run` method in a package configured in <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="application_packages">`application_packages`</DocLink> of any class extending `java.util.TimerTask`, and creates a transaction with the type `scheduled`, representing the job execution
       
     </DocCell>
     <DocCell>
@@ -465,15 +465,15 @@ When using a scheduling framework a transaction for every execution will be crea
 
 There are multiple log-related features in the agent and their support depend on the logging framework:
 
-- **{/* <DocLink id="enApmAgentJavaLogs" section="log-correlation">Correlation</DocLink> */}**:
+- ** <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* <DocLink id="enApmAgentJavaLogs" section="log-correlation">Correlation</DocLink> */}**:
     The agent automatically injects `trace.id`, `transaction.id` and `error.id` into the MDC implementation (see below for framework specific MDC implementations used. MDC = Mapped Diagnostic Context, a standard way to enrich log messages with additional information).
     For service correlation, the agent sets values for `service.name`, `service.version` and `service.environment`, using ECS log format is required (`ecs-logging-java` or reformatting).
 
-- **{/* <DocLink id="enApmAgentJavaLogs" section="error-capturing">Error capturing</DocLink> */}**:
+- ** <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* <DocLink id="enApmAgentJavaLogs" section="error-capturing">Error capturing</DocLink> */}**:
     Automatically captures exceptions for calls like `logger.error("message", exception)`.
 
-- **{/* <DocLink id="enApmAgentJavaConfigLogging" section="log_ecs_reformatting-added[1220]-experimental">Reformatting</DocLink> */}**:
-    When {/* <DocLink id="enApmAgentJavaConfigLogging" section="log_ecs_reformatting-added[1220]-experimental">`log_ecs_reformatting`</DocLink> */} is enabled, logs will be automatically reformatted into
+- **<DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="log_ecs_reformatting-added[1220]-experimental">Reformatting</DocLink>**:
+    When <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="log_ecs_reformatting-added[1220]-experimental">`log_ecs_reformatting`</DocLink> is enabled, logs will be automatically reformatted into
     ECS-compatible format.
 
 <DocTable columns={[
@@ -625,13 +625,15 @@ AWS Lambda provides multiple [JVM base images](https://docs.aws.amazon.com/lambd
 Running with unsupported images is still possible but requires providing agent configuration through environment variables
 explicitly.
 
-{/* <AwsLambdaRuntimes /> */}
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <AwsLambdaRuntimes  /> */}
+
 
 <div id="supported-java-methods"></div>
 
 ## Java method monitoring
 
-If you are seeing gaps in the span timeline and want to include additional methods, there are several options. See {/* <DocLink id="enApmAgentJavaJavaMethodMonitoring">How to find slow methods</DocLink> */} for more information.
+If you are seeing gaps in the span timeline and want to include additional methods, there are several options. See <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentJavaJavaMethodMonitoring">How to find slow methods</DocLink> */} for more information.
 
 <div id="supported-metrics"></div>
 
@@ -639,9 +641,9 @@ If you are seeing gaps in the span timeline and want to include additional metho
 
 | Framework | Description | Since |
 |---|---|---|
-| Built-in metrics | The agent sends various system, JVM, and application metrics.  See the {/* <DocLink id="enApmAgentJavaMetrics">metrics</DocLink> */} documentation. | 1.3.0 |
-| JMX | Set the configuration option {/* <DocLink id="enApmAgentJavaConfigJmx" section="capture_jmx_metrics-added[1110]">`capture_jmx_metrics`</DocLink> */} in order to monitor any JMX metric. | 1.11.0 |
-| Micrometer | Automatically detects and reports the metrics of each `MeterRegistry`.  See {/* <DocLink id="enApmAgentJavaMetrics" section="micrometer-metrics">Micrometer metrics</DocLink> */} for more details. | 1.18.0 |
+| Built-in metrics | The agent sends various system, JVM, and application metrics.  See the <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentJavaMetrics">metrics</DocLink> */} documentation. | 1.3.0 |
+| JMX | Set the configuration option <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="capture_jmx_metrics-added[1110]">`capture_jmx_metrics`</DocLink> in order to monitor any JMX metric. | 1.11.0 |
+| Micrometer | Automatically detects and reports the metrics of each `MeterRegistry`.  See <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentJavaMetrics" section="micrometer-metrics">Micrometer metrics</DocLink> */} for more details. | 1.18.0 |
 
 <div id="supported-technologies-caveats"></div>
 
