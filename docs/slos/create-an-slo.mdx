@@ -5,3 +5,103 @@ title: Create an SLO
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'how-to' ]
 ---
+
+import Snippet from '../partials/early-draft-notice.mdx'
+
+<Snippet />
+
+<div id="slo-create"></div>
+
+<DocCallOut template="beta" />
+<DocCallOut title="Important" color="warning">
+Before creating an SLO, you need to <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enObservabilitySloPrivileges">configure your SLO access</DocLink> */}.
+</DocCallOut>
+
+To create an SLO, go to **Observability → SLOs**: 
+
+* If you're creating your first SLO, you'll see an introductory page. Click the **Create SLO** button.
+* If you've created SLOs before, click the **Create new SLO** button in the upper-right corner of the page.
+
+From here, complete the following:
+
+* <DocLink id="serverlessObservabilityCreateAnSlo" section="define-your-sli">Define your service-level indicator (SLI)</DocLink>
+* <DocLink id="serverlessObservabilityCreateAnSlo" section="set-your-objectives">Set your objectives</DocLink>
+* <DocLink id="serverlessObservabilityCreateAnSlo" section="describe-your-slo">Describe your SLO</DocLink>
+
+<div id="define-sli"></div>
+
+## Define your SLI
+
+The type of SLI to use depends on the location of your data. If you're creating an SLO based on raw logs coming from your services, you can use a custom KQL SLI. If you're creating an SLO based on services using application performance monitoring (APM), you can use an APM latency or APM availability SLI. See the following table for more on each type of SLI:
+
+{/* [cols="1,1"] */}
+|  |  |
+|---|---|
+| **Custom KQL**  | This indicator can be based on any elasticsearch index or index pattern you have. You define two queries, one that yields the good events and one that yields the total events from your index.  |
+| **APM latency**  | This indicator is based on the APM data that we receive from your instrumented services and a latency threshold.  |
+| **APM availability**  | This indicator is based on the APM data that we receive from your instrumented services.  |
+
+<div id="custom-kql-sli"></div>
+
+### Custom KQL
+When defining a custom KQL SLI, you can set the following fields:
+
+* **Index** — The index or index pattern you want to base the SLI upon.
+* **Timestamp field** — The timestamp field used by the index.
+* **Query filter** — A filter to apply on the index.
+* **Good query** — The KQL query yielding the good events to take into account for computing the SLI.
+* **Total query** — The KQL query yielding all events to take into account for computing the SLI.
+
+<div id="apm-latency-sli"></div>
+
+### APM latency or availability
+When defining an APM latency or APM availability SLI, you can set the following fields:
+
+* **Service name** — The APM service name.
+* **Service environment** — Either `all` or the specific environment.
+* **Transaction type** — Either `all` or the specific transaction type.
+* **Transaction name** — Either `all` or the specific transaction name.
+* **Threshold (APM latency only)** — The latency threshold in milliseconds (ms) to consider the request as good.
+* **Query filter** — An optional query filter on the APM data.
+
+<div id="set-slo"></div>
+
+## Set your objectives
+After defining your SLI, you need to set your objectives. To set your objectives, complete the following:
+
+* <DocLink id="serverlessObservabilityCreateAnSlo" section="select-your-budgeting-method">Select your budgeting method</DocLink>
+* <DocLink id="serverlessObservabilityCreateAnSlo" section="set-your-time-window">Set your time window</DocLink>
+* <DocLink id="serverlessObservabilityCreateAnSlo" section="set-your-targetslo-percent">Set your target/SLO percentage</DocLink>
+
+<div id="slo-budgeting-method"></div>
+
+### Select your budgeting method
+You can select either an **occurrences** or a **timeslices** budgeting method: 
+
+{/* [cols="1,1"] */}
+|  |  |
+|---|---|
+| **Occurrences** | Uses the number of good events and the number of total events to compute the SLO. |
+| **Timeslices** | Breaks the overall time window into smaller slices of a defined duration and uses the number of good slices over the number of total slices to compute the SLO. |
+
+<div id="slo-time-window"></div>
+
+### Set your time window
+Select the durations over which you want to compute your SLO. Then time window uses the data from the defined rolling period. For example, the last 30 days. 
+
+<div id="slo-target"></div>
+
+### Set your target/SLO (%)
+The SLO target objective in percentage.
+
+<div id="slo-describe"></div>
+
+## Describe your SLO
+After setting your objectives, give your SLO a name, a short description, and add any relevant tags.
+
+<div id="slo-alert-checkbox"></div>
+
+## SLO burn rate alert rule
+When the **Create an SLO burn rate alert rule** checkbox is selected, the **Create rule** window opens immediately after you click the **Create SLO** button.
+Here you can define your SLO burn rate alert rule. 
+For more information, see <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enObservabilitySloBurnRateAlert">Create an SLO burn rate rule</DocLink> */}.
