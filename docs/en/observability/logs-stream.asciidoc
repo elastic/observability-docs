@@ -143,10 +143,104 @@ If you're not seeing your log files in {kib}, check the following in the `elasti
 If you're still running into issues, see {fleet-guide}/fleet-troubleshooting.html[{agent} troubleshooting] and {fleet-guide}/elastic-agent-configuration.html[Configure standalone Elastic Agents].
 
 [discrete]
-[[logs-stream-whats-next]]
-== What's next?
+[[logs-stream-enhance-logs]]
+== Get the most out of your log data
 
-For more information on deploying and managing logs in Elastic Observability, see the following links:
+Now that you've sent your log data to {es}, this section helps you make sure you're getting the most out of it. You can do this by taking your unstructured log data and using ingest pipelines to extract structured fields. Extracting structured fields from your log data makes it easier to search, analyze, and filter your log data. 
 
-- The <<logs-checklist>> consolidates links to documentation on sending log data, configuring logs, and analyzing logs.
-- <<monitor-logs>> has information on visualizing and analyzing logs.
+Let's look at the following log data example:
+
+[source,log]
+----
+2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
+----
+
+This log is made up of the following potential fields:
+
+- *timestamp*: "2023-08-08T13:45:12.123Z"
+- *log.level*: "WARN"
+- *host.ip*: "192.168.1.101"
+- *message*: "Disk usage exceeds 90%."
+
+Extracting these structured fields from your log data lets you search or filter your data in the following ways:
+
+- *timestamp* – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
+- *log.level* – Extracting this field lets you filter logs by severity. This is helpful if you want to  focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
+- *host.ip* – Extracting this field lets you filter logs by the hosts' IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
+
+[discrete]
+[[logs-stream-extract-timestamp]]
+=== Extract the `@timestamp` field
+
+To extract the `@timestamp` field, you'll use a ingest pipeline with a `dissect` processor and a `date` processor. 
+
+The `dissect` processor takes your unstructured stream log message and puts it into structured fields. 
+
+The `date` processor then takes the`timestamp` field from the dissect processor and turns it into a date field. The date processor can also set the timezone and change the output format.
+
+If we look at the example log data from the previous section:
+
+[source,log]
+----
+2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
+----
+
+For the dissect processor, you need to set the following values:
+//add link for dissect processor
+
+- the `field` you're extracting data from (`message` in this case).
+- the `pattern` of your log data. To extract the timestamp from the example, use the following pattern:
++
+[source,JSON]
+----
+%{@timestamp} %{message}
+----
++
+This puts the timestamp (2023-08-08T13:45:12.123Z) in the `@timestamp` field and the rest of the message (WARN 192.168.1.101 Disk usage exceeds 90%.) in the `message` field.
+
+For the `date` processor, you need to set following values:
+//add link for date processor
+
+- The `field` you're extracting the date from (`@timestamp` in this case).
+- The `formats` of the current timestamp (`ISO8601` in this case). The date processor also accepts Java time patterns or the following formats: `ISO8601`, `UNIX`, `UNIX_MS`, `TAI64N`.
+
+Optionally, you can set the following values for teh `date` processor:
+- The `timezone` to use when parsing the date.
+- The `output_format` if you want to change the format when writing the date to the `@timestamp` field. Must be a valid java time pattern.
+//need link for java time pattern
+
+Define your ingest pipeline with the dissect and date processors with the following:
+
+[source,JSON]
+----
+PUT _ingest/pipeline/my-pipeline
+{
+  "description": "Pipeline to extract timestamp from log data",
+  "processors": [
+    {
+      "dissect": {
+        "field": "message",
+        "patterns": "%{@timestamp} %{message}"
+      }
+    },
+    {
+      "date": {
+        "field": "@timestamp",
+        "formats": ["current-timestamp-format"],
+        "timezone": ["desired-timezone"],
+        "output_format": ["desired-timezone-output-format"]
+      }
+    }
+  ]
+}
+----
+
+[discrete]
+[[logs-stream-extract-loglevel]]
+=== Extract the `log.level` field
+
+
+
+[discrete]
+[[logs-stream-extract-hostip]]
+=== Extract the `host.ip` field
