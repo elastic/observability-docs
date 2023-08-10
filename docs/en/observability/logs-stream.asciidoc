@@ -1,7 +1,7 @@
 [[logs-stream]]
 = Stream a log file
 
-In this guide, you'll learn how to send a log file to Elasticsearch using a standalone {agent}, configure the {agent} and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up. 
+In this guide, you'll learn how to send a log file to Elasticsearch using a standalone {agent}, configure the {agent} and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up. Once your log files are in {es}, see the <<logs-stream-enhance-logs>> section to learn how to parse your log data and extract fields so you can filter and sort your logs effectively.
 
 [discrete]
 [[logs-stream-prereq]]
@@ -133,7 +133,7 @@ image::images/stream-logs-example.png[example search query on the logs stream pa
 
 [discrete]
 [[logs-stream-troubleshooting]]
-== Troubleshooting 
+== Troubleshoot your {agent} configuration
 
 If you're not seeing your log files in {kib}, check the following in the `elastic-agent.yml` file:
 
@@ -159,7 +159,7 @@ Add this log to {es} using the following command in *Dev Tools*, found in your d
 
 [source,console]
 ----
-POST logs-generic-default/_doc
+POST logs-example-default/_doc
 {
   "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
 }
@@ -169,30 +169,46 @@ Use the following command to look at the document's details:
 
 [source,console]
 ----
-GET /<index-name>/_doc/<document-id>
+GET /logs-example-default/_search
 ----
 
-You see something like the following:
+You see something like the following output:
 
 [source]
 ----
 {
-  "_index": ".ds-logs-generic-default-2023.08.09-000001",
-  "_id": "sERP24kB4jRKLxIff9f1",
-  "_version": 1,
-  "_seq_no": 4,
-  "_primary_term": 1,
-  "found": true,
-  "_source": {
-    "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.",
-    "@timestamp": "2023-08-09T17:19:27.73312243Z"
+  "took": 0,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 1,
+      "relation": "eq"
+    },
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": ".ds-logs-example-default-2023.08.09-000001",
+        "_id": "RsWy3IkB8yCtA5VGOKLf",
+        "_score": 1,
+        "_source": {
+          "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.",
+          "@timestamp": "2023-08-09T17:19:27.73312243Z"
+        }
+      }
+    ]
   }
 }
 ----
 
 Notice the text in your message isn't parsed, so you can't filter by any individual fields. Also, the `@timestamp` field shows when you added the data to {es}, not when the log occurred. In this format, neither of these fields are particularly useful for sorting or filtering. Your message, however, has all of these potential fields:
 
-- *timestamp* – 2023-08-08T13:45:12.123Z – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
+- *@timestamp* – 2023-08-08T13:45:12.123Z – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
 - *log.level* – WARN – Extracting this field lets you filter logs by severity. This is helpful if you want to  focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
 - *host.ip* – 192.168.1.101 – Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
 - *message* – Disk usage exceeds 90%.
@@ -222,7 +238,7 @@ To extract the timestamp you need to:
 
 [discrete]
 [[logs-stream-ingest-pipeline]]
-==== Extract the timestamp with an ingest pipeline
+==== Use an ingest pipeline to extract the `@timestamp`
 
 To extract the `@timestamp` field, use an ingest pipeline with a dissect processor and a date processor. Processors are executed in the order they are defined, so in the following example: 
 
@@ -233,19 +249,19 @@ The following example creates an ingest pipeline with a dissect and a date proce
 
 [source,console]
 ----
-PUT _ingest/pipeline/logs-generic-default
+PUT _ingest/pipeline/logs-example-default
 {
   "description": "Extracts the timestamp from log",
   "processors": [
     {
       "dissect": {
         "field": "message",
-        "pattern": "%{timestamp} %{message}"
+        "pattern": "%{@timestamp} %{message}"
       }
     },
     {
       "date": {
-        "field": "timestamp",
+        "field": "@timestamp",
         "formats": ["ISO8601"]
       }
     }
@@ -265,34 +281,28 @@ PUT _ingest/pipeline/logs-generic-default
 This extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `timestamp` field, and the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field.
 +
 . Set the following for the date processor:
-- `_ingest/pipeline/logs-generic-default` – `logs-generic-default` is the name of the pipeline. The name of your pipeline needs to match the name of your data stream. You'll set up your data stream in the next section. See {fleet-ref}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
+- `_ingest/pipeline/logs-example-default` – `logs-example-default` is the name of the pipeline. The name of your pipeline needs to match the name of your data stream. You'll set up your data stream in the next section. See {fleet-ref}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
 - `field` – The field you're extracting the date from, `@timestamp` in this case.
 - `formats` – The format of the current timestamp, `ISO8601` in this case. The date processor accepts {ref}/mapping-date-format.html[Java time patterns] or the following formats: `ISO8601`, `UNIX`, `UNIX_MS`, `TAI64N`.
 
-Optionally, you can set the following values for the `date` processor:
-
-- `timezone` – Sets the timezone to use when parsing the date.
-- `target_field` – Sets the output field for the timestamp.
-- `output_format` – Changes the format when writing the date to the timestamp field. Must be a valid java time pattern.
+You can set additional fields with the date processor to update timezones, set a different output field, and change the output format of your timestamp. For more on this, see the {ref}/date-processor.html[date processor] documentation.
 
 [discrete]
 [[logs-stream-index-template]]
 ==== Configure your data stream with an index template
 
-After creating your ingest pipeline, you need to index your log data to a data stream using an index template. 
-
-The following command creates an index template:
+After creating your ingest pipeline, you need to index your log data to a data stream using an index template. The following command creates an index template:
 
 [source,console]
 ----
-PUT _index_template/logs-generic-default-template
+PUT _index_template/logs-example-default-template
 {
-  "index_patterns": [ "logs-generic-default" ],
+  "index_patterns": [ "logs-example-default" ],
   "data_stream": { },
   "priority": 500,
   "template": {
     "settings": {
-      "index.default_pipeline":"logs-generic-default"
+      "index.default_pipeline":"logs-example-default"
     }
   }
 }
@@ -300,20 +310,20 @@ PUT _index_template/logs-generic-default-template
 
 Set the following values for the index template:
 
-- `index_patterns`– The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. If you're using default values, your logs data stream is named `logs-generic-default`. Data that matches this pattern will go through your pipeline.
+- `index_patterns`– The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-default`. Data that matches this pattern will go through your pipeline.
 - `data_stream` – Enables data streams.
-- `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, the template with the higher priority is used. Built-in templates have a priority of `200`, so we recommend a priority higher than that.
-- `index.default_pipeline` – The name of the ingest pipeline you created.
+- `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, the template with the higher priority is used. Built-in templates have a priority of `200`, so we recommend a priority higher than `200`.
+- `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
 
 [discrete]
 [[logs-stream-create-data-stream]]
 ==== Create your data stream
 
-Create your data stream using the {fleet-ref}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. The name needs to match the name of your pipeline. For this example, we'll use the default log data stream name, `logs-generic-default`, and the example log:
+Create your data stream using the {fleet-ref}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. The name needs to match the name of your pipeline. For this example, we'll name the data stream `logs-example-default` and use the example log:
 
 [source,console]
 ----
-POST logs-generic-default/_doc
+POST logs-example-default/_doc
 {
   "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
 }
@@ -331,16 +341,32 @@ Under `_source`, you can see the `timestamp` field that was extracted by the dis
 [source]
 ----
 {
-  "_index": ".ds-logs-generic-default-2023.08.09-000001",
-  "_id": "StG93IkByBSsmSqxzBqO",
-  "_version": 1,
-  "_seq_no": 3,
-  "_primary_term": 1,
-  "found": true,
-  "_source": {
-    "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
-    "timestamp": "2023-08-08T13:45:12.123Z",
-    "@timestamp": "2023-08-08T13:45:12.123Z"
+  "took": 0,
+  "timed_out": false,
+  "_shards": {
+    "total": 1,
+    "successful": 1,
+    "skipped": 0,
+    "failed": 0
+  },
+  "hits": {
+    "total": {
+      "value": 1,
+      "relation": "eq"
+    },
+    "max_score": 1,
+    "hits": [
+      {
+        "_index": ".ds-logs-generic-default-2023.08.09-000001",
+        "_id": "RsWy3IkB8yCtA5VGOKLf",
+        "_score": 1,
+        "_source": {
+          "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
+          "@timestamp": "2023-08-08T13:45:12.123Z"
+        }
+      }
+      }
+    ]
   }
 }
 ----
