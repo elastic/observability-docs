@@ -1,0 +1,76 @@
+
+
+
+**Install the APM agent**
+
+Add the agent to your Gemfile.
+
+```ruby
+gem 'elastic-apm'
+```
+**Configure the agent**
+
+Ruby on Rails 
+    : APM is automatically started when your app boots.
+    Configure the agent by creating the config file `config/elastic_apm.yml`:
+
+    ```ruby
+    # config/elastic_apm.yml:
+
+    # Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
+    # Defaults to the name of your Rails app
+    service_name: 'my-service'
+
+    # Use if APM Server requires a token
+    secret_token: ''
+
+    # Set custom APM Server URL (default: http://localhost:8200)
+    server_url: 'http://localhost:8200'
+    ```
+
+Rack 
+    : For Rack or a compatible framework, like Sinatra, include the middleware in your app and start the agent.
+
+    ```ruby
+    # config.ru
+    require 'sinatra/base'
+
+    class MySinatraApp < Sinatra::Base
+    use ElasticAPM::Middleware
+
+    # ...
+    end
+
+    ElasticAPM.start(
+    app: MySinatraApp, # required
+    config_file: '' # optional, defaults to config/elastic_apm.yml
+    )
+
+    run MySinatraApp
+
+    at_exit { ElasticAPM.stop }
+    ```
+
+    **Create a config file**
+
+    Create a config file config/elastic_apm.yml:
+
+    ```ruby
+    # config/elastic_apm.yml:
+
+    # Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
+    # Defaults to the name of your Rack app's class.
+    service_name: 'my-service'
+
+    # Use if APM Server requires a token
+    secret_token: ''
+
+    # Set custom APM Server URL (default: http://localhost:8200)
+    server_url: 'http://localhost:8200'
+    ```
+
+**Learn more in the agent reference**
+
+* <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* [Supported technologies]({book['apm-ruby-ref-v']}/supported-technologies.html) */}
+* <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* [Advanced configuration]({book['apm-ruby-ref-v']}/configuration.html) */}
+
