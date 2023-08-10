@@ -218,8 +218,6 @@ NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common S
 See these sections information on extracting specific fields:
 
 - <<logs-stream-extract-timestamp>>
-- <<logs-stream-extract-loglevel>>
-- <<logs-stream-extract-hostip>>
 
 [discrete]
 [[logs-stream-extract-timestamp]]
@@ -334,6 +332,8 @@ The results should show the `@timestamp` field extracted from the `message` fiel
 }
 ----
 
+NOTE: Create the index pipeline using the `PUT` command in the previous section before using the simulate pipeline API.
+
 [discrete]
 [[logs-stream-index-template]]
 ==== Configure your data stream with an index template
@@ -422,14 +422,10 @@ You can now use the `@timestamp` field to sort your logs by the date and time th
 
 [discrete]
 [[logs-stream-timestamp-troubleshooting]]
-==== Troubleshooting
+=== Troubleshooting
 
-[discrete]
-[[logs-stream-extract-loglevel]]
-=== Extract the `log.level` field
+Check the following common issues for possible solutions:
 
-
-
-[discrete]
-[[logs-stream-extract-hostip]]
-=== Extract the `host.ip` field
+- *Timestamp failure* – If data from your sources has inconsistent date formats, you can set `ignore_failure` to `true` for your date processor. This process logs with correctly formatted dates and ignore those with issues.
+- *Incorrect timezone* – Set your timezone using the `timezone` on the {ref}/date-processor.html[date processor].
+- *Incorrect timestamp format* – Your timestamp can be a java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information.
