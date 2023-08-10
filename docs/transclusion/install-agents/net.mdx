@@ -1,0 +1,59 @@
+
+
+
+**Download the APM agent**
+
+Add the agent packages from [NuGet](https://www.nuget.org/packages?q=Elastic.apm) to your .NET application.
+There are multiple NuGet packages available for different use cases.
+
+For an ASP.NET Core application with Entity Framework Core, download the
+[Elastic.Apm.NetCoreAll](https://www.nuget.org/packages/Elastic.Apm.NetCoreAll) package.
+This package will automatically add every agent component to your application.
+
+To minimize the number of dependencies, you can use the
+[Elastic.Apm.AspNetCore](https://www.nuget.org/packages/Elastic.Apm.AspNetCore) package for just ASP.NET Core monitoring, or the
+[Elastic.Apm.EfCore](https://www.nuget.org/packages/Elastic.Apm.EntityFrameworkCore) package for just Entity Framework Core monitoring.
+
+If you only want to use the public agent API for manual instrumentation, use the
+[Elastic.Apm](https://www.nuget.org/packages/Elastic.Apm) package.
+
+**Add the agent to the application**
+
+For an ASP.NET Core application with the `Elastic.Apm.NetCoreAll` package,
+call the `UseAllElasticApm` method in the `Configure` method within the `Startup.cs` file:
+
+```dotnet
+public class Startup
+{
+  public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+  {
+    app.UseAllElasticApm(Configuration);
+    //…rest of the method
+  }
+  //…rest of the class
+}
+```
+
+Passing an `IConfiguration` instance is optional and by doing so,
+the agent will read config settings through this `IConfiguration` instance, for example,
+from the `appsettings.json` file:
+
+```json
+{
+    "ElasticApm": {
+    "SecretToken": "",
+    "ServerUrls": "http://localhost:8200", //Set custom APM Server URL (default: http://localhost:8200)
+    "ServiceName" : "MyApp", //allowed characters: a-z, A-Z, 0-9, -, _, and space. Default is the entry assembly of the application
+  }
+}
+```
+
+If you don’t pass an `IConfiguration` instance to the agent, for example, in a non-ASP.NET Core application,
+you can configure the agent with environment variables.
+See the agent reference for more information.
+
+**Learn more in the agent reference**
+
+* <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* [Supported technologies]({book['apm-dotnet-ref-v']}/supported-technologies.html) */}
+* <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* [Advanced configuration]({book['apm-dotnet-ref-v']}/configuration.html) */}
+
