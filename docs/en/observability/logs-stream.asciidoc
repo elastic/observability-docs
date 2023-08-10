@@ -84,20 +84,20 @@ inputs:
 
 Next, set the values for the following fields:
 
-. `hosts` – Copy the {es} endpoint from your deployment's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
+- `hosts` – Copy the {es} endpoint from your deployment's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
 +
 --
 [role="screenshot"]
 image::images/es-endpoint-cluster-id.png[{es} endpoint and cluster id location, 50%]
 --
-. `api-key` – Use an API key to grant the agent access to {es}. To create an API key for your agent, see {fleet-guide}/grant-access-to-elasticsearch.html#create-api-key-standalone-agent[Create API keys for standalone agents].
+- `api-key` – Use an API key to grant the agent access to {es}. To create an API key for your agent, see {fleet-guide}/grant-access-to-elasticsearch.html#create-api-key-standalone-agent[Create API keys for standalone agents].
 +
 NOTE: The API key format should be `<id>:<key>`. Make sure you selected *Beats* when you created your API key. Base64 encoded API keys are not currently supported in this configuration.
-. `inputs.id` – A unique identifier for your input.
-. `type` – The type of input. For collecting logs, set this to `filestream`.
-. `streams.id` – A unique identifier for your stream of log data. 
-. `data_stream.dataset` – The name for your dataset data stream. You can name this data stream anything that signifies the source of the data. The default value is `generic`.
-. `paths` – The path to your log files. You can also use a pattern like `/var/log/foo.log*`.
+- `inputs.id` – A unique identifier for your input.
+- `type` – The type of input. For collecting logs, set this to `filestream`.
+- `streams.id` – A unique identifier for your stream of log data. 
+- `data_stream.dataset` – The name for your dataset data stream. You can name this data stream anything that signifies the source of the data. The default value is `generic`.
+- `paths` – The path to your log files. You can also use a pattern like `/var/log/foo.log*`.
 
 [discrete]
 [[logs-stream-restart-agent]]
@@ -146,94 +146,210 @@ If you're still running into issues, see {fleet-guide}/fleet-troubleshooting.htm
 [[logs-stream-enhance-logs]]
 == Get the most out of your log data
 
-Now that you've sent your log data to {es}, this section helps you make sure you're getting the most out of it. You can do this by taking your unstructured log data and using ingest pipelines to extract structured fields. Extracting structured fields from your log data makes it easier to search, analyze, and filter your log data. 
+This section shows you how to get the most out of your log data after sending it to {es} by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data. 
 
-Let's look at the following log data example:
+Let's look at the following log example:
 
 [source,log]
 ----
 2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
 ----
 
-This log is made up of the following potential fields:
+Add this log to {es} using the following command in *Dev Tools*, found in your deployment in the left navigation under *Management*:
 
-- *timestamp*: "2023-08-08T13:45:12.123Z"
-- *log.level*: "WARN"
-- *host.ip*: "192.168.1.101"
-- *message*: "Disk usage exceeds 90%."
+[source,console]
+----
+POST logs-generic-default/_doc
+{
+  "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
+}
+----
 
-Extracting these structured fields from your log data lets you search or filter your data in the following ways:
+Use the following command to look at the document's details:
 
-- *timestamp* – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
-- *log.level* – Extracting this field lets you filter logs by severity. This is helpful if you want to  focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
-- *host.ip* – Extracting this field lets you filter logs by the hosts' IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
+[source,console]
+----
+GET /<index-name>/_doc/<document-id>
+----
+
+You see something like the following:
+
+[source]
+----
+{
+  "_index": ".ds-logs-generic-default-2023.08.09-000001",
+  "_id": "sERP24kB4jRKLxIff9f1",
+  "_version": 1,
+  "_seq_no": 4,
+  "_primary_term": 1,
+  "found": true,
+  "_source": {
+    "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.",
+    "@timestamp": "2023-08-09T17:19:27.73312243Z"
+  }
+}
+----
+
+Notice the text in your message isn't parsed, so you can't filter by any individual fields. Also, the `@timestamp` field shows when you added the data to {es}, not when the log occurred. In this format, neither of these fields are particularly useful for sorting or filtering. Your message, however, has all of these potential fields:
+
+- *timestamp* – 2023-08-08T13:45:12.123Z – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
+- *log.level* – WARN – Extracting this field lets you filter logs by severity. This is helpful if you want to  focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
+- *host.ip* – 192.168.1.101 – Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
+- *message* – Disk usage exceeds 90%.
+
+NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. The ECS defines a common set of fields that you can use across Elasticsearch when storing data including log and metric data.
+
+See the following sections for information on extracting specific fields:
+- <<logs-stream-extract-timestamp>>
+- <<logs-stream-extract-loglevel>>
+- <<logs-stream-extract-hostip>>
 
 [discrete]
 [[logs-stream-extract-timestamp]]
 === Extract the `@timestamp` field
 
-To extract the `@timestamp` field, you'll use a ingest pipeline with a `dissect` processor and a `date` processor. 
-
-The `dissect` processor takes your unstructured stream log message and puts it into structured fields. 
-
-The `date` processor then takes the`timestamp` field from the dissect processor and turns it into a date field. The date processor can also set the timezone and change the output format.
-
-If we look at the example log data from the previous section:
+This section shows you how to extract the `@timestamp` field from the following example log:
 
 [source,log]
 ----
 2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
 ----
 
-For the dissect processor, you need to set the following values:
-//add link for dissect processor
+To extract the timestamp you need to:
+- <<logs-stream-ingest-pipeline>>
+- <<logs-stream-index-template>>
+- <<logs-stream-create-data-stream>>
 
-- the `field` you're extracting data from (`message` in this case).
-- the `pattern` of your log data. To extract the timestamp from the example, use the following pattern:
-+
-[source,JSON]
+[discrete]
+[[logs-stream-ingest-pipeline]]
+==== Extract the timestamp with an ingest pipeline
+
+To extract the `@timestamp` field, use an ingest pipeline with a dissect processor and a date processor. Processors are executed in the order they are defined, so in the following example: 
+
+. The {ref}/dissect-processor.html[dissect processor] extracts a structured field from your unstructured log message based on a pattern you set. In the following example, it extracts the timestamp to the `timestamp` field.
+. The {ref}/date-processor.html[date processor] then takes the `timestamp` field extracted by the dissect processor and extracts it to a date field. By default, this date field is called `@timestamp`. The date processor can also set the timezone, change the target field, and change the output format of the timestamp.
+
+The following example creates an ingest pipeline with a dissect and a date processor:
+
+[source,console]
 ----
-%{@timestamp} %{message}
-----
-+
-This puts the timestamp (2023-08-08T13:45:12.123Z) in the `@timestamp` field and the rest of the message (WARN 192.168.1.101 Disk usage exceeds 90%.) in the `message` field.
-
-For the `date` processor, you need to set following values:
-//add link for date processor
-
-- The `field` you're extracting the date from (`@timestamp` in this case).
-- The `formats` of the current timestamp (`ISO8601` in this case). The date processor also accepts Java time patterns or the following formats: `ISO8601`, `UNIX`, `UNIX_MS`, `TAI64N`.
-
-Optionally, you can set the following values for teh `date` processor:
-- The `timezone` to use when parsing the date.
-- The `output_format` if you want to change the format when writing the date to the `@timestamp` field. Must be a valid java time pattern.
-//need link for java time pattern
-
-Define your ingest pipeline with the dissect and date processors with the following:
-
-[source,JSON]
-----
-PUT _ingest/pipeline/my-pipeline
+PUT _ingest/pipeline/logs-generic-default
 {
-  "description": "Pipeline to extract timestamp from log data",
+  "description": "Extracts the timestamp from log",
   "processors": [
     {
       "dissect": {
         "field": "message",
-        "patterns": "%{@timestamp} %{message}"
+        "pattern": "%{timestamp} %{message}"
       }
     },
     {
       "date": {
-        "field": "@timestamp",
-        "formats": ["current-timestamp-format"],
-        "timezone": ["desired-timezone"],
-        "output_format": ["desired-timezone-output-format"]
+        "field": "timestamp",
+        "formats": ["ISO8601"]
       }
     }
   ]
 }
 ----
+
+. Set the following values for the dissect processor:
+- `field` – The field you're extracting data from, `message` in this case.
+- `pattern`– The pattern of the elements in your log data:
++
+[source,JSON]
+----
+%{timestamp} %{message}
+----
++
+This extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `timestamp` field, and the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field.
++
+. Set the following for the date processor:
+- `_ingest/pipeline/logs-generic-default` – `logs-generic-default` is the name of the pipeline. The name of your pipeline needs to match the name of your data stream. You'll set up your data stream in the next section. See {fleet-ref}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
+- `field` – The field you're extracting the date from, `@timestamp` in this case.
+- `formats` – The format of the current timestamp, `ISO8601` in this case. The date processor accepts {ref}/mapping-date-format.html[Java time patterns] or the following formats: `ISO8601`, `UNIX`, `UNIX_MS`, `TAI64N`.
+
+Optionally, you can set the following values for the `date` processor:
+
+- `timezone` – Sets the timezone to use when parsing the date.
+- `target_field` – Sets the output field for the timestamp.
+- `output_format` – Changes the format when writing the date to the timestamp field. Must be a valid java time pattern.
+
+[discrete]
+[[logs-stream-index-template]]
+==== Configure your data stream with an index template
+
+After creating your ingest pipeline, you need to index your log data to a data stream using an index template. 
+
+The following command creates an index template:
+
+[source,console]
+----
+PUT _index_template/logs-generic-default-template
+{
+  "index_patterns": [ "logs-generic-default" ],
+  "data_stream": { },
+  "priority": 500,
+  "template": {
+    "settings": {
+      "index.default_pipeline":"logs-generic-default"
+    }
+  }
+}
+----
+
+Set the following values for the index template:
+
+- `index_patterns`– The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. If you're using default values, your logs data stream is named `logs-generic-default`. Data that matches this pattern will go through your pipeline.
+- `data_stream` – Enables data streams.
+- `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, the template with the higher priority is used. Built-in templates have a priority of `200`, so we recommend a priority higher than that.
+- `index.default_pipeline` – The name of the ingest pipeline you created.
+
+[discrete]
+[[logs-stream-create-data-stream]]
+==== Create your data stream
+
+Create your data stream using the {fleet-ref}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. The name needs to match the name of your pipeline. For this example, we'll use the default log data stream name, `logs-generic-default`, and the example log:
+
+[source,console]
+----
+POST logs-generic-default/_doc
+{
+  "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
+}
+----
+
+Now look at the details using the following command:
+
+[source,JSON]
+----
+GET /<index-name>/_doc/<document-id>
+----
+
+Under `_source`, you can see the `timestamp` field that was extracted by the dissect processor and the `@timestamp` field that was extracted by the date processor:
+
+[source]
+----
+{
+  "_index": ".ds-logs-generic-default-2023.08.09-000001",
+  "_id": "StG93IkByBSsmSqxzBqO",
+  "_version": 1,
+  "_seq_no": 3,
+  "_primary_term": 1,
+  "found": true,
+  "_source": {
+    "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
+    "timestamp": "2023-08-08T13:45:12.123Z",
+    "@timestamp": "2023-08-08T13:45:12.123Z"
+  }
+}
+----
+
+You can now use the `@timestamp` field to sort your logs by the date and time they happened.
+
+[discrete]
+[[logs-stream-timestamp-troubleshooting]]
+=== Create your data stream
 
 [discrete]
 [[logs-stream-extract-loglevel]]
