@@ -96,8 +96,8 @@ NOTE: The API key format should be `<id>:<key>`. Make sure you selected *Beats* 
 - `inputs.id` – A unique identifier for your input.
 - `type` – The type of input. For collecting logs, set this to `filestream`.
 - `streams.id` – A unique identifier for your stream of log data. 
-- `data_stream.dataset` – The name for your dataset data stream. You can name this data stream anything that signifies the source of the data. The default value is `generic`.
-- `paths` – The path to your log files. You can also use a pattern like `/var/log/foo.log*`.
+- `data_stream.dataset` – The name for your dataset data stream. Name this data stream anything that signifies the source of the data. The default value is `generic`.
+- `paths` – The path to your log files. You can also use a pattern like `/var/log/your-logs.log*`.
 
 [discrete]
 [[logs-stream-restart-agent]]
@@ -172,26 +172,12 @@ Use the this command to look at the document's details:
 GET /logs-example-default/_search
 ----
 
-You see something like this output:
+You see something like this:
 
 [source,JSON]
 ----
 {
-  "took": 0,
-  "timed_out": false,
-  "_shards": {
-    "total": 1,
-    "successful": 1,
-    "skipped": 0,
-    "failed": 0
-  },
-  "hits": {
-    "total": {
-      "value": 1,
-      "relation": "eq"
-    },
-    "max_score": 1,
-    "hits": [
+...
       {
         "_index": ".ds-logs-example-default-2023.08.09-000001",
         "_id": "RsWy3IkB8yCtA5VGOKLf",
@@ -206,7 +192,7 @@ You see something like this output:
 }
 ----
 
-Notice the text in your message isn't parsed, so you can't filter by any individual fields. Also, the `@timestamp` field shows when you added the data to {es}, not when the log occurred. In this format, neither of these fields are particularly useful for sorting or filtering. Your message, however, has all of these potential fields:
+Notice the text in your message isn't parsed, so you can't filter by any individual fields. Also, the `@timestamp` field shows when you added the data to {es}, not when the log occurred. In this format, neither of these fields are particularly useful for sorting or filtering. Your message, however, contains all of these potential fields:
 
 - *@timestamp* – `2023-08-08T13:45:12.123Z` – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
 - *log.level* – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to  focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
@@ -378,40 +364,25 @@ POST logs-example-default/_doc
 
 Now look at the details using this command:
 
-[source,JSON]
+[source,console]
 ----
-GET /<index-name>/_doc/<document-id>
+GET /logs-example-default/_search
 ----
 
-Under `_source`, you can see the `timestamp` field that was extracted by the dissect processor and the `@timestamp` field that was extracted by the date processor:
+You can see the pipeline extracted `@timestamp` field:
 
 [source,JSON]
 ----
 {
-  "took": 0,
-  "timed_out": false,
-  "_shards": {
-    "total": 1,
-    "successful": 1,
-    "skipped": 0,
-    "failed": 0
-  },
-  "hits": {
-    "total": {
-      "value": 1,
-      "relation": "eq"
-    },
-    "max_score": 1,
-    "hits": [
+...
       {
-        "_index": ".ds-logs-generic-default-2023.08.09-000001",
+        "_index": ".ds-logs-example-default-2023.08.09-000001",
         "_id": "RsWy3IkB8yCtA5VGOKLf",
         "_score": 1,
         "_source": {
           "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
           "@timestamp": "2023-08-08T13:45:12.123Z"
         }
-      }
       }
     ]
   }
@@ -422,10 +393,10 @@ You can now use the `@timestamp` field to sort your logs by the date and time th
 
 [discrete]
 [[logs-stream-timestamp-troubleshooting]]
-=== Troubleshooting
+=== Troubleshoot your `@timestamp` field
 
 Check the following common issues for possible solutions:
 
-- *Timestamp failure* – If data from your sources has inconsistent date formats, you can set `ignore_failure` to `true` for your date processor. This process logs with correctly formatted dates and ignore those with issues.
-- *Incorrect timezone* – Set your timezone using the `timezone` on the {ref}/date-processor.html[date processor].
-- *Incorrect timestamp format* – Your timestamp can be a java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information.
+- *Timestamp failure* – If your data has inconsistent date formats, you can set `ignore_failure` to `true` for your date processor. This process logs with correctly formatted dates and ignore those with issues.
+- *Incorrect timezone* – Set your timezone using the `timezone` option on the {ref}/date-processor.html[date processor].
+- *Incorrect timestamp format* – Your timestamp can be a java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information on timestamp formats.
