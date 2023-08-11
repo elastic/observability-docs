@@ -268,10 +268,10 @@ PUT _ingest/pipeline/logs-example-default
 %{timestamp} %{message}
 ----
 +
-This extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `timestamp` field, and the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field.
+This extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field.
 +
 . Set these values for the date processor:
-- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. See {fleet-ref}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
+- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. See {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
 - `field` – The field you're extracting the date from, `@timestamp` in this case.
 - `formats` – The format of the current timestamp, `ISO8601` in this case. The date processor accepts {ref}/mapping-date-format.html[Java time patterns] or the following formats: `ISO8601`, `UNIX`, `UNIX_MS`, `TAI64N`.
 
@@ -355,7 +355,7 @@ Set the following values for the index template:
 [[logs-stream-create-data-stream]]
 ==== Create your data stream
 
-Create your data stream using the {fleet-ref}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. The name needs to match the name of your pipeline. For this example, we'll name the data stream `logs-example-default` and use the example log:
+Create your data stream using the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. The name needs to match the name of your pipeline. For this example, we'll name the data stream `logs-example-default` and use the example log:
 
 [source,console]
 ----
@@ -365,14 +365,14 @@ POST logs-example-default/_doc
 }
 ----
 
-Now look at the details using this command:
+Now look at your document's details using this command:
 
 [source,console]
 ----
 GET /logs-example-default/_search
 ----
 
-You can see the pipeline extracted `@timestamp` field:
+You can see the pipeline extracted the `@timestamp` field:
 
 [source,JSON]
 ----
@@ -406,6 +406,6 @@ You can now use the `@timestamp` field to sort your logs by the date and time th
 
 Check the following common issues for possible solutions:
 
-- *Timestamp failure* – If your data has inconsistent date formats, you can set `ignore_failure` to `true` for your date processor. This process logs with correctly formatted dates and ignore those with issues.
+- *Timestamp failure* – If your data has inconsistent date formats, you can set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
 - *Incorrect timezone* – Set your timezone using the `timezone` option on the {ref}/date-processor.html[date processor].
-- *Incorrect timestamp format* – Your timestamp can be a java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information on timestamp formats.
+- *Incorrect timestamp format* – Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information on timestamp formats.
