@@ -1,19 +1,19 @@
 [[logs-stream]]
 = Stream a log file
 
-In this guide, you'll learn how to send a log file to Elasticsearch using a standalone {agent}, configure the {agent} and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up. 
+In this guide, you'll learn how to send a log file to Elasticsearch using a standalone {agent}, configure the {agent} and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up. Once your log files are in {es}, see the <<logs-stream-enhance-logs>> section to learn how to parse your log data and extract fields so you can filter and sort your logs effectively.
 
 [discrete]
 [[logs-stream-prereq]]
-== Prerequisites
+= Prerequisites
 
 include::logs-metrics-get-started.asciidoc[tag=monitoring-prereqs]
 
 [discrete]
 [[logs-stream-install-config-agent]]
-== Install and configure the standalone {agent}
+= Install and configure the standalone {agent}
 
-Complete the following steps to install and configure the standalone {agent} and send your log data to {es}:
+Complete these steps to install and configure the standalone {agent} and send your log data to {es}:
 
 . <<logs-stream-extract-agent, Download and extract the {agent} installation package.>>
 . <<logs-stream-install-agent, Install and start the {agent}.>>
@@ -21,7 +21,7 @@ Complete the following steps to install and configure the standalone {agent} and
 
 [discrete]
 [[logs-stream-extract-agent]]
-=== Step 1: Download and extract the {agent} installation package
+== Step 1: Download and extract the {agent} installation package
 
 On your host, download and extract the installation package that corresponds with your system:
 
@@ -29,7 +29,7 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/download-widge
 
 [discrete]
 [[logs-stream-install-agent]]
-=== Step 2: Install and start the {agent}
+== Step 2: Install and start the {agent}
 After downloading and extracting the installation package, you're ready to install the {agent}. From the agent directory, run the install command that corresponds with your system:
 
 NOTE: On macOS, Linux (tar package), and Windows, run the `install` command to
@@ -46,13 +46,13 @@ During installation, you're prompted with some questions:
 
 [discrete]
 [[logs-stream-agent-config]]
-=== Step 3: Configure the {agent}
+== Step 3: Configure the {agent}
 
 With your agent installed, configure it by updating the `elastic-agent.yml` file. 
 
 [discrete]
 [[logs-stream-yml-location]]
-==== Locate your configuration file
+=== Locate your configuration file
 
 After installing the agent, you'll find the `elastic-agent.yml` in one of the following locations according to your system:
 
@@ -60,7 +60,7 @@ include::tab-widgets/logs/agent-location-widget.asciidoc[]
 
 [discrete]
 [[logs-stream-example-config]]
-==== Update your configuration file
+=== Update your configuration file
 
 The following is an example of a standalone {agent} configuration. To configure your {agent}, replace the contents of the `elastic-agent.yml` file with this configuration:
 
@@ -82,26 +82,26 @@ inputs:
           - /var/log/your-logs.log
 ----
 
-Next, set the values for the following fields:
+Next, set the values for these fields:
 
-. `hosts` – Copy the {es} endpoint from your deployment's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
+- `hosts` – Copy the {es} endpoint from your deployment's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
 +
 --
 [role="screenshot"]
 image::images/es-endpoint-cluster-id.png[{es} endpoint and cluster id location, 50%]
 --
-. `api-key` – Use an API key to grant the agent access to {es}. To create an API key for your agent, see {fleet-guide}/grant-access-to-elasticsearch.html#create-api-key-standalone-agent[Create API keys for standalone agents].
+- `api-key` – Use an API key to grant the agent access to {es}. To create an API key for your agent, see {fleet-guide}/grant-access-to-elasticsearch.html#create-api-key-standalone-agent[Create API keys for standalone agents].
 +
 NOTE: The API key format should be `<id>:<key>`. Make sure you selected *Beats* when you created your API key. Base64 encoded API keys are not currently supported in this configuration.
-. `inputs.id` – A unique identifier for your input.
-. `type` – The type of input. For collecting logs, set this to `filestream`.
-. `streams.id` – A unique identifier for your stream of log data. 
-. `data_stream.dataset` – The name for your dataset data stream. You can name this data stream anything that signifies the source of the data. The default value is `generic`.
-. `paths` – The path to your log files. You can also use a pattern like `/var/log/foo.log*`.
+- `inputs.id` – A unique identifier for your input.
+- `type` – The type of input. For collecting logs, set this to `filestream`.
+- `streams.id` – A unique identifier for your stream of log data. 
+- `data_stream.dataset` – The name for your dataset data stream. Name this data stream anything that signifies the source of the data. The default value is `generic`.
+- `paths` – The path to your log files. You can also use a pattern like `/var/log/your-logs.log*`.
 
 [discrete]
 [[logs-stream-restart-agent]]
-==== Restart the {agent}
+=== Restart the {agent}
 
 After updating your configuration file, you need to restart the {agent}:
 
@@ -115,7 +115,7 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/start-widget.a
 
 [discrete]
 [[logs-stream-query-datastreams]]
-== View and search your data
+= View and search your data
 
 With your {agent} and data streams configured, you can now view, filter, and search your log data. In {kib}, navigate to *Observability → Logs → Stream*, and use the search bar to search for your `data_stream.type` and `data_stream.dataset`. 
 
@@ -124,7 +124,7 @@ See the following examples for ways to search specific data types and datasets:
 - `data_stream.type: logs` – shows `logs` data streams.
 - `data_stream.dataset: nginx.access` – shows data streams with an `nginx.access` dataset.
 
-The following example shows the search results for logs with an `apm.error` dataset and a `default` namespace:
+This example shows the search results for logs with an `apm.error` dataset and a `default` namespace:
 
 --
 [role="screenshot"]
@@ -133,20 +133,260 @@ image::images/stream-logs-example.png[example search query on the logs stream pa
 
 [discrete]
 [[logs-stream-troubleshooting]]
-== Troubleshooting 
+= Troubleshoot your {agent} configuration
 
-If you're not seeing your log files in {kib}, check the following in the `elastic-agent.yml` file:
+If you're not seeing your log files in {kib}, verify the following in the `elastic-agent.yml` file:
 
-- Verify that the path to your logs file under `paths` is correct.
-- Verify that your API key is in `<id>:<key>` format. If not, your API key may be in an unsupported format, and you'll need to create an API key in *Beats* format. 
+- The path to your logs file under `paths` is correct.
+- Your API key is in `<id>:<key>` format. If not, your API key may be in an unsupported format, and you'll need to create an API key in *Beats* format. 
 
 If you're still running into issues, see {fleet-guide}/fleet-troubleshooting.html[{agent} troubleshooting] and {fleet-guide}/elastic-agent-configuration.html[Configure standalone Elastic Agents].
 
 [discrete]
-[[logs-stream-whats-next]]
-== What's next?
+[[logs-stream-enhance-logs]]
+= Get the most out of your log data
 
-For more information on deploying and managing logs in Elastic Observability, see the following links:
+Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data. 
 
-- The <<logs-checklist>> consolidates links to documentation on sending log data, configuring logs, and analyzing logs.
-- <<monitor-logs>> has information on visualizing and analyzing logs.
+Let's look at this log example:
+
+[source,log]
+----
+2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
+----
+
+Add this log to {es} using the following command in *Dev Tools*, found in your deployment in the left navigation under *Management*:
+
+[source,console]
+----
+POST logs-test-default/_doc
+{
+  "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
+}
+----
+
+Use the this command to look at the document's details:
+
+[source,console]
+----
+GET /logs-test-default/_search
+----
+
+You see something like this:
+
+[source,JSON]
+----
+{
+  ...
+  "hits": {
+    ...
+    "hits": [
+      {
+        "_index": ".ds-logs-test-default-2023.08.09-000001",
+        "_id": "RsWy3IkB8yCtA5VGOKLf",
+        "_score": 1,
+        "_source": {
+          "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.",
+          "@timestamp": "2023-08-09T17:19:27.73312243Z"
+        }
+      }
+    ]
+  }
+}
+----
+
+Notice the text in your message isn't parsed, so you can't filter by any individual fields. Also, the `@timestamp` field shows when you added the data to {es}, not when the log occurred. In this format, you can search for keywords like `WARN` or `Disk usage exceeds`, but the fields are not useful for sorting or filtering. Your message, however, contains all of these potential fields:
+
+- *@timestamp* – `2023-08-08T13:45:12.123Z` – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
+- *log.level* – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to  focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
+- *host.ip* – `192.168.1.101` – Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
+- *message* – `Disk usage exceeds 90%.` – You can search for keywords in the message field.
+
+NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. The ECS defines a common set of fields that you can use across Elasticsearch when storing data, including log and metric data.
+
+[discrete]
+[[logs-stream-extract-timestamp]]
+== Extract the `@timestamp` field
+
+This section shows you how to extract the `@timestamp` field from the example log:
+
+[source,log]
+----
+2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
+----
+
+To extract the timestamp you need to:
+
+- <<logs-stream-ingest-pipeline>>
+- <<logs-stream-simulate-api>>
+- <<logs-stream-index-template>>
+- <<logs-stream-create-data-stream>>
+
+[discrete]
+[[logs-stream-ingest-pipeline]]
+=== Use an ingest pipeline to extract the `@timestamp`
+
+To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The {ref}/dissect-processor.html[dissect processor] extracts structured fields from your unstructured log message based the pattern you set. In the following example command, the dissect processor extracts the timestamp to the `@timestamp` field. 
+
+{es} can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. Since the log example's timestamp is in one of these formats, you don't need additional processors. If your log timestamps are more complex or use a nonstandard format, you need a {ref}/date-processor.html[date processor] to parse the timestamp into a date field. You can also use a date processor to set the timezone, change the target field, and change the output format of the timestamp.
+
+This command creates an ingest pipeline with a dissect processor:
+
+[source,console]
+----
+PUT _ingest/pipeline/logs-example-default
+{
+  "description": "Extracts the timestamp from log",
+  "processors": [
+    {
+      "dissect": {
+        "field": "message",
+        "pattern": "%{@timestamp} %{message}"
+      }
+    }
+  ]
+}
+----
+
+. Set these values for your pipeline:
+- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. See the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
+- `field` – The field you're extracting data from, `message` in this case.
+- `pattern`– The pattern of the elements in your log data. The following pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field.
++
+[source,JSON]
+----
+%{timestamp} %{message}
+----
+
+[discrete]
+[[logs-stream-simulate-api]]
+=== Test your pipeline with the simulate pipeline API
+
+Make sure your pipeline is working as expected with the {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API]. Run this command to test your pipeline:
+
+[source,console]
+----
+POST _ingest/pipeline/logs-example-default/_simulate
+{
+  "docs": [
+    {
+      "_source": {
+        "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
+      }
+    }
+  ]
+}
+----
+
+The results should show the `@timestamp` field extracted from the `message` field:
+
+[source,console]
+----
+{
+  "docs": [
+    {
+      "doc": {
+        "_index": "_index",
+        "_id": "_id",
+        "_version": "-3",
+        "_source": {
+          "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
+          "@timestamp": "2023-08-08T13:45:12.123Z"
+        },
+          "_ingest": {
+            "timestamp": "2023-08-10T20:37:29.090624429Z"
+        }
+      }
+    }
+  ]
+}
+----
+
+NOTE: Create the index pipeline using the `PUT` command in the previous section before using the simulate pipeline API.
+
+[discrete]
+[[logs-stream-index-template]]
+=== Configure your data stream with an index template
+
+After creating your ingest pipeline, create an index template to point your log data to your pipeline using this command:
+
+[source,console]
+----
+PUT _index_template/logs-example-default-template
+{
+  "index_patterns": [ "logs-example-default" ],
+  "data_stream": { },
+  "priority": 500,
+  "template": {
+    "settings": {
+      "index.default_pipeline":"logs-example-default"
+    }
+  }
+}
+----
+
+Set the following values for the index template:
+
+- `index_patterns`– The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-default`. Data that matches this pattern will go through your pipeline.
+- `data_stream` – Enables data streams.
+- `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, the template with the higher priority is used. Built-in templates have a priority of `200`, so we recommend a priority higher than `200`.
+- `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
+
+[discrete]
+[[logs-stream-create-data-stream]]
+=== Create your data stream
+
+Create your data stream using the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. The name needs to match the name of your pipeline. For this example, we'll name the data stream `logs-example-default` and use the example log:
+
+[source,console]
+----
+POST logs-example-default/_doc
+{
+  "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
+}
+----
+
+Now look at your document's details using this command:
+
+[source,console]
+----
+GET /logs-example-default/_search
+----
+
+You can see the pipeline extracted the `@timestamp` field:
+
+[source,JSON]
+----
+{
+...
+{
+  ...
+  "hits": {
+    ...
+    "hits": [
+      {
+        "_index": ".ds-logs-generic-default-2023.08.09-000001",
+        "_index": ".ds-logs-example-default-2023.08.09-000001",
+        "_id": "RsWy3IkB8yCtA5VGOKLf",
+        "_score": 1,
+        "_source": {
+          "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
+          "@timestamp": "2023-08-08T13:45:12.123Z"
+        }
+      }
+    ]
+  }
+}
+----
+
+You can now use the `@timestamp` field to sort your logs by the date and time they happened.
+
+[discrete]
+[[logs-stream-timestamp-troubleshooting]]
+=== Troubleshoot your `@timestamp` field
+
+Check the following common issues for possible solutions:
+
+- *Timestamp failure* – If your data has inconsistent date formats, you can set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
+- *Incorrect timezone* – Set your timezone using the `timezone` option on the {ref}/date-processor.html[date processor].
+- *Incorrect timestamp format* – Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information on timestamp formats.
