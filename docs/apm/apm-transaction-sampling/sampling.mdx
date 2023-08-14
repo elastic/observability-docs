@@ -1,0 +1,123 @@
+
+
+<div id="sampling"></div>
+
+Distributed tracing can generate a substantial amount of data.
+More data can mean higher costs and more noise.
+Sampling aims to lower the amount of data ingested and the effort required to analyze that data --
+all while still making it easy to find anomalous patterns in your applications, detect outages, track errors,
+and lower mean time to recovery (MTTR).
+
+Elastic APM supports two types of sampling:
+
+* <DocLink id="serverlessObservabilityApmTransactionSampling" section="head-based-sampling">Head-based sampling</DocLink>
+* <DocLink id="serverlessObservabilityApmTransactionSampling" section="tail-based-sampling">Tail-based sampling</DocLink>
+
+<div id="head-based-sampling"></div>
+
+### Head-based sampling
+
+In head-based sampling, the sampling decision for each trace is made when the trace is initiated.
+Each trace has a defined and equal probability of being sampled.
+
+For example, a sampling value of `.2` indicates a transaction sample rate of `20%`.
+This means that only `20%` of traces will send and retain all of their associated information.
+The remaining traces will drop contextual information to reduce the transfer and storage size of the trace.
+
+Head-based sampling is quick and easy to set up.
+Its downside is that it's entirely random -- interesting
+data might be discarded purely due to chance.
+
+See <DocLink id="serverlessObservabilityApmTransactionSampling">Configure head-based sampling</DocLink> to get started.
+
+**Distributed tracing with head-based sampling**
+
+In a distributed trace, the sampling decision is still made when the trace is initiated.
+Each subsequent service respects the initial service's sampling decision, regardless of its configured sample rate;
+the result is a sampling percentage that matches the initiating service.
+
+In this example, `Service A` initiates four transactions and has sample rate of `.5` (`50%`).
+The sample rates of `Service B` and `Service C` are ignored.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
+{/* ![Distributed tracing and head based sampling example one](images/sampling/-dt-sampling-example-1.png) */}
+
+In this example, `Service A` initiates four transactions and has a sample rate of `1` (`100%`).
+Again, the sample rates of `Service B` and `Service C` are ignored.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
+{/* ![Distributed tracing and head based sampling example two](images/sampling/-dt-sampling-example-2.png) */}
+
+**OpenTelemetry with head-based sampling**
+
+Head-based sampling is implemented in the APM agents and SDKs, and
+requires the sample rate to be propagated between services and the APM Server.
+This functionality is not currently supported by OpenTelemetry,
+which results in inaccurate APM throughput, latency, and error metrics.
+OpenTelemetry users should consider using tail-based sampling instead.
+
+<div id="tail-based-sampling"></div>
+
+### Tail-based sampling
+
+In tail-based sampling, the sampling decision for each trace is made after the trace has completed.
+This means all traces will be analyzed against a set of rules, or policies, which will determine the rate at which they are sampled.
+
+Unlike head-based sampling, each trace does not have an equal probability of being sampled.
+Because slower traces are more interesting than faster ones, tail-based sampling uses weighted random sampling -- so
+traces with a longer root transaction duration are more likely to be sampled than traces with a fast root transaction duration.
+
+A downside of tail-based sampling is that it results in more data being sent from APM agents to the APM Server.
+The APM Server will therefore use more CPU, memory, and disk than with head-based sampling.
+However, because the tail-based sampling decision happens in APM Server, there is less data to transfer from APM Server to ((es)).
+So running APM Server close to your instrumented services can reduce any increase in transfer costs that tail-based sampling brings.
+
+See <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmGuideConfigureTailBasedSampling">Configure tail-based sampling</DocLink> */} to get started.
+
+**Distributed tracing with tail-based sampling**
+
+With tail-based sampling, all traces are observed and a sampling decision is only made once a trace completes.
+
+In this example, `Service A` initiates four transactions.
+If our sample rate is `.5` (`50%`) for traces with a `success` outcome,
+and `1` (`100%`) for traces with a `failure` outcome,
+the sampled traces would look something like this:
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
+{/* ![Distributed tracing and tail based sampling example one](images/sampling/-dt-sampling-example-3.png) */}
+
+**OpenTelemetry with tail-based sampling**
+
+Tail-based sampling is implemented entirely in APM Server,
+and will work with traces sent by either Elastic APM agents or OpenTelemetry SDKs.
+
+## Sampled data and visualizations
+
+A sampled trace retains all data associated with it.
+A non-sampled trace drops all <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">span</DocLink> and <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">transaction</DocLink> data<sup>1</sup>.
+Regardless of the sampling decision, all traces retain <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">error</DocLink> data.
+
+Some visualizations in the ((apm-app)), like latency, are powered by aggregated transaction and span <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">metrics</DocLink>.
+Metrics are based on sampled traces and weighted by the inverse sampling rate.
+For example, if you sample at 5%, each trace is counted as 20.
+As a result, as the variance of latency increases, or the sampling rate decreases, your level of error will increase.
+
+<sup>1</sup> Real User Monitoring (RUM) traces are an exception to this rule.
+The ((kib)) apps that utilize RUM data depend on transaction events,
+so non-sampled RUM traces retain transaction data -- only span data is dropped.
+
+## Sample rates
+
+What's the best sampling rate? Unfortunately, there isn't one.
+Sampling is dependent on your data, the throughput of your application, data retention policies, and other factors.
+A sampling rate from `.1%` to `100%` would all be considered normal.
+You'll likely decide on a unique sample rate for different scenarios.
+Here are some examples:
+
+* Services with considerably more traffic than others might be safe to sample at lower rates
+* Routes that are more important than others might be sampled at higher rates
+* A production service environment might warrant a higher sampling rate than a development environment
+* Failed trace outcomes might be more interesting than successful traces -- thus requiring a higher sample rate
+
+Regardless of the above, cost conscious customers are likely to be fine with a lower sample rate.
+
