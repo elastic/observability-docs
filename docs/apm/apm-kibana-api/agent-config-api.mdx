@@ -1,0 +1,266 @@
+
+
+{/* import ApiUsingTheAPIs from './transclusion/apm/api/using-the-APIs.mdx' */}
+
+<div id="agent-config-api"></div>
+
+The APM agent configuration API allows you to fine-tune your APM agent configuration,
+without needing to redeploy your application.
+
+The following APM agent configuration APIs are available:
+
+* <DocLink id="serverlessObservabilityApmKibanaApi" section="create-or-update-configuration">Create or update configuration</DocLink> to create or update an APM agent configuration
+* <DocLink id="serverlessObservabilityApmKibanaApi" section="delete-configuration">Delete configuration</DocLink> to delete an APM agent configuration.
+* <DocLink id="serverlessObservabilityApmKibanaApi" section="list-configuration">List configuration</DocLink> to list all APM agent configurations.
+* <DocLink id="serverlessObservabilityApmKibanaApi" section="search-configuration">Search configuration</DocLink> to search for an APM agent configuration.
+
+<div id="use-agent-config-api"></div>
+
+### How to use APM APIs
+
+<DocAccordion buttonContent="Expand for required headers, privileges, and usage details">
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <ApiUsingTheAPIs  /> */}
+
+
+</DocAccordion>
+
+<div id="apm-update-config"></div>
+
+### Create or update configuration
+
+<div id="apm-update-config-req"></div>
+
+#### Request
+
+`PUT /api/apm/settings/agent-configuration`
+
+<div id="apm-update-config-req-body"></div>
+
+#### Request body
+
+`service` 
+    : (required, object) Service identifying the configuration to create or update.
+
+    <DocAccordion buttonContent="Properties of `service`" initialIsOpen>
+
+        `name`  
+            : (required, string) Name of service
+
+        `environment`  
+            : (optional, string) Environment of service
+
+    </DocAccordion>
+
+`settings` 
+    : (required) Key/value object with option name and option value.
+
+`agent_name` 
+    : (optional) The agent name is used by the UI to determine which settings to display.
+
+<div id="apm-update-config-example"></div>
+
+#### Example
+
+```curl
+PUT /api/apm/settings/agent-configuration
+{
+    "service": {
+        "name": "frontend",
+        "environment": "production"
+    },
+    "settings": {
+        "transaction_sample_rate": "0.4",
+        "capture_body": "off",
+        "transaction_max_spans": "500"
+    },
+    "agent_name": "nodejs"
+}
+```
+
+<div id="apm-delete-config"></div>
+
+### Delete configuration
+
+<div id="apm-delete-config-req"></div>
+
+#### Request
+
+`DELETE /api/apm/settings/agent-configuration`
+
+<div id="apm-delete-config-req-body"></div>
+
+#### Request body
+`service` 
+    : (required, object) Service identifying the configuration to delete
+
+    <DocAccordion buttonContent="Properties of `service`" initialIsOpen>
+
+        `name`  
+            : (required, string) Name of service
+
+        `environment`  
+            : (optional, string) Environment of service
+
+    </DocAccordion>
+
+<div id="apm-delete-config-example"></div>
+
+#### Example
+
+```curl
+DELETE /api/apm/settings/agent-configuration
+{
+    "service" : {
+        "name": "frontend",
+        "environment": "production"
+    }
+}
+```
+
+<div id="apm-list-config"></div>
+
+### List configuration
+
+<div id="apm-list-config-req"></div>
+
+#### Request
+
+`GET  /api/apm/settings/agent-configuration`
+
+<div id="apm-list-config-body"></div>
+
+#### Response body
+
+```js
+[
+  {
+    "agent_name": "go",
+    "service": {
+      "name": "opbeans-go",
+      "environment": "production"
+    },
+    "settings": {
+      "transaction_sample_rate": "1",
+      "capture_body": "off",
+      "transaction_max_spans": "200"
+    },
+    "@timestamp": 1581934104843,
+    "applied_by_agent": false,
+    "etag": "1e58c178efeebae15c25c539da740d21dee422fc"
+  },
+  {
+    "agent_name": "go",
+    "service": {
+      "name": "opbeans-go"
+    },
+    "settings": {
+      "transaction_sample_rate": "1",
+      "capture_body": "off",
+      "transaction_max_spans": "300"
+    },
+    "@timestamp": 1581934111727,
+    "applied_by_agent": false,
+    "etag": "3eed916d3db434d9fb7f039daa681c7a04539a64"
+  },
+  {
+    "agent_name": "nodejs",
+    "service": {
+      "name": "frontend"
+    },
+    "settings": {
+      "transaction_sample_rate": "1",
+    },
+    "@timestamp": 1582031336265,
+    "applied_by_agent": false,
+    "etag": "5080ed25785b7b19f32713681e79f46996801a5b"
+  }
+]
+```
+
+<div id="apm-list-config-example"></div>
+
+#### Example
+
+```curl
+GET  /api/apm/settings/agent-configuration
+```
+
+<div id="apm-search-config"></div>
+
+### Search configuration
+
+<div id="apm-search-config-req"></div>
+
+#### Request
+
+`POST /api/apm/settings/agent-configuration/search`
+
+<div id="apm-search-config-req-body"></div>
+
+#### Request body
+
+`service` 
+    : (required, object) Service identifying the configuration.
+
+    <DocAccordion buttonContent="Properties of `service`" initialIsOpen>
+
+        `name`  
+            : (required, string) Name of service
+
+        `environment`  
+            : (optional, string) Environment of service
+
+    </DocAccordion>
+
+`etag` 
+    : (required) etag is sent by the APM agent to indicate the etag of the last successfully applied configuration. If the etag matches an existing configuration its `applied_by_agent` property will be set to `true`. Every time a configuration is edited `applied_by_agent` is reset to `false`.
+
+<div id="apm-search-config-body"></div>
+
+#### Response body
+
+```js
+{
+  "_index": ".apm-agent-configuration",
+  "_id": "CIaqXXABmQCdPphWj8EJ",
+  "_score": 2,
+  "_source": {
+    "agent_name": "nodejs",
+    "service": {
+      "name": "frontend"
+    },
+    "settings": {
+      "transaction_sample_rate": "1",
+    },
+    "@timestamp": 1582031336265,
+    "applied_by_agent": false,
+    "etag": "5080ed25785b7b19f32713681e79f46996801a5b"
+  }
+}
+```
+
+<div id="apm-search-config-example"></div>
+
+#### Example
+
+```curl
+POST /api/apm/settings/agent-configuration/search
+{
+    "etag": "1e58c178efeebae15c25c539da740d21dee422fc",
+    "service" : {
+        "name": "frontend",
+        "environment": "production"
+    }
+}
+```
+
+{/*
+
+<DocCallOut>
+
+</DocCallOut>
+
+*/}
+

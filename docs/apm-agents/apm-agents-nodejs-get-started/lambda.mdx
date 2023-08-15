@@ -1,0 +1,103 @@
+
+
+{/* import LambdaAttributesSelector from '../../lambda/transclusion/lambda-selector/lambda-attributes-selector.mdx' */}
+{/* import ExtensionArnReplacement from '../../lambda/transclusion/lambda-selector/extension-arn-replacement.mdx' */}
+{/* import LambdaNodejsArnReplacement from './transclusion/lambda/nodejs-arn-replacement.mdx' */}
+{/* import AddExtensionLayerWidget from '../../lambda/transclusion/add-extension/add-extension-layer-widget.mdx' */}
+{/* import LambdaConfigureLambdaWidget from './transclusion/lambda/configure-lambda-widget.mdx' */}
+
+<div id="lambda"></div>
+
+export let env_github = false
+
+<DocIf condition={ env_github === true }>
+
+<DocCallOut title="Note">
+For the best reading experience,
+please view this documentation at [elastic.co](https://www.elastic.co/guide/en/apm/agent/nodejs/current/lambda.html)
+</DocCallOut>
+
+</DocIf>
+
+export let layer_section_type = "with-agent"
+
+The Node.js APM Agent can be used with AWS Lambda to monitor the execution of your AWS Lambda functions.
+
+<div id="aws-lambda-nodejs-quick-start"></div>
+
+### Quick Start
+
+To get started with APM for your Node.js AWS Lambda functions follow the steps below.
+
+<div id="aws-lambda-nodejs-prerequisites"></div>
+
+#### Prerequisites
+
+You need an APM Server to send APM data to. Follow the [APM Quick start](((apm-guide-ref))/apm-quick-start.html) if you have not set one up yet. For the best-possible performance, we recommend setting up APM on ((ecloud)) in the same AWS region as your AWS Lambda functions.
+
+#### Step 1: Select the AWS Region and Architecture
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaAttributesSelector  /> */}
+
+
+#### Step 2: Add the APM Layers to your Lambda function
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <ExtensionArnReplacement  /> */}
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaNodejsArnReplacement  /> */}
+
+
+Both the [((apm-lambda-ext))](((apm-lambda-ref))/aws-lambda-arch.html) and the Node.js APM Agent are added to your Lambda function as [AWS Lambda Layers](https://docs.aws.amazon.com/lambda/latest/dg/invocation-layers.html). Therefore, you need to add the corresponding Layer ARNs (identifiers) to your Lambda function.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <AddExtensionLayerWidget layer_section_type={layer_section_type} /> */}
+
+
+#### Step 3: Configure APM on AWS Lambda
+
+The ((apm-lambda-ext)) and the APM Node.js agent are configured through environment variables on the AWS Lambda function.
+
+For the minimal configuration, you will need the _APM Server URL_ to set the destination for APM data and an [_APM Secret Token_](((apm-guide-ref))/secret-token.html).
+If you prefer to use an [APM API key](((apm-guide-ref))/api-key.html) instead of the APM secret token, use the `ELASTIC_APM_API_KEY` environment variable instead of `ELASTIC_APM_SECRET_TOKEN` in the following configuration.
+
+For production environments, we recommend [using the AWS Secrets Manager to store your APM authentication key](((apm-lambda-ref))/aws-lambda-secrets-manager.html) instead of providing the secret value as plaintext in the environment variables.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaConfigureLambdaWidget  /> */}
+
+\<1> The [`ELASTIC_APM_SEND_STRATEGY`](((apm-lambda-ref))/aws-lambda-config-options.html#_elastic_apm_send_strategy) defines when APM data is sent to your Elastic APM backend. To reduce the execution time of your lambda functions, we recommend to use the `background` strategy in production environments with steady load scenarios.
+
+You can optionally <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure">fine-tune the Node.js agent</DocLink> or the [configuration of the ((apm-lambda-ext))](((apm-lambda-ref))/aws-lambda-config-options.html).
+
+That's it. After following the steps above, you're ready to go!
+Your Lambda function invocations should be traced from now on.
+
+<div id="aws-lambda-features"></div>
+
+### Features
+
+The AWS Lambda instrumentation will report a transaction for all function invocations
+and trace any <DocLink id="serverlessObservabilityApmAgentsNodejsSupportedTechnologies" section="frameworks">supported modules</DocLink>. In addition, the
+created transactions will capture additional data for a number of Lambda
+trigger types -- API Gateway, SNS, SQS, S3 (when the trigger is a single event),
+and ELB.
+
+A transaction will be reported for Lambda invocations that fail due to a
+timeout, crash, `uncaughtException`, or `unhandledRejection`. (This requires
+APM agent v3.45.0 or later and
+[Elastic's APM Lambda extension](https://www.elastic.co/guide/en/apm/lambda/current/aws-lambda-arch.html)
+version 1.4.0 or later.)
+
+<div id="aws-lambda-caveats"></div>
+
+### Caveats and Troubleshooting
+
+* System and custom metrics are not collected for Lambda functions. This is both because most of those are irrelevant
+    and because the interval-based event sending model is not suitable for FaaS environments.
+
+* Lambda instrumentation does not currently work when the (deprecated) <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="contextmanager">`contextManager: 'patch'`</DocLink> configuration setting is used.
+* The APM agent does not yet support a Lambda handler module that uses ECMAScript modules (ESM). That means your handler file name should end with ".js" (and not have `"type": "module"` in package.json if you have one) or end with ".cjs". A handler file that uses the ".mjs" suffix will not be instrumented by the APM agent.
+

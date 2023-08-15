@@ -1,0 +1,226 @@
+
+
+<div id="config-reporter"></div>
+
+<div id="config-server-url"></div>
+
+### `ServerUrl`
+
+The URL for your APM Server. The URL must be fully qualified, including protocol (`http` or `https`) and port.
+
+<DocCallOut title="Important" color="warning">
+Use of `ServerUrls` is deprecated. Use `ServerUrl`.
+</DocCallOut>
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_SERVER_URL` | `ElasticApm:ServerUrl` |
+
+| Default | Type |
+|---|---|
+| `http://localhost:8200` | String |
+
+<div id="config-secret-token"></div>
+
+### `SecretToken`
+
+A string used to ensure that only your agents can send data to your APM server.
+
+Both the agents and the APM server have to be configured with the same secret token.
+Use this setting if the APM Server requires a secret token, for example, when using our hosted ((es)) Service on Elastic Cloud.
+
+<DocCallOut title="Warning" color="warning">
+The `SecretToken` is sent as plain-text in every request to the server, so you should also secure
+your communications using HTTPS. Unless you do so, your API Key could be observed by an attacker.
+</DocCallOut>
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_SECRET_TOKEN` | `ElasticApm:SecretToken` |
+
+| Default | Type |
+|---|---|
+| `<none>`                | String |
+
+<div id="config-api-key"></div>
+
+### `ApiKey` (<DocBadgeAdded tipContent="Added in 1.4">1.4</DocBadgeAdded>)
+
+A base64-encoded string used to ensure that only your agents can send data to your APM server.
+You must have created the API key using the APM server's [command line tool](((apm-guide-ref))/api-key.html).
+
+<DocCallOut title="Note">
+This feature is fully supported in the APM Server versions >= 7.6.
+</DocCallOut>
+
+<DocCallOut title="Warning" color="warning">
+The `APIKey` is sent as plain-text in every request to the server, so you should also secure
+your communications using HTTPS. Unless you do so, your API Key could be observed by an attacker.
+</DocCallOut>
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_API_KEY`      | `ElasticApm:ApiKey` |
+
+| Default | Type |
+|---|---|
+| `<none>`                | A base64-encoded string |
+
+<div id="config-verify-server-cert"></div>
+
+### `VerifyServerCert` (<DocBadgeAdded tipContent="Added in 1.3">1.3</DocBadgeAdded>)
+
+By default, the agent verifies the SSL certificate if you use an HTTPS connection to the APM server.
+
+Verification can be disabled by changing this setting to false.
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_VERIFY_SERVER_CERT` | `ElasticApm:VerifyServerCert` |
+
+| Default | Type |
+|---|---|
+| `true`                  | Boolean |
+
+<div id="config-server-cert"></div>
+
+### `ServerCert` (<DocBadgeAdded tipContent="Added in 1.9">1.9</DocBadgeAdded>)
+
+The path to a PEM-encoded certificate used for SSL/TLS by APM server. Used to perform validation 
+through certificate pinning. 
+
+This can be specified when using a certificate signed by a Certificate Authority (CA) that is not in 
+the trust store, such as a self-signed certificate.
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_SERVER_CERT` | `ElasticApm:ServerCert` |
+
+| Default | Type |
+|---|---|
+| `<none>`                  | String |
+
+<div id="config-flush-interval"></div>
+
+### `FlushInterval` (<DocBadgeAdded tipContent="Added in 1.1">1.1</DocBadgeAdded>)
+
+The maximal amount of time events are held in the queue until there is enough to send a batch.
+It's possible for a batch to contain less than <DocLink id="serverlessObservabilityApmAgentsNetConfigure" section="maxbatcheventcount-added[11]">`MaxBatchEventCount`</DocLink> events
+if there are events that need to be sent out because they were held for too long. 
+A lower value will increase the load on your APM server,
+while a higher value can increase the memory pressure on your app.
+A higher value also impacts the time until transactions are indexed and searchable in Elasticsearch.
+
+Supports the duration suffixes `ms`, `s` and `m`.
+Example: `30s`.
+The default unit for this option is `s`.
+
+If `FlushInterval` is set to `0` (or `0s`, `0ms`, etc.) and
+there's no event sending operation still in progress,
+then the Agent won't hold events in the queue and will send them immediately.
+
+Setting `FlushInterval` to a negative value (for example `-1`, `-54s`, `-89ms`, etc.) is invalid and
+in that case agent uses the default value instead.
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_FLUSH_INTERVAL` | `ElasticApm:FlushInterval` |
+
+| Default | Type |
+|---|---|
+| `10s`                   | TimeDuration |
+
+<div id="config-max-batch-event-count"></div>
+
+### `MaxBatchEventCount` (<DocBadgeAdded tipContent="Added in 1.1">1.1</DocBadgeAdded>)
+
+The maximum number of events to send in a batch.
+It's possible for a batch to contain less then the maximum events
+if there are events that need to be sent out because they were held for too long
+ (see <DocLink id="serverlessObservabilityApmAgentsNetConfigure" section="flushinterval-added[11]">`FlushInterval`</DocLink>).
+
+Setting `MaxBatchEventCount` to `0` or a negative value is invalid and
+the Agent will use the default value instead.
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_MAX_BATCH_EVENT_COUNT` | `ElasticApm:MaxBatchEventCount` |
+
+| Default | Type |
+|---|---|
+| 10                      | Integer |
+
+<div id="config-max-queue-event-count"></div>
+
+### `MaxQueueEventCount` (<DocBadgeAdded tipContent="Added in 1.1">1.1</DocBadgeAdded>)
+
+The maximum number of events to hold in the queue as candidates to be sent.
+If the queue is at its maximum capacity then the agent discards the new events
+until the queue has free space.
+
+Setting `MaxQueueEventCount` to `0` or a negative value is invalid and the Agent will use the default value instead.
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_MAX_QUEUE_EVENT_COUNT` | `ElasticApm:MaxQueueEventCount` |
+
+| Default | Type |
+|---|---|
+| 1000                    | Integer |
+
+<div id="config-metrics-interval"></div>
+
+### `MetricsInterval` (<DocBadgeAdded tipContent="Added in 1.0.0-beta1">1.0.0-beta1</DocBadgeAdded>)
+
+The interval at which the agent sends metrics to the APM Server.
+This must be at least `1s`.
+Set this to `0s` to deactivate.
+
+Supports the duration suffixes `ms`, `s` and `m`.
+Example: `30s`.
+The default unit for this option is `s`.
+
+| Default | Type |
+|---|---|
+| `30s`                   | TimeDuration |
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_METRICS_INTERVAL` | `ElasticApm:MetricsInterval` |
+
+<div id="config-disable-metrics"></div>
+
+### `DisableMetrics` (<DocBadgeAdded tipContent="Added in 1.3.0">1.3.0</DocBadgeAdded>)
+
+This disables the collection of certain metrics. If the name of a metric matches any of the wildcard expressions, it will not be collected. Example: `foo.*,bar.*`
+
+You can find the name of the available metrics in <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentDotnetMetrics">Metrics</DocLink> */}.
+
+This option supports the wildcard `*`, which matches zero or more characters. Examples: `/foo/*/bar/*/baz*, **foo**`. Matching is case insensitive by default. Prepending an element with (?-i) makes the matching case sensitive.
+
+| Default | Type |
+|---|---|
+| `<none>`                  | Comma separated string |
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_DISABLE_METRICS` | `ElasticApm:DisableMetrics` |
+
+<div id="config-cloud-provider"></div>
+
+### `CloudProvider` (<DocBadgeAdded tipContent="Added in 1.7.0">1.7.0</DocBadgeAdded>)
+
+Specify which cloud provider should be assumed for metadata collection. By default, the agent attempts to detect the cloud provider and, if that fails, uses trial and error to collect the metadata.
+
+Valid options are `"auto"`, `"aws"`, `"gcp"`, `"azure"`, and `"none"`. If this config value is set to `"none"`, no cloud metadata will be collected. If set to any of
+`"aws"`, `"gcp"`, or `"azure"`, attempts to collect metadata will only be performed
+from the chosen provider.
+
+| Environment variable name | IConfiguration or Web.config key |
+|---|---|
+| `ELASTIC_APM_CLOUD_PROVIDER`   | `ElasticApm:CloudProvider` |
+
+| Default | Type |
+|---|---|
+| `auto`  | String |
+

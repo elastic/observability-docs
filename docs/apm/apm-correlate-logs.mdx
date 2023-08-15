@@ -4,4 +4,150 @@ slug: /serverless/observability/apm-correlate-logs
 title: Correlate logs
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'overview' ]
+status: rough content
 ---
+
+import RoughContent from '../partials/rough-content-notice.mdx'
+
+<RoughContent />
+
+{/* import Snippet1 from './transclusion/application-logs/correlate-logs.mdx' */}
+{/* import Snippet2 from './transclusion/application-logs/plaintext-logs.mdx' */}
+{/* import Snippet3 from './transclusion/application-logs/ecs-logging-logs.mdx' */}
+{/* import Snippet4 from './transclusion/application-logs/log-reformatting.mdx' */}
+{/* import Snippet5 from './transclusion/application-logs/apm-agent-log-sending.mdx' */}
+
+<div id="application-logs"></div>
+
+Application logs provide valuable insight into events that have occurred within your services and applications.
+
+There are two aspects to consider when monitoring application logs:
+
+- <DocLink id="serverlessObservabilityApmCorrelateLogs" section="plaintext-logs-vs-ecs-logs">log format</DocLink>: are your logs plaintext or Elastic Common Schema (ECS) logs (structured JSON)
+- <DocLink id="serverlessObservabilityApmCorrelateLogs" section="how-to-ingest-application-logs">log ingestion</DocLink>: the tool you use to send and write logs to Elasticsearch
+
+The format of your logs (structured or plaintext) influences your log ingestion strategy.
+For simplicity, this documentation uses ((filebeat)) for ingestion, but any log ingestion tool can be used with an equivalent configuration.
+
+Application logs can be correlated to APM services with <DocLink id="serverlessObservabilityApmCorrelateLogs" section="log-correlation">log correlation</DocLink>.
+
+Using an APM agent provides extra features:
+
+- <DocLink id="serverlessObservabilityApmCorrelateLogs" section="log-correlation">log correlation</DocLink>: correlate logs to APM traces
+- <DocLink id="serverlessObservabilityApmCorrelateLogs" section="log-reformatting">log reformatting</DocLink>: reformat logs to ECS
+- <DocLink id="serverlessObservabilityApmAgentLogSending">log sending</DocLink>: reformat and send logs without extra ingestion tool
+
+<div id="log-types"></div>
+
+## Plaintext logs vs. ECS logs
+
+Logs are typically produced as either plaintext or structured.
+Plaintext logs contain only text and have no special formatting, for example:
+
+```log
+2019-08-06T12:09:12.375Z INFO:spring-petclinic: Tomcat started on port(s): 8080 (http) with context path, org.springframework.boot.web.embedded.tomcat.TomcatWebServer
+2019-08-06T12:09:12.379Z INFO:spring-petclinic: Started PetClinicApplication in 7.095 seconds (JVM running for 9.082), org.springframework.samples.petclinic.PetClinicApplication
+2019-08-06T14:08:40.199Z DEBUG:spring-petclinic: init find form, org.springframework.samples.petclinic.owner.OwnerController
+```
+
+Structured logs, on the other hand, follow a predefined, repeatable pattern or structure.
+This structure is applied at write time--preventing the need for parsing at ingest time.
+The Elastic Common Schema (ECS) defines a common set of fields to use when structuring logs.
+This structure allows logs to be easily ingested,
+and provides the ability to correlate, search, and aggregate on individual fields within your logs.
+
+For example, the same example shown above might look like this when structured with ECS-compatable JSON:
+
+```json
+{"@timestamp":"2019-08-06T12:09:12.375Z", "log.level": "INFO", "message":"Tomcat started on port(s): 8080 (http) with context path ''", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.boot.web.embedded.tomcat.TomcatWebServer"}
+{"@timestamp":"2019-08-06T12:09:12.379Z", "log.level": "INFO", "message":"Started PetClinicApplication in 7.095 seconds (JVM running for 9.082)", "service.name":"spring-petclinic","process.thread.name":"restartedMain","log.logger":"org.springframework.samples.petclinic.PetClinicApplication"}
+{"@timestamp":"2019-08-06T14:08:40.199Z", "log.level":"DEBUG", "message":"init find form", "service.name":"spring-petclinic","process.thread.name":"http-nio-8080-exec-8","log.logger":"org.springframework.samples.petclinic.owner.OwnerController","transaction.id":"28b7fb8d5aba51f1","trace.id":"2869b25b5469590610fea49ac04af7da"}
+```
+
+There are two ways to make your application write ECS-formatted logs:
+- use an [ECS logging](((ecs-logging-ref))/intro.html) library
+- use an APM agent and <DocLink id="serverlessObservabilityApmCorrelateLogs" section="log-reformatting">log reformatting</DocLink>
+
+<div id="log-reformatting"></div>
+
+## Log reformatting
+
+Elastic APM agents can automatically reformat application logs to Elastic Common Schema (ECS) format
+without needing to add an ECS logger dependency or modify the application.
+
+This feature is supported for the following APM agents:
+
+* Ruby
+* [Python](((apm-py-ref))/logs.html#log-reformatting)
+* [Java](((apm-java-ref))/logs.html#log-reformatting)
+
+<div id="log-correlation"></div>
+
+## Log correlation
+
+Log correlation works at two levels:
+
+- at service level: annotation with `service.name`, `service.version` and `service.environment` allow to link logs with APM services
+- at trace level: annotation with `trace.id` and `transaction.id` allow to link logs with traces
+
+Elastic APM integrates with the most popular logging frameworks in each programming language to accomplish this automatically.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <Snippet1  /> */}
+
+
+<div id="ingest-application-logs"></div>
+
+## How to ingest application logs
+
+There are four main ways to ingest application logs into the ((stack)).
+Your use case will help determine the method that's right for you.
+
+Here, ((filebeat)) is used for reference, but any ingestion tool
+can be used with an equivalent configuration.
+
+* <DocLink id="serverlessObservabilityApmCorrelateLogs" section="plaintext-logs">Plaintext logs</DocLink>
+* <DocLink id="serverlessObservabilityApmCorrelateLogs" section="ecs-logging">ECS logging</DocLink>
+* <DocLink id="serverlessObservabilityApmCorrelateLogs" section="log-reformatting">Log reformatting</DocLink>
+* <DocLink id="serverlessObservabilityApmCorrelateLogs" section="apm-agent-log-sending">APM agent log sending</DocLink>
+
+<div id="overview-plaintext-logs"></div>
+
+### Plaintext logs
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <Snippet2  /> */}
+
+
+Learn more: <DocLink id="serverlessObservabilityApmPlaintextLogs">Plaintext logs</DocLink>.
+
+<div id="overview-ecs-logging-logs"></div>
+
+### ECS logging
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <Snippet3  /> */}
+
+
+Learn more: <DocLink id="serverlessObservabilityApmEcsLogging">ECS logging</DocLink>
+
+<div id="overview-log-reformatting"></div>
+
+### Log reformatting
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <Snippet4  /> */}
+
+
+Learn more: <DocLink id="serverlessObservabilityApmAgentEcsReformatting">APM agent ECS reformatting</DocLink>
+
+<div id="overview-apm-agent-log-sending"></div>
+
+### APM agent log sending
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <Snippet5  /> */}
+
+
+Learn more: <DocLink id="serverlessObservabilityApmAgentLogSending">APM agent log sending</DocLink>
+

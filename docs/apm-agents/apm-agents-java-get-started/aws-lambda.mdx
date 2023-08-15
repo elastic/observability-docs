@@ -1,0 +1,127 @@
+
+
+{/* import AwsLambdaRuntimes from './transclusion/supported-technologies/aws-lambda-runtimes.mdx' */}
+{/* import LambdaSelectorLambdaAttributesSelector from '../../lambda/transclusion/lambda-selector/lambda-attributes-selector.mdx' */}
+{/* import LambdaSelectorExtensionArnReplacement from '../../lambda/transclusion/lambda-selector/extension-arn-replacement.mdx' */}
+{/* import LambdaJavaArnReplacement from './transclusion/lambda/java-arn-replacement.mdx' */}
+{/* import AddExtensionLayerWidget from '../../lambda/transclusion/add-extension/add-extension-layer-widget.mdx' */}
+{/* import LambdaConfigureLambdaWidget from './transclusion/lambda/configure-lambda-widget.mdx' */}
+
+<div id="aws-lambda"></div>
+
+export let layer_section_type = "with-agent"
+
+The Java APM Agent can be used with AWS Lambda to monitor the execution of your AWS Lambda functions.
+
+<div id="aws-lambda-java-quick-start"></div>
+
+### Quick Start
+
+To get started with APM for your Java AWS Lambda functions, follow the steps below.
+
+<div id="aws-lambda-java-prerequisites"></div>
+
+#### Prerequisites
+
+1. You need an APM Server to send APM data to. Follow the [APM Quick start](((apm-guide-ref))/apm-quick-start.html) if you have not set one up yet. For the best-possible performance, we recommend setting up APM on ((ecloud)) in the same AWS region as your AWS Lambda functions.
+1. Make sure you are using one of the supported AWS Lambda Java runtimes:
+
+    <div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <AwsLambdaRuntimes  /> */}
+
+
+#### Step 1: Select the AWS Region and Architecture
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaSelectorLambdaAttributesSelector  /> */}
+
+
+#### Step 2: Add the APM Layers to your Lambda function
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaSelectorExtensionArnReplacement  /> */}
+
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaJavaArnReplacement  /> */}
+
+
+Both the [((apm-lambda-ext))](((apm-lambda-ref))/aws-lambda-arch.html) and the Java APM Agent are added to your Lambda function as [AWS Lambda Layers](https://docs.aws.amazon.com/lambda/latest/dg/invocation-layers.html). Therefore, you need to add the corresponding Layer ARNs (identifiers) to your Lambda function.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <AddExtensionLayerWidget layer_section_type={layer_section_type} /> */}
+
+
+#### Step 3: Configure APM on AWS Lambda
+
+The ((apm-lambda-ext)) and the APM Java agent are configured through environment variables on the AWS Lambda function.
+
+For the minimal configuration, you will need the _APM Server URL_ to set the destination for APM data and an [_APM Secret Token_](((apm-guide-ref))/secret-token.html).
+If you prefer to use an [APM API key](((apm-guide-ref))/api-key.html) instead of the APM secret token, use the `ELASTIC_APM_API_KEY` environment variable instead of `ELASTIC_APM_SECRET_TOKEN` in the following configuration.
+
+For production environments, we recommend [using the AWS Secrets Manager to store your APM authentication key](((apm-lambda-ref))/aws-lambda-secrets-manager.html) instead of providing the secret value as plaintext in the environment variables.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="documents" title="missing snippet"/> missing snippet</div>
+{/* <LambdaConfigureLambdaWidget 
+  layer_section_type={layer_section_type}
+/> */}
+
+\<1> The [`ELASTIC_APM_SEND_STRATEGY`](((apm-lambda-ref))/aws-lambda-config-options.html#_elastic_apm_send_strategy) defines when APM data is sent to your Elastic APM backend. To reduce the execution time of your lambda functions, we recommend to use the `background` strategy in production environments with steady load scenarios.
+
+You can optionally <DocLink id="serverlessObservabilityApmAgentsJavaConfigure">fine-tune the Java agent </DocLink> or the [configuration of the ((apm-lambda-ext))](((apm-lambda-ref))/aws-lambda-config-options.html).
+
+That's it; After following the steps above, you're ready to go!
+Your Lambda function invocations should be traced from now on.
+
+Read on to learn more about the features and limitations of the Java APM Agent on AWS Lambda Functions.
+
+<div id="aws-lambda-features-and-caveats"></div>
+
+### Features and Caveats
+
+The AWS Lambda as a runtime behaves differently from conventional runtimes.
+While most APM and monitoring concepts apply to AWS Lambda, there are a few differences and limitations to be aware of.
+
+<div id="aws-lambda-performance-monitoring"></div>
+
+#### Performance monitoring
+
+Elastic APM automatically measures the performance of your lambda function executions.
+It records traces for database queries, external HTTP requests,
+and other slow operations that happen during execution.
+
+By default, the agent will trace <DocLink id="serverlessObservabilityApmAgentsJavaGetStarted" section="supported-technologies">the usual supported technologies</DocLink>.
+To trace other events, take a look at <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentJavaJavaMethodMonitoring">additional method tracing options</DocLink> */}, however note that
+due to its asynchronous nature, the <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentJavaMethodSamplingBased">Sampling Profiler</DocLink> */} is not a valid option for AWS Lambda.
+
+<div id="aws-lambda-error-monitoring"></div>
+
+#### Error monitoring
+
+Whenever an `Exception` is thrown by your function handler method, the agent will send an error event to the APM Server
+and the corresponding transaction will be recorded as a failed transaction.
+Errors related to traced spans will be sent as well.
+
+<div id="aws-lambda-caveats"></div>
+
+#### Caveats
+* System and custom metrics are not collected for Lambda functions. This is both because most of those are irrelevant
+    and because the interval-based event sending model is not suitable for FaaS environments.
+
+* Cold starts can be significantly slower when the agent is installed. If this is an issue, following are ways to deal with slow code
+    starts:
+
+    * If the only issue with slower cold starts is Lambda timing out, consider increasing the configured timeout.
+    * The higher memory limit you would allow for your Function, the smaller this effect would be. This is irrelevant for
+        subsequent Function invocations, it is only relevant for cold starts.
+
+    * Much of the startup delay is related to the amount of enabled instrumentations. An enabled instrumentation will contribute to this
+        overhead regardless of it being applicable for your specific Lambda function. You can considerably reduce the related overhead by
+        specifying a limited list of enabled instrumentations through the <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="enable_instrumentations-added[1280]">`enable_instrumentations`</DocLink> config.
+        An automatic way to generate such list is by invoking your Lambda with the agent's default configurations and a <DocLink id="serverlessObservabilityApmAgentsJavaConfigure" section="log_level">
+        `log_level`</DocLink> of `INFO` or lower. After the first lambda invocation, the agent would log a message with the following format: `Used
+        instrumentation groups: [aws-lambda, executor, executor-collection, fork-join, ssl-context, urlconnection]`.
+
+* The <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentJavaMethodSamplingBased">Sampling Profiler</DocLink> */} feature would not work because it relies on profiling sessions and
+    subsequent asynchronous processing of the collected data.
+

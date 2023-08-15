@@ -4,8 +4,12 @@ slug: /serverless/observability/apm-agents-nodejs-performance-tuning
 title: Performance tuning
 # description: Description to be written
 tags: [ 'serverless', 'observability', '' ]
+status: rough content
 ---
 
+import RoughContent from '../partials/rough-content-notice.mdx'
+
+<RoughContent />
 
 <div id="performance-tuning"></div>
 
@@ -20,7 +24,7 @@ please view this documentation at [elastic.co](https://www.elastic.co/guide/en/a
 
 </DocIf>
 
-The Node.js APM agent offers a variety of {/* <DocLink id="enApmAgentNodejsConfiguration">configuration options</DocLink> */},
+The Node.js APM agent offers a variety of <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure">configuration options</DocLink>,
 some of which can have a significant impact on performance. Areas where APM
 agent overhead might be seen are: CPU, memory, network, latency, and storage.
 This document discusses the options most significant for performance tuning the
@@ -32,7 +36,7 @@ APM agent.
 
 The _sample rate_ is the percentage of incoming requests that are recorded and
 sent to the APM Server. This is controlled by the
-{/* <DocLink id="enApmAgentNodejsConfiguration" section="transactionsamplerate">`transactionSampleRate`</DocLink> */} configuration option. By
+<DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="transactionsamplerate">`transactionSampleRate`</DocLink> configuration option. By
 default _all_ requests are traced (`transactionSampleRate: 1.0`).
 
 The amount of work the APM agent needs to do, generally scales linearly with
@@ -42,7 +46,7 @@ network, and storage overhead.
 Applications with a high request rate and/or many spans per incoming request
 may want to lower the the sampling rate. For example, see the example below
 to trace 20% of incoming requests. Note that incoming HTTP requests that are
-part of a {/* <DocLink id="enApmAgentNodejsDistributedTracing">distributed trace</DocLink> */} already have the sampling
+part of a <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmAgentNodejsDistributedTracing">distributed trace</DocLink> */} already have the sampling
 decision made -- the `traceparent` header includes a
 [sampled flag](https://w3c.github.io/trace-context/#sampled-flag). In these cases
 the `transactionSampleRate` setting will not apply.
@@ -67,7 +71,7 @@ used.
 
 ### Span Stack Traces
 
-The {/* <DocLink id="enApmAgentNodejsConfiguration" section="spanstacktraceminduration">`spanStackTraceMinDuration`</DocLink> */} configuration
+The <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="spanstacktraceminduration">`spanStackTraceMinDuration`</DocLink> configuration
 option controls if stack traces are never captured for spans (the
 default), always captured for spans, or only captured for spans that are longer
 than a given duration. In a complex application, a traced request may capture
@@ -91,10 +95,10 @@ the agent will also capture several lines of source code around each stack frame
 
 The are four different settings to control this behaviour:
 
-- {/* <DocLink id="enApmAgentNodejsConfiguration" section="source-context-error-app-frames">`sourceLinesErrorAppFrames`</DocLink> */}
-- {/* <DocLink id="enApmAgentNodejsConfiguration" section="source-context-error-library-frames">`sourceLinesErrorLibraryFrames`</DocLink> */}
-- {/* <DocLink id="enApmAgentNodejsConfiguration" section="source-context-span-app-frames">`sourceLinesSpanAppFrames`</DocLink> */}
-- {/* <DocLink id="enApmAgentNodejsConfiguration" section="source-context-span-library-frames">`sourceLinesSpanLibraryFrames`</DocLink> */}
+- <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="source-context-error-app-frames">`sourceLinesErrorAppFrames`</DocLink>
+- <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="source-context-error-library-frames">`sourceLinesErrorLibraryFrames`</DocLink>
+- <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="source-context-span-app-frames">`sourceLinesSpanAppFrames`</DocLink>
+- <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="source-context-span-library-frames">`sourceLinesSpanLibraryFrames`</DocLink>
 
 Source line settings are divided into app frames representing your app code and library frames representing the code of your dependencies.
 App and library categories are both split into error and span groups.
@@ -114,7 +118,7 @@ Turning the limits down will help prevent excessive memory use.
 
 ### Stack Frame Limit
 
-The {/* <DocLink id="enApmAgentNodejsConfiguration" section="stacktracelimit">`stackTraceLimit`</DocLink> */} configuration option controls how
+The <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="stacktracelimit">`stackTraceLimit`</DocLink> configuration option controls how
 many stack frames are captured when producing an `Error` instance of any kind.
 A large value may impact CPU and memory overhead of the agent.
 
@@ -123,11 +127,11 @@ A large value may impact CPU and memory overhead of the agent.
 ### Error Log Stack Traces
 
 Most stack traces recorded by the agent will point to where the error was instantiated,
-not where it was identified and reported to the agent with {/* <DocLink id="enApmAgentNodejsAgentApi" section="apmcaptureerrorerror[-options][-callback]">`captureError`</DocLink> */}.
+not where it was identified and reported to the agent with <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmcaptureerrorerror[-options][-callback]">`captureError`</DocLink>.
 For this reason,
-the agent also has the {/* <DocLink id="enApmAgentNodejsConfiguration" section="captureerrorlogstacktraces">`captureErrorLogStackTraces`</DocLink> */} setting to enable capturing an additional stack trace pointing to the place an error was reported to the agent.
+the agent also has the <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="captureerrorlogstacktraces">`captureErrorLogStackTraces`</DocLink> setting to enable capturing an additional stack trace pointing to the place an error was reported to the agent.
 By default,
-it will only capture the stack trace to the reporting point when {/* <DocLink id="enApmAgentNodejsAgentApi" section="apmcaptureerrorerror[-options][-callback]">`captureError`</DocLink> */} is called with a string message.
+it will only capture the stack trace to the reporting point when <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmcaptureerrorerror[-options][-callback]">`captureError`</DocLink> is called with a string message.
 
 Setting this to `always` will increase memory and bandwidth usage,
 so it helps to consider how frequently the app may capture errors.
@@ -136,7 +140,7 @@ so it helps to consider how frequently the app may capture errors.
 
 ## Spans
 
-The {/* <DocLink id="enApmAgentNodejsConfiguration" section="transactionmaxspans">`transactionMaxSpans`</DocLink> */} setting limits the number of spans which may be recorded within a single transaction before remaining spans are dropped.
+The <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="transactionmaxspans">`transactionMaxSpans`</DocLink> setting limits the number of spans which may be recorded within a single transaction before remaining spans are dropped.
 
 Spans may include many things such as a stack trace and context data.
 Limiting the number of spans that may be recorded will reduce memory usage.
@@ -168,7 +172,7 @@ The APM agent uses a persistent outgoing HTTP request (periodically refreshed)
 to stream data to the APM Server. If either the APM agent cannot keep up with
 events (transactions, spans, errors, and metricsets) from the application or
 if the APM Server is slow or not responding, then the agent will buffer events.
-If the buffer exceeds {/* <DocLink id="enApmAgentNodejsConfiguration" section="maxqueuesize">`maxQueueSize`</DocLink> */}, then events are dropped to limit
+If the buffer exceeds <DocLink id="serverlessObservabilityApmAgentsNodejsConfigure" section="maxqueuesize">`maxQueueSize`</DocLink>, then events are dropped to limit
 memory usage of the agent.
 
 A lower value for `maxQueueSize` will decrease the heap overhead (and possibly

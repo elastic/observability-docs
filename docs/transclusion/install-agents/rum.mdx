@@ -1,0 +1,62 @@
+
+
+
+**Enable Real User Monitoring support in APM Server**
+
+APM Server disables RUM support by default.
+To enable it, set `apm-server.rum.enabled: true` in your APM Server configuration file.
+
+**Set up the agent**
+
+Once RUM support enabled, you can set up the RUM agent.
+There are two ways to do this: add the agent as a dependency,
+or set it up with `<script>` tags.
+
+**Set up the agent as a dependency**
+
+You can install the agent as a dependency to your application with `npm install @elastic/apm-rum --save`.
+
+The agent can then be initialized and configured in your application like this:
+
+```js
+import { init as initApm } from '@elastic/apm-rum'
+var apm = initApm({
+
+  // Set required service name (allowed characters: a-z, A-Z, 0-9, -, _, and space)
+  serviceName: 'your-app-name',
+
+  // Set custom APM Server URL (default: http://localhost:8200)
+  serverUrl: '',
+
+  // Set service version (required for source map feature)
+  serviceVersion: ''
+})
+```
+
+Framework integrations, like React or Angular, have custom dependencies.
+See [framework integrations]({book['apm-rum-ref-v']}/framework-integrations.html) for more information.
+
+**Set up the agent with `<script>` tags**
+
+Alternatively, you can use `<script>` tags to set up and configure the agent.
+Add a `<script>` tag to the HTML page and use the `elasticApm` global object to load and initialize the agent.
+Don't forget to download the latest version of the RUM agent from
+[GitHub](https://github.com/elastic/apm-agent-rum-js/releases/latest) or
+[UNPKG](https://unpkg.com/@elastic/apm-rum/dist/bundles/elastic-apm-rum.umd.min.js),
+and host the file on your Server/CDN before deploying to production.
+
+```js
+<script src="https://your-cdn-host.com/path/to/elastic-apm-rum.umd.min.js" crossorigin></script>
+<script>
+  elasticApm.init({
+    serviceName: 'your-app-name',
+    serverUrl: 'http://localhost:8200',
+  })
+</script>
+```
+
+**Learn more in the agent reference**
+
+* <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* [Supported technologies]({book['apm-rum-ref-v']}/supported-technologies.html) */}
+* <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* [Advanced configuration]({book['apm-rum-ref-v']}/configuration.html) */}
+

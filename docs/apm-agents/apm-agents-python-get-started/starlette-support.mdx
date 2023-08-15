@@ -1,0 +1,148 @@
+
+
+<div id="starlette-support"></div>
+
+Incorporating Elastic APM into your Starlette project only requires a few easy
+steps.
+
+<div id="starlette-installation"></div>
+
+### Installation
+
+Install the Elastic APM agent using pip:
+
+```bash
+$ pip install elastic-apm
+```
+
+or add `elastic-apm` to your project's `requirements.txt` file.
+
+<div id="starlette-setup"></div>
+
+### Setup
+
+To set up the agent, you need to initialize it with appropriate settings.
+
+The settings are configured either via environment variables, or as
+initialization arguments.
+
+You can find a list of all available settings in the
+<DocLink id="serverlessObservabilityApmAgentsPythonConfigure">Configuration</DocLink> page.
+
+To initialize the agent for your application using environment variables, add
+the ElasticAPM middleware to your Starlette application:
+
+```python
+from starlette.applications import Starlette
+from elasticapm.contrib.starlette import ElasticAPM
+
+app = Starlette()
+app.add_middleware(ElasticAPM)
+```
+
+<DocCallOut title="Warning" color="warning">
+If you are using any `BaseHTTPMiddleware` middleware, you must add them
+**before** the ElasticAPM middleware. This is because `BaseHTTPMiddleware` breaks
+`contextvar` propagation, as noted
+[here](https://www.starlette.io/middleware/#limitations).
+</DocCallOut>
+
+To configure the agent using initialization arguments:
+
+```python
+from starlette.applications import Starlette
+from elasticapm.contrib.starlette import make_apm_client, ElasticAPM
+
+apm = make_apm_client({
+    'SERVICE_NAME': '<SERVICE-NAME>',
+    'SECRET_TOKEN': '<SECRET-TOKEN>',
+})
+app = Starlette()
+app.add_middleware(ElasticAPM, client=apm)
+```
+
+<div id="starlette-fastapi"></div>
+
+### FastAPI
+
+Because FastAPI supports Starlette middleware, using the agent with FastAPI
+is almost exactly the same as with Starlette:
+
+```python
+from fastapi import FastAPI
+from elasticapm.contrib.starlette ElasticAPM
+
+app = FastAPI()
+app.add_middleware(ElasticAPM)
+```
+
+<div id="starlette-usage"></div>
+
+### Usage
+
+Once you have configured the agent, it will automatically track transactions
+and capture uncaught exceptions within starlette.
+
+Capture an arbitrary exception by calling
+<DocLink id="serverlessObservabilityApmAgentsPythonApi" section="clientcapture_exception">`capture_exception`</DocLink>:
+
+```python
+try:
+    1 / 0
+except ZeroDivisionError:
+    apm.client.capture_exception()
+```
+
+Log a generic message with <DocLink id="serverlessObservabilityApmAgentsPythonApi" section="clientcapture_message">`capture_message`</DocLink>:
+
+```python
+apm.client.capture_message('hello, world!')
+```
+
+<div id="starlette-performance-metrics"></div>
+
+### Performance metrics
+
+If you've followed the instructions above, the agent has installed our
+instrumentation middleware which will process all requests through your app.
+This will measure response times, as well as detailed performance data for
+all supported technologies.
+
+<DocCallOut title="Note">
+Due to the fact that `asyncio` drivers are usually separate from their
+synchronous counterparts, specific instrumentation is needed for all drivers.
+The support for asynchronous drivers is currently quite limited.
+</DocCallOut>
+
+<div id="starlette-ignoring-specific-views"></div>
+
+#### Ignoring specific routes
+
+You can use the
+<DocLink id="serverlessObservabilityApmAgentsPythonConfigure" section="transactions_ignore_patterns">`TRANSACTIONS_IGNORE_PATTERNS`</DocLink>
+configuration option to ignore specific routes. The list given should be a
+list of regular expressions which are matched against the transaction name:
+
+```python
+apm = make_apm_client({
+    # ...
+    'TRANSACTIONS_IGNORE_PATTERNS': ['^GET /secret', '/extra_secret']
+    # ...
+})
+```
+
+This would ignore any requests using the `GET /secret` route
+and any requests containing `/extra_secret`.
+
+<div id="supported-starlette-and-python-versions"></div>
+
+### Supported Starlette and Python versions
+
+A list of supported <DocLink id="serverlessObservabilityApmAgentsPythonSupportedTechnologies" section="starlettefastapi">Starlette</DocLink> and
+<DocLink id="serverlessObservabilityApmAgentsPythonSupportedTechnologies" section="python">Python</DocLink> versions can be found on our
+<DocLink id="serverlessObservabilityApmAgentsPythonSupportedTechnologies">Supported Technologies</DocLink> page.
+
+<DocCallOut title="Note">
+Elastic APM only supports `asyncio` when using Python 3.7+
+</DocCallOut>
+

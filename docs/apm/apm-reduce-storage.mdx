@@ -4,4 +4,134 @@ slug: /serverless/observability/apm-reduce-storage
 title: Reduce storage
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'how-to' ]
+status: rough content
 ---
+
+import RoughContent from '../partials/rough-content-notice.mdx'
+
+<RoughContent />
+
+<div id="reduce-apm-storage"></div>
+
+The amount of storage for APM data depends on several factors:
+the number of services you are instrumenting, how much traffic the services see, agent and server settings,
+and the length of time you store your data.
+
+Here are some ways you can reduce either the amount of APM data you're ingesting
+or the amount of data you're retaining.
+
+<div id="reduce-sample-rate"></div>
+
+## Reduce the sample rate
+
+Distributed tracing can generate a substantial amount of data.
+More data can mean higher costs and more noise.
+Sampling aims to lower the amount of data ingested and the effort required to analyze that data.
+
+See <DocLink id="serverlessObservabilityApmTransactionSampling">Transaction sampling</DocLink> to learn more.
+
+## Enable span compression
+
+In some cases, APM agents may collect large amounts of very similar or identical spans in a transaction.
+These repeated, similar spans often don't provide added benefit, especially if they are of very short duration.
+Span compression takes these similar spans and compresses them into a single span--
+retaining important information but reducing processing and storage overhead.
+
+See <DocLink id="serverlessObservabilityApmCompressSpans">Span compression</DocLink> to learn more.
+
+<div id="reduce-stacktrace"></div>
+
+## Reduce collected stack trace information
+
+Elastic APM agents collect `stacktrace` information under certain circumstances.
+This can be very helpful in identifying issues in your code,
+but it also comes with an overhead at collection time and increases the storage usage.
+
+Stack trace collection settings are managed in each agent.
+
+## Delete data
+
+You might want to only keep data for a defined time period.
+This might mean deleting old documents periodically,
+deleting data collected for specific services or customers,
+or deleting specific indices.
+
+Depending on your use case, you can delete data:
+
+* periodically with <DocLink id="serverlessObservabilityApmReduceStorage" section="delete-data-with-((ilm))-((ilm-init))">((ilm))</DocLink>
+* <DocLink id="serverlessObservabilityApmReduceStorage" section="delete-data-matching-a-query">matching a query</DocLink>
+* with the <DocLink id="serverlessObservabilityApmReduceStorage" section="delete-data-with-((kib))-index-management">((kib)) Index Management UI</DocLink>
+
+If you want to delete data for security or privacy reasons, see <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enApmGuideApmDataSecurity">Data security</DocLink> */}.
+
+<div id="delete-data-with-ilm"></div>
+
+### Delete data with ((ilm)) (((ilm-init)))
+
+Index lifecycle management enables you to automate how you want to manage your indices over time.
+You can base actions on factors such as shard size and performance requirements.
+See <DocLink id="serverlessObservabilityApmIndexLifecycleManagement">((ilm-cap))</DocLink> to learn more.
+
+<div id="delete-data-query"></div>
+
+### Delete data matching a query
+
+You can delete all APM documents matching a specific query with the [Delete By Query API](((ref))/docs-delete-by-query.html).
+For example, to delete all documents with a given `service.name`, use the following request:
+
+```console
+POST /.ds-*-apm*/_delete_by_query
+{
+  "query": {
+    "term": {
+      "service.name": {
+        "value": "old-service-name"
+      }
+    }
+  }
+}
+```
+
+<div id="delete-data-in-kibana"></div>
+
+### Delete data with ((kib)) Index Management
+
+((kib))'s [Index Management](((ref))/index-mgmt.html) allows you to manage your cluster's
+indices, data streams, index templates, and much more.
+
+In ((kib)), navigate to **Stack Management** > **Index Management** > **Data Streams**.
+Select the data streams you want to delete, and click **Delete data streams**.
+
+<div id="update-data"></div>
+
+## Update existing data
+
+You might want to update documents that are already indexed.
+For example, if you your service name was set incorrectly.
+
+To do this, you can use the [Update By Query API](((ref))/docs-update-by-query.html).
+To rename a service, send the following request:
+
+```sh
+POST /.ds-*-apm*/_update_by_query?expand_wildcards=all
+{
+  "query": {
+    "term": {
+      "service.name": {
+        "value": "current-service-name"
+      }
+    }
+  },
+  "script": {
+    "source": "ctx._source.service.name = 'new-service-name'",
+    "lang": "painless"
+  }
+}
+```
+{/* CONSOLE */}
+
+<DocCallOut title="Tip">
+Remember to also change the service name in the [((apm-agent)) configuration](((apm-agents-ref))/index.html).
+</DocCallOut>
+
+{/* The include that was here is another page */}

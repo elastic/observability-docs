@@ -4,8 +4,12 @@ slug: /serverless/observability/apm-agents-net-api
 title: API
 # description: Description to be written
 tags: [ 'serverless', 'observability', '' ]
+status: rough content
 ---
 
+import RoughContent from '../partials/rough-content-notice.mdx'
+
+<RoughContent />
 
 
 export let env_github = false
@@ -89,7 +93,7 @@ Some examples:
 
 <DocCallOut title="Note">
 
-When the agent is configured with {/* <DocLink id="enApmAgentDotnetConfigCore" section="enabled-added[170]">`Enabled` set to `false`</DocLink> */}, `Elastic.ApmAgent.Subscribe(params IDiagnosticsSubscriber[] subscribers)` will not subscribe the subscribers to
+When the agent is configured with <DocLink id="serverlessObservabilityApmAgentsNetConfigure" section="enabled-added[170]">`Enabled` set to `false`</DocLink>, `Elastic.ApmAgent.Subscribe(params IDiagnosticsSubscriber[] subscribers)` will not subscribe the subscribers to
 diagnostic source events.
 
 </DocCallOut>
@@ -310,7 +314,7 @@ Agent.Tracer.CaptureErrorLog(errorLog);
 
 ## Transaction API
 {/* ---------------------------- */}
-A transaction describes an event captured by an Elastic APM agent monitoring a service. Transactions help combine multiple <DocLink id="serverlessObservabilityApmAgentsNetApi" section="span-api">Spans</DocLink> into logical groups, and they are the first {/* <DocLink id="enApmAgentDotnetPublicApi" section="span-api">Span</DocLink> */} of a service. More information on Transactions and Spans is available in the [APM data model](((apm-guide-ref))/data-model.html) documentation.
+A transaction describes an event captured by an Elastic APM agent monitoring a service. Transactions help combine multiple <DocLink id="serverlessObservabilityApmAgentsNetApi" section="span-api">Spans</DocLink> into logical groups, and they are the first <DocLink id="serverlessObservabilityApmAgentsNetApi" section="span-api">Span</DocLink> of a service. More information on Transactions and Spans is available in the [APM data model](((apm-guide-ref))/data-model.html) documentation.
 
 See <DocLink id="serverlessObservabilityApmAgentsNetApi" section="itransaction-currenttransaction">`ITransaction CurrentTransaction`</DocLink> on how to get a reference of the current transaction.
 
@@ -446,7 +450,7 @@ transaction.End();
 ```
 
 <DocCallOut title="Note">
-If you use the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturetransaction">`CaptureTransaction`</DocLink> method you must not call {/* <DocLink id="enApmAgentDotnetPublicApi" section="void-end">`void End()`</DocLink> */}.
+If you use the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturetransaction">`CaptureTransaction`</DocLink> method you must not call <DocLink id="serverlessObservabilityApmAgentsNetApi" section="void-end">`void End()`</DocLink>.
 </DocCallOut>
 
 <div id="api-transaction-capture-exception"></div>
@@ -504,7 +508,7 @@ transaction.CaptureSpan("SampleSpan", ApiConstants.TypeDb, (s) =>
 }, ApiConstants.SubtypeMssql, ApiConstants.ActionQuery);
 ```
 
-Similar to the {/* <DocLink id="enApmAgentDotnetPublicApi" section="capturetransaction">`CaptureTransaction`</DocLink> */} API, this method also supports `async` methods with the `Func<Task>` overloads.
+Similar to the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturetransaction">`CaptureTransaction`</DocLink> API, this method also supports `async` methods with the `Func<Task>` overloads.
 
 <DocCallOut title="Note">
 The duration of the span will be the timespan between the first and the last line of the `async` lambda expression.
@@ -523,7 +527,7 @@ var asyncResult = await transaction.CaptureSpan("Select FROM customer", ApiConst
 ```
 
 <DocCallOut title="Note">
-Return value of <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturespan">`CaptureSpan`</DocLink> method overloads that accept Task (or `Task<T>`) is the same Task (or `Task<T>`) instance as the one passed as the argument so if your application should continue only after the task completes you have to call {/* <DocLink id="enApmAgentDotnetPublicApi" section="capturespan">`CaptureSpan`</DocLink> */} with `await` keyword.
+Return value of <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturespan">`CaptureSpan`</DocLink> method overloads that accept Task (or `Task<T>`) is the same Task (or `Task<T>`) instance as the one passed as the argument so if your application should continue only after the task completes you have to call <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturespan">`CaptureSpan`</DocLink> with `await` keyword.
 </DocCallOut>
 
 <DocCallOut title="Note">
@@ -645,7 +649,7 @@ and the type will hold information about the database type.
 #### `ISpan StartSpan(string name, string type, string subType = null, string action = null)`
 Start and return a new custom span as a child of the given span. Very similar to the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="ispan-startspanstring-name-string-type-string-subtype-=-null-string-action-=-null">`ISpan StartSpan(string name, string type, string subType = null, string action = null)`</DocLink> method on `ITransaction`, but in this case the parent of the newly created span is a span itself. 
 
-It is important to call <DocLink id="serverlessObservabilityApmAgentsNetApi" section="void-end">`void End()`</DocLink> when the span has ended or to use the {/* <DocLink id="enApmAgentDotnetPublicApi" section="capturespan">`CaptureSpan`</DocLink> */} method.
+It is important to call <DocLink id="serverlessObservabilityApmAgentsNetApi" section="void-end">`void End()`</DocLink> when the span has ended or to use the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturespan">`CaptureSpan`</DocLink> method.
 A best practice is to use the span in a try-catch-finally block.
 
 Example:
@@ -716,7 +720,7 @@ if(span.TryGetLabel<bool>("foo", out var myLabel))
 This property is obsolete and will be be removed in a future version. Use the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="void-setlabelstring-key-t-value-added[170number-and-boolean-labels-require-apm-server-67]">`void SetLabel()`</DocLink> method instead, which allows setting labels of string, boolean and number. This property remains for now in order to not break binary compatibility, and at serialization time, the values set with `.SetLabel()` are combined with `Labels` to form the set of labels sent to APM server, with values in `Labels` taking precedence. 
 </DocCallOut>
 
-Similar to <DocLink id="serverlessObservabilityApmAgentsNetApi" section="dictionarylessstringstringgreater-labels">`Dictionary<string,string> Labels`</DocLink> on the {/* <DocLink id="enApmAgentDotnetPublicApi" section="transaction-api">Transaction API</DocLink> */}: A flat mapping of user-defined labels with string values.
+Similar to <DocLink id="serverlessObservabilityApmAgentsNetApi" section="dictionarylessstringstringgreater-labels">`Dictionary<string,string> Labels`</DocLink> on the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="transaction-api">Transaction API</DocLink>: A flat mapping of user-defined labels with string values.
 
 If the key contains any special characters (`.`,`*`, `"`), they will be replaced with underscores. For example `a.b` will be stored as `a_b`.
 
@@ -807,7 +811,7 @@ Agent.Tracer.CurrentTransaction.CaptureSpan("MyHttpOperation", ApiConstants.Type
 
 This is a convenient method which starts and ends a child span on the given span and captures unhandled exceptions.
 
-Very similar to the {/* <DocLink id="enApmAgentDotnetPublicApi" section="capturespan">`CaptureSpan`</DocLink> */} method on `ITransaction`, but in this case the parent of the newly created span is a span itself. 
+Very similar to the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturespan">`CaptureSpan`</DocLink> method on `ITransaction`, but in this case the parent of the newly created span is a span itself. 
 
 It has 3 required parameters:
 
@@ -837,7 +841,7 @@ span.CaptureSpan("SampleSpan", ApiConstants.TypeDb, (s) =>
 }, ApiConstants.SubtypeMssql, ApiConstants.ActionQuery);
 ```
 
-Similar to the {/* <DocLink id="enApmAgentDotnetPublicApi" section="capturetransaction">`CaptureTransaction`</DocLink> */} API, this method also supports `async` methods with the `Func<Task>` overloads.
+Similar to the <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturetransaction">`CaptureTransaction`</DocLink> API, this method also supports `async` methods with the `Func<Task>` overloads.
 
 <DocCallOut title="Note">
 The duration of the span will be the timespan between the first and the last line of the `async` lambda expression.
@@ -855,7 +859,7 @@ var asyncResult = await span.CaptureSpan("Select FROM customer", ApiConstants.Ty
 ```
 
 <DocCallOut title="Note">
-Return value of <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturespan">`CaptureSpan`</DocLink> method overloads that accept Task (or `Task<T>`) is the same Task (or `Task<T>`) instance as the one passed as the argument so if your application should continue only after the task completes you have to call {/* <DocLink id="enApmAgentDotnetPublicApi" section="capturespan">`CaptureSpan`</DocLink> */} with `await` keyword.
+Return value of <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturespan">`CaptureSpan`</DocLink> method overloads that accept Task (or `Task<T>`) is the same Task (or `Task<T>`) instance as the one passed as the argument so if your application should continue only after the task completes you have to call <DocLink id="serverlessObservabilityApmAgentsNetApi" section="capturespan">`CaptureSpan`</DocLink> with `await` keyword.
 </DocCallOut>
 
 <DocCallOut title="Note">
