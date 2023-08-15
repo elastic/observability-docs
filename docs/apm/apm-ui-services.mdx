@@ -1,0 +1,70 @@
+---
+id: serverlessObservabilityApmServices
+slug: /serverless/observability/apm-services
+title: Services
+# description: Description to be written
+tags: [ 'serverless', 'observability', 'reference' ]
+status: rough content
+---
+
+import RoughContent from '../partials/rough-content-notice.mdx'
+
+<RoughContent />
+
+
+<div id="services"></div>
+
+**Service** inventory provides a quick, high-level overview of the health and general
+performance of all instrumented services.
+
+To help surface potential issues, services are sorted by their health status:
+**critical** > **warning** > **healthy** > **unknown**.
+Health status is powered by <DocLink id="serverlessObservabilityApmIntegrateWithMachineLearning">machine learning</DocLink>
+and requires anomaly detection to be enabled.
+
+In addition to health status, active alerts for each service are prominently displayed in the service inventory table. Selecting an active alert badge brings you to the <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enKibanaApmAlerts">Alerts</DocLink> */} tab where you can learn more about the active alert and take action.
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
+{/* ![Example view of services table the APM app in Kibana](images/services/apm-apm-services-overview.png) */}
+
+<div id="service-groups"></div>
+
+## Service groups
+
+<DocCallOut template="beta" />
+Group services together to build meaningful views that remove noise, simplify investigations across services,
+and <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enKibanaApmAlerts" section="view-alerts-by-service-group">combine related alerts</DocLink> */}.
+Service groups are ((kib)) space-specific and available for any users with appropriate access.
+
+{/* This screenshot is reused in the alerts docs */}
+{/* Ensure it has an active alert showing */}
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
+{/* ![Example view of service group in the APM app in Kibana](images/services/apm-apm-service-group.png) */}
+
+To enable Service groups, open ((kib)) and navigate to **Stack Management** > **Advanced Settings** > **Observability**,
+and enable the **Service groups feature**.
+
+To create a service group, navigate to **Observability** > **APM** > **Services** and select **Create group**.
+Specify a name, color, and description.
+Then, using the <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enKibanaKueryQuery">Kibana Query Language (KQL)</DocLink> */}, specify a query to select services for the group.
+Services that match the query within the last 24 hours will be assigned to the group.
+
+<DocCallOut title="Note">
+
+Once a service group has been saved, this list of services within it is static.
+If a newly added service matches the KQL query, it will not be automatically added to the service group.
+Similarly, if a service stops matching the KQL query, it will not be removed from the group.
+
+To update the list of services within a group,
+edit the service group, click **Refresh** next to the KQL query, and click **Save group**.
+
+</DocCallOut>
+
+**Examples**
+
+Not sure where to get started? Here are some sample queries you can build from:
+
+* Group services by environment--in this example, "production": `service.environment : "production"`
+* Group services by name--this example groups those that end in "beat": `service.name : *beat` (matches services named "Auditbeat", "Heartbeat", "Filebeat", etc.)
+* Group services with a high transaction duration in the last 24 hours: `transaction.duration.us >= 50000000`
+
