@@ -165,7 +165,7 @@ POST logs-test-default/_doc
 }
 ----
 
-Use the this command to look at the document's details:
+This stored the document in `logs-test-default`. You can retrieve it again with the following search:
 
 [source,console]
 ----
@@ -183,8 +183,7 @@ You see something like this:
     "hits": [
       {
         "_index": ".ds-logs-test-default-2023.08.09-000001",
-        "_id": "RsWy3IkB8yCtA5VGOKLf",
-        "_score": 1,
+        ...
         "_source": {
           "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.",
           "@timestamp": "2023-08-09T17:19:27.73312243Z"
@@ -195,7 +194,23 @@ You see something like this:
 }
 ----
 
-Notice the text in your message isn't parsed, so you can't filter by any individual fields. Also, the `@timestamp` field shows when you added the data to {es}, not when the log occurred. In this format, you can search for keywords like `WARN` or `Disk usage exceeds`, but the fields are not useful for sorting or filtering. Your message, however, contains all of these potential fields:
+Elasticsearch by default indexes the `message` field. This means you can search for phrases like `WARN` or `Disk usage exceeds`, but the `message` field can't be used for sorting or filtering. A search for `WARN` could look as following and shows the document as result.
+
+[source,console]
+----
+GET logs-test-default/_search
+{
+  "query": {
+    "match": {
+      "message": {
+        "query": "WARN"
+      }
+    }
+  }
+}
+----
+
+Your message, however, contains all of the potential fields below. Extracting these will allow you to do filtering and aggregations on these fields:
 
 - *@timestamp* – `2023-08-08T13:45:12.123Z` – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
 - *log.level* – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to  focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
@@ -208,7 +223,19 @@ NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common S
 [[logs-stream-extract-timestamp]]
 == Extract the `@timestamp` field
 
-This section shows you how to extract the `@timestamp` field from the example log:
+Before we had ingested the document but if we look closer at the resulting document the `@timestamp` field shows when you added the data to {es}, not when the log occurred.
+
+[source,JSON]
+----
+        ...
+        "_source": {
+          "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.",
+          "@timestamp": "2023-08-09T17:19:27.73312243Z"
+        }
+        ...
+----
+
+This section shows you how to extract the `@timestamp` field from the example log.
 
 [source,log]
 ----
@@ -226,7 +253,7 @@ To extract the timestamp you need to:
 [[logs-stream-ingest-pipeline]]
 === Use an ingest pipeline to extract the `@timestamp`
 
-To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The {ref}/dissect-processor.html[dissect processor] extracts structured fields from your unstructured log message based the pattern you set. In the following example command, the dissect processor extracts the timestamp to the `@timestamp` field. 
+To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. Ingest pipelines in Elasticsearch are used to process incoming documents. The {ref}/dissect-processor.html[dissect processor] is one of the available processors that extracts structured fields from your unstructured log message based the pattern you set. In the following example command, the dissect processor extracts the timestamp to the `@timestamp` field.
 
 {es} can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. Since the log example's timestamp is in one of these formats, you don't need additional processors. If your log timestamps are more complex or use a nonstandard format, you need a {ref}/date-processor.html[date processor] to parse the timestamp into a date field. You can also use a date processor to set the timezone, change the target field, and change the output format of the timestamp.
 
@@ -249,20 +276,15 @@ PUT _ingest/pipeline/logs-example-default
 ----
 
 . Set these values for your pipeline:
-- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. See the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
+- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, we recommend that it matches the name of your data stream. You'll set up your data stream in the next section. See the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
 - `field` – The field you're extracting data from, `message` in this case.
-- `pattern`– The pattern of the elements in your log data. The following pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field.
-+
-[source,JSON]
-----
-%{timestamp} %{message}
-----
+- `pattern`– The pattern of the elements in your log data. The following pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. This works because dissect looks for the space as a separator defined by the pattern `%{timestamp} %{message}`.
 
 [discrete]
 [[logs-stream-simulate-api]]
 === Test your pipeline with the simulate pipeline API
 
-Make sure your pipeline is working as expected with the {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API]. Run this command to test your pipeline:
+You can test if your ingest pipeline works as expected with the {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API]. This runs the pipeline without storing any documents. This is great to test your pipeline with different documents. Run this command to test your pipeline:
 
 [source,console]
 ----
@@ -293,9 +315,7 @@ The results should show the `@timestamp` field extracted from the `message` fiel
           "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
           "@timestamp": "2023-08-08T13:45:12.123Z"
         },
-          "_ingest": {
-            "timestamp": "2023-08-10T20:37:29.090624429Z"
-        }
+        ...
       }
     }
   ]
@@ -314,16 +334,19 @@ After creating your ingest pipeline, create an index template to point your log 
 ----
 PUT _index_template/logs-example-default-template
 {
-  "index_patterns": [ "logs-example-default" ],
+  "index_patterns": [ "logs-example-*" ],
   "data_stream": { },
   "priority": 500,
   "template": {
     "settings": {
       "index.default_pipeline":"logs-example-default"
     }
-  }
+  },
+  "composed_of": ["ecs@dynamic_templates"],
 }
 ----
+
+
 
 Set the following values for the index template:
 
