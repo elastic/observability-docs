@@ -198,17 +198,22 @@ You see something like this:
 Notice the text in your message isn't parsed, so you can't filter by any individual fields. Also, the `@timestamp` field shows when you added the data to {es}, not when the log occurred. In this format, you can search for keywords like `WARN` or `Disk usage exceeds`, but the fields are not useful for sorting or filtering. Your message, however, contains all of these potential fields:
 
 - *@timestamp* – `2023-08-08T13:45:12.123Z` – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
-- *log.level* – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to  focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
+- *log.level* – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
 - *host.ip* – `192.168.1.101` – Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
 - *message* – `Disk usage exceeds 90%.` – You can search for keywords in the message field.
 
 NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. The ECS defines a common set of fields that you can use across Elasticsearch when storing data, including log and metric data.
 
+See the following sections for information on extracting specific fields:
+
+- <<logs-stream-extract-timestamp>>
+- <<logs-stream-extract-log-level>>
+
 [discrete]
 [[logs-stream-extract-timestamp]]
 == Extract the `@timestamp` field
 
-This section shows you how to extract the `@timestamp` field from the example log:
+This section shows you how to extract the `@timestamp` field from this example log:
 
 [source,log]
 ----
@@ -389,3 +394,179 @@ Check the following common issues for possible solutions:
 - *Timestamp failure* – If your data has inconsistent date formats, you can set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
 - *Incorrect timezone* – Set your timezone using the `timezone` option on the {ref}/date-processor.html[date processor].
 - *Incorrect timestamp format* – Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information on timestamp formats.
+
+[discrete]
+[[logs-stream-extract-log-level]]
+== Extract the `log.level` field
+
+Extracting the `log.level` field lets you filter by severity and focus on critical issues. This section shows you how to extract the `log.level` field from this example log:
+
+[source,log]
+----
+2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
+----
+
+To extract and use the `log.level` field:
+
+. <<logs-stream-log-level-pipeline, Add the `log.level` field to the dissect processor pattern in your ingest pipeline.>>
+. <<logs-stream-log-level-simulate, Test the pipeline with the simulate API.>>
+. <<logs-stream-log-level-query, Query your logs based on the `log.level` field.>>
+
+[discrete]
+[[logs-stream-log-level-pipeline]]
+=== Add `log.level` to your ingest pipeline
+
+Add the `%{log.level}` option to the dissect processor pattern in the ingest pipeline you created in the <<logs-stream-ingest-pipeline, Extract the `@timestamp` field>> section:
+
+[source,console]
+----
+PUT _ingest/pipeline/logs-example-default
+{
+  "description": "Extracts the timestamp from log",
+  "processors": [
+    {
+      "dissect": {
+        "field": "message",
+        "pattern": "%{@timestamp} %{log.level} %{message}"
+      }
+    }
+  ]
+}
+----
+
+Now your pipeline will extract these fields:
+
+- The `@timestamp` field – `2023-08-08T13:45:12.123Z`
+- The `log.level` field – `WARN`
+- The `message` field – `192.168.1.101 Disk usage exceeds 90%.`
+
+After creating your pipeline, an index template points your log data to your pipeline. You can use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+
+[discrete]
+[[logs-stream-log-level-simulate]]
+=== Test the pipeline with the simulate API
+
+Test that your ingest pipeline works as expected with the {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API]:
+
+[source,console]
+----
+POST _ingest/pipeline/logs-example-default/_simulate
+{
+  "docs": [
+    {
+      "_source": {
+        "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
+      }
+    }
+  ]
+}
+----
+
+The results should show the `@timestamp` and the `log.level` fields extracted from the `message` field:
+
+[source,JSON]
+----
+{
+  "docs": [
+    {
+      "doc": {
+        "_index": "_index",
+        "_id": "_id",
+        "_version": "-3",
+        "_source": {
+          "message": "192.168.1.101 Disk usage exceeds 90%.",
+          "log": {
+            "level": "WARN"
+          },
+          "@timestamp": "2023-8-08T13:45:12.123Z",
+        },
+        ...
+      }
+    }
+  ]
+}
+----
+
+[discrete]
+[[logs-stream-log-level-query]]
+=== Query logs based on `log.level`
+
+Once you've extracted the `log.level` field, you can query for high-severity logs like `WARN` and `ERROR`, which may need immediate attention, and filter out less critical `INFO` and `DEBUG` logs.
+
+Let's say you have the following logs with varying severities:
+
+[source,log]
+----
+2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
+2023-08-08T13:45:14.003Z ERROR 192.168.1.103 Database connection failed.
+2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue.
+2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture.
+----
+
+Add them to your data stream using this command:
+
+[source,console]
+----
+POST logs-example-default/_bulk
+{ "create": {} }
+{ "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:14.003Z ERROR 192.168.1.103 Database connection failed." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
+----
+
+Then, query for documents with a log level of `WARN` or `ERROR` with this command: 
+
+[source,console]
+----
+GET logs-example-default/_search
+{
+  "query": {
+    "terms": {
+      "log.level": ["WARN", "ERROR"]
+    }
+  }
+}
+----
+
+You should see the following results showing only your high-severity logs:
+
+[source,JSON]
+----
+{
+...
+  },
+  "hits": {
+  ...
+    "hits": [
+      {
+        "_index": ".ds-logs-example-default-2023.08.14-000001",
+        "_id": "3TcZ-4kB3FafvEVY4yKx",
+        "_score": 1,
+        "_source": {
+          "message": "192.168.1.101 Disk usage exceeds 90%.",
+          "log": {
+            "level": "WARN"
+          },
+          "@timestamp": "2023-08-08T13:45:12.123Z"
+        }
+      },
+      {
+        "_index": ".ds-logs-example-default-2023.08.14-000001",
+        "_id": "3jcZ-4kB3FafvEVY4yKx",
+        "_score": 1,
+        "_source": {
+          "message": "192.168.1.103 Database connection failed.",
+          "log": {
+            "level": "ERROR"
+          },
+          "@timestamp": "2023-08-08T13:45:14.003Z"
+        }
+      }
+    ]
+  }
+}
+----
