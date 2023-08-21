@@ -1,4 +1,111 @@
 [[logs-troubleshooting]]
 = Troubleshoot your logs
 
-_coming soon_
+This section provides solutions to errors you might encounter while onboarding your logs in {kib}.
+
+[discrete]
+[[logs-troubleshooting-insufficient-priv]]
+== User does not have permissions to create API key
+
+If you don't have the required privileges to create an API key, you'll see the following error message:
+
+----
+User does not have permissions to create API key.
+
+Required cluster privileges are [`monitor`, `manage_own_api_key`] and 
+required index privileges are [`auto_configure`, `create_doc`] for 
+indices [`logs-*-*`, `metrics-*-*`], please add all required privileges 
+to the role of the authenticated user.
+----
+
+*Solution:*
+
+You need an administrator to give you the necessary permissions listed in the error messages and then to restart the onboarding flow.
+
+[discrete]
+[[logs-troubleshooting-API-key-failed]]
+== Failed to create API key
+
+If you don't have the privileges to create `savedObjects` in {kib}, you'll see the following error message:
+
+----
+Failed to create API key
+
+Something went wrong: Unable to create observability-onboarding-state
+----
+
+*Solution:*
+
+You need an administrator to give you privileges to create `savedObjects` in {kib} to generate the required `observabilityOnboarding` flow state.
+Once you have necessary privileges, restart the onboarding flow.
+
+[discrete]
+[[logs-troubleshooting-kib-not-accessible]]
+== {kib} not accessible from host
+
+If {kib} is not accessible from the host, you'll see the following error message after pasting the *Install the {agent}* instructions your host:
+
+----
+New integrated terminal
+
+To set your external terminal as the default, change your preferences.
+----
+
+*Solution:*
+The host needs access to {Kib}. If that's not possible, you can manually download and configure the {agent}. See the <<logs-stream, Stream a log file>> documentation for more information.
+
+[discrete]
+[[logs-troubleshooting-download-agent]]
+== Download {agent} failed
+
+If the host was able to download the installation script but cannot connect to the public artifactory repository, you'll see the following error message:
+
+----
+Download Elastic Agent
+
+Failed to download Elastic Agent, see script for error.
+----
+
+*Solutions:*
+
+* **Agent version and OS architecture is not available*
++
+The combination of {agent} version and OS architecture is not available. If this is the case you'll see the following error message on your host:
++
+----
+New integrated terminal
+
+To set your external terminal as the default, change your preferences.
+----
++
+To fix this, modify the {agent} version in the installation instructions to a known version of the {agent}.
+
+* You're an Elastic Cloud Enterprise user without access to the Elastic downloads page.
+* The {agent} was fully downloaded previously. In this case, delete previous downloads and restart the onboarding.
+
+[discrete]
+[[logs-troubleshooting-install-agent]]
+== Install {agent} failed
+
+If an {agent} already exists on your host, you'll see the following error message:
+
+----
+Install Elastic Agent
+
+Failed to install Elastic Agent, see script for error.
+----
+
+*Solution:*
+You can uninstall the current {agent} using the `elastic-agent uninstall` command, and run the script again.
+
+WARNING: Uninstalling the current {agent} removes the entire current setup including the existing configuration. 
+
+[discrete]
+[[logs-troubleshooting-wait-for-logs]]
+== Waiting for Logs to be shipped... step never completes
+
+If the *Waiting for Logs to be shipped...* step never completes, logs are not being shipped to {es}, and there is most likely an issue with your {agent} configuration. 
+
+*Solution:*
+
+See the {fleet-guide}/debug-standalone-agents.html#inspect-standalone-agent-logs[Debug standalone {agent}s] documentation for information on checking {agent} logs to look for errors.
