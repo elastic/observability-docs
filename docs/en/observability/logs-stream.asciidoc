@@ -366,6 +366,20 @@ Set the following values for the index template:
 - `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, the template with the higher priority is used. Built-in templates have a priority of `200`, so we recommend a priority higher than `200`.
 - `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
 
+Some info about the proposed component templates composing the index template above:
+
+* *`logs-mappings`* - general mappings for logs data streams, including:
+** disabling automatic date detection from `string` fields
+** mappings for the {ecs-ref}/ecs-data_stream.html[`data_stream` ECS fields]
+* *`logs-settings`* - general settings for logs data streams, including: 
+** default lifecycle policy: rolling over when primary shard's size reaches 50 GB, or after 30 days
+** default pipeline that:
+*** sets a `@timestamp` if such is missing (using the ingest timestamp)
+*** places a hook for the `logs@custom` pipeline- if a pipeline with this name is installed, it will be applied to logs ingested into this data stream
+** sets the <<ignore-malformed, `ignore_malformed`>> flag to `true`, which means that if a log document contains a field with a value of the wrong type, and the mapping type for this field supports this flag, then the document will not be rejected
+* *`logs@custom`* - a predefined component template that is not installed by default. Use this name to install a custom component template if you wish to override/extend any of the default mappings/settings
+* *`ecs@dynamic_templates`* - dynamic templates that ensure automatic compliance of your data stream mappings with the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]
+
 [discrete]
 [[logs-stream-create-data-stream]]
 === Create your data stream
