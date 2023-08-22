@@ -1,0 +1,27 @@
+
+
+If no data shows up in ((es)), first check that the APM components are properly connected.
+
+To ensure that APM Server configuration is valid and it can connect to the configured output, ((es)) by default,
+run the following commands:
+
+```sh
+apm-server test config
+apm-server test output
+```
+
+To see if the agent can connect to the APM Server, send requests to the instrumented service and look for lines
+containing `[request]` in the APM Server logs.
+
+If no requests are logged, it might be that SSL is <DocLink id="serverlessObservabilityApmTroubleshooting" section="ssl-client-fails-to-connect">misconfigured</DocLink> or that the host is wrong.
+Particularly, if you are using Docker, ensure to bind to the right interface (for example, set
+`apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the agent accordingly.
+
+If you see requests coming through the APM Server but they are not accepted (response code other than `202`), consider
+the response code to narrow down the possible causes (see sections below).
+
+Another reason for data not showing up is that the agent is not auto-instrumenting something you were expecting, check
+the [agent documentation](((apm-agents-ref))/index.html) for details on what is automatically instrumented.
+
+APM Server currently relies on ((es)) to create indices that do not exist.
+As a result, ((es)) must be configured to allow [automatic index creation](((ref))/docs-index_.html#index-creation) for APM indices.
