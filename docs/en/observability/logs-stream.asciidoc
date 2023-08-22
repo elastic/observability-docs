@@ -570,3 +570,289 @@ You should see the following results showing only your high-severity logs:
   }
 }
 ----
+
+
+[discrete]
+[[logs-stream-extract-host-ip]]
+== Extract the `host.ip` field
+
+Extracting the `host.ip` field lets you filter logs by host IP addresses. This way you can focus on specific hosts that you’re having issues with or find disparities between hosts. 
+
+The `host.ip` field is part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. Through the ECS, the `host.ip` field is mapped as an {ref}/ip.html[`ip` field type]. `ip` field types allow range queries so you can find logs with IP addresses in a specific range. You can also query `ip` field types using CIDR notation to find logs from a particular network or subnet.
+
+This section shows you how to extract the `host.ip` field from the following example logs and query based on the extracted fields:
+
+[source,log]
+----
+2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
+2023-08-08T13:45:14.003Z ERROR 192.168.1.103 Database connection failed.
+2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue.
+2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture.
+----
+
+To extract and use the `host.ip` field:
+
+. <<logs-stream-host-ip-pipeline, Add the `host.ip` field to your dissect processor in your ingest pipeline.>>
+. <<logs-stream-host-ip-simulate, Test the pipeline with the simulate API.>>
+. <<logs-stream-host-ip-query, Query your logs based on the `host.ip` field.>>
+
+[discrete]
+[[logs-stream-host-ip-pipeline]]
+=== Add `host.ip` to your ingest pipeline
+
+Add the `%{host.ip}` option to the dissect processor pattern in the ingest pipeline you created in the <<logs-stream-ingest-pipeline, Extract the `@timestamp` field>> section:
+
+[source,console]
+----
+PUT _ingest/pipeline/logs-example-default
+{
+  "description": "Extracts the timestamp from log",
+  "processors": [
+    {
+      "dissect": {
+        "field": "message",
+        "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}"
+      }
+    }
+  ]
+}
+----
+
+Your pipeline will extract these fields:
+
+- The `@timestamp` field – `2023-08-08T13:45:12.123Z`
+- The `log.level` field – `WARN`
+- The `host.ip` field – `192.168.1.101`
+- The `message` field – `Disk usage exceeds 90%.`
+
+After creating your pipeline, an index template points your log data to your pipeline. You can use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+
+[discrete]
+[[logs-stream-host-ip-simulate]]
+=== Test the pipeline with the simulate API
+
+Test that your ingest pipeline works as expected with the {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API]:
+
+[source,console]
+----
+POST _ingest/pipeline/logs-example-default/_simulate
+{
+  "docs": [
+    {
+      "_source": {
+        "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
+      }
+    }
+  ]
+}
+----
+
+The results should show the `@timestamp`, `log.level`, and `host.ip` fields extracted from the `message` field:
+
+[source,JSON]
+----
+{
+  "docs": [
+    {
+      "doc": {
+        ...
+        "_source": {
+          "host": {
+            "ip": "192.168.1.101"
+          },
+          "@timestamp": "2023-08-08T13:45:12.123Z",
+          "message": "Disk usage exceeds 90%.",
+          "log": {
+            "level": "WARN"
+          }
+        },
+        ...
+      }
+    }
+  ]
+}
+----
+
+[discrete]
+[[logs-stream-host-ip-query]]
+=== Query logs based on `host.ip`
+
+You can query your logs based on the `host.ip` field in different ways. The following sections detail querying your logs using CIDR notation and range queries. 
+
+[discrete]
+[[logs-stream-ip-cidr]]
+==== CIDR notation 
+
+You can use https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation[CIDR notation] to query your log data using a block of IP addresses that fall within a certain network segment. CIDR notations uses the format of `[IP address]/[prefix length]`. The following command queries IP addresses in the `192.168.1.0/24` subnet meaning IP addresses from `192.168.1.0` to `192.168.1.255`.
+
+[source,console]
+----
+GET logs-example-default/_search
+{
+  "query": {
+    "term": {
+      "host.ip": "192.168.1.0/24"
+    }
+  }
+}
+----
+
+Because all of the example logs are in this range, you'll get the following results:
+
+[source,JSON]
+----
+{
+  ...
+  },
+  "hits": {
+    ...
+      {
+        "_index": ".ds-logs-example-default-2023.08.16-000001",
+        "_id": "ak4oAIoBl7fe5ItIixuB",
+        "_score": 1,
+        "_source": {
+          "host": {
+            "ip": "192.168.1.101"
+          },
+          "@timestamp": "2023-08-08T13:45:12.123Z",
+          "message": "Disk usage exceeds 90%.",
+          "log": {
+            "level": "WARN"
+          }
+        }
+      },
+      {
+        "_index": ".ds-logs-example-default-2023.08.16-000001",
+        "_id": "a04oAIoBl7fe5ItIixuC",
+        "_score": 1,
+        "_source": {
+          "host": {
+            "ip": "192.168.1.103"
+          },
+          "@timestamp": "2023-08-08T13:45:14.003Z",
+          "message": "Database connection failed.",
+          "log": {
+            "level": "ERROR"
+          }
+        }
+      },
+      {
+        "_index": ".ds-logs-example-default-2023.08.16-000001",
+        "_id": "bE4oAIoBl7fe5ItIixuC",
+        "_score": 1,
+        "_source": {
+          "host": {
+            "ip": "192.168.1.104"
+          },
+          "@timestamp": "2023-08-08T13:45:15.004Z",
+          "message": "Debugging connection issue.",
+          "log": {
+            "level": "DEBUG"
+          }
+        }
+      },
+      {
+        "_index": ".ds-logs-example-default-2023.08.16-000001",
+        "_id": "bU4oAIoBl7fe5ItIixuC",
+        "_score": 1,
+        "_source": {
+          "host": {
+            "ip": "192.168.1.102"
+          },
+          "@timestamp": "2023-08-08T13:45:16.005Z",
+          "message": "User changed profile picture.",
+          "log": {
+            "level": "INFO"
+          }
+        }
+      }
+    ]
+  }
+}
+----
+
+[discrete]
+[[logs-stream-range-query]]
+==== Range queries
+
+You can use {ref}/query-dsl-range-query.html[range queries] to query logs in a specific range. 
+
+The following command searches for IP addresses greater than or equal to `192.168.1.100` and less than or equal to `192.168.1.102`.
+
+[source,console]
+----
+GET logs-example-default/_search
+{
+  "query": {
+    "range": {
+      "host.ip": {
+        "gte": "192.168.1.100",
+        "lte": "192.168.1.102"
+      }
+    }
+  }
+}
+----
+
+You'll get the following results matching the range you've set:
+
+[source,JSON]
+----
+{
+  ...
+  },
+  "hits": {
+    ...
+      {
+        "_index": ".ds-logs-example-default-2023.08.16-000001",
+        "_id": "ak4oAIoBl7fe5ItIixuB",
+        "_score": 1,
+        "_source": {
+          "host": {
+            "ip": "192.168.1.101"
+          },
+          "@timestamp": "2023-08-08T13:45:12.123Z",
+          "message": "Disk usage exceeds 90%.",
+          "log": {
+            "level": "WARN"
+          }
+        }
+      },
+      {
+        "_index": ".ds-logs-example-default-2023.08.16-000001",
+        "_id": "bU4oAIoBl7fe5ItIixuC",
+        "_score": 1,
+        "_source": {
+          "host": {
+            "ip": "192.168.1.102"
+          },
+          "@timestamp": "2023-08-08T13:45:16.005Z",
+          "message": "User changed profile picture.",
+          "log": {
+            "level": "INFO"
+          }
+        }
+      }
+    ]
+  }
+}
+----
+
+[discrete]
+[[logs-stream-ip-ignore-malformed]]
+=== Ignore malformed IP addresses
+
+When you're ingesting a large batch of log data, a single malformed IP address can cause the entire batch to fail. You can prevent this by setting `ignore_malformed` to `true` for the `host.ip` field. Update the `host.ip` field to ignore malformed IPs using the {ref}/indices-put-mapping.html[update mapping API]:
+
+[source,console]
+----
+PUT /logs-example-default/_mapping
+{
+  "properties": {
+    "host.ip": {
+      "type": "ip",
+      "ignore_malformed": true
+    }
+  }
+}
+----
