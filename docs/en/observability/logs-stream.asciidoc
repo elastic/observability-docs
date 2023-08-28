@@ -880,7 +880,7 @@ preview::[]
 
 By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, you can use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream that's different from low-severity logs to help with categorization. 
 
-This section shows you how to use a reroute processor to send the high-severity logs (`WARN` or `ERROR`) from the following examples to a specific data stream and keep regular logs (`DEBUG` and `INFO`) in the default data stream:
+This section shows you how to use a reroute processor to send the high-severity logs (`WARN` or `ERROR`) from the following log examples to a specific data stream and keep regular logs (`DEBUG` and `INFO`) in the default data stream:
 
 [source,log]
 ----
@@ -889,6 +889,8 @@ This section shows you how to use a reroute processor to send the high-severity 
 2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue.
 2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture.
 ----
+
+NOTE: When routing data to different data streams, we recommend keeping the number of data streams relatively low to avoid oversharding. See {ref}/size-your-shards.html[Size your shard] for more information.
 
 To use a reroute processor:
 
@@ -915,7 +917,7 @@ PUT _ingest/pipeline/logs-example-default
       },
       "reroute": {
         "tag": "high_severity_logs",
-        "if" : "ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",
+         "if" : "$('log.level', '') == 'WARN' || $('log.level', '') == 'ERROR'",
         "dataset": "critical"
       }
     }
@@ -926,7 +928,7 @@ PUT _ingest/pipeline/logs-example-default
 Set these values for the reroute processor:
 
 - `tag` – Identifier for the processor that you can use for debugging and metrics. In the example, that tag is set to `high_severity_logs`.
-- `if` – Conditionally runs the processor. In the example, `"`ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'"` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
+- `if` – Conditionally runs the processor. In the example, ` "if" : "$('log.level', '') == 'WARN' || $('log.level', '') == 'ERROR'"` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
 - `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
 After creating your pipeline, an index template points your log data to your pipeline. You can use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
@@ -970,7 +972,6 @@ Your query should return similar results to the following:
   "hits": {
     ...
     "hits": [
-      {
         ...
         "_source": {
           "host": {
@@ -1008,3 +1009,5 @@ Your query should return similar results to the following:
   }
 }
 ----
+
+You can see the high-severity logs and that they're now in the `critical` dataset.
