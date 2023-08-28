@@ -716,6 +716,21 @@ The results should show the `@timestamp`, `log.level`, and `host.ip` fields extr
 
 You can query your logs based on the `host.ip` field in different ways. The following sections detail querying your logs using CIDR notation and range queries. 
 
+Before querying your logs, add them to your data stream using this command:
+
+[source,console]
+----
+POST logs-example-default/_bulk
+{ "create": {} }
+{ "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:14.003Z ERROR 192.168.1.103 Database connection failed." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
+----
+
 [discrete]
 [[logs-stream-ip-cidr]]
 ==== CIDR notation 
@@ -893,3 +908,143 @@ PUT /logs-example-default/_mapping
   }
 }
 ----
+
+[discrete]
+[[logs-stream-reroute]]
+= Reroute log data to specific data stream
+
+preview::[]
+
+By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, you can use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream that's different from low-severity logs to help with categorization. 
+
+This section shows you how to use a reroute processor to send the high-severity logs (`WARN` or `ERROR`) from the following log examples to a specific data stream and keep regular logs (`DEBUG` and `INFO`) in the default data stream:
+
+[source,log]
+----
+2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
+2023-08-08T13:45:14.003Z ERROR 192.168.1.103 Database connection failed.
+2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue.
+2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture.
+----
+
+NOTE: When routing data to different data streams, we recommend keeping the number of data streams relatively low to avoid oversharding. See {ref}/size-your-shards.html[Size your shards] for more information.
+
+To use a reroute processor:
+
+. <<logs-stream-reroute-pipeline, Add a reroute processor to your ingest pipeline.>>
+. <<logs-stream-reroute-add-logs, Add the example logs to your data stream.>>
+. <<logs-stream-reroute-verify, Query your logs and verify the high-severity logs were routed to the new data stream.>>
+
+[discrete]
+[[logs-stream-reroute-pipeline]]
+=== Add a reroute processor to your ingest pipeline
+
+You can add a reroute processor to your ingest pipeline with the following command:
+
+[source,console]
+----
+PUT _ingest/pipeline/logs-example-default
+{
+  "description": "Extracts fields and reroutes WARN",
+  "processors": [
+    {
+      "dissect": {
+        "field": "message",
+        "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}"
+      },
+      "reroute": {
+        "tag": "high_severity_logs",
+         "if" : "$('log.level', '') == 'WARN' || $('log.level', '') == 'ERROR'",
+        "dataset": "critical"
+      }
+    }
+  ]
+}
+----
+
+Set these values for the reroute processor:
+
+- `tag` – Identifier for the processor that you can use for debugging and metrics. In the example, that tag is set to `high_severity_logs`.
+- `if` – Conditionally runs the processor. In the example, ` "if" : "$('log.level', '') == 'WARN' || $('log.level', '') == 'ERROR'"` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
+- `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
+
+After creating your pipeline, an index template points your log data to your pipeline. You can use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+
+[discrete]
+[[logs-stream-reroute-add-logs]]
+=== Add logs to your data stream
+
+Add the example logs to your data stream with this command:
+
+[source,console]
+----
+POST logs-example-default/_bulk
+{ "create": {} }
+{ "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:14.003Z ERROR 192.168.1.103 Database connection failed." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue." }
+{ "create": {} }
+{ "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
+----
+
+[discrete]
+[[logs-stream-reroute-verify]]
+=== Verify that the reroute processor worked
+
+The reroute processor should route any logs with a `log.level` of `WARN` or `ERROR` to the `logs-critical-default` data stream. Query the the data stream using the following command to verify the log data was routed as intended:
+
+[source,console]
+----
+GET log-critical-default/_search
+----
+
+Your query should return similar results to the following:
+
+[source,JSON]
+----
+{
+  ...
+  "hits": {
+    ...
+    "hits": [
+        ...
+        "_source": {
+          "host": {
+            "ip": "192.168.1.101"
+          },
+          "@timestamp": "2023-08-08T13:45:12.123Z",
+          "message": "Disk usage exceeds 90%.",
+          "log": {
+            "level": "WARN"
+          },
+          "data_stream": {
+            "namespace": "default",
+            "type": "logs",
+            "dataset": "critical"
+          },
+          {
+        ...
+        "_source": {
+          "host": {
+            "ip": "192.168.1.103"
+           },
+          "@timestamp": "2023-08-08T13:45:14.003Z",
+          "message": "Database connection failed.",
+          "log": {
+            "level": "ERROR"
+          },
+          "data_stream": {
+            "namespace": "default",
+            "type": "logs",
+            "dataset": "critical"
+          }
+        }
+      }
+    ]
+  }
+}
+----
+
+You can see the high-severity logs and that they're now in the `critical` dataset.
