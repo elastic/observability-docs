@@ -24,23 +24,33 @@ From here, complete the following:
 [[define-sli]]
 == Define your SLI
 
-The type of SLI to use depends on the location of your data. If you're creating an SLO based on raw logs coming from your services, you can use a custom KQL SLI. If you're creating an SLO based on services using application performance monitoring (APM), you can use an APM latency or APM availability SLI. See the following table for more on each type of SLI:
+The type of SLI to use depends on the location of your data. For example, if you're creating an SLO based on raw logs coming from your services, you can use a custom KQL SLI. If you're creating an SLO based on services using application performance monitoring (APM), you can use an APM latency or APM availability SLI. 
+
+See the following table for more on each type of SLI:
 
 [cols="1,1"]
 |===
 
 |*Custom KQL* 
-|This indicator can be based on any elasticsearch index or index pattern you have. You define two queries, one that yields the good events and one that yields the total events from your index. 
+|Create an indicator based on any of your {es} indices or index patterns. You define two queries. One query that yields the good events from your index and one that yields the total events from your index. 
 
-*Example:* You could define a custom KQL indicator based on the `service-logs` with the good query defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the total query defined as `nested.field.env : “production”`. 
+*Example:* You can define a custom KQL indicator based on the `service-logs` with the good query defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the total query defined as `nested.field.env : “production”`. 
+|*Custom Metric*
+|Create an indicator to define custom equations from metric fields in your indices.
+
+*Example:* You can define your good query as the `sum of different` and the total query as `total_processed`.
+|*Histogram Metric*
+|Create an indicator based on either a range aggregation or a value count aggregation for both the good and total events. Filtering with KQL queries is supported on both event types. When using a range aggregation, both the from and to thresholds are required for the range and events are the total number of events within that range.
+
+*Example:*
 |*APM latency* 
-|This indicator is based on the APM data that we receive from your instrumented services and a latency threshold. 
+|Create an indicator based on the APM data that received from your instrumented services and a latency threshold. 
 
-*Example:* You could define an indicator on an APM service named `banking-service` for the `production` environment, and the transaction name `POST /deposit` with a latency threshold value of 300ms.
+*Example:* You can define an indicator on an APM service named `banking-service` for the `production` environment, and the transaction name `POST /deposit` with a latency threshold value of 300ms.
 |*APM availability* 
-|This indicator is based on the APM data that we receive from your instrumented services. 
+|Create an indicator based on the APM data received from your instrumented services. 
 
-*Example:* You could define an indicator on an APM service named `search-service` for the `prod` environment, and the transaction name `POST /search`.
+*Example:* You can define an indicator on an APM service named `search-service` for the `production` environment, and the transaction name `POST /search`.
 |===
 
 [discrete]
@@ -53,6 +63,7 @@ When defining a custom KQL SLI, you can set the following fields:
 * *Query filter* — A filter to apply on the index.
 * *Good query* — The KQL query yielding the good events to take into account for computing the SLI.
 * *Total query* — The KQL query yielding all events to take into account for computing the SLI.
+* *Partition by* — 
 
 [discrete]
 [[apm-latency-sli]]
