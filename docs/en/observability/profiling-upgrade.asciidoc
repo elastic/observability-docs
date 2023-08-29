@@ -54,13 +54,24 @@ NOTE: When stopping incoming requests, host-agent replicas back off and retry co
 
 You can delete existing profiling data in Kibana:
 
+. If you are upgrading from 8.9.0 or higher, from the navigation menu, go to *Dev Tools*, paste the following snippet and execute it. If you are upgrading from an earlier version you can skip this step.
++
+[source]
+----
+PUT /_cluster/settings
+{
+  "persistent": {
+    "xpack.profiling.templates.enabled": false
+  }
+}
+----
 . From the navigation menu, go to *Stack Management → Index Management*.
-. Make sure you're in the *Indices* tab, and search for `profiling-` in the search bar.
-. Select all resulting indices, click the *Manage indices* button, and select Delete indices* from the drop-down menu.
-. Switch to the *Data Streams* tab, and  search for `profiling-` in the search bar.
+. Make sure you're in the *Data Streams* tab, and search for `profiling-` in the search bar.
 . Select all resulting data streams, and click the *Delete data streams* button.
+. Switch to the *Indices* tab, enable *Include hidden indices*, and  search for `profiling-` in the search bar.
+. Select all resulting indices, click the *Manage indices* button, and select *Delete indices* from the drop-down menu.
 
-Verify that no ingestion is happening by reloading the *Indices* and *Data Streams* pages and ensuring that there are no indices or data streams with the `profiling-` prefix.
+Verify that no ingestion is happening by reloading the *Data Streams* and *Indices* pages and ensuring that there are no data streams or indices with the `profiling-` prefix.
 
 [discrete]
 [[profiling-from-scratch]]
