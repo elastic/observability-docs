@@ -165,7 +165,7 @@ POST logs-example-default/_doc
 }
 ----
 
-The previous command stores the document in `logs-example-default`. You can retrieve it with the following search:
+The previous command stores the document in `logs-example-default`. Retrieve it with the following search:
 
 [source,console]
 ----
@@ -210,7 +210,7 @@ GET logs-example-default/_search
 }
 ----
 
-While you can search for phrases in the `message` field, you can't use it to filter log data. Your message, however, contains all of the following potential fields you can extract and use to filter and aggregate your log data:
+While you can search for phrases in the `message` field, you can't use this field to filter log data. Your message, however, contains all of the following potential fields you can extract and use to filter and aggregate your log data:
 
 - *@timestamp* – `2023-08-08T13:45:12.123Z` – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
 - *log.level* – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
@@ -235,7 +235,7 @@ When you ingested the document in the previous section, you'll notice the `@time
         ...
 ----
 
-This section shows you how to extract the `@timestamp` field from the log message, so you can filter by when the logs and issues actually occurred.
+This section shows you how to extract the `@timestamp` field from the log message so you can filter by when the logs and issues actually occurred.
 
 To extract the timestamp, you need to:
 
@@ -248,7 +248,7 @@ To extract the timestamp, you need to:
 [[logs-stream-ingest-pipeline]]
 === Use an ingest pipeline to extract the `@timestamp`
 
-Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. To extract the `@timestamp` field from the example log, you can use an ingest pipeline with a dissect processor. The {ref}/dissect-processor.html[dissect processor] extracts structured fields from unstructured log messages based on a pattern you set. 
+Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The {ref}/dissect-processor.html[dissect processor] extracts structured fields from unstructured log messages based on a pattern you set. 
 
 {es} can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. Since the log example's timestamp is in one of these formats, you don't need additional processors. More complex or nonstandard timestamps require a {ref}/date-processor.html[date processor] to parse the timestamp into a date field. Date processors can also set the timezone, change the target field, and change the output format of the timestamp.
 
@@ -382,14 +382,14 @@ POST logs-example-default/_doc
 }
 ----
 
-You can see your document's using this command:
+View your documents using this command:
 
 [source,console]
 ----
 GET /logs-example-default/_search
 ----
 
-The results should look like the following showing the pipeline has extracted the `@timestamp` field:
+You should see the pipeline has extracted the `@timestamp` field:
 
 [source,JSON]
 ----
@@ -422,7 +422,7 @@ You can now use the `@timestamp` field to sort your logs by the date and time th
 
 Check the following common issues and solutions with timestamps:
 
-- *Timestamp failure* – If your data has inconsistent date formats, you can set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
+- *Timestamp failure* – If your data has inconsistent date formats, set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
 - *Incorrect timezone* – Set your timezone using the `timezone` option on the {ref}/date-processor.html[date processor].
 - *Incorrect timestamp format* – Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information on timestamp formats.
 
@@ -471,7 +471,7 @@ Now your pipeline will extract these fields:
 - The `log.level` field – `WARN`
 - The `message` field – `192.168.1.101 Disk usage exceeds 90%.`
 
-After creating your pipeline, an index template points your log data to your pipeline. You can use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-log-level-simulate]]
@@ -602,12 +602,11 @@ You should see the following results showing only your high-severity logs:
 }
 ----
 
-
 [discrete]
 [[logs-stream-extract-host-ip]]
 == Extract the `host.ip` field
 
-Extracting the `host.ip` field lets you filter logs by host IP addresses, so you can focus on specific hosts that you’re having issues with or find disparities between hosts. 
+Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you’re having issues with or find disparities between hosts. 
 
 The `host.ip` field is part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. Through the ECS, the `host.ip` field is mapped as an {ref}/ip.html[`ip` field type]. `ip` field types allow range queries so you can find logs with IP addresses in a specific range. You can also query `ip` field types using CIDR notation to find logs from a particular network or subnet.
 
@@ -656,7 +655,7 @@ Your pipeline will extract these fields:
 - The `host.ip` field – `192.168.1.101`
 - The `message` field – `Disk usage exceeds 90%.`
 
-After creating your pipeline, an index template points your log data to your pipeline. You can use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-host-ip-simulate]]
@@ -821,7 +820,7 @@ Because all of the example logs are in this range, you'll get the following resu
 [[logs-stream-range-query]]
 ==== Range queries
 
-You can use {ref}/query-dsl-range-query.html[range queries] to query logs in a specific range. 
+Use {ref}/query-dsl-range-query.html[range queries] to query logs in a specific range. 
 
 The following command searches for IP addresses greater than or equal to `192.168.1.100` and less than or equal to `192.168.1.102`.
 
@@ -888,7 +887,7 @@ You'll get the following results matching the range you've set:
 [[logs-stream-ip-ignore-malformed]]
 === Ignore malformed IP addresses
 
-When you're ingesting a large batch of log data, a single malformed IP address can cause the entire batch to fail. You can prevent this by setting `ignore_malformed` to `true` for the `host.ip` field. Update the `host.ip` field to ignore malformed IPs using the {ref}/indices-put-mapping.html[update mapping API]:
+When you're ingesting a large batch of log data, a single malformed IP address can cause the entire batch to fail. Prevent this by setting `ignore_malformed` to `true` for the `host.ip` field. Update the `host.ip` field to ignore malformed IPs using the {ref}/indices-put-mapping.html[update mapping API]:
 
 [source,console]
 ----
@@ -909,7 +908,7 @@ PUT /logs-example-default/_mapping
 
 preview::[]
 
-By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, you can use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization. 
+By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization. 
 
 This section shows you how to use a reroute processor to send the high-severity logs (`WARN` or `ERROR`) from the following example logs to a specific data stream and keep the regular logs (`DEBUG` and `INFO`) in the default data stream:
 
@@ -933,7 +932,7 @@ To use a reroute processor:
 [[logs-stream-reroute-pipeline]]
 === Add a reroute processor to your ingest pipeline
 
-You can add a reroute processor to your ingest pipeline with the following command:
+Add a reroute processor to your ingest pipeline with the following command:
 
 [source,console]
 ----
@@ -962,7 +961,7 @@ The previous command sets the following values for your reroute processor:
 - `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
 - `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
-After creating your pipeline, an index template points your log data to your pipeline. You can use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-reroute-add-logs]]
