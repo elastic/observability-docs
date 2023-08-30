@@ -12,7 +12,7 @@ image::images/obs-assistant.gif[Observability AI assistant preview, 90%]
 
 [IMPORTANT]
 ====
-Observability AI Assistant is in technical preview, and its capabilities are still developing. Users should leverage it sensibly as the reliability of its responses might vary. Always cross-verify any returned advice for accurate threat detection and response, insights, and query generation.
+The Observability AI Assistant is in technical preview, and its capabilities are still developing. Users should leverage it sensibly as the reliability of its responses might vary. Always cross-verify any returned advice for accurate threat detection and response, insights, and query generation.
 
 Also, the data you provide to the Observability AI assistant is _not_ anonymized, and is stored and processed by the third-party AI provider. This includes any data used in conversations for analysis or context, such as alert or event data, detection rule configurations, and queries. Therefore, be careful about sharing any confidential or sensitive details while using this feature.
 ====
@@ -24,8 +24,10 @@ Also, the data you provide to the Observability AI assistant is _not_ anonymized
 You need following to use the Observability AI Assistant:
 
 * {stack} version 8.9 and later.
-
-* An account with a third-party generative AI provider, which the Observability AI Assistant uses to generate responses. The Observability AI Assistant supports the `gpt-3.5-turbo` or `gpt-4` models of OpenAI and Azure OpenAI Service.
+* This feature requires an https://www.elastic.co/pricing[Enterprise subscription]
+* An account with a third-party generative AI provider that supports function calling. The Observability AI Assistant supports the following providers:
+** OpenAI `gpt-3.5`+  
+** Azure OpenAI Service apiVersion `2023-07-01-preview`+
 
 [discrete]
 [[obs-ai-set-up]]
@@ -38,39 +40,10 @@ Complete the following steps to use the Observability AI Assistant:
 * https://platform.openai.com/docs/api-reference[OpenAI]
 * https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference[Azure OpenAI Service]
 
-. Update {kib}'s configuration settings to include the Observability AI Assistant feature flag and additional information about your AI set up.
+. Create a {kibana-ref}/gen-ai-action-type.html[Generative AI connector] using the AI provider's API key and URL to authenticate communication between {elastic-sec} and the provider.
+You can do this in {kib} from *{stack-manage-app}* -> *{connectors-ui}*, or from within AI Assistant.
 +
-.. Navigate to the {kib} configuration settings according to your deployment:
-+
-** *Self-managed (on-premises) deployments*: Add the configuration to the `kibana.yml` file, which is used to {kibana-ref}/settings.html[configure {kib}].
-** *{ecloud} deployments*: Use the YAML editor in the {ecloud} console to add the configuration to {cloud}/ec-manage-kibana-settings.html[{kib} user settings].
-+
-.. Add one of the following configurations that corresponds to the AI service you're using:
-+
-** *OpenAI*:
-+
-In the following example, `xpack.observability.aiAssistant.provider.openAI.apiKey` is the API key you generated in the first step.
-+
-[source,yaml]
-----
-xpack.observability.aiAssistant.enabled: true
-xpack.observability.aiAssistant.provider.openAI.apiKey: <insert API key>
-xpack.observability.aiAssistant.provider.openAI.model: <insert model name, e.g. gpt-4>
-----
-+
-** *Azure OpenAI Service*:
-+
-In the following example, `xpack.observability.aiAssistant.provider.azureOpenAI.apiKey` is the API key you generated in the first step, and `xpack.observability.aiAssistant.provider.azureOpenAI.resourceName` is the name of the Azure OpenAI resource used to deploy your model. 
-+
-[source,yaml]
-----
-xpack.observability.aiAssistant.enabled: true
-xpack.observability.aiAssistant.provider.azureOpenAI.deploymentId: <insert deployment ID>
-xpack.observability.aiAssistant.provider.azureOpenAI.resourceName: <insert resource name>
-xpack.observability.aiAssistant.provider.azureOpenAI.apiKey: <insert API key>
-----
-
-. If you're using a self-managed deployment, restart {kib}.
+NOTE: 
 
 [discrete]
 [[obs-ai-interact]]
@@ -83,7 +56,6 @@ You can find Observability AI Assistant prompts throughout {observability} that 
 - *Infrastructure Observability* – explains the processes running on a host.
 - *Logs* – explains log messages and generates search patterns to find similar issues.
 - *Alerting* – provides possible log spike causes and remediation suggestions.
-
 
 For example, in the log details, you'll see prompts for *What's this message?* and *How do I find similar log messages?*: 
 
