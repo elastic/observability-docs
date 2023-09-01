@@ -1,7 +1,7 @@
 [[logs-troubleshooting]]
 = Troubleshoot your logs
 
-This section provides solutions to errors you might encounter while onboarding your logs.
+This section provides possible solutions for errors you might encounter while onboarding your logs.
 
 [discrete]
 [[logs-troubleshooting-insufficient-priv]]
@@ -25,8 +25,8 @@ to the role of the authenticated user.
 
 You need to either:
 
-* Get the necessary privileges listed in the error messages from an administrator, and restart the onboarding flow.
-* Get an API key from an administrator and manually add the API to the {agent} configuration. See <<logs-stream-agent-config, Configure the {agent}>> for more on manually updating the configuration and adding the API.
+* Have an administrator give you the `monitor` and `manage_own_api_key` cluster privileges and the `auto_configure` and `create_doc` indices privileges. Once you have these privileges, restart the onboarding flow.
+* Get an API key from an administrator and manually add the API to the {agent} configuration. See <<logs-stream-agent-config, Configure the {agent}>> for more on manually updating the configuration and adding the API key.
 
 [discrete]
 [[logs-troubleshooting-API-key-failed]]
@@ -45,14 +45,14 @@ Something went wrong: Unable to create observability-onboarding-state
 [[logs-troubleshooting-API-key-failed-solution]]
 === Solution
 
-You need an administrator to give you privileges to create `savedObjects` in {kib} to generate the required `observabilityOnboarding` flow state.
-Once you have necessary privileges, restart the onboarding flow.
+You need an administrator to give you the `Saved Objects Management` {kib} privilege to generate the required `observability-onboarding-state` flow state.
+Once you have the necessary privileges, restart the onboarding flow.
 
 [discrete]
 [[logs-troubleshooting-kib-not-accessible]]
 == {kib} not accessible from host
 
-If {kib} is not accessible from the host, you'll see the following error message after pasting the *Install the {agent}* instructions into your host:
+If {kib} is not accessible from the host, you'll see the following error message after pasting the *Install the {agent}* instructions into the host:
 
 [source, plaintext]
 ----
@@ -82,18 +82,23 @@ Failed to download Elastic Agent, see script for error.
 [[logs-troubleshooting-download-agent-solution]]
 === Solutions
 
-* Agent version and OS architecture is not available:
-+
-The combination of {agent} version and operating system architecture is not available. If this is the case you'll see the following error message on your host:
+* If the combination of the {agent} version and operating system architecture is not available, you'll see the following error message:
 +
 [source, plaintext]
 ----
 The requested URL returned error: 404
 ----
 +
-To fix this, modify the {agent} version in the installation instructions to a known version of the {agent}.
+To fix this, update the {agent} version in the installation instructions to a known version of the {agent}. 
+* If the {agent} was fully downloaded previously, you'll see the following error message:
++
+[source, plaintext]
+----
+Error: cannot perform installation as Elastic Agent is already running from this directory
+----
++
+To fix this, delete previous downloads and restart the onboarding.
 * You're an Elastic Cloud Enterprise user without access to the Elastic downloads page.
-* The {agent} was fully downloaded previously. In this case, delete previous downloads and restart the onboarding.
 
 [discrete]
 [[logs-troubleshooting-install-agent]]
@@ -113,7 +118,7 @@ Failed to install Elastic Agent, see script for error.
 === Solution
 You can uninstall the current {agent} using the `elastic-agent uninstall` command, and run the script again.
 
-WARNING: Uninstalling the current {agent} removes the entire current setup including the existing configuration. 
+WARNING: Uninstalling the current {agent} removes the entire current setup, including the existing configuration. 
 
 [discrete]
 [[logs-troubleshooting-wait-for-logs]]
@@ -125,4 +130,4 @@ If the *Waiting for Logs to be shipped...* step never completes, logs are not be
 [[logs-troubleshooting-wait-for-logs-solution]]
 === Solution
 
-See the {fleet-guide}/debug-standalone-agents.html#inspect-standalone-agent-logs[Debug standalone {agent}s] documentation for information on checking {agent} logs to look for errors.
+Inspect the {agent} logs for errors. See the {fleet-guide}/debug-standalone-agents.html#inspect-standalone-agent-logs[Debug standalone {agent}s] documentation for more on finding errors in {agent} logs.
