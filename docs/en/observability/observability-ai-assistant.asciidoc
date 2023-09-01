@@ -3,53 +3,87 @@
 
 preview::[]
 
-The Observability AI Assistant is a large language model (LLM) integration that helps Elastic Observability users by adding context, explaining errors and messages, and suggesting remediation in the {observability} interface. You can connect the Observability AI Assistant to either the OpenAI or Microsoft Azure LLM service. 
+The AI Assistant uses generative AI, powered by a {kibana-ref}/gen-ai-action-type.html[connector] for OpenAI or Azure OpenAI Service, to provide {observability} users with:
 
-You can find Observability AI Assistant prompts throughout {observability}:
+* Contextual insights that explain errors and messages and suggest remediation in the {observability} UI. 
+* Chat that uses function calling to request, analyze, and visualize your data.
 
 [role="screenshot"]
 image::images/obs-assistant.gif[Observability AI assistant preview, 90%]
 
-[IMPORTANT]
-====
-The Observability AI Assistant is in technical preview, and its capabilities are still developing. Users should leverage it sensibly as the reliability of its responses might vary. Always cross-verify any returned advice for accurate threat detection and response, insights, and query generation.
-
-Also, the data you provide to the Observability AI assistant is _not_ anonymized, and is stored and processed by the third-party AI provider. This includes any data used in conversations for analysis or context, such as alert or event data, detection rule configurations, and queries. Therefore, be careful about sharing any confidential or sensitive details while using this feature.
-====
-
 [discrete]
 [[obs-ai-requirements]]
-= Requirements
+== Requirements
 
-You need following to use the Observability AI Assistant:
+The Observability AI Assistant requires the following:
 
 * {stack} version 8.9 and later.
-* This feature requires an https://www.elastic.co/pricing[Enterprise subscription]
+* An https://www.elastic.co/pricing[Enterprise subscription]
 * An account with a third-party generative AI provider that supports function calling. The Observability AI Assistant supports the following providers:
-** OpenAI `gpt-3.5`+  
-** Azure OpenAI Service apiVersion `2023-07-01-preview`+
+** OpenAI `gpt-4`+  
+** Azure OpenAI Service `gpt-4`(0613) or `gpt-4-32k`(0613) with API version `2023-07-01-preview` or more recent. 
+
+[discrete]
+[[data-information]]
+== Your data and the Observability AI Assistant
+
+Elastic does not store or examine prompts or results used by the AI Assistant, or use this data for model training. This includes anything you send the model, such as alert or event data, detection rule configurations, queries, and prompts. However, any data you provide to the AI Assistant will be processed by the third-party provider you chose when setting up the Generative AI connector as part of the assistant setup.
+
+Elastic does not control third-party tools, and assumes no responsibility or liability for their content, operation, or use, nor for any loss or damage that may arise from your using such tools. Please exercise caution when using AI tools with personal, sensitive, or confidential information. Any data you submit may be used by the provider for AI training or other purposes. There is no guarantee that the provider will keep any information you provide secure or confidential. You should familiarize yourself with the privacy practices and terms of use of any generative AI tools prior to use.
 
 [discrete]
 [[obs-ai-set-up]]
-= Set up the Observability AI Assistant
+== Set up the Observability AI Assistant
 
-Complete the following steps to use the Observability AI Assistant:
+To use the Observability AI Assistant:
 
-. Create an API key with your AI provider to authenticate requests from the Observability AI Assistant. You'll use this in the next step. Refer to your provider's documentation for generating API keys:
+. Create an API key from your AI provider to authenticate requests from the AI Assistant. You'll use this in the next step. Refer to your provider's documentation for information on generating API keys:
 +
 * https://platform.openai.com/docs/api-reference[OpenAI]
 * https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference[Azure OpenAI Service]
 
-. Create a {kibana-ref}/gen-ai-action-type.html[Generative AI connector] using the AI provider's API key and URL to authenticate communication between {elastic-sec} and the provider.
-You can do this in {kib} from *{stack-manage-app}* -> *{connectors-ui}*, or from within AI Assistant.
-+
-NOTE: 
+. From *{stack-manage-app}* -> *{connectors-ui}* in {kib}, create a {kibana-ref}/gen-ai-action-type.html[Generative AI connector]. Authenticate communication between {observability} and the AI provider by completing the following:
+.. Enter the AI provider's API endpoint URL in the *URL* field.
+.. Enter the API key you created in the previous step in the *API Key* field. 
 
 [discrete]
 [[obs-ai-interact]]
-= Interact with the Observability AI Assistant
+== Interact with the Observability AI Assistant
 
-You can find Observability AI Assistant prompts throughout {observability} that provide the following information:
+You can interact with the Observability AI Assistant through chat and contextual prompts located throughout {observability}. See the following sections for more on interacting with the AI Assistant.
+
+[discrete]
+[[obs-ai-chat]]
+=== AI Assistant chat
+
+Click *AI Assistant* in the upper-right corner of any {observability} application to start the chat:
+
+[role="screenshot"]
+image::images/ai-assistant-button.png[Observability AI assistant preview]
+
+The AI Assistant uses functions to include relevant context in the chat conversation through text, data, and visual components. Both you and the AI Assistant can suggest functions. You can also edit the AI Assistant's function suggestions and inspect function responses. 
+
+The following table lists the available functions:
+
+[horizontal]
+summarize:: Summarize parts of the conversation.
+recall:: Recall previous learnings.
+lens:: Create custom visualizations, using {kibana-ref}/lens.html[Lens], that you can add to dashboards.
+elasticsearch:: Call Elasticsearch APIs on your behalf.
+kibana:: Call Kibana APIs on your behalf.
+alerts:: Get alerts for {observability}
+get_apm_timeseries:: Display different APM metrics (such as throughput, failure rate, or latency) for any service or all services and any or all of their dependencies. Displayed both as a time series and as a single statistic. Additionally, the function  returns any changes, such as spikes, step and trend changes, or dips. You can also use it to compare data by requesting two different time ranges, or, for instance, two different service versions.
+get_apm_error_document:: Get a sample error document based on the grouping name. This also includes the stacktrace of the error, which might hint to the cause.
+get_apm_correlations:: Get field values that are more prominent in the foreground set than the background set. This can be useful in determining what attributes (like error.message, service.node.name or transaction.name) are contributing to, for instance, a higher latency. Another option is a time-based comparison, where you compare before and after a change point.
+get_apm_downstream_dependencies:: Get the downstream dependencies (services or uninstrumented backends) for a service. This allows you to map the downstream dependency name to a service, by returning both `span.destination.service.resource` and s`ervice.name`. Use this to drill down further if needed.
+get_apm_service_summary:: Get a summary of a single service, including the language, service version, deployments, the environments, and the infrastructure that it is running in, for instance on how many pods, and a list of its downstream dependencies. It also returns active alerts and anomalies.
+get_apm_services_list:: Get the list of monitored services, their health status, and alerts.
+
+[discrete]
+[[obs-ai-prompts]]
+=== AI Assistant contextual prompts
+
+You can find AI Assistant contextual prompts throughout {observability} that provide the following information:
 
 - *Universal Profiling* – explains the most expensive libraries and functions in your fleet and provides optimization suggestions.
 - *Application performance monitoring (APM)* – explains APM errors and provides remediation suggestions.
@@ -66,3 +100,5 @@ Clicking a prompt generates a message specific to that log entry:
 
 [role="screenshot"]
 image::images/obs-ai-logs.gif[Observability AI assistant example, 75%]
+
+You can continue a conversation from a contextual prompt by clicking *Start chat* to open the AI Assistant chat.
