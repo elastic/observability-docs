@@ -14,62 +14,115 @@ To create an SLO, go to *Observability → SLOs*:
 * If you're creating your first SLO, you'll see an introductory page. Click the *Create SLO* button.
 * If you've created SLOs before, click the *Create new SLO* button in the upper-right corner of the page.
 
-From here, complete the following:
+From here, complete the following steps:
 
-* <<define-sli,Define your service-level indicator (SLI)>>
-* <<set-slo>>
-* <<slo-describe>>
+. <<define-sli,Define your service-level indicator (SLI)>>.
+. <<set-slo>>.
+. <<slo-describe>>.
 
 [discrete]
 [[define-sli]]
-== Define your SLI
+= Define your SLI
 
-The type of SLI to use depends on the location of your data. For example, if you're creating an SLO based on raw logs coming from your services, you can use a custom KQL SLI. If you're creating an SLO based on services using application performance monitoring (APM), you can use an APM latency or APM availability SLI. 
+The type of SLI to use depends on the location of your data:
 
-See the following table for more on each type of SLI:
-
-[cols="1,1"]
-|===
-
-|*Custom KQL* 
-|Create an indicator based on any of your {es} indices or index patterns. You define two queries. One query that yields the good events from your index and one that yields the total events from your index. 
-
-*Example:* You can define a custom KQL indicator based on the `service-logs` with the good query defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the total query defined as `nested.field.env : “production”`. 
-|*Custom Metric*
-|Create an indicator to define custom equations from metric fields in your indices.
-
-*Example:* You can define your good query as the `sum of different` and the total query as `total_processed`.
-|*Histogram Metric*
-|Create an indicator based on either a range aggregation or a value count aggregation for both the good and total events. Filtering with KQL queries is supported on both event types. When using a range aggregation, both the from and to thresholds are required for the range and events are the total number of events within that range.
-
-*Example:*
-|*APM latency* 
-|Create an indicator based on the APM data that received from your instrumented services and a latency threshold. 
-
-*Example:* You can define an indicator on an APM service named `banking-service` for the `production` environment, and the transaction name `POST /deposit` with a latency threshold value of 300ms.
-|*APM availability* 
-|Create an indicator based on the APM data received from your instrumented services. 
-
-*Example:* You can define an indicator on an APM service named `search-service` for the `production` environment, and the transaction name `POST /search`.
-|===
+* <<custom-kql-sli, Custom KQL>> — create an SLI based on raw logs coming from your services. 
+* <<custom-metric-sli, Custom metric>> — create an SLI to define custom equations from metric fields in your indices.
+* <<histogram-metric-sli, Histogram metric>> — create an SLI based on histogram metrics.
+* <<apm-latency-and-availability-sli, APM latency and APM availability>> — create an SLI based on services using application performance monitoring (APM). 
 
 [discrete]
 [[custom-kql-sli]]
-=== Custom KQL
-When defining a custom KQL SLI, you can set the following fields:
+== Custom KQL
 
-* *Index* — The index or index pattern you want to base the SLI upon.
+Create an indicator based on any of your {es} indices or index patterns. You define two queries. One query that yields the good events from your index, and one query that yields the total events from your index. 
+
+*Example:* You can define a custom KQL indicator based on the `service-logs` with the *good query* defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the *total query* defined as `nested.field.env : “production”`. 
+
+When defining a custom KQL SLI, set the following fields:
+
+* *Index* — The index or index pattern you want to base the SLI upon. For example, `service-logs`.
 * *Timestamp field* — The timestamp field used by the index.
-* *Query filter* — A filter to apply on the index.
-* *Good query* — The KQL query yielding the good events to take into account for computing the SLI.
-* *Total query* — The KQL query yielding all events to take into account for computing the SLI.
-* *Partition by* — 
+* *Query filter* — A KQL filter to specify relevant criteria by which to filter the index documents.
+* *Good query* — The query yielding events that are considered good or successful. For example, `nested.field.response.latency <= 100 and nested.field.env : “production”`
+* *Total query* — The query yielding all events to take into account for computing the SLI. For example, `nested.field.env : “production”`.
+* *Partition by* — Create an SLO for each value of the field you enter. 
+
+[discrete]
+[[custom-metric-sli]]
+== Custom metric
+
+Create an indicator to define custom equations from metric fields in your indices.
+
+*Example:* You can define *Good events* as the sum of the field `processor.processed` with a filter of `"processor.outcome: \"success\""`, and the *Total events* as the sum of `processor.processed` with a filter of `"processor.outcome: *"`. 
+
+When defining a custom metric SLI, set the following fields:
+
+* *Source*
+** *Index* — The index or index pattern you want to base the SLI upon. For example, `my-service-*`.
+** *Timestamp field* — The timestamp field used by the index.
+** *Query filter* — A KQL filter to specify relevant criteria by which to filter the index documents. For example, `'field.environment : "production" and service.name : "my-service"'`.
+* *Good events*
+** *Metric [A-Z]* — The field that is aggregated using the `sum` aggregation for good events. For example, `processor.processed`.
+** *Filter [A-Z]* — The filter to apply to the metric for good events. For example, `"processor.outcome: \"success\""`.
+** *Equation* — The equation that calculates the good metric. For example, `A`.
+* *Total events*
+** *Metric [A-Z]* — The field that is aggregated using the `sum` aggregation for total events. For example, `processor.processed`
+** *Filter [A-Z]* — The filter to apply to the metric for total events. For example, `"processor.outcome: *"`
+** *Equation* — The equation that calculates the total metric. For example, `A`.
+* *Partition by* — Create an SLO for each value of the field you enter. 
+
+[discrete]
+[[histogram-metric-sli]]
+== Histogram metric
+
+Histograms record data in a compressed format and can record latency and delay metrics. You can create an SLI based on histogram metrics using a `range` aggregation or a `value_count` aggregation for both the good and total events. Filtering with KQL queries is supported on both event types. 
+
+When using a `range` aggregation, both the `from` and `to` thresholds are required for the range and the events are the total number of events within that range. The range includes the `from` value and excludes the `to` value.
+
+*Example:* You can define your *Good events* using the `processor.latency` field with a filter of `"processor.outcome: \"success\""`, and your *Total events* using the `processor.latency` field with a filter of `"processor.outcome: *"`. 
+
+When defining a histogram metric SLI, set the following fields:
+
+* *Source*
+** *Index* — The index or index pattern you want to base the SLI upon. For example, `my-service-*`.
+** *Timestamp field* — The timestamp field used by the index.
+** *Query filter* — A KQL filter to specify relevant criteria by which to filter the index documents. For example, `field.environment : "production" and service.name : "my-service"`.
+* *Good events*
+** *Aggregation* — The type of aggregation to use for good events, either *Value count* or *Range*. 
+** *Field* — The field used to aggregate events considered good or successful. For example, `processor.latency`.
+** *From* — (`range` aggregation only) The starting value of the range for good events. 
+** *To* — (`range` aggregation only) The ending value of the range for good events.
+** *KQL filter* — The filter for good events. For example, `"processor.outcome: \"success\""`.
+* *Total events*
+** *Aggregation* — The type of aggregation to use for total events, either *Value count* or *Range*.
+** *Field* — The field used to aggregate total events. For example, `processor.latency`.
+** *From* — (`range` aggregation only) The starting value of the range for total events.
+** *To* — (`range` aggregation only) The ending value of the range for total events.
+** *KQL filter* — The filter for total events. For example, `"processor.outcome : *"`.
+* *Partition by* — Create an SLO for each value of the field you enter. 
+
+[discrete]
+[[apm-latency-and-availability-sli]]
+== APM latency and APM availability
 
 [discrete]
 [[apm-latency-sli]]
+=== APM latency
 
-=== APM latency or availability
-When defining an APM latency or APM availability SLI, you can set the following fields:
+Create an indicator based on the APM data that received from your instrumented services and a latency threshold. 
+
+*Example:* You can define an indicator on an APM service named `banking-service` for the `production` environment, and the transaction name `POST /deposit` with a latency threshold value of 300ms.
+
+[discrete]
+[[apm-availability-sli]]
+=== APM availability
+
+Create an indicator based on the APM data received from your instrumented services. 
+
+*Example:* You can define an indicator on an APM service named `search-service` for the `production` environment, and the transaction name `POST /search`.
+
+When defining an APM latency or APM availability SLI, set the following fields:
 
 * *Service name* — The APM service name.
 * *Service environment* — Either `all` or the specific environment.
@@ -80,16 +133,16 @@ When defining an APM latency or APM availability SLI, you can set the following 
 
 [discrete]
 [[set-slo]]
-== Set your objectives
+= Set your objectives
 After defining your SLI, you need to set your objectives. To set your objectives, complete the following:
 
-* <<slo-budgeting-method, Select your budgeting method>>
-* <<slo-time-window, Set your time window>>
-* <<slo-target, Set your target/SLO percentage>>
+. <<slo-budgeting-method, Select your budgeting method>>
+. <<slo-time-window, Set your time window>>
+. <<slo-target, Set your target/SLO percentage>>
 
 [discrete]
 [[slo-budgeting-method]]
-=== Select your budgeting method
+== Select your budgeting method
 You can select either an *occurrences* or a *timeslices* budgeting method: 
 
 [cols="1,1"]
@@ -97,37 +150,37 @@ You can select either an *occurrences* or a *timeslices* budgeting method:
 |*Occurrences*
 | Uses the number of good events and the number of total events to compute the SLO.
 
-*Example:* You have a 30 day rolling SLO with a 95% target, and over the past 30 days there were 1,355,700 total events. The error budget is `100-95 = 5%`, or about 66,785 bad events tolerated before violating the SLO.
+*Example:* You have a 30 day rolling SLO with a 95% target, and, over the past 30 days, there were 1,355,700 total events. The error budget is `100-95 = 5%`, or about 66,785 bad events are tolerated before violating the SLO.
 
-If we had 1,300,000 good events over the same period, the observed value is `Good Events / Total Events = 0.95891421 => 95.89%`.
+If you had 1,300,000 good events over the same period, the observed value is `Good Events / Total Events = 0.95891421 => 95.89%`.
 |*Timeslices*
-| Breaks the overall time window into smaller slices of a defined duration and uses the number of good slices over the number of total slices to compute the SLO.
+| Breaks the overall time window into smaller slices of a defined duration, and uses the number of good slices over the number of total slices to compute the SLO.
 
 *Timeslice target (%)* - Individual timeslices target that determines if the slice is good or bad.
 *Timeslice window (in minutes)* - The size of the timeslice window size.
 
-*Example:* A 30 days rolling SLO defined with 5 min slices has a total of `30*24*12 = 8640` slices.
+*Example:* A 30 day rolling SLO defined with five minute slices has a total of `30*24*12 = 8640` slices.
 If the SLO target is 98%, we have a `100-98 = 2%` error budget or `8640 * 0.02 = 172` bad slices available before we violate the SLO.
 |===
 
 [discrete]
 [[slo-time-window]]
-=== Set your time window
-Select the durations over which you want to compute your SLO. Then time window uses the data from the defined rolling period. For example, the last 30 days. 
+== Set your time window
+Select the durations over which you want to compute your SLO. The time window uses the data from the defined rolling period. For example, the last 30 days. 
 
 [discrete]
 [[slo-target]]
-=== Set your target/SLO (%)
+== Set your target/SLO (%)
 The SLO target objective in percentage.
 
 [discrete]
 [[slo-describe]]
-== Describe your SLO
+= Describe your SLO
 After setting your objectives, give your SLO a name, a short description, and add any relevant tags.
 
 [discrete]
 [[slo-alert-checkbox]]
-== SLO burn rate alert rule
+= SLO burn rate alert rule
 When the *Create an SLO burn rate alert rule* checkbox is selected, the *Create rule* window opens immediately after you click the *Create SLO* button.
 Here you can define your SLO burn rate alert rule. 
 For more information, see <<slo-burn-rate-alert, Create an SLO burn rate rule>>.
