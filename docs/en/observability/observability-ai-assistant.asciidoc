@@ -15,13 +15,14 @@ image::images/obs-assistant2.gif[Observability AI assistant preview]
 [[obs-ai-requirements]]
 == Requirements
 
-The AI Assistant requires the following:
+The AI assistant requires the following:
 
 * {stack} version 8.9 and later.
-* An https://www.elastic.co/pricing[Enterprise subscription]
+* An https://www.elastic.co/pricing[Enterprise subscription].
 * An account with a third-party generative AI provider that supports function calling. The Observability AI Assistant supports the following providers:
 ** OpenAI `gpt-4`+.
 ** Azure OpenAI Service `gpt-4`(0613) or `gpt-4-32k`(0613) with API version `2023-07-01-preview` or more recent. 
+* The knowledge base requires a 4 GB {ml} node.
 
 [discrete]
 [[data-information]]
@@ -51,23 +52,26 @@ To use the AI Assistant:
 [[obs-ai-add-data]]
 == Add data to the AI Assistant knowledge base
 
-The Observability AI Assistant's internal Knowledge Base is an index that contains information that the Assistant can recall at any time during a conversation, using our semantic search engine ELSER, allowing to obtain RAG (Retrieval Augmented Generation) responses based on internal knowledge.
+The AI Assistant uses {ml-docs}/ml-nlp-elser.html[ELSER], Elastic's semantic search engine, to recall data from its internal knowledge base index to create retrieval augmented generation (RAG) responses. Adding data such as Runbooks, Github issues, internal documentation, and Slack messages to the knowledge base index gives the AI Assistant context to provide more specific assistance. 
 
-You can enrich the Knowledge Base with internal information (such as Runbooks, Github Issues, Internal docs, Slack messages...) so the AI Assistant can have this internal context to provide specific assistance. Be aware that the AI provider that you configure may collect telemetry when using the AI Assistant, contact your AI provider for information on how data is collected.
+NOTE: Your AI provider may collect telemetry when using the AI Assistant. Contact your AI provider for information on how data is collected.
 
-The current process:
+To add data to the AI Assistant knowledge base index:
 
-Ingest external info (e.g. Github Issues, Markdown files, Jira tickets, text files...) into Elasticsearch:
-Using Elasticsearch Workplace Search connectors. For example, the Github connector can automatically capture, sync and index Issues, Markdown files, Pull Requests and Repos
-Using Elasticsearch's Index API
-Reindex that info into the AI Assistants Knowledge Base Index, using it's semantic seach pipeline. You can use the query below in Management > Dev Tools, making sure to replace the following:
-InternalDocsIndex : name of the index where your internal docs are stored
-text_field : name of the field with the text of your internal docs
-timestamp : name of the field of the timestamp in your internal docs
-public : (true or false) if true makes a document available to all users in the defined Kibana Space (if is defined) or in all spaces (if is not defined), if false document will restricted to the user indicated in
-space : (can be null) if defined, restricts the internal document to be available in a specific Kibana Space
-user.name : (can be null) if defined, restricts the internal document to be available for a specific user
-You can add a "query" filter to index only certain docs
+. Ingest external data (Github Issues, Markdown files, Jira tickets, text files, etc.) into {es} one of the following ways:
+** {es} {workplace-search-ref}/workplace-search-content-sources.html[Workplace Search connectors]. For example, the {workplace-search-ref}/workplace-search-github-connector.html[Github connector] can automatically capture, sync, and index issues, markdown files, pull requests, and repositories.
+** {es} {ref}/docs-index_.html[Index API].
+. Reindex your data into the AI Assistant's knowledge base index using the following query in *Management* -> *Dev Tools* in {kib}. Update the following fields before reindexing:
+** `InternalDocsIndex` — name of the index where your internal documents are stored.
+** `text_field` — name of the field with the text of your internal documents.
+** `timestamp` — name of the field of the timestamp in your internal documents.
+** `public` — (`true` or `false`) if `true`, the document is available to users in the space defined in the following `space` field or in all spaces if no `space` is defined. If `false`, the document is restricted to the user indicated in the following `user.name` field.
+** `space` — (can be `null`) if defined, restricts the internal document's availability to a specific {kib} space.
+** `user.name` — (can be `null`) if defined, restricts the internal document's availability to a specific user.
+** You can add a query filter to index specific documents.
+
+[source,console]
+----
 POST _reindex
 {
     "source": {
@@ -89,6 +93,7 @@ POST _reindex
         "inline": "ctx._source.text = ctx._source.remove(\"<text_field>\");ctx._source.namespace=\"<space>\";ctx._source.is_correction=false;ctx._source.public=<public>;ctx._source.confidence=\"high\";ctx._source['@timestamp'] = ctx._source.remove(\"<timestamp>\");ctx._source['user.name'] = \"<user.name>\""
     }
 }
+----
 
 [discrete]
 [[obs-ai-interact]]
@@ -138,7 +143,7 @@ AI Assistant contextual prompts throughout {observability} provide the following
 - *Application performance monitoring (APM)* — explains APM errors and provides remediation suggestions.
 - *Infrastructure Observability* — explains the processes running on a host.
 - *Logs* — explains log messages and generates search patterns to find similar issues.
-- *Alerting* — provides possible log spike causes and remediation suggestions.
+- *Alerting* — provides possible causes and remediation suggestions for log rate changes.
 
 For example, in the log details, you'll see prompts for *What's this message?* and *How do I find similar log messages?*: 
 
