@@ -48,6 +48,49 @@ To use the AI Assistant:
 .. Enter the API key you created in the previous step in the *API Key* field. 
 
 [discrete]
+[[obs-ai-add-data]]
+== Add data to the AI Assistant knowledge base
+
+The Observability AI Assistant's internal Knowledge Base is an index that contains information that the Assistant can recall at any time during a conversation, using our semantic search engine ELSER, allowing to obtain RAG (Retrieval Augmented Generation) responses based on internal knowledge.
+
+You can enrich the Knowledge Base with internal information (such as Runbooks, Github Issues, Internal docs, Slack messages...) so the AI Assistant can have this internal context to provide specific assistance. Be aware that the AI provider that you configure may collect telemetry when using the AI Assistant, contact your AI provider for information on how data is collected.
+
+The current process:
+
+Ingest external info (e.g. Github Issues, Markdown files, Jira tickets, text files...) into Elasticsearch:
+Using Elasticsearch Workplace Search connectors. For example, the Github connector can automatically capture, sync and index Issues, Markdown files, Pull Requests and Repos
+Using Elasticsearch's Index API
+Reindex that info into the AI Assistants Knowledge Base Index, using it's semantic seach pipeline. You can use the query below in Management > Dev Tools, making sure to replace the following:
+InternalDocsIndex : name of the index where your internal docs are stored
+text_field : name of the field with the text of your internal docs
+timestamp : name of the field of the timestamp in your internal docs
+public : (true or false) if true makes a document available to all users in the defined Kibana Space (if is defined) or in all spaces (if is not defined), if false document will restricted to the user indicated in
+space : (can be null) if defined, restricts the internal document to be available in a specific Kibana Space
+user.name : (can be null) if defined, restricts the internal document to be available for a specific user
+You can add a "query" filter to index only certain docs
+POST _reindex
+{
+    "source": {
+        "index": "<InternalDocsIndex>",
+        "_source": [
+            "<text_field>",
+            "<timestamp>",
+            "namespace",
+            "is_correction",
+            "public",
+            "confidence"
+        ]
+    },
+    "dest": {
+        "index": ".kibana-observability-ai-assistant-kb-000001",
+        "pipeline": ".kibana-observability-ai-assistant-kb-ingest-pipeline"
+    },
+    "script": {
+        "inline": "ctx._source.text = ctx._source.remove(\"<text_field>\");ctx._source.namespace=\"<space>\";ctx._source.is_correction=false;ctx._source.public=<public>;ctx._source.confidence=\"high\";ctx._source['@timestamp'] = ctx._source.remove(\"<timestamp>\");ctx._source['user.name'] = \"<user.name>\""
+    }
+}
+
+[discrete]
 [[obs-ai-interact]]
 == Interact with the AI Assistant
 
