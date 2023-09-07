@@ -5,14 +5,20 @@ Here are the highlights of what's new and improved in {minor-version}.
 
 coming[8.10.0]
 
-// Other versions:
-// {observability-guide-all}/8.1/whats-new.html[8.1] |
-// {observability-guide-all}/8.0/whats-new.html[8.0] |
-// {observability-guide-all}/7.17/whats-new.html[7.17] |
+Other versions:
+{observability-guide-all}/8.9/whats-new.html[8.9] |
+{observability-guide-all}/8.8/whats-new.html[8.8] |
+{observability-guide-all}/8.7/whats-new.html[8.7] |
+{observability-guide-all}/8.6/whats-new.html[8.6] |
+{observability-guide-all}/8.5/whats-new.html[8.5] |
+{observability-guide-all}/8.4/whats-new.html[8.4] |
+{observability-guide-all}/8.3/whats-new.html[8.3] |
+{observability-guide-all}/8.2/whats-new.html[8.2] |
+{observability-guide-all}/8.1/whats-new.html[8.1] |
+{observability-guide-all}/8.0/whats-new.html[8.0] |
+{observability-guide-all}/7.17/whats-new.html[7.17]
 
 // tag::whats-new[]
-
-// What's new content goes in here. Don't uncomment or remove the tags surrounding this content :)
 
 [discrete]
 == Conditional actions in alerting rules
@@ -22,6 +28,108 @@ Now you can also add conditions that affect the actions associated with an alert
 For example, you might choose to send notifications only if the alert is received between defined hours.
 
 [role="screenshot"]
-image::images/conditional-actions.png[An example of the UI for triggering an action and alert, width=70%]
+image::images/conditional-actions.png[An example of the UI for triggering an action and alert, width=50%]
+
+
+[discrete]
+== See Host Details at Glance
+
+As part of our new beta:[] {observability-guide}/analyze-hosts.html[Hosts] experience, we have added a new overview tab in the host fly-out so you can quickly see the metrics, metadat, and alerts you need to see at a glance to help you investigate and resolve issues with your hosts quicker!
+
+[role="screenshot"]
+image::images/wn-hosts.png[Analyze hosts view]
+
+[discrete]
+== KQL filtering for APM alerting rules
+
+Version 8.10 introduces the capability to leverage Kibana Query Language (KQL) filters within the alerting rules for latency, failed transaction rates, and error counts. This enhancement significantly improves the versatility available to our users when formulating Application Performance Monitoring (APM) alerting rules.
+
+[role="screenshot"]
+image::images/wn-kql.png[Analyze hosts view]
+
+[discrete]
+== Revamped dashboards for JVM and Node.js with new runtime metrics
+
+The dashboard for JVM runtime metrics has been revamped in version 8.10. The Portable Dashboards feature of Kibana has been leveraged for this purpose. Following additional JVM metrics are now available OOTB;
+
+* Memory allocation rate
+* Heap usage split by memory pools
+
+Additional runtime metrics have also been introduced for Node.js. These metrics are:
+
+* Heap usage (by Node)
+* External memory usage
+* No. of active requests
+* No. of active handles
+* Average event loop delays
+
+[role="screenshot"]
+image::images/wn-jvm.png[Analyze hosts view]
+
+Related links:
+
+* Documentation: {apm-java-ref}/metrics.html#metrics-jvm[JVM runtime metrics]
+* Documentation: {apm-node-ref}/metrics.html[Node.js runtime metrics]
+* GitHub issue for the https://github.com/elastic/kibana/pull/144332[Kibana Portable Dashboards feature]
+* GitHub issue for https://github.com/elastic/apm-dev/issues/1001[leveraging the portable dashboards feature for runtime metrics]
+
+[discrete]
+== More integrations now using 70% less disk space to store metrics
+
+The number of integrations leveraging {ref}/tsds.html[Elasticsearch's time series mode] has risen once again to include those we know are most important for your monitoring needs.
+
+The only thing you need to do to get this important reduction in metrics storage is to upgrade your Elastic Agent integration to the latest version. A new TSDB index will be created and a roll over automatically applied without you having to do anything.
+
+[role="screenshot"]
+image::images/wn-ds.png[Analyze hosts view, width=50%]
+
+The below integrations are now waiting for you to upgrade, efficiently store metrics and enjoy having them next to your logs in elasticsearch.
+
+|===
+|https://docs.elastic.co/integrations/activemq[ActiveMQ] |https://docs.elastic.co/integrations/apache-intro[Apache] |https://docs.elastic.co/integrations/aws[AWS] |https://docs.elastic.co/integrations/aws/billing[AWS Billing] |https://docs.elastic.co/integrations/aws/cloudwatch[AWS Cloudwatch] footnote:newin810[New in 8.10]
+|https://docs.elastic.co/integrations/aws/dynamodb[AWS DynamoDB]
+|https://docs.elastic.co/integrations/aws/ebs[AWS EBS]
+|https://docs.elastic.co/integrations/aws/ecs[AWS ECS]
+|https://docs.elastic.co/integrations/aws/elb[AWS ELB]
+|https://docs.elastic.co/integrations/aws/emr[AWS EMR] footnote:newin810[]
+|https://docs.elastic.co/integrations/awsfargate[AWS Fargate] footnote:newin810[]
+|https://docs.elastic.co/integrations/aws/firewall[AWS Firewall]
+|https://docs.elastic.co/integrations/aws/kinesis[AWS Kinesis]
+|https://docs.elastic.co/integrations/aws/lambda[AWS Lambda]
+|https://docs.elastic.co/integrations/aws/natgateway[AWS Natgateway]
+|https://docs.elastic.co/integrations/aws/rds[AWS RDS]
+|https://docs.elastic.co/integrations/aws/redshift[AWS Redshift]
+|https://docs.elastic.co/integrations/aws/s3[AWS S3]
+|https://docs.elastic.co/integrations/aws/s3_storage_lens[AWS Storage Lens]
+|https://docs.elastic.co/integrations/aws/sns[AWS SNS]
+|https://docs.elastic.co/integrations/aws/sqs[AWS SQS]
+|https://docs.elastic.co/integrations/aws/transitgateway[AWS Transitgateway]
+|https://docs.elastic.co/integrations/aws/usage[AWS Usage]
+|https://docs.elastic.co/integrations/aws/vpn[AWS VPN]
+|https://docs.elastic.co/integrations/cassandra[Cassandra] footnote:newin810[]
+|https://docs.elastic.co/integrations/couchdb[CouchDB]
+|https://docs.elastic.co/integrations/docker[Docker]
+|https://docs.elastic.co/integrations/elastic_agent[ElasticAgent] footnote:newin810[]
+|https://docs.elastic.co/integrations/elasticsearch[Elasticsearch]
+|https://docs.elastic.co/integrations/ibmmq[IBM MQ]
+|https://docs.elastic.co/integrations/iis[IIS]
+|https://docs.elastic.co/integrations/influxdb[Influxdb]
+|https://docs.elastic.co/integrations/istio[Istio] footnote:newin810[]
+|https://docs.elastic.co/integrations/kafka-intro[Kafka]
+|https://docs.elastic.co/integrations/kubernetes-intro[Kubernetes]
+|https://docs.elastic.co/integrations/memcached[Memcached] footnote:newin810[]
+|https://docs.elastic.co/integrations/microsoft_sqlserver[Microsoft - SQL server]
+|https://docs.elastic.co/integrations/mongodb[MongoDB] footnote:newin810[]
+|https://docs.elastic.co/integrations/mysql-intro[MySQL] footnote:newin810[]
+|https://docs.elastic.co/integrations/nginx-intro[Nginx]
+|https://docs.elastic.co/integrations/oracle-intro[Oracle]
+|https://docs.elastic.co/integrations/postgresql[PostgreSQL] footnote:newin810[]
+|https://docs.elastic.co/integrations/prometheus-intro[Prometheus] footnote:newin810[]
+|https://docs.elastic.co/integrations/rabbitmq[RabbitMQ]
+|https://docs.elastic.co/integrations/redis-intro[Redis]
+|https://docs.elastic.co/integrations/system[System]
+|https://docs.elastic.co/integrations/vsphere[Vsphere]
+|===
+
 
 // end::whats-new[]
