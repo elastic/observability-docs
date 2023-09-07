@@ -3,7 +3,7 @@
 
 preview::[]
 
-The AI Assistant uses generative AI, powered by a {kibana-ref}/gen-ai-action-type.html[connector] for OpenAI or Azure OpenAI Service, to provide {observability} users with:
+The AI Assistant uses generative AI, powered by a {kibana-ref}/gen-ai-action-type.html[connector] for OpenAI or Azure OpenAI Service, to provide:
 
 * *Contextual insights* — open prompts throughout {observability} that explain errors and messages and suggest remediation. 
 * *Chat* —  have conversations with the AI Assistant. Chat uses function calling to request, analyze, and visualize your data.
@@ -43,7 +43,7 @@ Elastic does not control third-party tools, and assumes no responsibility or lia
 [[obs-ai-set-up]]
 == Set up the AI Assistant
 
-To use the AI Assistant:
+To set up the AI Assistant:
 
 . Create an API key from your AI provider to authenticate requests from the AI Assistant. You'll use this in the next step. Refer to your provider's documentation for information on generating API keys:
 +
@@ -59,19 +59,21 @@ To use the AI Assistant:
 [[obs-ai-add-data]]
 == Add data to the AI Assistant knowledge base
 
-The AI Assistant uses {ml-docs}/ml-nlp-elser.html[ELSER], Elastic's semantic search engine, to recall data from its internal knowledge base index to create retrieval augmented generation (RAG) responses. Adding data such as Runbooks, Github issues, internal documentation, and Slack messages to the knowledge base index gives the AI Assistant context to provide more specific assistance. 
+The AI Assistant uses {ml-docs}/ml-nlp-elser.html[ELSER], Elastic's semantic search engine, to recall data from its internal knowledge base index to create retrieval augmented generation (RAG) responses. Adding data such as Runbooks, Github issues, internal documentation, and Slack messages to the knowledge base gives the AI Assistant context to provide more specific assistance. 
 
 NOTE: Your AI provider may collect telemetry when using the AI Assistant. Contact your AI provider for information on how data is collected.
 
-To add data to the AI Assistant knowledge base index:
+You can add information to the knowledge base by asking the AI Assistant to remember something while chatting (for example, "remember this for next time"). The assistant will create a summary of the information and add it to the knowledge base. 
+
+You can also add external data to the knowledge base by completing the following steps:
 
 . Ingest external data (Github Issues, Markdown files, Jira tickets, text files, etc.) into {es} one of the following ways:
 ** {es} {workplace-search-ref}/workplace-search-content-sources.html[Workplace Search connectors]. For example, the {workplace-search-ref}/workplace-search-github-connector.html[Github connector] can automatically capture, sync, and index issues, markdown files, pull requests, and repositories.
 ** {es} {ref}/docs-index_.html[Index API].
-. Reindex your data into the AI Assistant's knowledge base index using the following query in *Management* -> *Dev Tools* in {kib}. Update the following fields before reindexing:
+. Reindex your data into the AI Assistant's knowledge base index by completing the following query in *Management* -> *Dev Tools* in {kib}. Update the following fields before reindexing:
 ** `InternalDocsIndex` — name of the index where your internal documents are stored.
-** `text_field` — name of the field with the text of your internal documents.
-** `timestamp` — name of the field of the timestamp in your internal documents.
+** `text_field` — name of the field containing your internal documents' text.
+** `timestamp` — name of the timestamp field in your internal documents.
 ** `public` — (`true` or `false`) if `true`, the document is available to users in the space defined in the following `space` field or in all spaces if no `space` is defined. If `false`, the document is restricted to the user indicated in the following `user.name` field.
 ** `space` — (can be `null`) if defined, restricts the internal document's availability to a specific {kib} space.
 ** `user.name` — (can be `null`) if defined, restricts the internal document's availability to a specific user.
