@@ -76,8 +76,7 @@ inputs:
     type: filestream
     streams:
       - id: your-log-stream-id
-        data_stream:
-          dataset: generic
+        data_stream.dataset: generic
         paths:
           - /var/log/your-logs.log
 ----
@@ -258,7 +257,7 @@ In the following command, the dissect processor extracts the timestamp from the 
 ----
 PUT _ingest/pipeline/logs-example-default
 {
-  "description": "Extracts the timestamp from log",
+  "description": "Extracts the timestamp",
   "processors": [
     {
       "dissect": {
@@ -453,7 +452,7 @@ Add the `%{log.level}` option to the dissect processor pattern in the ingest pip
 ----
 PUT _ingest/pipeline/logs-example-default
 {
-  "description": "Extracts the timestamp from log",
+  "description": "Extracts the timestamp and log level",
   "processors": [
     {
       "dissect": {
@@ -606,7 +605,7 @@ You should see the following results showing only your high-severity logs:
 [[logs-stream-extract-host-ip]]
 == Extract the `host.ip` field
 
-Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you’re having issues with or find disparities between hosts. 
+Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you're having issues with or find disparities between hosts. 
 
 The `host.ip` field is part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. Through the ECS, the `host.ip` field is mapped as an {ref}/ip.html[`ip` field type]. `ip` field types allow range queries so you can find logs with IP addresses in a specific range. You can also query `ip` field types using CIDR notation to find logs from a particular network or subnet.
 
@@ -636,7 +635,7 @@ Add the `%{host.ip}` option to the dissect processor pattern in the ingest pipel
 ----
 PUT _ingest/pipeline/logs-example-default
 {
-  "description": "Extracts the timestamp from log",
+  "description": "Extracts the timestamp, log level, and host ip",
   "processors": [
     {
       "dissect": {
