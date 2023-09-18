@@ -119,12 +119,33 @@ _Added `stringify` argument in: v3.11.0_
     as those characters have special meaning in Elasticsearch
 
 * `value` `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type[<string>]` | `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type[<number>]` | `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type[<boolean>]`
+    If the `stringify` argument is not given, or set to `true` then the given value
+    will be converted to a string.
+
 * `stringify` `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type[<boolean>]`
-    Defaults to `true`. When true, if a non-string `value` is given, it is
+    This defaults to `true` for backwards compatibility, but new usage will
+    typically want `false`. When true, if a non-string `value` is given, it is
     converted to a string before being sent to the APM Server.
+
+```js
+span.setLabel('productId', 42, false);
+```
 
 Set a label on the span.
 You can set multiple labels on the same span.
+
+<DocCallOut title="Tip">
+Labels are key/value pairs that are indexed by Elasticsearch and therefore searchable
+(as opposed to data set via <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmsetcustomcontextcontext">`apm.setCustomContext()`</DocLink>).
+Before using custom labels, ensure you understand the different types of
+[metadata](((apm-guide-ref))/data-model-metadata.html) that are available.
+</DocCallOut>
+
+<DocCallOut title="Warning" color="warning">
+Avoid defining too many user-specified labels.
+Defining too many unique fields in an index is a condition that can lead to a
+[mapping explosion](((ref))/mapping.html#mapping-limit-settings).
+</DocCallOut>
 
 <div id="span-add-labels"></div>
 
@@ -140,12 +161,33 @@ _Added `stringify` argument in: v3.11.0_
         as those characters have special meaning in Elasticsearch
 
     * `value` `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#String_type[<string>]` | `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Number_type[<number>]` | `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type[<boolean>]`
+        If the `stringify` argument is not given, or set to `true` then the given value
+        will be converted to a string.
+
 * `stringify` `https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures#Boolean_type[<boolean>]`
-    Defaults to `true`. When true, if a non-string `value` is given, it is
+    This defaults to `true` for backwards compatibility, but new usage will
+    typically want `false`. When true, if a non-string `value` is given, it is
     converted to a string before being sent to the APM Server.
+
+```js
+span.addLabels({productId: 42, productName: 'butter'}, false);
+```
 
 Add several labels on the span.
 You can add labels multiple times.
+
+<DocCallOut title="Tip">
+Labels are key/value pairs that are indexed by Elasticsearch and therefore searchable
+(as opposed to data set via <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmsetcustomcontextcontext">`apm.setCustomContext()`</DocLink>).
+Before using custom labels, ensure you understand the different types of
+[metadata](((apm-guide-ref))/data-model-metadata.html) that are available.
+</DocCallOut>
+
+<DocCallOut title="Warning" color="warning">
+Avoid defining too many user-specified labels.
+Defining too many unique fields in an index is a condition that can lead to a
+[mapping explosion](((ref))/mapping.html#mapping-limit-settings).
+</DocCallOut>
 
 <div id="span-ids"></div>
 
@@ -161,30 +203,6 @@ This enables log correlation to APM traces with structured loggers.
   "trace.id": "abc123",
   "span.id": "abc123"
 }
-```
-
-<div id="span-to-string"></div>
-
-### `span.toString()` <DocBadgeDeprecated tipContent="Deprecated in v3.23.0">v3.23.0</DocBadgeDeprecated>
-
-_Added in: v2.17.0_
-_Deprecated in: v3.23.0_
-
-Produces a string representation of the span to inject in log messages.
-This enables log correlation to APM traces with text-only loggers.
-
-```js
-"trace.id=abc123 span.id=abc123"
-```
-
-Relying on the format of `span.toString()` has been **deprecated** and may
-change in v4 of the agent. Prefer the use of <DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="spanids">`span.ids`</DocLink> or
-<DocLink id="serverlessObservabilityApmAgentsNodejsApi" section="apmcurrenttraceids">`apm.currentTraceIds`</DocLink>. The v3 format may be reproduced
-via:
-
-```js
-const { stringify } = require('querystring')
-console.log( stringify(span.ids, ' ', '=')) )
 ```
 
 <div id="span-end"></div>
