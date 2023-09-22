@@ -1,0 +1,28 @@
+{/* Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/node.mdx */}
+
+**Install the ((apm-agent))**
+
+Install the ((apm-agent)) for Node.js as a dependency to your application.
+
+```js
+npm install elastic-apm-node --save
+```
+
+**Configure the agent**
+
+Agents are libraries that run inside of your application process. APM services are created programmatically based on the `serviceName`.
+This agent supports a variety of frameworks but can also be used with your custom stack.
+
+```js
+// Add this to the very top of the first file loaded in your app
+var apm = require('elastic-apm-node').start({
+  serviceName: '<your-service-name>', [^1]
+  apiKey: '<your-api-key>', [^2]
+  serverUrl: '<your-server-url>', [^3]
+  environment: '<your-environment>' [^4]
+})
+```
+[^1]: The service name is the primary filter in the APM UI and is used to group errors and trace data together. Allowed characters are a-z, A-Z, 0-9, -, _, and space. Overrides the service name in package.json.
+[^2]: Use if APM Server requires an API Key. This is used to ensure that only your agents can send data to your APM server.
+[^3]: Set the custom APM Server URL (default: http://localhost:8200). The URL must be fully qualified, including protocol (http or https) and port.
+[^4]: The name of the environment this service is deployed in, for example, "production" or "staging". Environments allow you to easily filter data on a global level in the APM UI. It's important to be consistent when naming environments across agents.

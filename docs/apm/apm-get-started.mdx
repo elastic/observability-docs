@@ -4,16 +4,134 @@ slug: /serverless/observability/apm-get-started
 title: Get started with traces and APM
 description: Learn how to collect Application Performance Monitoring (APM) data and visualize it in real-time. 
 tags: [ 'serverless', 'observability', 'how-to' ]
-status: rough content
+status: in testing
 ---
 
-import RoughContent from '../partials/rough-content-notice.mdx'
+import Testing from '../partials/in-testing-notice.mdx'
 
-<RoughContent />
-
-import Snippet1 from '../transclusion/observability/ingest-traces/apm-quick-start.mdx'
+<Testing />
 
 <div id="ingest-traces"></div>
 
-{/* THIS CONTENT IS ALSO USED IN THE APM GUIDE */}
-<Snippet1 />
+import Go from '../transclusion/apm/guide/install-agents/go.mdx'
+import Java from '../transclusion/apm/guide/install-agents/java.mdx'
+import Net from '../transclusion/apm/guide/install-agents/net.mdx'
+import Node from '../transclusion/apm/guide/install-agents/node.mdx'
+import Php from '../transclusion/apm/guide/install-agents/php.mdx'
+import Python from '../transclusion/apm/guide/install-agents/python.mdx'
+import Ruby from '../transclusion/apm/guide/install-agents/ruby.mdx'
+import OpenTelemetry from '../transclusion/apm/guide/open-telemetry/otel-get-started.mdx'
+
+In this guide you'll learn how to collect and send Application Performance Monitoring (APM) data
+to Elastic, then explore and visualize the data in real-time.
+
+{/* Do we want to direct serverless users to the discuss forum for the initial launch? */}
+{/* For feedback and questions, please contact us in the [discuss forum](((forum))). */}
+
+<div id="add-apm-integration-agents"></div>
+
+## Step 1: Add data
+
+You'll use APM agents to send APM data from your application to Elastic. Elastic offers APM agents
+written in several languages and supports OpenTelemetry. Which agent you'll use depends on the language used in your service.
+
+To send APM data to Elastic, you must install an APM agent and configure it to send data to
+your project. While there are many configuration options, all APM agents use:
+
+<DocTable columns={[
+  { title: 'Option', width: '25%' },
+  { title: 'Description', width: '75%' }
+]}>
+  <DocRow>
+    <DocCell>**Service name**</DocCell>
+    <DocCell>
+      The APM integration maps an instrumented service's name &mdash; defined in
+      each ((apm-agent))'s configuration &mdash; to the index where its data is stored in ((es)).
+      Service names are case-insensitive and must be unique.
+      
+      For example, you cannot have a service named `Foo` and another named `foo`.
+      Special characters will be removed from service names and replaced with underscores (`_`).
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**APM Server URL**</DocCell>
+    <DocCell>
+      The host and port that APM Server listens for events on.
+      
+      If you're following the step-by-step instructions in the UI, the server URL will be prepopulated in
+      the code snippet that's provided.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**API key**</DocCell>
+    <DocCell>
+      Authentication method for ((apm-agent)) and APM Server communication.
+      
+      You can create and delete API keys in Applications Settings. Go to any page in the
+      **Application** section of the main menu, click **Settings** in the top bar, and go
+      to the **APM agent keys** tab.
+
+      Alternatively, if you're following the step-by-step instructions in the UI and click **Create API Key**,
+      the API key will be prepopulated in the code snippet.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Environment**</DocCell>
+    <DocCell>
+      The name of the environment this service is deployed in, for example "production" or "staging".
+
+      Environments allow you to easily filter data on a global level in the UI.
+      It's important to be consistent when naming environments across agents.
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+To start sending APM data to Elastic:
+
+1. <DocLink id="serverlessObservabilityCreateAnObservabilityProject">Create a new ((observability)) project</DocLink>, or open an existing one.
+1. To install and configure one or more APM agents you can either go to **Add data** -> **Collect application performance monitoring data** and follow the prompts in the UI, or use the instructions below:
+
+    <DocTabs hasBorder>
+      <DocTab name="Java"><Java /></DocTab>
+      <DocTab name="Node.js"><Node /></DocTab>
+      <DocTab name="Python"><Python /></DocTab>
+      <DocTab name="Ruby"><Ruby /></DocTab>
+      <DocTab name="Go"><Go /></DocTab>
+      <DocTab name=".NET"><Net /></DocTab>
+      <DocTab name="PHP"><Php /></DocTab>
+      <DocTab name="OpenTelemetry"><OpenTelemetry /></DocTab>
+    </DocTabs>
+
+    <br />
+
+1. If you're using the step-by-step instructions in the UI, after you've installed and configured an agent,
+you can click **Check Agent Status** to verify that the agent is sending data.
+
+To learn more about APM agents including how to fine-tune how agents send traces to Elastic,
+refer to <DocLink id="serverlessObservabilityApmSendTracesToElastic" />.
+
+<div id="view-apm-integration-data"></div>
+
+## Step 2: View your data
+
+After one or more APM agents are installed and successfully sending data, you can view
+application performance monitoring data in the UI:
+
+1. Click **Applications** in the main menu.
+1. Select **Services** to see a high-level overview of the health and general
+   performance of all your services.
+
+Learn more about visualizing APM data in <DocLink id="serverlessObservabilityApmViewAndAnalyzeTraces" />.
+
+{/* TO DO: ADD SCREENSHOT */}
+
+<DocCallOut title="Tip">
+Not seeing any data? Find helpful tips in <DocLink id="serverlessObservabilityApmTroubleshooting">Troubleshooting</DocLink>.
+</DocCallOut>
+
+## What's next?
+
+Now that data is streaming into your project, take your investigation to a
+deeper level. Learn how to use <DocLink id="serverlessObservabilityApmViewAndAnalyzeTraces">Elastic's built-in visualizations for APM data</DocLink>,
+<DocLink id="serverlessObservabilityAlerting">alert on APM data</DocLink>,
+or <DocLink id="serverlessObservabilityApmSendTracesToElastic">fine-tune how agents send traces to Elastic</DocLink>.

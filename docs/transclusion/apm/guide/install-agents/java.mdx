@@ -1,0 +1,30 @@
+{/* Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/java.mdx */}
+
+**Download the ((apm-agent))**
+
+Download the agent jar from [Maven Central](http://search.maven.org/#search%7Cga%7C1%7Ca%3Aelastic-apm-agent).
+Do not add the agent as a dependency to your application.
+
+**Start your application with the `javaagent` flag**
+
+Add the `-javaagent` flag and configure the agent with system properties.
+
+* Set required service name
+* Set custom APM Server URL (default: http://localhost:8200)
+* Set the base package of your application
+
+<br />
+
+```java
+java  -javaagent:/path/to/elastic-apm-agent-<version>.jar \
+      -Delastic.apm.service_name=<your-service-name> \\ [^1]
+      -Delastic.apm.api_key=<your-api-key> \ [^2]
+      -Delastic.apm.server_url=<your-server-url> \ [^3]
+      -Delastic.apm.environment=<your-environment> \\ [^4]
+      -Delastic.apm.application_packages=org.example \
+      -jar my-service-name.jar
+```
+[^1]: The service name is the primary filter in the APM UI and is used to group errors and trace data together. Allowed characters are a-z, A-Z, 0-9, -, _, and space.
+[^2]: Use if APM Server requires a secret token. Both the agent and APM Server must be configured with the same token. This ensures that only your agents can send data to your APM server.
+[^3]: Set the custom APM Server URL (default: http://localhost:8200). The URL must be fully qualified, including protocol (http or https) and port.
+[^4]: The name of the environment this service is deployed in, for example, "production" or "staging". Environments allow you to easily filter data on a global level in the APM UI. It's important to be consistent when naming environments across agents.

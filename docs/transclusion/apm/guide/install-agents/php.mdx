@@ -1,0 +1,41 @@
+{/* Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/php.mdx */}
+
+**Install the agent**
+
+Install the PHP agent using one of the [published packages](https://github.com/elastic/apm-agent-php/releases).
+
+To use the RPM Package (RHEL/CentOS and Fedora):
+
+```php
+rpm -ivh <package-file>.rpm
+```
+
+To use the DEB package (Debian and Ubuntu):
+
+```php
+dpkg -i <package-file>.deb
+```
+
+To use the APK package (Alpine):
+
+```php
+apk add --allow-untrusted <package-file>.apk
+```
+
+{/* If you can’t find your distribution,
+you can install the agent by <DocLink id="serverlessObservabilityApmAgentsPhpGetStarted">building it from the source</DocLink>. */}
+
+**Configure the agent**
+
+Configure your agent inside of the `php.ini` file:
+
+```ini
+elastic_apm.service_name="<your-service-name>" [^1]
+elastic_apm.api_key="<your-api-key>" [^2]
+elastic_apm.server_url="<your-server-url>" [^3]
+elastic_apm.environment="<your-environment>" [^4]
+```
+[^1]: The service name is the primary filter in the APM UI and is used to group errors and trace data together. Allowed characters are a-z, A-Z, 0-9, -, _, and space.
+[^2]: Use if APM Server requires an API Key. This is used to ensure that only your agents can send data to your APM server.
+[^3]: Set the custom APM Server URL (default: http://localhost:8200). The URL must be fully qualified, including protocol (http or https) and port.
+[^4]: The name of the environment this service is deployed in, for example, "production" or "staging". Environments allow you to easily filter data on a global level in the APM UI. It's important to be consistent when naming environments across agents.
