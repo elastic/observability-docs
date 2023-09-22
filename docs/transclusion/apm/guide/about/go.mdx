@@ -1,0 +1,44 @@
+import APMAgentWarning from '../../../../partials/apm-agent-warning.mdx'
+
+**Elastic APM Go agent**
+
+The Elastic APM Go agent enables you to trace the execution of operations in your [Go](https://golang.org/)
+applications.
+It has built-in support for popular frameworks and toolkits,
+like [Gorilla](http://www.gorillatoolkit.org/) and [Gin](https://gin-gonic.com/),
+as well as support for instrumenting Go's built-in [net/http](https://golang.org/pkg/net/http/),
+[database/sql](https://golang.org/pkg/database/sql/) drivers.
+
+The Agent includes instrumentation modules for supported technologies,
+each providing middleware or wrappers for recording interesting events, such as incoming HTTP requests, outgoing HTTP requests, and database queries.
+
+To collect data about incoming HTTP requests, install router middleware for one of the supported web frameworks.
+Incoming requests will be recorded as transactions, along with any related panics or errors.
+
+To collect data for outgoing HTTP requests, instrument an `http.Client` or `http.Transport` using `module/apmhttp`.
+To collect data about database queries, use `module/apmsql`,
+which provides instrumentation for well-known database drivers.
+
+In order to connect transactions with related spans and errors, and propagate traces between services (distributed tracing),
+the agent relies on Go's built-in [context](https://golang.org/pkg/context/) package:
+transactions and spans are stored in context objects.
+For example, for incoming HTTP requests, in-flight trace data will be recorded in the `context` object accessible through
+[net/http.Context](https://golang.org/pkg/net/http/#Request.Context).
+
+In addition to capturing events like those mentioned above,
+the agent also collects system and application metrics at regular intervals.
+This collection happens in a background goroutine that is automatically started when the agent is initialized.
+
+**Learn more**
+
+If you're ready to give Elastic APM a try, see <DocLink id="serverlessObservabilityApmGetStarted">Get started with traces and APM</DocLink>.
+
+See the [Go agent reference](((apm-go-ref))/introduction.html) for full documentation, including:
+
+* [Supported technologies](((apm-go-ref))/supported-tech.html)
+* [Set up](((apm-go-ref))/getting-started.html)
+* [Configuration reference](((apm-go-ref))/configuration.html)
+* [API reference](((apm-go-ref))/api.html)
+
+
+<APMAgentWarning />
