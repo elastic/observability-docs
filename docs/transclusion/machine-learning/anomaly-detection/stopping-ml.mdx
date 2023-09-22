@@ -1,0 +1,87 @@
+
+If you need to stop your ((anomaly-job)), an orderly shutdown ensures that:
+
+* ((dfeeds-cap)) are stopped
+* Buffers are flushed
+* Model history is pruned
+* Final results are calculated
+* Model snapshots are saved
+* ((anomaly-jobs-cap)) are closed
+
+This process ensures that jobs are in a consistent state in case you want to
+subsequently re-open them.
+
+<div id="stopping-ml-datafeeds"></div>
+
+## Stopping ((dfeeds))
+
+When you stop a ((dfeed)), it ceases to retrieve data from ((es)). You can stop a
+((dfeed)) by using ((kib)) or the
+[stop ((dfeeds)) API](((ref))/ml-stop-datafeed.html). For example, the following
+request stops the `feed1` ((dfeed)):
+
+```console
+POST _ml/datafeeds/feed1/_stop
+```
+{/* TEST[skip:setup:server_metrics_startdf] */}
+
+<DocCallOut title="Note">
+You must have `manage_ml`, or `manage` cluster privileges to stop ((dfeeds)).
+For more information, see [Security privileges](((ref))/security-privileges.html).
+</DocCallOut>
+
+A ((dfeed)) can be started and stopped multiple times throughout its lifecycle.
+
+{/* For examples of stopping ((dfeeds)) in ((kib)), see \<\<ml-gs-job1-manage>>. */}
+
+<div id="stopping-all-ml-datafeeds"></div>
+
+## Stopping all ((dfeeds))
+
+If you are upgrading your cluster, you can use the following request to stop all
+((dfeeds)):
+
+```console
+POST _ml/datafeeds/_all/_stop
+```
+{/* TEST[skip:needs-licence] */}
+
+<div id="closing-ml-jobs"></div>
+
+## Closing ((anomaly-jobs))
+
+When you close an ((anomaly-job)), it cannot receive data or perform analysis
+operations. You can close a job by using the
+[close ((anomaly-job)) API](((ref))/ml-close-job.html). For example, the following
+request closes the `job1` job:
+
+```console
+POST _ml/anomaly_detectors/job1/_close
+```
+{/* TEST[skip:setup:server_metrics_openjob] */}
+
+<DocCallOut title="Note">
+You must have `manage_ml`, or `manage` cluster privileges to stop
+((anomaly-jobs)). For more information, see
+[Security privileges](((ref))/security-privileges.html).
+</DocCallOut>
+
+If you submit a request to close an ((anomaly-job)) and its ((dfeed)) is running,
+the request first tries to stop the ((dfeed)). This behavior is equivalent to
+calling the [stop ((dfeeds)) API](((ref))/ml-stop-datafeed.html) with the same
+`timeout` and `force` parameters as the close job request.
+
+((anomaly-jobs-cap)) can be opened and closed multiple times throughout their
+lifecycle.
+
+<div id="closing-all-ml-jobs"></div>
+
+## Closing all ((anomaly-jobs))
+
+If you are upgrading your cluster, you can use the following request to close
+all open ((anomaly-jobs)) on the cluster:
+
+```console
+POST _ml/anomaly_detectors/_all/_close
+```
+{/* TEST[skip:needs-licence] */}
