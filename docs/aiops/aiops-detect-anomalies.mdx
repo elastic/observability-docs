@@ -4,26 +4,139 @@ slug: /serverless/observability/aiops-detect-anomalies
 title: Detect anomalies
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'how-to' ]
-status: rough content
+status: in review
 ---
 
-import RoughContent from '../partials/rough-content-notice.mdx'
+import InReview from '../partials/in-review-notice.mdx'
 
-<RoughContent />
+<InReview />
 
-<div id="ml-ad-finding-anomalies"></div>
+QUESTIONS:
+Will the ML APIs work? Do we want to talk about them in the docs?
 
-The ((ml)) ((anomaly-detect)) features automate the analysis of time series data by
-creating accurate baselines of normal behavior in your data. These baselines
-then enable you to identify anomalous events or patterns. Data is pulled from
-((es)) for analysis and anomaly results are displayed in ((kib)) dashboards. For
-example, the **((ml-app))** app provides charts that illustrate the actual data
-values, the bounds for the expected values, and the anomalies that occur outside
-these bounds.
+{/* TODO: Indicate role(s) required to use this feature. */}
+{/* TODO: Spellcheck (figure out why VSCode spell checker topped working) */}
 
-The typical workflow for performing ((anomaly-detect)) is as follows:
+The anomaly detection feature in Elastic ((observability)) automatically models the normal behavior of your time series data — learning trends,
+periodicity, and more — in real time to identify anomalies, streamline root cause analysis, and reduce false positives.
 
-* <DocLink id="serverlessObservabilityAiopsDetectAnomaliesPlan">Plan your ((anomaly-detect)) analysis</DocLink>
-* <DocLink id="serverlessObservabilityAiopsDetectAnomaliesCreateJobs">Create and run ((anomaly-jobs))</DocLink>
-* <DocLink id="serverlessObservabilityAiopsDetectAnomaliesViewResults">View ((anomaly-detect)) job results</DocLink>
-* <DocLink id="serverlessObservabilityAiopsDetectAnomaliesForecast">Forecast future behavior</DocLink>
+To set up anomaly detection, you create and run anomaly detection jobs.
+Anomaly detection jobs use proprietary machine learning algorithms to detect anomalous events or patterns, such as:
+
+* Anomalies related to temporal deviations in values, counts, or frequencies
+* Anomalies related to unusual locations in geographic data
+* Statistical rarity
+* Unusual behaviors for a member of a population
+
+<div id="create-anomaly-detection-job"></div>
+
+# Create and run an anomaly detection job
+
+1. From the main menu in Elastic ((observability)), select **AIOps -> Anomaly detection**.
+1. Click **Create an anomaly detection job** (or **Create job** if other jobs exist).
+1. Choose a data view or saved search to access the data you want to analyze.
+1. Select the wizard for the type of job you want to create.
+The following wizards are available.
+    <DocDefList>
+        <DocDefTerm>Single metric</DocDefTerm>
+        <DocDefDescription>
+            Creates simple jobs that have a single detector. A _detector_ applies an analytical function to specific fields in your data. In addition to limiting the number of detectors, the single metric wizard omits many of the more advanced configuration options.
+        </DocDefDescription>
+        <DocDefTerm>Multi-metric</DocDefTerm>
+        <DocDefDescription>
+            Creates jobs that can have more than one detector, which is more efficient than running multiple jobs against the same data. The population wizard creates jobs that detect activity that is unusual compared to the behavior of the population.
+        </DocDefDescription>
+        <DocDefTerm>Categorization</DocDefTerm>
+        <DocDefDescription>
+            Creates jobs that group log messages into categories and use `count` or `rare` functions to detect anomalies within them.
+        </DocDefDescription>
+        <DocDefTerm>Advanced</DocDefTerm>
+        <DocDefDescription>
+            Creates jobs that can have multiple detectors and enables you to configure all job settings.
+        </DocDefDescription>
+    </DocDefList>
+    Elastic ((observability)) can also recognize certain types of data and provide specialized wizards for that context.
+    <DocCallOut color="empty" title="Not sure what type of job to create?">
+        To get the best results, you must understand your data, including its data types and the range and distribution of values.
+        Click **Data Visualizer** to explore the fields and metrics in your data.
+        Use the time filter to select a time period that you’re interested in exploring,
+        or click **Use full data** to view the full time range of data.
+        Expand the fields to see details about the range and distribution of values.
+        When you're done, go back to the first step and create your job.
+    </DocCallOut>
+1. Follow the instructions in the job creation wizard to configure your job.
+1. When you're done, click **Create job**.
+The machine learning features analyze the input stream of data, model its behavior, and perform analysis based on the detectors in each job.
+When an event occurs outside of the model, that event is identified as an anomaly.
+1. Click **View results**.
+
+<div id="view-anomaly-detection-results"></div>
+
+# View anomaly detection results
+
+After the anomaly detection job has processed some data,
+you can view the results in Elastic ((observability)).
+
+<DocCallOut title="Tip">
+Depending on the capacity of your machine,
+you might need to wait a few seconds for the analysis to generate initial results.
+</DocCallOut>
+
+The **Single Metric Viewer** and **Anomaly Explorer** display the results of your anomaly detection jobs.
+To switch between these tools, click the icons in the upper-left corner of each tool.
+To access these tools at any time, go to **AIOps -> Anomaly detection**, and click the icon next to the job.
+
+You can optionally add annotations by drag-selecting a period of time in the **Single Metric Viewer** and adding a description.
+For example, you can add an explanation for anomalies in that time period or provide notes about what is occurring in your operational environment at that time:
+
+<div id="ml-ad-forecast"></div>
+
+# Forecast future behavior
+
+After your anomaly detection job creates baselines of normal behavior for your data,
+you can use that information to extrapolate future behavior.
+
+You can use a forecast to estimate a time series value at a specific future date.
+For example, you might want to determine how many users you can expect to visit
+your website next Sunday at 0900.
+
+You can also use it to estimate the probability of a time series value occurring
+at a future date. For example, you might want to determine how likely it is that
+your disk utilization will reach 100% before the end of next week.
+
+Each forecast has a unique ID, which you can use to distinguish between forecasts
+that you created at different times. You can create a forecast by using the
+[forecast ((anomaly-jobs)) API](((ref))/ml-forecast.html) or by using ((kib)). For
+example:
+
+<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
+{/* !["Example screenshot from the Machine Learning Single Metric Viewer in Kibana"](images/ml-ad-forecast/-ml-anomaly-detection-overview-forecast.jpg) */}
+
+The yellow line in the chart represents the predicted data values. The
+shaded yellow area represents the bounds for the predicted values, which also
+gives an indication of the confidence of the predictions.
+
+When you create a forecast, you specify its _duration_, which indicates how far
+the forecast extends beyond the last record that was processed. By default, the
+duration is 1 day. Typically the farther into the future that you forecast, the
+lower the confidence levels become (that is to say, the bounds increase).
+Eventually if the confidence levels are too low, the forecast stops.
+For more information about limitations that affect your ability to create a
+forecast, see <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enMachineLearningMlLimitations" section="unsupported-forecast-configurations">Unsupported forecast configurations</DocLink> */}.
+
+You can also optionally specify when the forecast expires. By default, it
+expires in 14 days and is deleted automatically thereafter. You can specify a
+different expiration period by using the `expires_in` parameter in the
+[forecast ((anomaly-jobs)) API](((ref))/ml-forecast.html).
+
+<div id="ml-ad-bucket-results"></div>
+
+# Create anomaly detection alerts
+
+{/* Maybe put this in a sub-topic? */}
+
+# Manage anomaly detection jobs
+
+Create calendars and filter jobs
+
+# Learn more
