@@ -1,0 +1,78 @@
+{/* Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/python.mdx */}
+
+**Install the ((apm-agent))**
+
+Install the ((apm-agent)) for Python as a dependency.
+
+<DocTabs>
+  <DocTab name="Django">
+    ```python
+    $ pip install elastic-apm
+    ```
+
+    **Configure the agent** 
+
+    Agents are libraries that run inside of your application process.
+    APM services are created programmatically based on the `SERVICE_NAME`.
+
+    ```python
+    INSTALLED_APPS = (
+      # Add the agent to installed apps
+      'elasticapm.contrib.django',
+      # ...
+    )
+    ELASTIC_APM = {
+      'SERVICE_NAME': '<your-service-name>', [^1]
+      'API_KEY': '<your-api-key>', [^2]
+      'SERVER_URL': '<your-server-url>', [^3]
+      'ENVIRONMENT': '<your-environment>', [^4]
+    }
+    MIDDLEWARE = (
+      # Add our tracing middleware to send performance metrics
+      'elasticapm.contrib.django.middleware.TracingMiddleware',
+      #...
+    )
+    ```
+    [^1]: The service name is the primary filter in the APM UI and is used to group errors and trace data together. Allowed characters are a-z, A-Z, 0-9, -, _, and space.
+    [^2]: Use if APM Server requires an API Key. This is used to ensure that only your agents can send data to your APM server.
+    [^3]: Set the custom APM Server URL (default: http://localhost:8200). The URL must be fully qualified, including protocol (http or https) and port.
+    [^4]: The name of the environment this service is deployed in, for example, "production" or "staging". Environments allow you to easily filter data on a global level in the APM UI. It's important to be consistent when naming environments across agents.
+  </DocTab>
+  <DocTab name="Flask">
+    ```python
+    $ pip install elastic-apm[flask]
+    ```
+
+    **Configure the agent** 
+
+    Agents are libraries that run inside of your application process.
+    APM services are created programmatically based on the `SERVICE_NAME`.
+
+    ```python
+    # Initialize using environment variables
+    from elasticapm.contrib.flask import ElasticAPM
+    app = Flask(__name__)
+    apm = ElasticAPM(app)
+    # Or use ELASTIC_APM in your application's settings
+    from elasticapm.contrib.flask import ElasticAPM
+    app.config['ELASTIC_APM'] = {
+      'SERVICE_NAME': '<your-service-name>', [^1]
+      'API_KEY': '<your-api-key>', [^2]
+      'SERVER_URL': '<your-server-url>', [^3]
+      'ENVIRONMENT': '<your-environment>', [^4]
+    }
+    apm = ElasticAPM(app)
+    ```
+    [^1]: The service name is the primary filter in the APM UI and is used to group errors and trace data together. Allowed characters are a-z, A-Z, 0-9, -, _, and space.
+    [^2]: Use if APM Server requires an API Key. This is used to ensure that only your agents can send data to your APM server.
+    [^3]: Set the custom APM Server URL (default: http://localhost:8200). The URL must be fully qualified, including protocol (http or https) and port.
+    [^4]: The name of the environment this service is deployed in, for example, "production" or "staging". Environments allow you to easily filter data on a global level in the APM UI. It's important to be consistent when naming environments across agents.
+
+  </DocTab>
+</DocTabs>
+
+<DocCallOut title="Note">
+Django and Flask are two of several frameworks that the Elastic APM Python Agent
+supports. For a complete list of supported technologies, refer to the
+[Elastic APM Python Agent documentation](((apm-py-ref))/supported-technologies.html).
+</DocCallOut>
