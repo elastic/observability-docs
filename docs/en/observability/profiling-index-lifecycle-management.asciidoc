@@ -9,9 +9,9 @@ See {ref}/index-lifecycle-management.html[Manage the index lifecycle] to learn m
 [[profiling-ilm-default-policy]]
 == Default policy
 
-Below we describe the default index lifecycle policy applied in Universal Profiling. Each policy includes a rollover and delete definition:
+Below we describe the default index lifecycle policy applied in Universal Profiling. The default policy includes a rollover and delete definition:
 
-* **Rollover**: Using rollover indices prevents a single index from growing too large and optimizes indexing and search performance. Rollover, i.e. writing to a new index, occurs after either an age or size metric is met.
+* **Rollover**: Using rollover prevents a single index from growing too large and optimizes indexing and search performance. Rollover, i.e. writing to a new index, occurs after either an age or size metric is met.
 * **Delete**: The delete phase permanently removes the index after a time threshold is met.
 
 [cols="1,1,1",options="header"]
@@ -84,7 +84,7 @@ GET _ilm/policy/custom-profiling-policy <1>
 ----
 <1> The name of the custom {ilm-init} policy chosen in step 1 above.
 
-The result should include the following:
+If the custom policy is already applied, the result should include the following:
 
 [source,json]
 ----
@@ -111,7 +111,7 @@ The result should include the following:
 }
 ----
 
-New {ilm-init} policies only take effect when new indices are created, so you either must wait for a rollover to occur (usually after 30 days or when the index size reaches 50 GB), or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover API]:
+If the result is empty, then the custom {ilm-init} policy is not yet in use. New {ilm-init} policies only take effect when new indices are created, so you either must wait for a rollover to occur (usually after 30 days or when the index size reaches 50 GB), or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover API]:
 
 [source,bash]
 ----
@@ -134,3 +134,5 @@ POST /profiling-stackframes/_rollover/
 POST /profiling-stacktraces/_rollover/
 POST /profiling-symbols-global/_rollover/
 ----
+
+After the rollover, the custom {ilm-init} policy will be applied to new indices and data streams.
