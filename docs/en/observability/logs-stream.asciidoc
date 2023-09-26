@@ -113,24 +113,6 @@ Next, restart the {agent} using the command that works with your system:
 include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/start-widget.asciidoc[]
 
 [discrete]
-[[logs-stream-query-datastreams]]
-= View and search your data
-
-With your {agent} and data streams configured, you can now view, filter, and search your log data. In {kib}, navigate to *Observability → Logs → Stream*, and use the search bar to search for your `data_stream.type` and `data_stream.dataset`. 
-
-See the following examples for ways to search specific data types and datasets:
-
-- `data_stream.type: logs` – shows `logs` data streams.
-- `data_stream.dataset: nginx.access` – shows data streams with an `nginx.access` dataset.
-
-This example shows the search results for logs with an `apm.error` dataset and a `default` namespace:
-
---
-[role="screenshot"]
-image::images/stream-logs-example.png[example search query on the logs stream page in {kib}]
---
-
-[discrete]
 [[logs-stream-troubleshooting]]
 = Troubleshoot your {agent} configuration
 
@@ -562,7 +544,7 @@ GET logs-example-default/_search
 }
 ----
 
-You should see the following results showing only your high-severity logs:
+The results should show only the high-severity logs:
 
 [source,JSON]
 ----
@@ -1047,42 +1029,30 @@ You can see the high-severity logs and that they're now in the `critical` datase
 
 After sending log data to {es} and <<logs-stream-enhance-logs, extracting structured fields>>, filtering and aggregating your data helps you find specific information, gain insight, and monitor your systems more efficiently. 
 
-<<logs-filter>> — Narrow down your log data by applying specific criteria.
-<<logs-aggregate>> — Analyze and summarize data to find patterns and gain insight.
+* <<logs-filter>> — Narrow down your log data by applying specific criteria.
+* <<logs-aggregate>> — Analyze and summarize data to find patterns and gain insight.
 
 
 [discrete]
 [[logs-filter]]
 == Filter your logs
 
-Filter your log data to focus on logs that meet specific criteria, such as log levels, timestamp ranges, or host IPs. You can filter your log data in different ways:
+Filter your data to focus on logs that meet specific criteria, such as log levels, timestamp ranges, or host IPs. You can filter your log data in different ways:
 
-<<logs-filter-qdsl>> – Filter log data using Query DSL.
-<<logs-filter-discover>> – Filter and visualize log data in {kib} using Discover.
+* <<logs-filter-qdsl, Query DSL>> – Filter log data from Dev Tools using Query DSL.
+* <<logs-filter-discover, Discover>> – Filter and visualize log data in {kib} using Discover.
 
 [discrete]
 [[logs-filter-qdsl]]
 === Filter logs with Query DSL
 
-{ref}/query-filter-context.html[Query DSL (domain-specific language)] is a JSON-based language used to send requests to {es} and retrieve data from indices and data streams. You can use Query DSL to filter your log data from Dev Tools console.
+{ref}/query-dsl.html[Query DSL] is a JSON-based language used to send requests to {es} and retrieve data from indices and data streams. To use Query DSL to filter your log data, navigate to the Dev Tools console from the navigation menu under *Management*.
 
-In the <<logs-stream-range-query,extracting host IPs>> section, we used Query DSL to create a range query that filtered log data to only show logs within an specific IP range. You can use Query DSL to narrow down your log data even further.
+In the <<logs-stream-range-query,extracting host IPs>> section, you created a range query that filtered log data to only show logs within an specific IP range. You can further filter your log data to focus on more specific criteria.
 
-For example, you might want to troubleshoot an issue that happened during a specific time. To do this, use a boolean query to filter your log data to only show logs within a specific timestamp range that have an `ERROR` or `WARN` log level.  You can do this using a boolean query that filters using both a range query for logs within a timestamp range and a term query for logs with an `ERROR` or `WARN` log level.
+For example, you might want to troubleshoot an issue that happened at a specific date or time. To do this, use a boolean query with a {ref}/query-dsl-range-query.html[range query] to filter for the specific timestamp range and a {ref}/query-dsl-term-query.html[term query] to filter for `WARN` and `ERROR` log levels.
 
-Let's use these logs:
-
-[source,log]
-----
-2023-09-15T08:15:20.234Z WARN 192.168.1.101 Disk usage exceeds 90%.
-2023-09-15T10:30:45.789Z ERROR 192.168.1.102 Critical system failure detected.
-2023-09-15T12:45:55.123Z INFO 192.168.1.103 Application successfully started.
-2023-09-15T15:20:10.789Z WARN 192.168.1.104 Network latency exceeding threshold.
-2023-09-10T14:20:45.789Z ERROR 192.168.1.105 Database connection lost.
-2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated.
-----
-
-Add them to your data stream using the following command:
+First, add some logs with varying timestamps and log levels to your data stream with the following command:
 
 [source,console]
 ----
@@ -1090,18 +1060,14 @@ POST logs-example-default/_bulk
 { "create": {} }
 { "message": "2023-09-15T08:15:20.234Z WARN 192.168.1.101 Disk usage exceeds 90%." }
 { "create": {} }
-{ "message": "2023-09-15T10:30:45.789Z ERROR 192.168.1.102 Critical system failure detected." }
-{ "create": {} }
-{ "message": "2023-09-15T12:45:55.123Z INFO 192.168.1.103 Application successfully started." }
-{ "create": {} }
-{ "message": "2023-09-15T15:20:10.789Z WARN 192.168.1.104 Network latency exceeding threshold." }
+{ "message": "2023-09-14T10:30:45.789Z ERROR 192.168.1.102 Critical system failure detected." }
 { "create": {} }
 { "message": "2023-09-10T14:20:45.789Z ERROR 192.168.1.105 Database connection lost." }
 { "create": {} }
 { "message": "2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated." }
 ----
 
-Now, let's say there was an event you want to look into on `2023-09-15`, create a boolean query to filter for logs in that timestamp range with a log level of `ERROR` or `WARN`.
+Let's say you want to look into an event that occurred between September 14th and 15th. The following boolean query  filters for logs with timestamps during those days with a log level of `ERROR` or `WARN`.
 
 [source,console]
 ----
@@ -1113,14 +1079,14 @@ POST /logs-example-default/_search
         {
           "range": {
             "@timestamp": {
-              "gte": "2023-09-01T00:00:00",
-              "lte": "2023-09-30T23:59:59"
+              "gte": "2023-09-14T00:00:00",
+              "lte": "2023-09-15T23:59:59"
             }
           }
         },
         {
           "terms": {
-            "log_level.keyword": ["WARN", "ERROR"]
+            "log.level": ["WARN", "ERROR"]
           }
         }
       ]
@@ -1129,70 +1095,139 @@ POST /logs-example-default/_search
 }
 ----
 
-You're query should filter the data to only show the logs during the event you're looking into with high-severity log levels:
+The filtered results should show `WARN` and `ERROR` logs that occurred within the timestamp range:
 
-//ADD EXAMPLE HERE
+[source,JSON]
+----
+{
+  ...
+  "hits": {
+    ...
+    "hits": [
+      {
+        "_index": ".ds-logs-example-default-2023.09.25-000001",
+        "_id": "JkwPzooBTddK4OtTQToP",
+        "_score": 0,
+        "_source": {
+          "message": "192.168.1.101 Disk usage exceeds 90%.",
+          "log": {
+            "level": "WARN"
+          },
+          "@timestamp": "2023-09-15T08:15:20.234Z"
+        }
+      },
+      {
+        "_index": ".ds-logs-example-default-2023.09.25-000001",
+        "_id": "A5YSzooBMYFrNGNwH75O",
+        "_score": 0,
+        "_source": {
+          "message": "192.168.1.102 Critical system failure detected.",
+          "log": {
+            "level": "ERROR"
+          },
+          "@timestamp": "2023-09-14T10:30:45.789Z"
+        }
+      }
+    ]
+  }
+}
+----
 
 [discrete]
 [[logs-filter-discover]]
-=== Filter logs in Discover
+=== Filter logs with Discover
 
-Discover is a {kib} tool that focuses on rapid consumption of {es} data, including logs, using the {kibana-ref}/kuery-query.html[{kib} Query Language (KQL)]. 
-To view and filter logs in Discover, there are a few important concepts you need to understand.
-
-[discrete]
-[[logs-filter-discover-data-view]]
-=== Data views
-
-Creating a data view lets you access and explore your log data in Discover. 
-The `logs-*` data view in discover shows all logs by using the the `logs-*` index pattern and the `@timestamp` field.
-You can create different data views to filter and pinpoint specific aspects of your log data.
+Discover is a {kib} tool that focuses on rapid consumption of {es} data, including logs, using the {kibana-ref}/kuery-query.html[{kib} Query Language (KQL)]. Navigate to Discover from the navigation menu by clicking *Discover* under *Analytics*.
 
 [discrete]
-[[logs-aggregate]]
-== Aggregate your logs
-Aggregate your logs data to analyze and summarize your logs and find patterns and gain insight.
+[[logs-filter-discover-logs-data-view]]
+==== `logs-*` data view
 
-{ref}/search-aggregations-bucket.html[Bucket aggregations] organize log data into meaningful groups for analysis and compute and return the number of documents that fall into each group or bucket.
+The `logs-*` data view filters your data using the `logs-*` index pattern and the `@timestamp` field. 
+The `logs-*` index pattern includes any document in a `logs`-type data stream.
 
-The following bucket aggregations are useful for your log data:
+[role="screenshot"]
+image::images/logs-dataview.png[Logs data view navigation in Discover]
 
+You can create data views with different index patterns to filter and pinpoint specific aspects of your log data.
+For example, you could create a data view that focuses on the `logs-example-*` data stream:
 
-For example, you might want to find error distribution by analyzing the count of logs per log level, or find patterns by looking at log counts by time range.
+[role="screenshot"]
+image::images/logs-example-data-view.png[Create a data view for logs-example data view in Discover]
 
-Let's say you have the following logs with varying severities:
+For more on data views, see {kibana-ref}/data-views.html[Create a data view].
 
-[source,log]
-----
-2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
-2023-08-08T13:45:14.003Z ERROR 192.168.1.103 Database connection failed.
-2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue.
-2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture.
-----
+[discrete]
+[[logs-filter-in-discover]]
+==== Filter using KQL
 
-Add them to your data stream using this command:
+{kibana-ref}/kuery-query.html[KQL] is a simple text-based query language for filtering data. Use KQL in the Discover search bar to filter your log data. 
+
+Let's take the example from <<logs-filter-qdsl>>, we can also use KQL and Discover to look into an event that occurred within a specific time range (between September 14th and 15th).
+
+First, add some logs with varying timestamps and log levels to your data stream with the following command:
 
 [source,console]
 ----
 POST logs-example-default/_bulk
 { "create": {} }
-{ "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%." }
+{ "message": "2023-09-15T08:15:20.234Z WARN 192.168.1.101 Disk usage exceeds 90%." }
 { "create": {} }
-{ "message": "2023-08-08T13:45:14.003Z ERROR 192.168.1.103 Database connection failed." }
+{ "message": "2023-09-14T10:30:45.789Z ERROR 192.168.1.102 Critical system failure detected." }
 { "create": {} }
-{ "message": "2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue." }
+{ "message": "2023-09-10T14:20:45.789Z ERROR 192.168.1.105 Database connection lost." }
 { "create": {} }
-{ "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
+{ "message": "2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated." }
 ----
 
-Next, run the following command to aggregate your log data using the log.level field you've extracted:
+From Discover, use KQL in the search bar to filter for logs with log levels of `WARN` and `ERROR`, and set your time range by clicking the image:images/time-filter-icon.png[calendar icon, width=36px].
 
-[source, console]
+[role="screenshot"]
+image::images/logs-kql-filter.png[Filter data by log level using KQL]
+
+Under the *Documents* tab, you'll see the log data matching your query.
+
+[role="screenshot"]
+image::images/logs-discover-documents.png[Query results showing logs data]
+
+For more on using Discover, see the {kibana-ref}/discover.html[Discover] documentation.
+
+[discrete]
+[[logs-aggregate]]
+== Aggregate your logs
+Aggregating lets you to analyze and summarize your log data to find patterns and gain insight. {ref}/search-aggregations-bucket.html[Bucket aggregations] organize log data into meaningful groups making it easier to identify patterns, trends, and anomalies within your logs. 
+
+For example, you might want to understand error distribution by analyzing the count of logs per log level.
+Start by adding some logs with varying log levels to your data stream using the following command:
+
+[source,console]
+----
+POST logs-example-default/_bulk
+{ "create": {} }
+{ "message": "2023-09-15T08:15:20.234Z WARN 192.168.1.101 Disk usage exceeds 90%." }
+{ "create": {} }
+{ "message": "2023-09-14T10:30:45.789Z ERROR 192.168.1.102 Critical system failure detected." }
+{ "create": {} }
+{ "message": "2023-09-15T12:45:55.123Z INFO 192.168.1.103 Application successfully started." }
+{ "create": {} }
+{ "message": "2023-09-14T15:20:10.789Z WARN 192.168.1.104 Network latency exceeding threshold." }
+{ "create": {} }
+{ "message": "2023-09-10T14:20:45.789Z ERROR 192.168.1.105 Database connection lost." }
+{ "create": {} }
+{ "message": "2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated." }
+{ "create": {} }
+{ "message": "2023-09-21T15:20:55.678Z DEBUG 192.168.1.102 Database connection established." }
+----
+
+Next, run this command to aggregate your log data using the `log.level` field:
+
+[source,console]
 ----
 POST logs-example-default/_search?size=0&filter_path=aggregations
 {
-  "aggs": {
-    "error_distribution": {
+"size": 0,
+"aggs": {
+    "log_level_distribution": {
       "terms": {
         "field": "log.level"
       }
@@ -1201,8 +1236,96 @@ POST logs-example-default/_search?size=0&filter_path=aggregations
 }
 ----
 
+NOTE: Searches with an aggregation return both the query results and the aggregation, so you would see the logs matching the data and the aggregation. Setting `size` to `0`, as in the previous example, limits the results to aggregations.
+
 The results should show the number of logs in each log level:
 
-//show results
+[source,JSON]
+----
+{
+  "aggregations": {
+    "error_distribution": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "ERROR",
+          "doc_count": 2
+        },
+        {
+          "key": "INFO",
+          "doc_count": 2
+        },
+        {
+          "key": "WARN",
+          "doc_count": 2
+        },
+        {
+          "key": "DEBUG",
+          "doc_count": 1
+        }
+      ]
+    }
+  }
+}
+----
 
-//show how to do a nested aggregation to show patterns by time range.
+You can also combine aggregations and queries. For example, you might want to limit the scope of the previous aggregation by adding a range query:
+
+[source,console]
+----
+GET /logs-example-default/_search
+{
+  "size": 0,
+  "query": {
+    "range": {
+      "@timestamp": {
+        "gte": "2023-09-14T00:00:00",
+        "lte": "2023-09-15T23:59:59"
+      }
+    }
+  },
+  "aggs": {
+    "my-agg-name": {
+      "terms": {
+        "field": "log.level"
+      }
+    }
+  }
+}
+----
+
+The results should show an aggregate of logs that occurred within your timestamp range:
+
+[source,JSON]
+----
+{
+  ...
+  "hits": {
+    ...
+    "hits": []
+  },
+  "aggregations": {
+    "my-agg-name": {
+      "doc_count_error_upper_bound": 0,
+      "sum_other_doc_count": 0,
+      "buckets": [
+        {
+          "key": "WARN",
+          "doc_count": 2
+        },
+        {
+          "key": "ERROR",
+          "doc_count": 1
+        },
+        {
+          "key": "INFO",
+          "doc_count": 1
+        }
+      ]
+    }
+  }
+}
+----
+
+For more on aggregation types and available aggregations, see the {ref}/search-aggregations.html[Aggregations] documentation.
