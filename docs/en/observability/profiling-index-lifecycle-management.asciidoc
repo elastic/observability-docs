@@ -1,0 +1,136 @@
+[[profiling-index-lifecycle-management]]
+= Index lifecycle management
+
+Index lifecycle policies allow you to automate the lifecycle of your profiling indices as they grow and age. A default policy is applied, but can be customized depending on your business needs.
+
+See {ref}/index-lifecycle-management.html[Manage the index lifecycle] to learn more.
+
+[discrete]
+[[profiling-ilm-default-policy]]
+== Default policy
+
+Below we describe the default index lifecycle policy applied in Universal Profiling. Each policy includes a rollover and delete definition:
+
+* **Rollover**: Using rollover indices prevents a single index from growing too large and optimizes indexing and search performance. Rollover, i.e. writing to a new index, occurs after either an age or size metric is met.
+* **Delete**: The delete phase permanently removes the index after a time threshold is met.
+
+[cols="1,1,1",options="header"]
+|===
+|Rollover after
+|Warm tier after
+|Delete after
+
+| 30 days / 50 GB
+| 30 days
+| 60 days
+
+|===
+
+NOTE: The {ref}/ilm-rollover.html#_rollover_condition_blocks_phase_transition[rollover condition blocks phase transitions] which means that indices are kept 30 days *after* rollover on the hot tier.
+
+The Universal Profiling index lifecycle policy can be viewed in {kib}. Navigate to *{stack-manage-app}* / *Index Lifecycle Management*, and search for `profiling`.
+
+TIP: Default {ilm-init} policies can change between minor versions. This is not considered a breaking change as index management should continually improve and adapt to new features.
+
+[discrete]
+[[profiling-ilm-custom-policy]]
+== Configure a custom index lifecycle policy
+
+[discrete]
+[[profiling-ilm-custom-policy-create-policy]]
+=== Step 1: Create an index lifecycle policy
+
+. Navigate to **{stack-manage-app}** > **Index Lifecycle Policies**.
+. Click **Create policy**.
+
+Name your new policy, for example `custom-profiling-policy`. Customize the policy to your liking, and when you're done, click **Save policy**.
+
+[discrete]
+[[profiling-ilm-custom-policy-apply-policy]]
+=== Step 2: Apply the index lifecycle policy
+
+To apply your new index lifecycle policy for Universal Profiling, create a new component template named `profiling-ilm@custom`.
+
+NOTE: The custom {ilm-init} policy will only be applied if the component template is named `profiling-ilm@custom`. Other names are not supported.
+
+
+. Click on the **Component Template** tab and click **Create component template**.
+. Pick `profiling-ilm@custom` as the name and click **Next**.
+. In **Index settings**, set the {ilm-init} policy name created in the previous step:
++
+[source,json]
+----
+{
+  "lifecycle": {
+    "name": "custom-profiling-policy"
+  }
+}
+----
+. Click **Next** until the **Review** step and ensure your request looks similar to the image below.
+If it does, click **Create component template**.
++
+[role="screenshot"]
+image::images/profiling-create-component-template.png[Create component template]
+
+[discrete]
+[[profiling-ilm-custom-policy-rollover]]
+=== Step 3: Rollover indices
+
+To confirm that Universal Profiling is now using the new index template and {ilm-init} policy, navigate to **{dev-tools-app}** and run the following:
+
+[source,bash]
+----
+GET _ilm/policy/custom-profiling-policy <1>
+----
+<1> The name of the custom {ilm-init} policy chosen in step 1 above.
+
+The result should include the following:
+
+[source,json]
+----
+{
+    "in_use_by": {
+      "indices": [
+        ...
+      ],
+      "data_streams": [
+        ...
+        "profiling-events-all",
+        ...
+      ],
+      "composable_templates": [
+        "profiling-stackframes",
+        "profiling-symbols-global",
+        "profiling-metrics",
+        "profiling-stacktraces",
+        "profiling-executables",
+        "profiling-hosts",
+        "profiling-events"
+      ]
+    }
+}
+----
+
+New {ilm-init} policies only take effect when new indices are created, so you either must wait for a rollover to occur (usually after 30 days or when the index size reaches 50 GB), or force a rollover using the {ref}/indices-rollover-index.html[{es} rollover API]:
+
+[source,bash]
+----
+POST /profiling-events-5pow01/_rollover/
+POST /profiling-events-5pow02/_rollover/
+POST /profiling-events-5pow03/_rollover/
+POST /profiling-events-5pow04/_rollover/
+POST /profiling-events-5pow05/_rollover/
+POST /profiling-events-5pow06/_rollover/
+POST /profiling-events-5pow07/_rollover/
+POST /profiling-events-5pow08/_rollover/
+POST /profiling-events-5pow09/_rollover/
+POST /profiling-events-5pow10/_rollover/
+POST /profiling-events-5pow11/_rollover/
+POST /profiling-events-all/_rollover/
+POST /profiling-executables/_rollover/
+POST /profiling-hosts/_rollover/
+POST /profiling-metrics/_rollover/
+POST /profiling-stackframes/_rollover/
+POST /profiling-stacktraces/_rollover/
+POST /profiling-symbols-global/_rollover/
+----
