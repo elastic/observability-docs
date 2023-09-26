@@ -11,8 +11,6 @@ import RoughContent from '../partials/rough-content-notice.mdx'
 
 <RoughContent />
 
-<DocCallOut template="technical_preview" />
-
 The **Alerts** page lists all the alerts that have met a condition defined by a rule you created using one of the ((observability)) apps.
 
 When an alert is created, it generates actions. If the conditions that caused the alert persist, the actions run again according to the rule notification settings. You can monitor alert activity to verify they are functioning correctly.
@@ -26,21 +24,22 @@ You can also add alerts to <DocLink id="serverlessObservabilityCases">Cases</Doc
 
 To help you get started with your analysis faster, use the KQL bar to create structured queries using
 [((kib)) Query Language](((kibana-ref))/kuery-query.html).
+{/* TO-DO: Fix example
 For example, `kibana.alert.rule.name : <>`.
+*/}
 
 You can use the time filter to define a specific date and time range.
 By default, this filter is set to search for the last 15 minutes.
 
 You can also filter by alert status using the buttons below the KQL bar.
-By default, this filter is set to **Show all** alerts, but you can filter to show only **Active** or **Recovered** alerts.
-An alert has an `active` status when the conditions defined in the rule are met.
-An alert has a `recovered` status when the rule conditions are no longer met.
+By default, this filter is set to **Show all** alerts, but you can filter to show only active or recovered alerts.
 
 ## View alert details
 
 There are a few ways to inspect the details for a specific alert.
 
 From the **Alerts** table, you can select <DocIcon type="expand" title="View details" /> to open the alert detail flyout to view a summary of the alert without leaving the page.
+{/* TBD: I don't see that icon, so this might have changed in Serverless? */}
 There you'll see the current status of the alert, its duration, and when it was last updated.
 To help you determine what caused the alert, you can view the expected and actual threshold values, and the rule that produced the alert.
 
@@ -56,8 +55,11 @@ There are three common alert statuses:
   : The conditions for the rule are no longer met and recovery actions should be generated.
 
 <DocCallOut title="Flapping alerts">
-The `flapping` state is possible only if you have enabled alert flapping detection
-A look back window and threshold are used to determine whether alerts are flapping. For example, in **((observability))** -> **Alerts** -> **Settings** you can specify that the alert must change status at least 6 times in the last 10 runs. If the rule has actions that run when the alert status changes, those actions are suppressed while the alert is flapping.
+The flapping state is possible only if you have enabled alert flapping detection.
+Go to the **Alerts** page and click **Manage Rules** to navigate to the ((observability)) **((rules-app))** page.
+Click **Settings** then set the look back window and threshold that are used to determine whether alerts are flapping.
+For example, you can specify that the alert must change status at least 6 times in the last 10 runs.
+If the rule has actions that run when the alert status changes, those actions are suppressed while the alert is flapping.
 </DocCallOut>
 
 {/* ![View alert details flyout on the Alerts page](images/view-observability-alerts/-observability-view-alert-details.png) */}
@@ -80,11 +82,13 @@ Use the toolbar buttons in the upper-left of the alerts table to customize the c
 * **_x_ fields sorted**: Sort the table by one or more columns.
 * **Fields**: Select the fields to display in the table.
 
-For example, click **Fields** and choose the `kibana.alert.maintenance_window_ids` field.
+For example, click **Fields** and choose the `Maintenance Windows` field.
 If an alert was affected by a maintenance window, its identifier appears in the new column.
 For more information about their impact on alert notifications, refer to <DocLink id="serverlessMaintenanceWindows"></DocLink>.
 
-{/* ![Alerts table with toolbar buttons highlighted](images/view-observability-alerts/-observability-alert-table-toolbar-buttons.png) */}
+{/*
+![Alerts table with toolbar buttons highlighted](images/view-observability-alerts/-observability-alert-table-toolbar-buttons.png)
+*/}
 
 You can also use the toolbar buttons in the upper-right to customize the display options or view the table in full-screen mode.
 
@@ -108,4 +112,4 @@ To add an alert to a new case:
 To add an alert to an existing case:
 
 1. Select **Add to existing case**.
-1. From the Select case pane, select the case for which to attach an alert. A confirmation message displays
+1. Select the case where you will attach the alert. A confirmation message displays.
