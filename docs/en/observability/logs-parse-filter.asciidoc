@@ -23,7 +23,7 @@ Let's look at this log example:
 2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
 ----
 
-From the *Dev Tools* console found in {ecloud} in the navigation menu under *Management*, add the example log to {es} using the following command:
+From *Dev Tools* found in the {kib} navigation menu under *Management*, add the example log to {es} using the following command:
 
 [source,console]
 ----
@@ -116,7 +116,7 @@ To extract the timestamp, you need to:
 
 [discrete]
 [[logs-stream-ingest-pipeline]]
-=== Use an ingest pipeline to extract the `@timestamp`
+=== Use an ingest pipeline to extract the `@timestamp` field
 
 Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The {ref}/dissect-processor.html[dissect processor] extracts structured fields from unstructured log messages based on a pattern you set. 
 
@@ -191,7 +191,7 @@ NOTE: Make sure you've created the index pipeline using the `PUT` command in the
 [[logs-stream-index-template]]
 === Configure a data stream with an index template
 
-After creating your ingest pipeline, create an index template to point your log data to your pipeline using this command:
+After creating your ingest pipeline, create an index template to configure your data stream's backing indices using this command:
 
 [source,console]
 ----
@@ -202,7 +202,7 @@ PUT _index_template/logs-example-default-template
   "priority": 500,<3>
   "template": {
     "settings": {
-      "index.default_pipeline":"logs-example"<4>
+      "index.default_pipeline":"logs-example-default"<4>
     }
   },
   "composed_of": [<5>
@@ -214,29 +214,27 @@ PUT _index_template/logs-example-default-template
   "ignore_missing_component_templates": ["logs@custom"],
 }
 ----
-<1> `index_patterns`– The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-default`. Data that matches this pattern will go through your pipeline.
+<1> The `index_pattern` needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
 <2> `data_stream` – Enables data streams.
 <3> `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, {es} uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
 <4> `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
-<5> `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates that help when ingesting your data.
+<5> `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
 
-The component templates that are set in the previous index template are defined as follows:
+The index template sets the following component templates:
 
-- `logs-mappings` – general mappings for logs data streams that includes disabling automatic date detection from `string` fields and specifying mappings for {ecs-ref}/ecs-data_stream.html[`data_stream` ECS fields].
-- `logs-settings` – Sets the general settings for logs data streams including the default lifecycle policy and default pipeline: 
-** The default lifecycle policy rolls over when the primary shard reaches 50 GB or after 30 days.
-** The default pipeline:
-*** Sets a `@timestamp` if there isn't one using the ingest timestamp.
-*** Places a hook for the `logs@custom` pipeline. If a `logs@custom` pipeline is installed, it's applied to logs ingested into this data stream.
-** Sets the {ref}/ignore-malformed.html[`ignore_malformed`] flag to `true`. If a field in the log document contains an incorrect value type and the field's mapping type supports this flag, the document is still processed.
-- `logs@custom` – a predefined component template that is not installed by default. Use this name to install a custom component template if you wish to override or extend any of the default mappings or settings.
+- `logs-mappings` – general mappings for log data streams that include disabling automatic date detection from `string` fields and specifying mappings for {ecs-ref}/ecs-data_stream.html[`data_stream` ECS fields].
+- `logs-settings` – general settings for log data streams including the following: 
+** The default lifecycle policy that rolls over when the primary shard reaches 50 GB or after 30 days.
+** The default pipeline that sets a `@timestamp` if there isn't one using the ingest timestamp and places a hook for the `logs@custom` pipeline. If a `logs@custom` pipeline is installed, it's applied to logs ingested into this data stream.
+** Sets the {ref}/ignore-malformed.html[`ignore_malformed`] flag to `true`. When ingesting a large batch of log data, a single malformed field like an IP address can cause the entire batch to fail. When set to true, malformed fields with a mapping type that supports this flag are still processed.
+- `logs@custom` – a predefined component template that is not installed by default. Use this name to install a custom component template to override or extend any of the default mappings or settings.
 - `ecs@dynamic_templates` – dynamic templates that automatically ensure your data stream mappings comply with the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)].
 
 [discrete]
 [[logs-stream-create-data-stream]]
 === Create a data stream
 
-Create your data stream using the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. Since The name needs to match the name of your pipeline, name the data stream `logs-example-default`. Post the example log to your data stream with this command:
+Create your data stream using the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. Name your data stream to match the name of your ingest pipeline, `logs-example-default` in this case. Post the example log to your data stream with this command:
 
 [source,console]
 ----
@@ -323,13 +321,12 @@ PUT _ingest/pipeline/logs-example-default
     {
       "dissect": {
         "field": "message",
-        "pattern": "%{@timestamp} %{log.level} %{message}"<1>
+        "pattern": "%{@timestamp} %{log.level} %{message}"
       }
     }
   ]
 }
 ----
-<1> The `%{log.level}` option is added to the `pattern`.
 
 Now your pipeline will extract these fields:
 
@@ -508,13 +505,12 @@ PUT _ingest/pipeline/logs-example-default
     {
       "dissect": {
         "field": "message",
-        "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}"<1>
+        "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}"
       }
     }
   ]
 }
 ----
-<1> The `%{host.ip}` option is added to the `pattern`.
 
 Your pipeline will extract these fields:
 
@@ -750,25 +746,6 @@ You'll get the following results only showing logs in the range you've set:
         }
       }
     ]
-  }
-}
-----
-
-[discrete]
-[[logs-stream-ip-ignore-malformed]]
-=== Ignore malformed IP addresses
-
-When you're ingesting a large batch of log data, a single malformed IP address can cause the entire batch to fail. Prevent this by setting `ignore_malformed` to `true` for the `host.ip` field. Update the `host.ip` field to ignore malformed IPs using the {ref}/indices-put-mapping.html[update mapping API]:
-
-[source,console]
-----
-PUT /logs-example-default/_mapping
-{
-  "properties": {
-    "host.ip": {
-      "type": "ip",
-      "ignore_malformed": true
-    }
   }
 }
 ----
