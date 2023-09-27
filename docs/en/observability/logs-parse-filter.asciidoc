@@ -1,8 +1,17 @@
 [[logs-parse-filter]]
 = Parse and explore logs
 
+Parsing your log data takes unstructured or semi-structured logs and breaks them into meaningful fields. You can use those fields to explore and analyze your data. For example, you can find logs in a specific timestamp range or filter logs by log level to focus on potential issues. 
+
+See the following sections for more on parsing and exploring your logs:
+
+* <<logs-stream-parse>> – extracting structured fields from your unstructured log data.
+* <<logs-stream-reroute>> – route data from the generic data stream to a target data stream
+* <<logs-filter>> – Filter your data to focus on logs that meet specific criteria
+* <<logs-aggregate>> – Analyze and summarize your log data to find patterns and gain insight.
+
 [discrete]
-[[logs-stream-enhance-logs]]
+[[logs-stream-parse]]
 = Parse your logs
 
 Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data. 
@@ -911,11 +920,10 @@ Your should see similar results to the following showing that the high-severity 
 [[logs-filter-and-aggregate]]
 = Filter and aggregate your logs
 
-After sending log data to {es} and <<logs-stream-enhance-logs, extracting structured fields>>, filtering and aggregating your data helps you find specific information, gain insight, and monitor your systems more efficiently. 
+After sending log data to {es} and <<logs-stream-parse, extracting structured fields>>, filtering and aggregating your data helps you find specific information, gain insight, and monitor your systems more efficiently. 
 
 * <<logs-filter>> — Narrow down your log data by applying specific criteria.
 * <<logs-aggregate>> — Analyze and summarize data to find patterns and gain insight.
-
 
 [discrete]
 [[logs-filter]]
@@ -1064,26 +1072,26 @@ POST logs-example-default/_bulk
 { "message": "2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated." }
 ----
 
-From Discover, use KQL in the search bar to filter for logs with within your timestamp range with log levels of `WARN` and `ERROR`:
+From Discover, add the following query in the search bar to filter for logs with within your timestamp range with log levels of `WARN` and `ERROR`:
 
 [source,text]
 ----
 @timestamp >= "2023-09-14T00:00:00" and @timestamp <= "2023-09-15T23:59:59" and log.level : "ERROR" or  log.level : "WARN"
 ----
 
+Under the *Documents* tab, you'll see the log data matching your query. 
+
 [role="screenshot"]
 image::images/logs-kql-filter.png[Filter data by log level using KQL]
 
-Make sure your logs fall within the time range in Discover. If necessary, update the time range by clicking the image:images/time-filter-icon.png[calendar icon, width=36px]. 
+Make sure your logs fall within the time range in Discover. If you don't see your logs, update the time range by clicking the image:images/time-filter-icon.png[calendar icon, width=36px]. 
 
-Under the *Documents* tab, you'll see the log data matching your query. 
-You can then expand the document to see more information on the log. 
 For more on using Discover, see the {kibana-ref}/discover.html[Discover] documentation.
 
 [discrete]
 [[logs-aggregate]]
 == Aggregate your logs
-Aggregating lets you to analyze and summarize your log data to find patterns and gain insight. {ref}/search-aggregations-bucket.html[Bucket aggregations] organize log data into meaningful groups making it easier to identify patterns, trends, and anomalies within your logs. 
+Use aggregation to analyze and summarize your log data to find patterns and gain insight. {ref}/search-aggregations-bucket.html[Bucket aggregations] organize log data into meaningful groups making it easier to identify patterns, trends, and anomalies within your logs. 
 
 For example, you might want to understand error distribution by analyzing the count of logs per log level.
 Start by adding some logs with varying log levels to your data stream using the following command:
