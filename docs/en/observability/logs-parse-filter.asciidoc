@@ -12,7 +12,7 @@ See the following sections for more on parsing and exploring your logs:
 
 [discrete]
 [[logs-stream-parse]]
-= Parse your logs
+= Parse logs
 
 Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data. 
 
@@ -62,7 +62,7 @@ The results should look like this:
 }
 ----
 
-{es} indexes the `message` field by default meaning you can search for phrases like `WARN` or `Disk usage exceeds`. For example, the following command searches for the phrase `WARN` in the log `message` field:
+{es} indexes the `message` field by default and adds a `@timestamp` field. Since there was no timestamp set, it's set to `now`. At this point, you can search for phrases in the `message` field like `WARN` or `Disk usage exceeds`. For example, the following command searches for the phrase `WARN` in the log `message` field:
 
 [source,console]
 ----
@@ -83,7 +83,7 @@ While you can search for phrases in the `message` field, you can't use this fiel
 - *@timestamp* – `2023-08-08T13:45:12.123Z` – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
 - *log.level* – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
 - *host.ip* – `192.168.1.101` – Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
-- *message* – `Disk usage exceeds 90%.` – You can search for keywords in the message field.
+- *message* – `Disk usage exceeds 90%.` – You can search for phrases or words in the message field.
 
 NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. The ECS defines a common set of fields that you can use across Elasticsearch when storing data, including log and metric data.
 
@@ -91,7 +91,7 @@ NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common S
 [[logs-stream-extract-timestamp]]
 == Extract the `@timestamp` field
 
-When you ingested the document in the previous section, you probably saw two different timestamps. One in the `@timestamp` field that shows when you added the data to {es}, and one in the `message` field that shows when the log occurred:
+When you iadded the document to {es} in the previous section, {es} added the `@timestamp` field showing when the log was added, while the timestamp showing when the log occurred was in the unstructured `message` field:
 
 [source,JSON]
 ----
@@ -103,9 +103,10 @@ When you ingested the document in the previous section, you probably saw two dif
         ...
 ----
 <1> The timestamp in the `message` field shows when the log occurred.
-<2> The timestamp in the `@timestamp` field shows when the log was added.
+<2> The timestamp in the `@timestamp` field shows when the log was added to {es}.
 
-Since it's more important to know when logs and issues actually occurred, you'll want to extract the timestamp from the `message` field to the structured `@timestamp` field so you can use it to filter your data.
+When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to {es}. 
+To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field.
 To extract the timestamp, you need to:
 
 . <<logs-stream-ingest-pipeline>>
@@ -125,29 +126,26 @@ In the following command, the dissect processor extracts the timestamp from the 
 
 [source,console]
 ----
-PUT _ingest/pipeline/logs-example-default
+PUT _ingest/pipeline/logs-example-default<1>
 {
   "description": "Extracts the timestamp",
   "processors": [
     {
       "dissect": {
-        "field": "message",
-        "pattern": "%{@timestamp} %{message}"
+        "field": "message",<2>
+        "pattern": "%{@timestamp} %{message}"<3>
       }
     }
   ]
 }
 ----
-
-The previous command sets the following values for your ingest pipeline:
-
-- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. See the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
-- `field` – The field you're extracting data from, `message` in this case.
-- `pattern`– The pattern of the elements in your log data. The `%{@timestamp} %{message}` pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern.
+<1> The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. See the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
+<2> The field you're extracting data from, `message` in this case.
+<3> The pattern of the elements in your log data. The `%{@timestamp} %{message}` pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern.
 
 [discrete]
 [[logs-stream-simulate-api]]
-=== Test your pipeline with the simulate pipeline API
+=== Test the pipeline with the simulate pipeline API
 
 The {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API] runs the ingest pipeline without storing any documents. This lets you verify your pipeline works using multiple documents. Run the following command to test your ingest pipeline with the simulate pipeline API.
 
@@ -191,7 +189,7 @@ NOTE: Make sure you've created the index pipeline using the `PUT` command in the
 
 [discrete]
 [[logs-stream-index-template]]
-=== Configure your data stream with an index template
+=== Configure a data stream with an index template
 
 After creating your ingest pipeline, create an index template to point your log data to your pipeline using this command:
 
@@ -199,15 +197,15 @@ After creating your ingest pipeline, create an index template to point your log 
 ----
 PUT _index_template/logs-example-default-template
 {
-  "index_patterns": [ "logs-example-*" ],
-  "data_stream": { },
-  "priority": 500,
+  "index_patterns": [ "logs-example-*" ],<1>
+  "data_stream": { },<2>
+  "priority": 500,<3>
   "template": {
     "settings": {
-      "index.default_pipeline":"logs-example"
+      "index.default_pipeline":"logs-example"<4>
     }
   },
-  "composed_of": [
+  "composed_of": [<5>
     "logs-mappings",
     "logs-settings",
     "logs@custom",
@@ -216,14 +214,11 @@ PUT _index_template/logs-example-default-template
   "ignore_missing_component_templates": ["logs@custom"],
 }
 ----
-
-The previous command sets the following values for your index template:
-
-- `index_patterns`– The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-default`. Data that matches this pattern will go through your pipeline.
-- `data_stream` – Enables data streams.
-- `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, {es} uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
-- `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
-- `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates that help when ingesting your data.
+<1> `index_patterns`– The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-default`. Data that matches this pattern will go through your pipeline.
+<2> `data_stream` – Enables data streams.
+<3> `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, {es} uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
+<4> `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
+<5> `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates that help when ingesting your data.
 
 The component templates that are set in the previous index template are defined as follows:
 
@@ -239,7 +234,7 @@ The component templates that are set in the previous index template are defined 
 
 [discrete]
 [[logs-stream-create-data-stream]]
-=== Create your data stream
+=== Create a data stream
 
 Create your data stream using the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. Since The name needs to match the name of your pipeline, name the data stream `logs-example-default`. Post the example log to your data stream with this command:
 
@@ -288,7 +283,7 @@ You can now use the `@timestamp` field to sort your logs by the date and time th
 
 [discrete]
 [[logs-stream-timestamp-troubleshooting]]
-=== Troubleshoot your `@timestamp` field
+=== Troubleshoot the `@timestamp` field
 
 Check the following common issues and solutions with timestamps:
 
@@ -782,8 +777,6 @@ PUT /logs-example-default/_mapping
 [[logs-stream-reroute]]
 = Reroute log data to specific data stream
 
-preview::[]
-
 By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization. 
 
 This section shows you how to use a reroute processor to send the high-severity logs (`WARN` or `ERROR`) from the following example logs to a specific data stream and keep the regular logs (`DEBUG` and `INFO`) in the default data stream:
@@ -796,8 +789,6 @@ This section shows you how to use a reroute processor to send the high-severity 
 2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture.
 ----
 
-NOTE: When routing data to different data streams, we recommend keeping the number of data streams relatively low to avoid oversharding. See {ref}/size-your-shards.html[Size your shards] for more information.
-
 To use a reroute processor:
 
 . <<logs-stream-reroute-pipeline, Add a reroute processor to your ingest pipeline.>>
@@ -806,7 +797,7 @@ To use a reroute processor:
 
 [discrete]
 [[logs-stream-reroute-pipeline]]
-== Add a reroute processor to your ingest pipeline
+== Add a reroute processor to the ingest pipeline
 
 Add a reroute processor to your ingest pipeline with the following command:
 
@@ -822,26 +813,23 @@ PUT _ingest/pipeline/logs-example-default
         "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}"
       },
       "reroute": {
-        "tag": "high_severity_logs",
-        "if" : "ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",
-        "dataset": "critical"
+        "tag": "high_severity_logs",<1>
+        "if" : "ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",<2>
+        "dataset": "critical"<3>
       }
     }
   ]
 }
 ----
-
-The previous command sets the following values for your reroute processor:
-
-- `tag` – Identifier for the processor that you can use for debugging and metrics. In the example, the tag is set to `high_severity_logs`.
-- `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
-- `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
+<1> `tag` – Identifier for the processor that you can use for debugging and metrics. In the example, the tag is set to `high_severity_logs`.
+<2> `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
+<3> `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
 After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-reroute-add-logs]]
-== Add logs to your data stream
+== Add logs to a data stream
 
 Add the example logs to your data stream with this command:
 
@@ -918,7 +906,7 @@ Your should see similar results to the following showing that the high-severity 
 
 [discrete]
 [[logs-filter-and-aggregate]]
-= Filter and aggregate your logs
+= Filter and aggregate logs
 
 After sending log data to {es} and <<logs-stream-parse, extracting structured fields>>, filtering and aggregating your data helps you find specific information, gain insight, and monitor your systems more efficiently. 
 
@@ -927,24 +915,17 @@ After sending log data to {es} and <<logs-stream-parse, extracting structured fi
 
 [discrete]
 [[logs-filter]]
-== Filter your logs
+== Filter logs
 
-Filter your data to focus on logs that meet specific criteria, such as log levels, timestamp ranges, or host IPs. You can filter your log data in different ways:
+Filtering your data using the fields you've extracted lets you focus on logs that meet specific criteria, such as log levels, timestamp ranges, or host IPs. 
 
-* <<logs-filter-qdsl, Query DSL>> – Filter log data from Dev Tools using Query DSL.
-* <<logs-filter-discover, Discover>> – Filter and visualize log data in {kib} using Discover.
+Log Explorer is a {kib} tool that automatically provides views of your log data based on integrations and data streams. Using the {kibana-ref}/kuery-query.html[{kib} Query Language (KQL)], you further narrow down your log data to find the data you're looking for. *Logs Explorer* is found in the Observability menu under *Logs*.
 
-[discrete]
-[[logs-filter-qdsl]]
-=== Filter logs with Query DSL
+{kibana-ref}/kuery-query.html[KQL] is a simple text-based query language for filtering data. Use KQL in the Logs Explorer search bar to filter your log data. 
 
-{ref}/query-dsl.html[Query DSL] is a JSON-based language used to send requests to {es} and retrieve data from indices and data streams. To use Query DSL to filter your log data, open *Dev Tools* from the navigation menu under *Management*.
+Let's look into an event that occurred within a specific time range (between September 14th and 15th).
 
-In the <<logs-stream-range-query,extracting host IPs>> section, you created a range query that filtered log data to only show logs within an specific IP range. You can further filter your log data to focus on more specific criteria.
-
-For example, you might want to troubleshoot an issue that happened at a specific date or time. To do this, use a {ref}/query-dsl-bool-query.html[boolean query] made up of a {ref}/query-dsl-range-query.html[range query] to filter for the specific timestamp range and a {ref}/query-dsl-term-query.html[term query] to filter for `WARN` and `ERROR` log levels.
-
-Before setting up your query, add some logs with varying timestamps and log levels to your data stream with the following command:
+Before setting your filters, use Dev Tools to add some logs with varying timestamps and log levels to your data stream with the following command:
 
 [source,console]
 ----
@@ -959,138 +940,25 @@ POST logs-example-default/_bulk
 { "message": "2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated." }
 ----
 
-Let's look into an event that occurred between September 14th and 15th. The following boolean query filters for logs with timestamps during those days that have a log level of `ERROR` or `WARN`.
-
-[source,console]
-----
-POST /logs-example-default/_search
-{
-  "query": {
-    "bool": {
-      "filter": [
-        {
-          "range": {
-            "@timestamp": {
-              "gte": "2023-09-14T00:00:00",
-              "lte": "2023-09-15T23:59:59"
-            }
-          }
-        },
-        {
-          "terms": {
-            "log.level": ["WARN", "ERROR"]
-          }
-        }
-      ]
-    }
-  }
-}
-----
-
-The filtered results should show `WARN` and `ERROR` logs that occurred within the timestamp range:
-
-[source,JSON]
-----
-{
-  ...
-  "hits": {
-    ...
-    "hits": [
-      {
-        "_index": ".ds-logs-example-default-2023.09.25-000001",
-        "_id": "JkwPzooBTddK4OtTQToP",
-        "_score": 0,
-        "_source": {
-          "message": "192.168.1.101 Disk usage exceeds 90%.",
-          "log": {
-            "level": "WARN"
-          },
-          "@timestamp": "2023-09-15T08:15:20.234Z"
-        }
-      },
-      {
-        "_index": ".ds-logs-example-default-2023.09.25-000001",
-        "_id": "A5YSzooBMYFrNGNwH75O",
-        "_score": 0,
-        "_source": {
-          "message": "192.168.1.102 Critical system failure detected.",
-          "log": {
-            "level": "ERROR"
-          },
-          "@timestamp": "2023-09-14T10:30:45.789Z"
-        }
-      }
-    ]
-  }
-}
-----
-
-[discrete]
-[[logs-filter-discover]]
-=== Filter logs with Discover
-
-Discover is a {kib} tool that focuses on rapid consumption of {es} data, including logs, using the {kibana-ref}/kuery-query.html[{kib} Query Language (KQL)]. Navigate to Discover from the navigation menu by clicking *Discover* under *Analytics*.
-
-[discrete]
-[[logs-filter-discover-logs-data-view]]
-==== `logs-*` data view
-
-The `logs-*` data view filters your data using the `logs-*` index pattern and the `@timestamp` field. 
-The `logs-*` index pattern includes any document in a `logs`-type data stream.
-
-[role="screenshot"]
-image::images/logs-dataview.png[Logs data view navigation in Discover]
-
-You can create data views with different index patterns to filter and pinpoint specific aspects of your log data.
-For example, you could create a data view that focuses on the `logs-example-*` data stream:
-
-[role="screenshot"]
-image::images/logs-example-data-view.png[Create a data view for logs-example data view in Discover]
-
-For more on data views, see {kibana-ref}/data-views.html[Create a data view].
-
-[discrete]
-[[logs-filter-in-discover]]
-==== Filter using KQL
-
-{kibana-ref}/kuery-query.html[KQL] is a simple text-based query language for filtering data. Use KQL in the Discover search bar to filter your log data. 
-
-Let's use KQL and Discover to look into an event that occurred within a specific time range (between September 14th and 15th).
-
-Before setting your filters, add some logs with varying timestamps and log levels to your data stream with the following command:
-
-[source,console]
-----
-POST logs-example-default/_bulk
-{ "create": {} }
-{ "message": "2023-09-15T08:15:20.234Z WARN 192.168.1.101 Disk usage exceeds 90%." }
-{ "create": {} }
-{ "message": "2023-09-14T10:30:45.789Z ERROR 192.168.1.102 Critical system failure detected." }
-{ "create": {} }
-{ "message": "2023-09-10T14:20:45.789Z ERROR 192.168.1.105 Database connection lost." }
-{ "create": {} }
-{ "message": "2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated." }
-----
-
-From Discover, add the following query in the search bar to filter for logs with within your timestamp range with log levels of `WARN` and `ERROR`:
+From Logs Explorer, add the following query in the search bar to filter for logs with within your timestamp range with log levels of `WARN` and `ERROR`:
 
 [source,text]
 ----
 @timestamp >= "2023-09-14T00:00:00" and @timestamp <= "2023-09-15T23:59:59" and log.level : "ERROR" or  log.level : "WARN"
 ----
 
-Under the *Documents* tab, you'll see the log data matching your query. 
+Under the *Documents* tab, you'll see the filtered log data matching your query. 
 
 [role="screenshot"]
 image::images/logs-kql-filter.png[Filter data by log level using KQL]
 
-Make sure your logs fall within the time range in Discover. If you don't see your logs, update the time range by clicking the image:images/time-filter-icon.png[calendar icon, width=36px]. 
+Make sure your logs fall within the time range in Logs Explorer. If you don't see your logs, update the time range by clicking the image:images/time-filter-icon.png[calendar icon, width=36px].
 
-For more on using Discover, see the {kibana-ref}/discover.html[Discover] documentation.
+For more on using Logs Explorer, see the {kibana-ref}/discover.html[Discover] documentation.
 
 [discrete]
 [[logs-aggregate]]
-== Aggregate your logs
+== Aggregate logs
 Use aggregation to analyze and summarize your log data to find patterns and gain insight. {ref}/search-aggregations-bucket.html[Bucket aggregations] organize log data into meaningful groups making it easier to identify patterns, trends, and anomalies within your logs. 
 
 For example, you might want to understand error distribution by analyzing the count of logs per log level.
