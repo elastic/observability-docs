@@ -4,44 +4,23 @@ slug: /serverless/observability/apm-service-map
 title: Service map
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'reference' ]
-status: rough content
+status: in testing
 ---
 
-import RoughContent from '../partials/rough-content-notice.mdx'
+import Testing from '../partials/in-testing-notice.mdx'
 
-<RoughContent />
-
-
-<div id="service-maps"></div>
+<Testing />
 
 A service map is a real-time visual representation of the instrumented services in your application's architecture.
 It shows you how these services are connected, along with high-level metrics like average transaction duration,
 requests per minute, and errors per minute.
-If enabled, service maps also integrate with machine learning--for real time health indicators based on anomaly detection scores.
+If enabled, service maps also integrate with machine learning&mdash;for real time health indicators based on anomaly detection scores.
 All of these features can help you quickly and visually assess your services' status and health.
-
-{/* Conditionally display a screenshot or video depending on what the */}
-{/* current documentation version is. */}
-
-<DocIf condition={ "((is-current-version))" === "true" }>
-<DocVideo
-	source="vidyard"
-	id="VH8gKnPE3Z2csACZTCeQrw"
-	title="Vidyard Video"
-/>
-</DocIf>
-
-<DocIf condition={ "((is-current-version))" === "false" }>
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![Example view of service maps in the APM app in Kibana](images/service-maps/apm-service-maps.png) */}
-</DocIf>
 
 We currently surface two types of service maps:
 
-* Global: All services instrumented with APM agents and the connections between them are shown.
-* Service-specific: Highlight connections for a selected service.
-
-<div id="service-maps-how"></div>
+* **Global**: All services instrumented with APM agents and the connections between them are shown.
+* **Service-specific**: Highlight connections for a selected service.
 
 ## How do service maps work?
 
@@ -51,11 +30,9 @@ However, if a service isn't instrumented,
 or a `traceparent` header isn't being propagated to it,
 distributed tracing will not work, and the connection will not be drawn on the map.
 
-<div id="visualize-your-architecture"></div>
-
 ## Visualize your architecture
 
-Select the **Service Map** tab to get started.
+From **Services**, switch to the **Service Map** tab to get started.
 By default, all instrumented services and connections are shown.
 Whether you're onboarding a new engineer, or just trying to grasp the big picture,
 drag things around, zoom in and out, and begin to visualize how your services are connected.
@@ -68,38 +45,53 @@ Use the environment drop-down to only see the data you're interested in, like `d
 
 If there's a specific service that interests you, select that service to highlight its connections.
 Clicking **Focus map** will refocus the map on that specific service and lock the connection highlighting.
-From here, select **Service Details**, or click on the **Transaction** tab to jump to the Transaction overview
+From here, select **Service Details**, or click the **Transactions** tab to jump to the Transaction overview
 for the selected service.
 You can also use the tabs at the top of the page to easily jump to the **Errors** or **Metrics** overview.
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![Example view of service maps in the APM app in Kibana](images/service-maps/apm-service-maps-java.png) */}
-
-<div id="service-map-anomaly-detection"></div>
+![Example view of service maps in the APM app in Kibana](images/service-maps/service-maps-java.png)
 
 ## Anomaly detection with machine learning
 
 Machine learning jobs can be created to calculate anomaly scores on APM transaction durations within the selected service.
 When these jobs are active, service maps will display a color-coded anomaly indicator based on the detected anomaly score:
 
-|  |  |
-|---|---|
-| <div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* <DocImage flatImage alt="APM green service,112" url="images/service-maps/apm-green-service.png" /> */} | Max anomaly score **≤25**. Service is healthy. |
-| <div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* <DocImage flatImage alt="APM yellow service,112" url="images/service-maps/apm-yellow-service.png" /> */} | Max anomaly score **26-74**. Anomalous activity detected. Service may be degraded. |
-| <div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* <DocImage flatImage alt="APM red service,112" url="images/service-maps/apm-red-service.png" /> */} | Max anomaly score **≥75**. Anomalous activity detected. Service is unhealthy. |
+<DocTable columns={[
+  { title: "", width: "25%" },
+  { title: "", width: "75%" }
+]}>
+  <DocRow>
+    <DocCell>
+      <DocImage flatImage alt="APM green service" url="images/service-maps/green-service.png" />
+    </DocCell>
+    <DocCell>
+      Max anomaly score **≤25**. Service is healthy.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+      <DocImage flatImage alt="APM yellow service" url="images/service-maps/yellow-service.png" />
+    </DocCell>
+    <DocCell>
+      Max anomaly score **26-74**. Anomalous activity detected. Service may be degraded.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+      <DocImage flatImage alt="APM red service" url="images/service-maps/red-service.png" />
+    </DocCell>
+    <DocCell>
+      Max anomaly score **≥75**. Anomalous activity detected. Service is unhealthy.
+    </DocCell>
+  </DocRow>
+</DocTable>
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![Example view of anomaly scores on service maps in the APM app](images/service-maps/apm-apm-service-map-anomaly.png) */}
+![Example view of anomaly scores on service maps in the APM app](images/service-maps/service-map-anomaly.png)
 
 If an anomaly has been detected, click **view anomalies** to view the anomaly detection metric viewer in the Machine learning app.
 This time series analysis will display additional details on the severity and time of the detected anomalies.
 
-To learn how to create a machine learning job, see <DocLink id="serverlessObservabilityApmIntegrateWithMachineLearning">machine learning integration</DocLink>.
-
-<div id="service-maps-legend"></div>
+To learn how to create a machine learning job, refer to <DocLink id="serverlessObservabilityApmIntegrateWithMachineLearning" />.
 
 ## Legend
 
@@ -110,8 +102,6 @@ Nodes appear on the map in one of two shapes:
     with specific icons for known entities, like Elasticsearch.
     Type and subtype are based on `span.type`, and `span.subtype`.
 
-<div id="service-maps-supported"></div>
-
 ## Supported APM agents
 
 Service Maps are supported for the following APM agent versions:
@@ -119,12 +109,9 @@ Service Maps are supported for the following APM agent versions:
 |  |  |
 |---|---|
 | Go agent | ≥ v1.7.0 |
-| iOS agent | _Not yet supported_ |
 | Java agent | ≥ v1.13.0 |
 | .NET agent | ≥ v1.3.0 |
 | Node.js agent | ≥ v3.6.0 |
 | PHP agent | ≥ v1.2.0 |
 | Python agent | ≥ v5.5.0 |
 | Ruby agent | ≥ v3.6.0 |
-| Real User Monitoring (RUM) agent | ≥ v4.7.0 |
-
