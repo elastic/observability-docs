@@ -69,34 +69,30 @@ This will display the field data type of the `service.name` field. */}
 GET /_index_template/traces-apm
 ``` */}
 
-{/* ### I/O Timeout
+### I/O Timeout
 
 I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
 especially when using a load balancer.
 
-You may see an error like the one below in the ((apm-agent)) logs, and/or a similar error on the APM Server side:
+You may see an error like the one below in the ((apm-agent)) logs, and/or a similar error on the intake side:
 
 ```logs
 [ElasticAPM] APM Server responded with an error:
 "read tcp 123.34.22.313:8200->123.34.22.40:41602: i/o timeout"
 ```
 
-To fix this, ensure timeouts are incrementing from the ((apm-agent)),
-through your load balancer, to the APM Server.
+To fix this error, ensure timeouts are incrementing from the ((apm-agent)),
+through your load balancer, to the Elastic APM intake.
 
-By default, the agent timeouts are set at 10 seconds, and the server timeout is set at 3600 seconds.
+By default, Elastic APM agent timeouts are set at 10 seconds, and the Elastic intake timeout is set at 60 seconds.
 Your load balancer should be set somewhere between these numbers.
 
 For example:
 
 ```txt
-APM agent --> Load Balancer  --> APM Server
-   10s            15s               3600s
-``` */}
-
-{/* I couldn't find a way to configure this */}
-
-{/* The APM Server timeout can be configured by updating the maximum duration for reading an entire request</DocLink>. */}
+APM agent --> Load Balancer  --> Elastic APM intake
+   10s            15s                 60s
+```
 
 <div id="field-limit-exceeded-legacy"></div>
 
