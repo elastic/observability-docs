@@ -4,35 +4,25 @@ slug: /serverless/observability/apm-query-your-data
 title: Query your data
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'how-to' ]
-status: rough content
+status: in testing
 ---
 
-import RoughContent from '../partials/rough-content-notice.mdx'
+import Testing from '../partials/in-testing-notice.mdx'
 
-<RoughContent />
-
-
-<div id="advanced-queries"></div>
+<Testing />
 
 Querying your APM data is an essential tool that can make finding bottlenecks in your code even more straightforward.
 
 Using the query bar, a powerful data query feature, you can pass advanced queries on your data
 to filter on specific pieces of information you’re interested in.
+APM queries entered into the query bar are added as parameters to the URL, so it’s easy to share a specific query or view with others.
 
 The query bar comes with a handy autocomplete that helps find the fields and even provides suggestions to the data they include.
 You can select the query bar and hit the down arrow on your keyboard to begin scanning recommendations.
 
-<div id="apm-app-advanced-queries"></div>
+When you type, you can begin to see some of the fields available for filtering:
 
-## Querying in the APM app
-
-When querying in the APM app, you’re merely searching and selecting data from fields in ((es)) documents. Queries entered
-into the query bar are also added as parameters to the URL, so it’s easy to share a specific query or view with others.
-
-When you type, you can begin to see some of the transaction fields available for filtering:
-
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![Example of the Kibana Query bar in APM app in Kibana](images/advanced-queries/apm-apm-query-bar.png) */}
+![Example of the Kibana Query bar in APM app in Kibana](images/advanced-queries/apm-query-bar.png)
 
 <DocCallOut title="Tip">
 
@@ -40,9 +30,7 @@ To learn more about the ((kib)) query language capabilities, see the [Kibana Que
 
 </DocCallOut>
 
-<div id="apm-app-queries"></div>
-
-### APM app queries
+## APM queries
 
 APM queries can be handy for removing noise from your data in the <DocLink id="serverlessObservabilityApmServices">Services</DocLink>, <DocLink id="serverlessObservabilityApmTransactions">Transactions</DocLink>,
 <DocLink id="serverlessObservabilityApmErrors">Errors</DocLink>, <DocLink id="serverlessObservabilityApmMetrics">Metrics</DocLink>, and <DocLink id="serverlessObservabilityApmTraces">Traces</DocLink> views.
@@ -58,42 +46,32 @@ On the **Transactions** view, you may want to list only the slower transactions 
 Or filter the list by including the service version and the Kubernetes pod it's running on:
 `transaction.duration.us > 2000000 and service.version : "7.12.0" and kubernetes.pod.name : "pod-5468b47f57-pqk2m"`.
 
-<div id="discover-advanced-queries"></div>
-
 ## Querying in Discover
 
 Alternatively, you can query your APM documents in [*Discover*](((kibana-ref))/discover.html).
 Querying documents in **Discover** works the same way as queries in the APM app,
 and **Discover** supports all of the example APM app queries shown on this page.
 
-<div id="discover-queries"></div>
-
 ### Discover queries
 
 One example where you may want to make use of **Discover**,
 is to view  _all_ transactions for an endpoint instead of just a sample.
 
-<DocCallOut title="Tip">
-Starting in v7.6, you can view ten samples per bucket in the APM app, instead of just one.
-</DocCallOut>
-
 Use the APM app to find a transaction name and time bucket that you're interested in learning more about.
 Then, switch to **Discover** and make a search:
 
-```sh
-processor.event: "transaction" AND transaction.name: "<TRANSACTION_NAME_HERE>" and transaction.duration.us > 13000 and transaction.duration.us < 14000`
+```shell
+processor.event: "transaction" AND transaction.name: "<TRANSACTION_NAME_HERE>" and transaction.duration.us > 13000 and transaction.duration.us < 14000
 ```
 
 In this example, we're interested in viewing all of the `APIRestController#customers` transactions
 that took between 13 and 14 milliseconds. Here's what Discover returns:
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![View all transactions in bucket](images/advanced-queries/apm-advanced-discover.png) */}
+![View all transactions in bucket](images/advanced-queries/advanced-discover.png)
 
 You can now explore the data until you find a specific transaction that you're interested in.
 Copy that transaction's `transaction.id`, and paste it into the APM app to view the data in the context of the APM app:
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![View specific transaction in apm app](images/advanced-queries/apm-specific-transaction-search.png) */}
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![View specific transaction in apm app](images/advanced-queries/apm-specific-transaction.png) */}
+![View specific transaction in apm app](images/advanced-queries/specific-transaction-search.png)
+
+![View specific transaction in apm app](images/advanced-queries/specific-transaction.png)
