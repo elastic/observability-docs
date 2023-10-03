@@ -1,0 +1,84 @@
+---
+id: serverlessObservabilityCreateErrorCountThresholdAlertRule
+slug: /serverless/observability/create-error-count-threshold-alert-rule
+title: Create error count threshold alert rule
+description: Create a rule to alert you when the number of errors in a service exceeds a defined threshold.
+tags: [ 'serverless', 'observability', 'how-to', 'alerting' ]
+status: rough content
+---
+
+import RoughContent from '../partials/rough-content-notice.mdx'
+
+<RoughContent />
+
+You can create a error count threshold alert rule to alert you when the number of in a service exceeds a defined threshold. Threshold rules can be set at different levels: environment, service, transaction type, and/or transaction name.   
+
+First you must define the rule and how often it should be evaluated. To turn this into an alert, add an appropriate action (e.g. send email, create issue) to be triggered when the rule conditions are met.  
+
+You can create any rules and alert from scratch using the **Manage Rules** page, or you can start from any page within **Applications** and benefit from some of the details being pre-filled e.g. Name, Tags.
+
+<div id="create-error-count-threshold-rule"></div>
+
+To create your error count threshold rule:
+
+1. Select **Manage Rules** from the **Alerts** page, and select **Create rule**.
+1. Enter a **Name** for your rule, and any optional **Tags** for more granular reporting (leave blank if unsure).
+1. Select the **Error count threshold** rule type from the APM use case.
+1. Select the appropriate **Service**, **Environment**, and **Error Grouping Key** (or leave **ALL** to include all options). Alternatively, you can select **Use KQL Filter** and enter a KQL expression to limit the scope of your rule.
+1. Enter the error threshold in **Is Above** (defaults to 25 errors).
+1. Define the period to be assessed in **For the last** (defaults to last 5 minutes).
+1. Choose how to **Group alerts by** - every unique value will create an alert.
+1. Define the interval to check the rule e.g. check every 1 minute.
+1. **Save** your rule, or add an action to create an alert for this rule.
+
+<DocCallOut title="Tip">
+    You can add an action to a rule at any time. You can create rules without adding actions, and you can also define multiple actions for a single rule. To add actions to rules, you must first create a connector for that service (e.g. email, external incident management system), which you can then use for different rules, each with their own action frequency. For more information on creating connectors, refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Send cases to an external system</DocLink>.
+</DocCallOut>
+
+{/* Placeholder link for connectors for now  */}
+
+<DocAccordion buttonContent="To create an alert by adding an action to a rule:" initialIsOpen>
+1. Either create a rule from scratch or select **Edit rule** from an existing rule.
+1. Under **Actions**, select a connector type from the available options.
+1. If you have connectors of that type already created, you can select from the available connectors. If you need to add a new connector, select **Create a connector** and refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Connectors</DocLink> for more information.
+1. For each action you must define the **Action frequency** by choosing between **For each alert** or **Summary of alerts**:
+    * **For each alert**: Choose **On status changes** or **On check intervals**, or **On custom action intervals** and define how often to run. For all three options you must also define if **Run when** _Threshold met_ or _Recovered_.
+    * **Summary of alerts**: Choose **On check intervals**, or **On custom action intervals** and define how often to run.
+1. Select **Save**.    
+</DocAccordion>
+
+<div id="create-error-count-threshold-example"></div>
+## Example
+
+The error count threshold alert triggers when the number of errors in a service exceeds a defined threshold. Because some errors are more important than others, this guide will focus a specific error group ID.
+
+Before continuing, identify the service name, environment name, and error group ID that you’d like to create an error count threshold rule for. 
+{/* The easiest way to find an error group ID is to select the service that you’re interested in and navigating to the Errors tab. // is there a Serverless equivalent? */}
+
+This guide will create an alert for an error group ID based on the following criteria:
+
+* Service: `{your_service.name}`
+* Environment: `{your_service.environment}`
+* Error Grouping Key: `{your_error.ID}`
+* Error count is above 25 errors for the last five minutes
+* Group alerts by `service.name` and `service.environment`
+* Check every 1 minute
+* Send the alert via email to the site reliability team
+
+From any page in **Applications**, select **Alerts and rules** -> **Create threshold rule** -> **Error count rule**. Change the name of the alert (if you wish), but do not edit the tags.
+
+Based on the criteria above, define the following rule details:
+
+* **Service**: `{your_service.name}`
+* **Environment**: `{your_service.environment}`
+* **Error Grouping Key**: `{your_error.ID}`
+* **Is above** - `25 errors`
+* **For the last** - `5 minutes`
+* **Group alerts by** - `service.name` `service.environment`
+* **Check every** - `1 minute`
+
+Next, select the **Email** connector and click **Create a connector**. Fill out the required details: sender, host, port, etc., and select **Save**.
+
+A default message is provided as a starting point for your alert. You can use the Mustache template syntax (i.e. `{{variable}}`) to pass additional alert values at the time a condition is detected to an action. A list of available variables can be accessed by selecting the add variable button.
+
+Select **Save**. The alert has been created and is now active!
