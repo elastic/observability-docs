@@ -17,58 +17,17 @@ If no data shows up, first make sure that your APM components are properly conne
 
 <NoDataIndexed />
 
-{/* <div id="data-indexed-no-apm-legacy"></div> */}
+<div id="data-indexed-no-apm-legacy"></div>
 
-{/* ### Data is indexed but doesn't appear in the APM UI */}
+### Data is indexed but doesn't appear in the APM UI
 
-{/* Elastic APM relies on index mappings to query and display data.
-If your APM data isn't showing up in the APM UI, but is elsewhere in ((kib)), like the Discover app,
-you may have a missing index mapping. */}
+Elastic APM relies on default index mappings, data streams, and pipelines to query and display data.
+If your APM data isn't showing up in the APM UI, but is elsewhere in Elastic, like Discover,
+you've likely made a change that overwrote a default.
+If you've manually changed a data stream, index template, or index pipeline,
+please verify you are not interfering with the default APM setup.
 
-{/*
-I tried running this and got an error:
-"uri with method [GET] exists but is not available when running in serverless mode""
-*/}
-
-{/* You can determine if a field was mapped correctly with the `_mapping` API.
-For example, run the following command in the <DocLink id="serverlessDevtoolsRunApiRequestsInTheConsole">Developer Tools console</DocLink>.
-This will display the field data type of the `service.name` field. */}
-
-{/* ```shell */}
-{/* GET *apm*\/_mapping/field/service.name */}
-{/* ``` */}
-
-{/* If the `mapping.name.type` is `"text"`, your APM indices were not set up correctly. */}
-
-{/* ```yml
-".ds-metrics-apm.transaction.1m-default-2023.04.12-000038": {
-   "mappings": {
-      "service.name": {
-         "full_name": "service.name",
-         "mapping": {
-            "name": {
-               "type": "text"  [^1]
-            }
-         }
-      }
-   }
-}
-```
-[^1]: The `service.name` `mapping.name.type` would be `"keyword"` if this field had been set up correctly. */}
-
-{/* To fix this problem, install the APM integration by following these steps: */}
-
-{/* <GettingStartedApmServerInstallApmIntegration /> */}
-
-{/* This will reinstall the APM index templates and trigger a data stream index rollover. */}
-
-{/* You can verify the correct index templates were installed by running the following command in the ((kib)) console: */}
-
-{/* ```shell
-GET /_index_template/traces-apm
-``` */}
-
-### I/O Timeout
+{/* ### I/O Timeout
 
 I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
 especially when using a load balancer.
@@ -91,7 +50,7 @@ For example:
 ```txt
 APM agent --> Load Balancer  --> Elastic APM intake
    10s            15s                 60s
-```
+``` */}
 
 <div id="field-limit-exceeded-legacy"></div>
 
@@ -109,9 +68,3 @@ Just try to keep the number of distinct tag keys at a minimum.
 The symptom of a mapping explosion is that transactions and spans are not indexed anymore after a certain time. Usually, on the next day,
 the spans and transactions will be indexed again because a new index is created each day.
 But as soon as the field limit is reached, indexing stops again.
-
-In the agent logs, you won't see a sign of failures as the APM server asynchronously sends the data it received from the agents to ((es)). However, the APM server and ((es)) log a warning like this:
-
-```logs
-{\"type\":\"illegal_argument_exception\",\"reason\":\"Limit of total fields [1000] in [INDEX_NAME] has been exceeded\"}
-```
