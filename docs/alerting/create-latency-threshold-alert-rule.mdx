@@ -11,22 +11,27 @@ import RoughContent from '../partials/rough-content-notice.mdx'
 
 <RoughContent />
 
-You can create a failed transaction rate threshold alert rule to alert you when the rate of transaction errors in a service exceeds a defined threshold. Threshold rules can be set at different levels: environment, service, transaction type, and/or transaction name.   
+You can create a latency threshold rule to alert you when the latency of a specific transaction type in a service exceeds a defined threshold. Threshold rules can be set at different levels: environment, service, transaction type, and/or transaction name.   
 
-First you must define the rule and how often it should be evaluated. To turn this into an alert, add an appropriate action (e.g. send email, create issue) to be triggered when the rule conditions are met.  
+<DocAccordion buttonContent="About rules and alerts">
+    First you must define the rule and how often it should be evaluated. To turn this into an alert, add an appropriate action (e.g. send email, create issue) to be triggered when the rule conditions are met. You can create any rules and alerts from scratch using the **Manage Rules** page, or you can start from any page within **Applications** and benefit from some of the details being pre-filled e.g. Name, Tags. 
+</DocAccordion>
 
-You can create any rules and alert from scratch using the **Manage Rules** page, or you can start from any page within **Applications** and benefit from some of the details being pre-filled e.g. Name, Tags.
+![Create rule for failed transaction rate threshold](../images/apm-alert.png)
+{/* Placeholder - update! */}
 
-<div id="create-failed-transaction-rate-threshold-rule"></div>
+<div id="create-latency-threshold-rule"></div>
 
-To create your failed transaction rate threshold rule:
+To create your latency threshold rule::
 
 1. Select **Manage Rules** from the **Alerts** page, and select **Create rule**.
 1. Enter a **Name** for your rule, and any optional **Tags** for more granular reporting (leave blank if unsure).
-1. Select the **Failed transaction rate threshold** rule type from the APM use case.
+1. Select the **Latency threshold** rule type from the APM use case.
 1. Select the appropriate **Service**, **Type**, **Environment** and **Name** (or leave **ALL** to include all options). Alternatively, you can select **Use KQL Filter** and enter a KQL expression to limit the scope of your rule.
-1. Enter a fail rate in the **Is Above** (defaults to 30%).
-1. Define the period to be assessed in **For the last** (defaults to last 5 minutes).
+1. Define the threshold and period:
+    * **When**: Choose between `Average`, `95th percentile`, or `99th percentile`.
+    * **Is Above**: Enter a time in milliseconds (defaults to 1500ms).
+    * **For the last**: Define the period to be assessed in  (defaults to last 5 minutes).
 1. Choose how to **Group alerts by** - every unique value will create an alert.
 1. Define the interval to check the rule e.g. check every 1 minute.
 1. **Save** your rule, or add an action to create an alert for this rule.
@@ -50,28 +55,29 @@ To create your failed transaction rate threshold rule:
 <div id="create-failed-transaction-rate-threshold-example"></div>
 ## Example
 
-The failed transaction rate threshold alert triggers when the number of transaction errors in a service exceeds a defined threshold. 
+The latency threshold threshold alert triggers when the latency of a specific transaction type in a service exceeds a defined threshold. 
 
-Before continuing, identify the service name, environment name, and transaction type that you’d like to create a failed transaction rate threshold rule for. 
+Before continuing, identify the service name, environment name, and transaction type that you’d like to create a latency threshold rule for. 
 
 This guide will create an alert for an error group ID based on the following criteria:
 
 * Service: `{your_service.name}`
 * Transaction: `{your_transaction.name}`
 * Environment: `{your_service.environment}`
-* Error rate is above 30% for the last five minutes
+* Average latency is above 1500ms for last 5 minutes
 * Group alerts by `service.name` and `service.environment`
 * Check every 1 minute
 * Send the alert via email to the site reliability team
 
-From any page in **Applications**, select **Alerts and rules** -> **Create threshold rule** -> **Failed transaction rate**. Change the name of the alert (if you wish), but do not edit the tags.
+From any page in **Applications**, select **Alerts and rules** -> **Create threshold rule** -> **Latency threshold**. Change the name of the alert (if you wish), but do not edit the tags.
 
 Based on the criteria above, define the following rule details:
 
 * **Service**: `{your_service.name}`
 * **Type**: `{your_transaction.name}`
 * **Environment**: `{your_service.environment}`
-* **Is above** - `30%`
+* **When** - `Average`
+* **Is above** - `1500ms`
 * **For the last** - `5 minutes`
 * **Group alerts by** - `service.name` `service.environment`
 * **Check every** - `1 minute`
