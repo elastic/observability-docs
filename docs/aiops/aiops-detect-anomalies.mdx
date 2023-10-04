@@ -11,7 +11,6 @@ import InReview from '../partials/in-review-notice.mdx'
 
 <InReview />
 
-{/* QUESTION: Will the ML APIs work? Do we want to talk about them in the docs? */}
 {/* TODO: Indicate role(s) required to use this feature. */}
 
 The anomaly detection feature in Elastic ((observability)) automatically models the normal behavior of your time series data — learning trends,
@@ -24,6 +23,9 @@ Anomaly detection jobs use proprietary machine learning algorithms to detect ano
 * Anomalies related to unusual locations in geographic data
 * Statistical rarity
 * Unusual behaviors for a member of a population
+
+To learn more about anomaly detection algorithms, refer to the [Machine Learning](((ml-docs))/ml-ad-algorithms.html) documentation.
+Note that the Machine learning documentation may contain details that are not valid when using a fully-managed Elastic project.
 
 <DocCallOut title="Some terms you might need to know">
 
@@ -51,11 +53,11 @@ Note that the Machine learning documentation may contain details that are not va
 # Create and run an anomaly detection job
 
 1. From the main menu in Elastic ((observability)), select **AIOps -> Anomaly detection**.
-1. Click **Create an anomaly detection job** (or **Create job** if other jobs exist).
+1. Click **Create anomaly detection job** (or **Create job** if other jobs exist).
 1. Choose a data view or saved search to access the data you want to analyze.
 1. Select the wizard for the type of job you want to create.
 The following wizards are available.
-You might also see specialized wizards based on the type of data you are analyzing. certain types of data and provide specialized wizards for that context.
+You might also see specialized wizards based on the type of data you are analyzing.
 <DocCallOut title="Tip">
 In general, it is a good idea to start with single metric anomaly detection jobs for your key performance indicators.
 After you examine these simple analysis results, you will have a better idea of what the influencers might be.
@@ -92,8 +94,8 @@ Then you can create multi-metric jobs and split the data or create more complex 
         When you're done, go back to the first step and create your job.
     </DocCallOut>
 5. Step through the instructions in the job creation wizard to configure your job.
-If you want the job to start immediately when the job is created, make sure you select that option.
-You can skip advanced settings for now and <DocLink id="serverlessObservabilityAiopsTuneAnomalyDetectionJob" text="tune the job" /> later.
+You can accept the default settings for most settings now and <DocLink id="serverlessObservabilityAiopsTuneAnomalyDetectionJob" text="tune the job" /> later.
+1. If you want the job to start immediately when the job is created, make sure that option is selected on the summary page.
 1. When you're done, click **Create job**.
 When the job runs, the machine learning features analyze the input stream of data, model its behavior, and perform analysis based on the detectors in each job.
 When an event occurs outside of the baselines of normal behavior, that event is identified as an anomaly.
@@ -138,8 +140,8 @@ If a value is outside of this area then it will usually be identified as anomalo
 
 To explore your data:
 
-1. If the **Single Metric Explorer** is not already open, go to **AIOps -> Anomaly detection** and click the appropriate icon next to the job you created.
-The Single Metric Explorer icon is grayed out for advanced or multi-metric jobs.
+1. If the **Single Metric Explorer** is not already open, go to **AIOps -> Anomaly detection** and click the Single Metric Explorer icon next to the job you created.
+Note that the Single Metric Explorer icon will be grayed out for advanced or multi-metric jobs.
 1. In the time filter, specify a time range that covers the majority of the analyzed data points.
 1. Notice that the model improves as it processes more data.
 At the beginning, the expected range of values is pretty broad, and the model is not capturing the periodicity in the data.
@@ -152,15 +154,14 @@ Note that anomalies with medium or high multi-bucket impact are depicted with a 
     _anomaly score_ is calculated for each bucket time interval. The anomaly score
     is a value from 0 to 100, which indicates the significance of the anomaly
     compared to previously seen anomalies. The highly anomalous values are shown in
-    red and the low scored values are indicated in blue. An interval with a high
+    red and the low scored values are shown in blue. An interval with a high
     anomaly score is significant and requires investigation.
     </DocCallOut>
 1. (Optional) Annotate your job results by drag-selecting a period of time and entering annotation text.
 Annotations are notes that refer to events in a specific time period.
 They can be created by the user or generated automatically by the anomaly detection job to reflect model changes and noteworthy occurrences.
 1. Under **Anomalies**, expand each anomaly to see key details, such as the time, the actual and expected ("typical") values, and their probability.
-The **Anomaly explanation** section gives you further insights about each anomaly, such as its type and impact, to make it easier to interpret the job results.
-For example:
+The **Anomaly explanation** section gives you further insights about each anomaly, such as its type and impact, to make it easier to interpret the job results:
 
     ![Single Metric Viewer showing anomaly details ](../images/anomaly-detection-details.png)
 
@@ -169,8 +170,7 @@ For example:
 
 1. (Optional) From the **Actions** menu in the **Anomalies** table, you can choose to view relevant documents in **Discover** or create a job rule.
 Job rules instruct anomaly detectors to change their behavior based on domain-specific knowledge that you provide.
-You can customize the actions menu by defining custom URLs.
-To learn more about job rules and defining custom URLs, refer to <DocLink id="serverlessObservabilityAiopsTuneAnomalyDetectionJob" />
+To learn more, refer to <DocLink id="serverlessObservabilityAiopsTuneAnomalyDetectionJob" />
 
 After you have identified anomalies, often the next step is to try to determine
 the context of those situations. For example, are there other factors that are
@@ -208,7 +208,7 @@ You might use a job like this if you want to look at both high and low request r
 To view advanced or multi-metric results in the
 **Anomaly Explorer**:
 
-1. If the **Anomaly Explorer** is not already open, go to **AIOps -> Anomaly detection** and click the appropriate icon next to the job you created.
+1. If the **Anomaly Explorer** is not already open, go to **AIOps -> Anomaly detection** and click the Anomaly Explorer icon next to the job you created.
 1. In the time filter, specify a time range that covers the majority of the analyzed data points.
 1. If you specified influencers during job creation, the view includes a list of the top influencers for all of the detected anomalies in that same time period.
 The list includes maximum anomaly scores, which in this case are aggregated for each influencer, for each bucket, across all detectors.
@@ -218,10 +218,9 @@ Use this list to help you narrow down the contributing factors and focus on the 
     {/* TODO: Need to add screen capture and example here...maybe the example from the tutorial? */}
     You can see exact times when anomalies occurred.
     If there are multiple detectors or metrics in the job, you can see which caught the anomaly.
-    You can also switch to viewing this time series in the **Single Metric Viewer** by clicking the **View Series** button in the **Actions** menu.
-1.  Under **Anomalies** (in the **Anomaly Explorer**), expand each anomaly to see key details, such as the time,
-the actual and expected ("typical") values, and the influencers that contributed to the anomaly.
-For example:
+    You can also switch to viewing this time series in the **Single Metric Viewer** by selecting **View series** in the **Actions** menu.
+1.  Under **Anomalies** (in the **Anomaly Explorer**), expand an anomaly to see key details, such as the time,
+the actual and expected ("typical") values, and the influencers that contributed to the anomaly:
 
     ![Anomaly Explorer showing anomaly details ](../images/anomaly-detection-details.png)
     {/* TODO: Probably need a unique screen capture...maybe the example from the tutorial? */}
@@ -232,7 +231,7 @@ For example:
     If your job has multiple detectors, the table aggregates the anomalies to show the highest severity anomaly per detector and entity,
     which is the field value that is displayed in the **found for** column.
 
-    To view all the anomalies without any aggregation, set the **Interval** to `Show all`.
+    To view all the anomalies without any aggregation, set the **Interval** to **Show all**.
     {/* TODO: Need to add a realistic example, maybe from the tutorial? */}
 
 <DocCallOut title="Tip">

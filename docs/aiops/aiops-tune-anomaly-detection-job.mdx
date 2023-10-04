@@ -9,6 +9,8 @@ status: in testing
 
 import InReview from '../partials/in-review-notice.mdx'
 
+import Feedback from '../partials/feedback/widget.mdx'
+
 <InReview />
 
 After you run an anomaly detection job and view the results,
@@ -22,7 +24,7 @@ Your job rules can use filter lists, which contain values that you can use to in
 * <DocLink id="serverlessObservabilityAiopsTuneAnomalyDetectionJob" section="define-custom-urls" text="Define custom URLs"/> to make dashboards and other resources readily available when viewing job results.
 
 <DocCallOut title="Tip">
-    You can also create calendars and add URLs when configuring advanced settings during job creation,
+    You can also create calendars and add URLs when configuring settings during job creation,
     but generally it's easier to start with a simple job and add complexity later.
 </DocCallOut>
 
@@ -46,7 +48,7 @@ To create a calendar and add scheduled events:
 
     ![Create new calendar page](../images/anomaly-detection-create-calendar.png)
 
-    A scheduled event must have a start time, end time, and description.
+    A scheduled event must have a start time, end time, and calendar ID.
     In general, scheduled events are short in duration (typically lasting from a few hours to a day) and occur infrequently.
     If you have regularly occurring events, such as weekly maintenance periods,
     you do not need to create scheduled events for these circumstances;
@@ -86,7 +88,6 @@ You might also decide to add a scope for the rule so that it applies only to cer
 The scope is defined by using machine learning filters.
 </DocCallOut>
 
-
 *Filters* contain a list of values that you can use to include or exclude events from the machine learning analysis.
 You can use the same filter in multiple anomaly detection jobs.
 
@@ -96,8 +97,6 @@ The list could contain IP addresses that you trust to upload data to your websit
 You can define the rule's scope so that the action triggers only when a specific field in your data matches (or doesn't match) a value in the filter.
 This gives you much greater control over which anomalous events affect the machine learning model and appear in the machine learning results.
 </DocCallOut>
-
-
 
 To create a job rule, first create any filter lists you want to use in the rule, then configure the rule:
 
@@ -115,6 +114,7 @@ To create a job rule, first create any filter lists you want to use in the rule,
 1. From the **Actions** menu in the **Anomalies** table, select **Configure job rules**.
 
         ![Configure job rules menu selection](../images/anomaly-detection-configure-job-rules.png)
+        {/* TODO: Question: Is there some other place where job rules can be configured? this step requires an anomaly to exist before a rule can be created. */}
 
 1. Choose which actions to take when the job rule matches the anomaly: **Skip result**, **Skip model update**, or both.
 1. Under **Conditions**, add one or more conditions that must be met for the action to be triggered.
@@ -139,6 +139,7 @@ To add a custom URL to the **Actions** menu:
 1. From the main menu in Elastic ((observability)), select **AIOps -> Anomaly detection**.
 1. From the **Actions** menu in the job list, select **Edit job**.
 1. Select the **Custom URLs** tab, then click **Add custom URL**.
+1. Enter the label to use for the link text.
 1. Choose the type of resource you want to link to:
     <DocTable columns={[{ title: "If you select..." }, { title:  "Do this..." }]}>
         <DocRow>
@@ -162,17 +163,18 @@ the **Actions** menu includes the custom link:
 
         ![Create filter list](../images/anomaly-detection-custom-url.png)
 
+<DocCallOut title="Tip">
+It is also possible to use string substitution in custom URLs.
+For example, you might have a **Raw data** URL defined as:
 
-{/* TODO: Create tracking issue to add a topic called "Manage machine learning jobs that describes how to:
+`discover#/?_g=(time:(from:'$earliest$',mode:absolute,to:'$latest$'))&_a=(index:ff959d40-b880-11e8-a6d9-e546fe2bba5f,query:(language:kuery,query:'customer_full_name.keyword:"$customer_full_name.keyword$"'))`.
 
-Manage model snapshots: https://www.elastic.co/guide/en/machine-learning/current/ml-ad-run-jobs.html#ml-ad-model-snapshots
+The value of the `customer_full_name.keyword` field is passed to the target page when the link is clicked.
 
-Open and close jobs?
+For more information about using string substitution,
+refer to the [Machine Learning](((ml-docs))/ml-configuring-url.html#ml-configuring-url-strings) documentation.
+Note that the Machine learning documentation may contain details that are not valid when using a fully-managed Elastic project.
 
-Stop and start datafeeds?
-
-Handle delayed data? */}
-
-import Feedback from '../partials/feedback/widget.mdx'
+</DocCallOut>
 
 <Feedback slug="/serverless/observability/aiops" filepath="docs/aiops/aiops-tune-anomaly-detection-job.mdx" />
