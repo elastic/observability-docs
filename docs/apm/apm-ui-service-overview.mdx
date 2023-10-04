@@ -4,20 +4,20 @@ slug: /serverless/observability/apm-service-overview
 title: Service Overview
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'reference' ]
-status: rough content
+status: in testing
 ---
 
-import RoughContent from '../partials/rough-content-notice.mdx'
+import Feedback from '../partials/feedback/widget.mdx'
 
-<RoughContent />
+import Testing from '../partials/in-testing-notice.mdx'
 
-import Snippet1 from '../transclusion/kibana/apm/service-overview/throughput-transactions.mdx'
-import Snippet2 from '../transclusion/kibana/apm/service-overview/ftr.mdx'
-import Snippet3 from '../transclusion/kibana/apm/service-overview/dependencies.mdx'
+<Testing />
 
-<div id="service-overview"></div>
+import ThroughputTransactions from '../transclusion/kibana/apm/service-overview/throughput-transactions.mdx'
+import Ftr from '../transclusion/kibana/apm/service-overview/ftr.mdx'
+import Dependencies from '../transclusion/kibana/apm/service-overview/dependencies.mdx'
 
-Selecting a non-mobile <DocLink id="serverlessObservabilityApmServices">**service**</DocLink> brings you to the **Service overview**.
+Selecting a {/* non-mobile */} <DocLink id="serverlessObservabilityApmServices">**service**</DocLink> brings you to the **Service overview**.
 The **Service overview** contains a wide variety of charts and tables that provide
 high-level visibility into how a service is performing across your infrastructure:
 
@@ -28,8 +28,6 @@ high-level visibility into how a service is performing across your infrastructur
 * Latency, throughput, and errors over time
 * Service dependencies
 
-<div id="service-time-comparison"></div>
-
 ## Time series and expected bounds comparison
 
 For insight into the health of your services, you can compare how a service
@@ -38,8 +36,7 @@ corresponding ((anomaly-job)). For example, has latency been slowly increasing
 over time, did the service experience a sudden spike, is the throughput similar
 to what the ((ml)) job expects – enabling a comparison can provide the answer.
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![Time series and expected bounds comparison](images/service-overview/apm-time-series-expected-bounds-comparison.png) */}
+![Time series and expected bounds comparison](images/services/time-series-expected-bounds-comparison.png)
 
 Select the **Comparison** box to apply a time-based or expected bounds comparison.
 The time-based comparison options are based on the selected time filter range:
@@ -50,40 +47,28 @@ The time-based comparison options are based on the selected time filter range:
 | \> 24 hours and ≤ 7 days | One week |
 | \> 7 days | An identical amount of time immediately before the selected time range |
 
-You can use the expected bounds comparison if ((ml-jobs)) exist in your selected
-environment and you have
-[access to the ((ml-features))](((ml-docs))/setup.html#kib-visibility-spaces).
-
-<div id="service-latency"></div>
+The expected bounds comparison is powered by <DocLink id="serverlessObservabilityApmIntegrateWithMachineLearning">machine learning</DocLink> and requires anomaly detection to be enabled.
 
 ## Latency
 
 Response times for the service. You can filter the **Latency** chart to display the average,
 95th, or 99th percentile latency times for the service.
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![Service latency](images/service-overview/apm-latency.png) */}
-
-<div id="service-throughput-transactions"></div>
+![Service latency](images/services/latency.png)
 
 ## Throughput and transactions
 
-<Snippet1 />
-
-<div id="service-error-rates"></div>
+<ThroughputTransactions />
 
 ## Failed transaction rate and errors
 
-<Snippet2 />
+<Ftr />
 
 The **Errors** table provides a high-level view of each error message when it first and last occurred,
 along with the total number of occurrences. This makes it very easy to quickly see which errors affect
 your services and take actions to rectify them. To do so, click **View errors**.
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![failed transaction rate and errors](images/service-overview/apm-error-rate.png) */}
-
-<div id="service-span-duration"></div>
+![failed transaction rate and errors](images/services/error-rate.png)
 
 ## Span types average duration and dependencies
 
@@ -93,9 +78,7 @@ chart indicates that something was happening within the application. This could 
 agent does not have auto-instrumentation for whatever was happening during that time or that the time was spent in the
 application code and not in database or external requests.
 
-<Snippet3 />
-
-<div id="service-cold-start"></div>
+<Dependencies />
 
 ## Cold start rate
 
@@ -108,26 +91,20 @@ or when to remove a large dependency.
 The cold start rate chart is currently supported for <DocLink id="serverlessObservabilityApmObserveLambdaFunctions" section="cold-starts">AWS Lambda</DocLink>
 functions and Azure functions.
 
-<div id="service-instances"></div>
-
 ## Instances
 
 The **Instances** table displays a list of all the available service instances within the selected time range.
 Depending on how the service runs, the instance could be a host or a container. The table displays latency, throughput,
 failed transaction, CPU usage, and memory usage for each instance. By default, instances are sorted by _Throughput_.
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![All instances](images/service-overview/apm-all-instances.png) */}
-
-<div id="service-metadata"></div>
+![All instances](images/services/all-instances.png)
 
 ## Service metadata
 
 To view metadata relating to the service agent, and if relevant, the container and cloud provider,
 click on each icon located at the top of the page beside the service name.
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![Service metadata](images/service-overview/apm-metadata-icons.png) */}
+![Service metadata](images/services/metadata-icons.png)
 
 **Service information**
 
@@ -161,3 +138,5 @@ click on each icon located at the top of the page beside the service name.
 
 * Recently fired alerts
 
+
+<Feedback slug="/serverless/observability/apm-service-overview" filepath="docs/apm/apm-ui-service-overview.mdx" />

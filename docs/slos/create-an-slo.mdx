@@ -2,23 +2,20 @@
 id: serverlessObservabilityCreateAnSlo
 slug: /serverless/observability/create-an-slo
 title: Create an SLO
-# description: Description to be written
+description: Learn how to define a service-level indicator (SLI), set an objective, and create a service-level objective (SLO).
 tags: [ 'serverless', 'observability', 'how-to' ]
-status: rough content
+status: in testing
 ---
 
-import RoughContent from '../partials/rough-content-notice.mdx'
+import Feedback from '../partials/feedback/widget.mdx'
 
-<RoughContent />
+import Testing from '../partials/in-testing-notice.mdx'
 
-<div id="slo-create"></div>
+<Testing />
 
 <DocCallOut template="beta" />
-<DocCallOut title="Important" color="warning">
-Before creating an SLO, you need to <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/*  <DocLink id="enObservabilitySloPrivileges">configure your SLO access</DocLink> */}.
-</DocCallOut>
 
-To create an SLO, go to **Observability → SLOs**: 
+To create an SLO, go to **Observability -> SLOs**:
 
 * If you're creating your first SLO, you'll see an introductory page. Click the **Create SLO** button.
 * If you've created SLOs before, click the **Create new SLO** button in the upper-right corner of the page.
@@ -35,27 +32,27 @@ From here, complete the following steps:
 
 The type of SLI to use depends on the location of your data:
 
-* <DocLink id="serverlessObservabilityCreateAnSlo" section="custom-kql">Custom KQL</DocLink> — create an SLI based on raw logs coming from your services. 
+* <DocLink id="serverlessObservabilityCreateAnSlo" section="custom-kql">Custom KQL</DocLink> — create an SLI based on raw logs coming from your services.
 * <DocLink id="serverlessObservabilityCreateAnSlo" section="custom-metric">Custom metric</DocLink> — create an SLI to define custom equations from metric fields in your indices.
 * <DocLink id="serverlessObservabilityCreateAnSlo" section="histogram-metric">Histogram metric</DocLink> — create an SLI based on histogram metrics.
-* <DocLink id="serverlessObservabilityCreateAnSlo" section="apm-latency-and-apm-availability">APM latency and APM availability</DocLink> — create an SLI based on services using application performance monitoring (APM). 
+* <DocLink id="serverlessObservabilityCreateAnSlo" section="apm-latency-and-apm-availability">APM latency and APM availability</DocLink> — create an SLI based on services using application performance monitoring (APM).
 
 <div id="custom-kql-sli"></div>
 
 ### Custom KQL
 
-Create an indicator based on any of your ((es)) indices or index patterns. You define two queries: one that yields the good events from your index, and one that yields the total events from your index. 
+Create an indicator based on any of your ((es)) indices or index patterns. You define two queries: one that yields the good events from your index, and one that yields the total events from your index.
 
-**Example:** You can define a custom KQL indicator based on the `service-logs` with the **good query** defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the **total query** defined as `nested.field.env : “production”`. 
+**Example:** You can define a custom KQL indicator based on the `service-logs` index with the **good query** defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the **total query** defined as `nested.field.env : “production”`.
 
 When defining a custom KQL SLI, set the following fields:
 
 * **Index** — The index or index pattern you want to base the SLI on. For example, `service-logs`.
 * **Timestamp field** — The timestamp field used by the index.
 * **Query filter** — A KQL filter to specify relevant criteria by which to filter the index documents.
-* **Good query** — The query yielding events that are considered good or successful. For example, `nested.field.response.latency <= 100 and nested.field.env : “production”`
+* **Good query** — The query yielding events that are considered good or successful. For example, `nested.field.response.latency <= 100 and nested.field.env : “production”`.
 * **Total query** — The query yielding all events to take into account for computing the SLI. For example, `nested.field.env : “production”`.
-* **Partition by** — Create an SLO for each value of the field you enter. 
+* **Partition by** — Create an SLO for each value of the field you enter.
 
 <div id="custom-metric-sli"></div>
 
@@ -63,7 +60,7 @@ When defining a custom KQL SLI, set the following fields:
 
 Create an indicator to define custom equations from metric fields in your indices.
 
-**Example:** You can define **Good events** as the sum of the field `processor.processed` with a filter of `"processor.outcome: \"success\""`, and the **Total events** as the sum of `processor.processed` with a filter of `"processor.outcome: *"`. 
+**Example:** You can define **Good events** as the sum of the field `processor.processed` with a filter of `"processor.outcome: \"success\""`, and the **Total events** as the sum of `processor.processed` with a filter of `"processor.outcome: *"`.
 
 When defining a custom metric SLI, set the following fields:
 
@@ -76,8 +73,8 @@ When defining a custom metric SLI, set the following fields:
     * **Filter [A-Z]** — The filter to apply to the metric for good events. For example, `"processor.outcome: \"success\""`.
     * **Equation** — The equation that calculates the good metric. For example, `A`.
 * **Total events**
-    * **Metric [A-Z]** — The field that is aggregated using the `sum` aggregation for total events. For example, `processor.processed`
-    * **Filter [A-Z]** — The filter to apply to the metric for total events. For example, `"processor.outcome: *"`
+    * **Metric [A-Z]** — The field that is aggregated using the `sum` aggregation for total events. For example, `processor.processed`.
+    * **Filter [A-Z]** — The filter to apply to the metric for total events. For example, `"processor.outcome: *"`.
     * **Equation** — The equation that calculates the total metric. For example, `A`.
 * **Partition by** — Create an SLO for each value of the field you enter. 
 
@@ -85,11 +82,11 @@ When defining a custom metric SLI, set the following fields:
 
 ### Histogram metric
 
-Histograms record data in a compressed format and can record latency and delay metrics. You can create an SLI based on histogram metrics using a `range` aggregation or a `value_count` aggregation for both the good and total events. Filtering with KQL queries is supported on both event types. 
+Histograms record data in a compressed format and can record latency and delay metrics. You can create an SLI based on histogram metrics using a `range` aggregation or a `value_count` aggregation for both the good and total events. Filtering with KQL queries is supported on both event types.
 
 When using a `range` aggregation, both the `from` and `to` thresholds are required for the range and the events are the total number of events within that range. The range includes the `from` value and excludes the `to` value.
 
-**Example:** You can define your **Good events** using the `processor.latency` field with a filter of `"processor.outcome: \"success\""`, and your **Total events** using the `processor.latency` field with a filter of `"processor.outcome: *"`. 
+**Example:** You can define your **Good events** using the `processor.latency` field with a filter of `"processor.outcome: \"success\""`, and your **Total events** using the `processor.latency` field with a filter of `"processor.outcome: *"`.
 
 When defining a histogram metric SLI, set the following fields:
 
@@ -115,23 +112,17 @@ When defining a histogram metric SLI, set the following fields:
 
 ### APM latency and APM availability
 
-<div id="apm-latency-sli"></div>
+There are two types of SLI you can create based on services using application performance monitoring (APM): APM latency and APM availability.
 
-#### APM latency
-
-Create an indicator based on the APM data that you received from your instrumented services and a latency threshold. 
+Use **APM latency** to create an indicator based on the APM data that you received from your instrumented services and a latency threshold.
 
 **Example:** You can define an indicator on an APM service named `banking-service` for the `production` environment, and the transaction name `POST /deposit` with a latency threshold value of 300ms.
 
-<div id="apm-availability-sli"></div>
-
-#### APM availability
-
-Create an indicator based on the APM data received from your instrumented services. 
+Use **APM availability** to create an indicator based on the APM data received from your instrumented services. 
 
 **Example:** You can define an indicator on an APM service named `search-service` for the `production` environment, and the transaction name `POST /search`.
 
-When defining an APM latency or APM availability SLI, set the following fields:
+When defining either an APM latency or APM availability SLI, set the following fields:
 
 * **Service name** — The APM service name.
 * **Service environment** — Either `all` or the specific environment.
@@ -143,41 +134,53 @@ When defining an APM latency or APM availability SLI, set the following fields:
 <div id="set-slo"></div>
 
 ## Set your objectives
+
 After defining your SLI, you need to set your objectives. To set your objectives, complete the following:
 
 1. <DocLink id="serverlessObservabilityCreateAnSlo" section="select-your-budgeting-method">Select your budgeting method</DocLink>
 1. <DocLink id="serverlessObservabilityCreateAnSlo" section="set-your-time-window">Set your time window</DocLink>
 1. <DocLink id="serverlessObservabilityCreateAnSlo" section="set-your-targetslo-percent">Set your target/SLO percentage</DocLink>
 
+<div id="slo-time-window"></div>
+
+### Set your time window and duration
+
+Select the durations over which you want to compute your SLO. You can select either a **rolling** or **calendar aligned** time window:
+
+|  |  |
+|---|---|
+| **Rolling** | Uses data from a specified duration that depends on when the SLO was created, for example the last 30 days. |
+| **Calendar aligned** | Uses data from a specified duration that aligns with calendar, for example weekly or monthly. |
+
 <div id="slo-budgeting-method"></div>
 
 ### Select your budgeting method
+
 You can select either an **occurrences** or a **timeslices** budgeting method: 
 
-{/* [cols="1,1"] */}
 |  |  |
 |---|---|
 | **Occurrences** | Uses the number of good events and the number of total events to compute the SLO. |
 | **Timeslices** | Breaks the overall time window into smaller slices of a defined duration, and uses the number of good slices over the number of total slices to compute the SLO. |
 
-<div id="slo-time-window"></div>
-
-### Set your time window
-Select the durations over which you want to compute your SLO. The time window uses the data from the defined rolling period. For example, the last 30 days. 
-
 <div id="slo-target"></div>
 
 ### Set your target/SLO (%)
-The SLO target objective in percentage.
+
+The SLO target objective as a percentage.
 
 <div id="slo-describe"></div>
 
 ## Describe your SLO
+
 After setting your objectives, give your SLO a name, a short description, and add any relevant tags.
 
 <div id="slo-alert-checkbox"></div>
 
 ## SLO burn rate alert rule
+
 When the **Create an SLO burn rate alert rule** checkbox is selected, the **Create rule** window opens immediately after you click the **Create SLO** button.
 Here you can define your SLO burn rate alert rule. 
-For more information, see <DocLink id="serverlessObservabilityCreateAnSloBurnRateAlertRule">Create an SLO burn rate rule</DocLink>.
+For more information, refer to <DocLink id="serverlessObservabilityCreateAnSloBurnRateAlertRule">Create an SLO burn rate rule</DocLink>.
+
+<Feedback slug="/serverless/observability/create-an-slo" filepath="docs/slos/create-an-slo.mdx" />

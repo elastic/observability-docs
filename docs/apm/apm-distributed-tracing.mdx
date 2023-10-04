@@ -2,26 +2,24 @@
 id: serverlessObservabilityApmDistributedTracing
 slug: /serverless/observability/apm-distributed-tracing
 title: Distributed tracing
-# description: Description to be written
+description: Understand how a single request that travels through multiple services impacts your application.
 tags: [ 'serverless', 'observability', 'how-to' ]
-status: rough content
+status: in testing
 ---
 
-import RoughContent from '../partials/rough-content-notice.mdx'
+import Feedback from '../partials/feedback/widget.mdx'
 
-<RoughContent />
+import Testing from '../partials/in-testing-notice.mdx'
+
+<Testing />
 
 import TabWidgetsDistributedTraceSendWidget from '../transclusion/apm/guide/tab-widgets/distributed-trace-send-widget.mdx'
 import TabWidgetsDistributedTraceReceiveWidget from '../transclusion/apm/guide/tab-widgets/distributed-trace-receive-widget.mdx'
 
-<div id="apm-distributed-tracing"></div>
-
-A `trace` is a group of <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">transactions</DocLink> and <DocLink id="serverlessObservabilityApmSpansTransactionsErrorsMetricsMetadata">spans</DocLink> with a common root.
+A `trace` is a group of <DocLink id="serverlessObservabilityApmDataTypes">transactions</DocLink> and <DocLink id="serverlessObservabilityApmDataTypes">spans</DocLink> with a common root.
 Each `trace` tracks the entirety of a single request.
 When a `trace` travels through multiple services, as is common in a microservice architecture,
 it is known as a distributed trace.
-
-<div id="why-distributed-tracing"></div>
 
 ## Why is distributed tracing important?
 
@@ -36,8 +34,6 @@ service borders.
 
 For supported technologies, distributed tracing works out-of-the-box, with no additional configuration required.
 
-<div id="how-distributed-tracing"></div>
-
 ## How distributed tracing works
 
 Distributed tracing works by injecting a custom `traceparent` HTTP header into outgoing requests.
@@ -50,32 +46,22 @@ If it's missing, the service starts a new trace.
 If it exists, the service ensures the current action is added as a child of the existing trace,
 and continues to propagate the trace.
 
-<div id="trace-propagation"></div>
-
 ### Trace propagation examples
 
 In this example, Elastic's Ruby agent communicates with Elastic's Java agent.
 Both support the `traceparent` header, and trace data is successfully propagated.
 
-{/* lint ignore traceparent */}
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![How traceparent propagation works](images/apm-distributed-tracing/-dt-trace-ex1.png) */}
+![How traceparent propagation works](images/distributed-tracing/dt-trace-ex1.png)
 
 In this example, Elastic's Ruby agent communicates with OpenTelemetry's Java agent.
 Both support the `traceparent` header, and trace data is successfully propagated.
 
-{/* lint ignore traceparent */}
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![How traceparent propagation works](images/apm-distributed-tracing/-dt-trace-ex2.png) */}
+![How traceparent propagation works](images/distributed-tracing/dt-trace-ex2.png)
 
 In this example, the trace meets a piece of middleware that doesn't propagate the `traceparent` header.
 The distributed trace ends and any further communication will result in a new trace.
 
-{/* lint ignore traceparent */}
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![How traceparent propagation works](images/apm-distributed-tracing/-dt-trace-ex3.png) */}
-
-<div id="w3c-tracecontext-spec"></div>
+![How traceparent propagation works](images/distributed-tracing/dt-trace-ex3.png)
 
 ### W3C Trace Context specification
 
@@ -91,23 +77,17 @@ See the table below for the minimum required agent version:
 | **PHP Agent** | ≥`1.0` |
 | **Python Agent** | ≥`5.4` |
 | **Ruby Agent** | ≥`3.5` |
-| **RUM Agent** | ≥`5.0` |
 
 <DocCallOut title="Note">
 Older Elastic agents use a unique `elastic-apm-traceparent` header.
 For backward-compatibility purposes, new versions of Elastic agents still support this header.
 </DocCallOut>
 
-<div id="visualize-distributed-tracing"></div>
-
 ## Visualize distributed tracing
 
-The ((apm-app))'s timeline visualization provides a visual deep-dive into each of your application's traces:
+APM's timeline visualization provides a visual deep-dive into each of your application's traces:
 
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![Distributed tracing in the APM UI](images/apm-distributed-tracing/-apm-distributed-tracing.png) */}
-
-<div id="manual-distributed-tracing"></div>
+![Example view of the distributed tracing in APM app in Kibana](images/spans/apm-distributed-tracing.png)
 
 ## Manual distributed tracing
 
@@ -115,8 +95,6 @@ Elastic agents automatically propagate distributed tracing context for supported
 If your service communicates over a different, unsupported protocol,
 you can manually propagate distributed tracing context from a sending service to a receiving service
 with each agent's API.
-
-<div id="distributed-tracing-outgoing"></div>
 
 ### Add the `traceparent` header to outgoing requests
 
@@ -133,12 +111,4 @@ and start a new transaction or span as a child of the received context.
 
 <TabWidgetsDistributedTraceReceiveWidget />
 
-<div id="distributed-tracing-rum"></div>
-
-## Distributed tracing with RUM
-
-Some additional setup may be required to correlate requests correctly with the Real User Monitoring (RUM) agent.
-
-See the [RUM distributed tracing guide](((apm-rum-ref))/distributed-tracing-guide.html)
-for information on enabling cross-origin requests, setting up server configuration,
-and working with dynamically-generated HTML.
+<Feedback slug="/serverless/observability/apm-distributed-tracing" filepath="docs/apm/apm-distributed-tracing.mdx" />
