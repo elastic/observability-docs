@@ -1,164 +1,56 @@
 
 
-import TabWidgetsNoDataIndexedWidget from '../../transclusion/apm/guide/tab-widgets/no-data-indexed-widget.mdx'
+import NoDataIndexed from '../../transclusion/apm/guide/tab-widgets/no-data-indexed/fleet-managed.mdx'
 import GettingStartedApmServerInstallApmIntegration from '../../transclusion/apm/guide/getting-started-apm-server/install-apm-integration.mdx'
 
-<div id="common-problems"></div>
+This section describes common problems you might encounter.
 
-This section describes common problems you might encounter when using a Fleet-managed APM Server.
-
-* <DocLink id="serverlessObservabilityApmTroubleshooting" section="no-data-is-indexed">No data is indexed</DocLink>
+{/* * <DocLink id="serverlessObservabilityApmTroubleshooting" section="no-data-is-indexed">No data is indexed</DocLink>
 * <DocLink id="serverlessObservabilityApmTroubleshooting">APM Server response codes</DocLink>
 * <DocLink id="serverlessObservabilityApmTroubleshooting" section="common-ssl-related-problems">Common SSL-related problems</DocLink>
 * <DocLink id="serverlessObservabilityApmTroubleshooting" section="io-timeout">I/O Timeout</DocLink>
-* <DocLink id="serverlessObservabilityApmTroubleshooting" section="field-limit-exceeded">Field limit exceeded</DocLink>
-
-<div id="no-data-indexed"></div>
+* <DocLink id="serverlessObservabilityApmTroubleshooting" section="field-limit-exceeded">Field limit exceeded</DocLink> */}
 
 ### No data is indexed
 
-If no data shows up in ((es)), first make sure that your APM components are properly connected.
+If no data shows up, first make sure that your APM components are properly connected.
 
-<TabWidgetsNoDataIndexedWidget />
+<NoDataIndexed />
 
 <div id="data-indexed-no-apm-legacy"></div>
 
-### Data is indexed but doesn't appear in the APM app
+### Data is indexed but doesn't appear in the APM UI
 
-The ((apm-app)) relies on index mappings to query and display data.
-If your APM data isn't showing up in the ((apm-app)), but is elsewhere in ((kib)), like the Discover app,
-you may have a missing index mapping.
+Elastic APM relies on default index mappings, data streams, and pipelines to query and display data.
+If your APM data isn't showing up in the APM UI, but is elsewhere in Elastic, like Discover,
+you've likely made a change that overwrote a default.
+If you've manually changed a data stream, index template, or index pipeline,
+please verify you are not interfering with the default APM setup.
 
-You can determine if a field was mapped correctly with the `_mapping` API.
-For example, run the following command in the ((kib)) [console](((kibana-ref))/console-kibana.html).
-This will display the field data type of the `service.name` field.
-
-```shell
-GET *apm*/_mapping/field/service.name
-```
-
-If the `mapping.name.type` is `"text"`, your APM indices were not set up correctly.
-
-```yml
-".ds-metrics-apm.transaction.1m-default-2023.04.12-000038": {
-   "mappings": {
-      "service.name": {
-         "full_name": "service.name",
-         "mapping": {
-            "name": {
-               "type": "text"  [^1]
-            }
-         }
-      }
-   }
-}
-```
-[^1]: The `service.name` `mapping.name.type` would be `"keyword"` if this field had been set up correctly.
-
-To fix this problem, install the APM integration by following these steps:
-
-<GettingStartedApmServerInstallApmIntegration />
-
-This will reinstall the APM index templates and trigger a data stream index rollover.
-
-You can verify the correct index templates were installed by running the following command in the ((kib)) console:
-
-```shell
-GET /_index_template/traces-apm
-```
-
-<div id="common-ssl-problems"></div>
-
-### Common SSL-related problems
-
-* <DocLink id="serverlessObservabilityApmTroubleshooting" section="ssl-client-fails-to-connect">SSL client fails to connect</DocLink>
-* <DocLink id="serverlessObservabilityApmTroubleshooting" section="x509-cannot-validate-certificate-for-\lessip-addressgreater-because-it-doesnt-contain-any-ip-sans">x509: cannot validate certificate</DocLink>
-* <DocLink id="serverlessObservabilityApmTroubleshooting" section="getsockopt-no-route-to-host">getsockopt: no route to host</DocLink>
-* <DocLink id="serverlessObservabilityApmTroubleshooting" section="getsockopt-connection-refused">getsockopt: connection refused</DocLink>
-* <DocLink id="serverlessObservabilityApmTroubleshooting" section="no-connection-could-be-made-because-the-target-machine-actively-refused-it">No connection could be made because the target machine actively refused it</DocLink>
-
-<div id="ssl-client-fails"></div>
-
-#### SSL client fails to connect
-
-The target host might be unreachable or the certificate may not be valid.
-To fix this problem:
-
-1. Make sure that the APM Server process on the target host is running and you can connect to it.
-    Try to ping the target host to verify that you can reach it from the host running APM Server.
-    Then use either `nc` or `telnet` to make sure that the port is available. For example:
-
-    ```shell
-    ping <hostname or IP>
-    telnet <hostname or IP> 5044
-    ```
-
-1. Verify that the certificate is valid and that the hostname and IP match.
-1. Use OpenSSL to test connectivity to the target server and diagnose problems.
-    See the [OpenSSL documentation](https://www.openssl.org/docs/manmaster/man1/openssl-s_client.html) for more info.
-
-<div id="cannot-validate-certificate"></div>
-
-#### x509: cannot validate certificate for \<IP address> because it doesn't contain any IP SANs
-
-This happens because your certificate is only valid for the hostname present in the Subject field.
-To resolve this problem, try one of these solutions:
-
-* Create a DNS entry for the hostname, mapping it to the server's IP.
-* Create an entry in `/etc/hosts` for the hostname. Or, on Windows, add an entry to
-    `C:\Windows\System32\drivers\etc\hosts`.
-
-* Re-create the server certificate and add a Subject Alternative Name (SAN) for the IP address of the server. This makes the
-    server's certificate valid for both the hostname and the IP address.
-
-<div id="getsockopt-no-route-to-host"></div>
-
-#### getsockopt: no route to host
-
-This is not an SSL problem. It's a networking problem. Make sure the two hosts can communicate.
-
-<div id="getsockopt-connection-refused"></div>
-
-#### getsockopt: connection refused
-
-This is not an SSL problem. Make sure that ((ls)) is running and that there is no firewall blocking the traffic.
-
-<div id="target-machine-refused-connection"></div>
-
-#### No connection could be made because the target machine actively refused it
-
-A firewall is refusing the connection. Check if a firewall is blocking the traffic on the client, the network, or the
-destination host.
-
-<div id="io-timeout"></div>
-
-### I/O Timeout
+{/* ### I/O Timeout
 
 I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
 especially when using a load balancer.
 
-You may see an error like the one below in the ((apm-agent)) logs, and/or a similar error on the APM Server side:
+You may see an error like the one below in the ((apm-agent)) logs, and/or a similar error on the intake side:
 
 ```logs
 [ElasticAPM] APM Server responded with an error:
 "read tcp 123.34.22.313:8200->123.34.22.40:41602: i/o timeout"
 ```
 
-To fix this, ensure timeouts are incrementing from the ((apm-agent)),
-through your load balancer, to the APM Server.
+To fix this error, ensure timeouts are incrementing from the ((apm-agent)),
+through your load balancer, to the Elastic APM intake.
 
-By default, the agent timeouts are set at 10 seconds, and the server timeout is set at 3600 seconds.
+By default, Elastic APM agent timeouts are set at 10 seconds, and the Elastic intake timeout is set at 60 seconds.
 Your load balancer should be set somewhere between these numbers.
 
 For example:
 
 ```txt
-APM agent --> Load Balancer  --> APM Server
-   10s            15s               3600s
-```
-
-The APM Server timeout can be configured by updating the
- <DocBadge><DocIcon size="s" type="unlink" title="missing link"/> missing link</DocBadge>{/* <DocLink id="enApmGuideConfigurationProcess" section="read-timeout">maximum duration for reading an entire request</DocLink> */}.
+APM agent --> Load Balancer  --> Elastic APM intake
+   10s            15s                 60s
+``` */}
 
 <div id="field-limit-exceeded-legacy"></div>
 
@@ -176,9 +68,3 @@ Just try to keep the number of distinct tag keys at a minimum.
 The symptom of a mapping explosion is that transactions and spans are not indexed anymore after a certain time. Usually, on the next day,
 the spans and transactions will be indexed again because a new index is created each day.
 But as soon as the field limit is reached, indexing stops again.
-
-In the agent logs, you won't see a sign of failures as the APM server asynchronously sends the data it received from the agents to ((es)). However, the APM server and ((es)) log a warning like this:
-
-```logs
-{\"type\":\"illegal_argument_exception\",\"reason\":\"Limit of total fields [1000] in [INDEX_NAME] has been exceeded\"}
-```
