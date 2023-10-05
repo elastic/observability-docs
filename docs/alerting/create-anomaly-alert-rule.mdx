@@ -14,16 +14,10 @@ import Testing from '../partials/in-testing-notice.mdx'
 
 <Testing />
 
-You can create an anomaly alert rule to alert you when either the latency, throughput, or failed transaction rate of a service is abnormal. Anomaly rules can be set at different levels: environment, service, and/or transaction type.   
-
-First you must define the rule and how often it should be evaluated. To turn this into an alert, add an appropriate action (e.g. send email, create issue) to be triggered when the rule conditions are met.  
-
-You can create any rules and alert from scratch using the **Manage Rules** page, or you can start from any page within **Applications** and benefit from some of the details being pre-filled e.g. Name, Tags.
+You can create an anomaly rule to alert you when either the latency, throughput, or failed transaction rate of a service is abnormal. Anomaly rules can be set at different levels: environment, service, and/or transaction type. Add actions to raise alerts via services or third-party integrations e.g. mail, Slack, Jira.  
 
 ![Create rule for failed transaction rate threshold](../images/apm-alert.png)
 {/* Placeholder - update! */}
-
-<div id="create-anomaly-rule"></div>
 
 To create your anomaly rule:
 
@@ -33,23 +27,46 @@ To create your anomaly rule:
 1. Select the appropriate **Service**, **Type**, and **Environment** (or leave **ALL** to include all options).
 1. Select the desired severity (critical, major, minor, warning) from **Has anomaly with severity**.
 1. Define the interval to check the rule e.g. check every 1 minute.
-1. **Save** your rule, or add an action to create an alert for this rule.
+1. (Optional) Set up **Actions**.
+1. **Save** your rule.
 
 <DocCallOut title="Tip">
-    You can add an action to a rule at any time. You can create rules without adding actions, and you can also define multiple actions for a single rule. To add actions to rules, you must first create a connector for that service (e.g. email, external incident management system), which you can then use for different rules, each with their own action frequency. For more information on creating connectors, refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Send cases to an external system</DocLink>.
+You can also create an anomaly rule directly from any page within **Applications**. Click the **Alerts and rules** button, and select **Create anomaly rule**. When you create a rule this way, the **Name** and **Tags** fields will be pre-populated but you can still change these. 
 </DocCallOut>
 
 {/* Placeholder link for connectors for now  */}
 
-To create an alert by adding an action to a rule:
+<div id="action-types-slo"></div>
 
-1. Either create a rule from scratch or select **Edit rule** from an existing rule.
-1. Under **Actions**, select a connector type from the available options.
-1. If you have connectors of that type already created, you can select from the available connectors. If you need to add a new connector, select **Create a connector** and refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Connectors</DocLink> for more information.
-1. For each action you must define the **Action frequency** by choosing between **For each alert** or **Summary of alerts**:
-    * **For each alert**: Choose **On status changes** or **On check intervals**, or **On custom action intervals** and define how often to run. For all three options you must also define if **Run when** _Threshold met_ or _Recovered_.
-    * **Summary of alerts**: Choose **On check intervals**, or **On custom action intervals** and define how often to run.
-1. Select **Save**.
+## Actions
+
+You can extend your rules by connecting them to **Actions** that use the following supported built-in integrations.
+
+<DocAccordion buttonContent="Action types">
+Actions are services or integrations with third-party systems that run as background tasks when rule conditions are met.
+
+![Rule connectors](../images/alert-action-types.png)   
+</DocAccordion>
+
+<DocAccordion buttonContent="Action frequency">
+After you select a connector, you must set the action frequency. You can choose to create a **Summary of alerts** on each check interval or on a custom interval. For example, you can send email notifications that summarize the new, ongoing, and recovered alerts every twelve hours.
+
+Alternatively, you can set the action frequency to **For each alert** and specify the conditions each alert must meet for the action to run. For example, you can send an email only when the alert status changes to critical.
+
+![Configure when a rule is triggered](../images/slo-action-frequency.png)
+</DocAccordion>
+
+<DocAccordion buttonContent="Action variables">
+Use the default notification message or customize it.
+You can add more context to the message by clicking the icon above the message text box
+and selecting from a list of available variables.
+
+![Action variables with default SLO message](../images/slo-action-variables.png)
+</DocAccordion>
+
+<DocCallOut title="Note">
+You can add an action to a rule at any time. You can create rules without adding actions, and you can also define multiple actions for a single rule. To add actions to rules, you must first create a connector for that service (e.g. email, external incident management system), which you can then use for different rules, each with their own action frequency. For more information on creating connectors, refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Send cases to an external system</DocLink>.
+</DocCallOut>
 
 <div id="create-anomaly-alert-example"></div>
 ## Example
@@ -65,7 +82,7 @@ Before continuing, identify the service name, transaction type, and environment 
 * Check every five minutes
 * Send an alert to a Slack channel when the rule status changes
 
-From any page in **Applications**, select **Alerts and rules** > **Create anomaly rule**. Change the name of the rule (if you wish), but do not edit the tags.
+From any page in **Applications**, select **Alerts and rules** -> **Create anomaly rule**. Change the name of the rule (if you wish), but do not edit the tags.
 
 Based on the criteria above, define the following rule details:
 
@@ -75,12 +92,11 @@ Based on the criteria above, define the following rule details:
 * **Has anomaly with severity** - `critical`
 * **Check every** - `5 minutes`
 
-Next, add a connector type. Multiple connectors can be selected, but in this example we’re interested in Slack. Select **Slack** > **Create a connector**. Enter a name for the connector, and paste your Slack webhook URL. See Slack’s webhook documentation if you need to create one.
+Next, add a connector type. Multiple connectors can be selected, but in this example we’re interested in Slack. Select **Slack** -> **Create a connector**. Enter a name for the connector, and paste your Slack webhook URL. See Slack’s webhook documentation if you need to create one.
 
 A default message is provided as a starting point for your alert. You can use the Mustache template syntax (i.e. `{{variable}}`) to pass additional alert values at the time a condition is detected to an action. A list of available variables can be accessed by selecting the **add variable** button.
 
 Click **Save**. Your rule has been created and is now active!
-
 
 <Feedback slug="/serverless/observability/create-anomaly-alert-rule" filepath="docs/alerting/create-anomaly-alert-rule.mdx" />
 

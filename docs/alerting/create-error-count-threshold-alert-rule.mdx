@@ -13,11 +13,7 @@ import Testing from '../partials/in-testing-notice.mdx'
 
 <Testing />
 
-You can create a error count threshold alert rule to alert you when the number of in a service exceeds a defined threshold. Threshold rules can be set at different levels: environment, service, transaction type, and/or transaction name.   
-
-First you must define the rule and how often it should be evaluated. To turn this into an alert, add an appropriate action (e.g. send email, create issue) to be triggered when the rule conditions are met.  
-
-You can create any rules and alert from scratch using the **Manage Rules** page, or you can start from any page within **Applications** and benefit from some of the details being pre-filled e.g. Name, Tags.
+You can create a error count threshold rule to alert you when the number of in a service exceeds a defined threshold. Threshold rules can be set at different levels: environment, service, transaction type, and/or transaction name.   
 
 ![Create rule for failed transaction rate threshold](../images/apm-alert.png)
 {/* Placeholder - update! */}
@@ -34,23 +30,49 @@ To create your error count threshold rule:
 1. Define the period to be assessed in **For the last** (defaults to last 5 minutes).
 1. Choose how to **Group alerts by** - every unique value will create an alert.
 1. Define the interval to check the rule e.g. check every 1 minute.
-1. **Save** your rule, or add an action to create an alert for this rule.
+1. (Optional) Set up **Actions**.
+1. **Save** your rule.
 
 <DocCallOut title="Tip">
-    You can add an action to a rule at any time. You can create rules without adding actions, and you can also define multiple actions for a single rule. To add actions to rules, you must first create a connector for that service (e.g. email, external incident management system), which you can then use for different rules, each with their own action frequency. For more information on creating connectors, refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Send cases to an external system</DocLink>.
+You can also create an error count threshold rule directly from any page within **Applications**. Click the **Alerts and rules** button, and select **Create error count rule**. When you create a rule this way, the **Name** and **Tags** fields will be pre-populated but you can still change these. 
 </DocCallOut>
 
 {/* Placeholder link for connectors for now  */}
 
-<DocAccordion buttonContent="To create an alert by adding an action to a rule:">
-1. Either create a rule from scratch or select **Edit rule** from an existing rule.
-1. Under **Actions**, select a connector type from the available options.
-1. If you have connectors of that type already created, you can select from the available connectors. If you need to add a new connector, select **Create a connector** and refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Connectors</DocLink> for more information.
-1. For each action you must define the **Action frequency** by choosing between **For each alert** or **Summary of alerts**:
-    * **For each alert**: Choose **On status changes** or **On check intervals**, or **On custom action intervals** and define how often to run. For all three options you must also define if **Run when** _Threshold met_ or _Recovered_.
-    * **Summary of alerts**: Choose **On check intervals**, or **On custom action intervals** and define how often to run.
-1. Select **Save**.    
+<div id="action-types-slo"></div>
+
+## Actions
+
+You can extend your rules by connecting them to **Actions** that use the following supported built-in integrations.
+
+<DocAccordion buttonContent="Action types">
+Actions are services or integrations with third-party systems that run as background tasks when rule conditions are met.
+
+![Rule connectors](../images/alert-action-types.png)   
 </DocAccordion>
+
+<DocAccordion buttonContent="Action frequency">
+After you select a connector, you must set the action frequency. You can choose to create a **Summary of alerts** on each check interval or on a custom interval. For example, you can send email notifications that summarize the new, ongoing, and recovered alerts every twelve hours.
+
+Alternatively, you can set the action frequency to **For each alert** and specify the conditions each alert must meet for the action to run. For example, you can send an email only when the alert status changes to critical.
+
+![Configure when a rule is triggered](../images/slo-action-frequency.png)
+</DocAccordion>
+
+<DocAccordion buttonContent="Action variables">
+Use the default notification message or customize it.
+You can add more context to the message by clicking the icon above the message text box
+and selecting from a list of available variables.
+
+![Action variables with default SLO message](../images/slo-action-variables.png)
+</DocAccordion>
+
+<DocCallOut title="Note">
+You can add an action to a rule at any time. You can create rules without adding actions, and you can also define multiple actions for a single rule. To add actions to rules, you must first create a connector for that service (e.g. email, external incident management system), which you can then use for different rules, each with their own action frequency. For more information on creating connectors, refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Send cases to an external system</DocLink>.
+</DocCallOut>
+
+
+{/* Placeholder link for connectors for now  */}
 
 <div id="create-error-count-threshold-example"></div>
 ## Example
