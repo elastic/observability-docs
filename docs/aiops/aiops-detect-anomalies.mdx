@@ -19,15 +19,15 @@ The anomaly detection feature in Elastic ((observability)) automatically models 
 periodicity, and more — in real time to identify anomalies, streamline root cause analysis, and reduce false positives.
 
 To set up anomaly detection, you create and run anomaly detection jobs.
-Anomaly detection jobs use proprietary machine learning algorithms to detect anomalous events or patterns, such as:
+Anomaly detection jobs use proprietary ((ml)) algorithms to detect anomalous events or patterns, such as:
 
 * Anomalies related to temporal deviations in values, counts, or frequencies
 * Anomalies related to unusual locations in geographic data
 * Statistical rarity
 * Unusual behaviors for a member of a population
 
-To learn more about anomaly detection algorithms, refer to the [Machine Learning](((ml-docs))/ml-ad-algorithms.html) documentation.
-Note that the Machine learning documentation may contain details that are not valid when using a fully-managed Elastic project.
+To learn more about anomaly detection algorithms, refer to the [((ml))](((ml-docs))/ml-ad-algorithms.html) documentation.
+Note that the ((ml)) documentation may contain details that are not valid when using a fully-managed Elastic project.
 
 <DocCallOut title="Some terms you might need to know">
 
@@ -45,7 +45,7 @@ value that is seen within a bucket. Others perform some aggregation over the
 length of the bucket. For example, `mean` calculates the mean of all the data
 points seen within the bucket.
 
-To learn more about anomaly detection, refer to the [Machine Learning](((ml-docs))/ml-ad-overview.html) documentation.
+To learn more about anomaly detection, refer to the [((ml))](((ml-docs))/ml-ad-overview.html) documentation.
 
 </DocCallOut>
 
@@ -72,17 +72,31 @@ Then you can create multi-metric jobs and split the data or create more complex 
             </DocDefDescription>
             <DocDefTerm>Multi-metric</DocDefTerm>
             <DocDefDescription>
-                Creates jobs that can have more than one detector, which is more efficient than running multiple jobs against the same data. The population wizard creates jobs that detect activity that is unusual compared to the behavior of the population.
+                Creates jobs that can have more than one detector, which is more efficient than running multiple jobs against the same data.
             </DocDefDescription>
-            <DocDefTerm>Categorization</DocDefTerm>
+            <DocDefTerm>Population</DocDefTerm>
             <DocDefDescription>
-                Creates jobs that group log messages into categories and use `count` or `rare` functions to detect anomalies within them.
+                Creates jobs that detect activity that is unusual compared to the behavior of the population.
             </DocDefDescription>
             <DocDefTerm>Advanced</DocDefTerm>
             <DocDefDescription>
                 Creates jobs that can have multiple detectors and enables you to configure all job settings.
             </DocDefDescription>
+            <DocDefTerm>Categorization</DocDefTerm>
+            <DocDefDescription>
+                Creates jobs that group log messages into categories and use `count` or `rare` functions to detect anomalies within them.
+            </DocDefDescription>
+            <DocDefTerm>Rare</DocDefTerm>
+            <DocDefDescription>
+                Creates jobs that detect rare occurrences in time series data. Rare jobs use the `rare` or `freq_rare` functions and also detect rare occurrences in populations.
+            </DocDefDescription>
+            <DocDefTerm>Geo</DocDefTerm>
+            <DocDefDescription>
+                Creates jobs that detect unusual occurrences in the geographic locations of your data. Your data set must contain geo data.
+            </DocDefDescription>
         </DocDefList>
+
+    For more information about job types, refer to the [((ml))](((ml-docs))/ml-anomaly-detection-job-types.html) documentation.
 
     <DocCallOut title="Not sure what type of job to create?">
 
@@ -98,7 +112,7 @@ Then you can create multi-metric jobs and split the data or create more complex 
 You can accept the default settings for most settings now and <DocLink id="serverlessObservabilityAiopsTuneAnomalyDetectionJob" text="tune the job" /> later.
 1. If you want the job to start immediately when the job is created, make sure that option is selected on the summary page.
 1. When you're done, click **Create job**.
-When the job runs, the machine learning features analyze the input stream of data, model its behavior, and perform analysis based on the detectors in each job.
+When the job runs, the ((ml)) features analyze the input stream of data, model its behavior, and perform analysis based on the detectors in each job.
 When an event occurs outside of the baselines of normal behavior, that event is identified as an anomaly.
 1. After the job is started, click **View results**.
 
@@ -147,6 +161,7 @@ Note that the Single Metric Explorer icon will be grayed out for advanced or mul
 1. Notice that the model improves as it processes more data.
 At the beginning, the expected range of values is pretty broad, and the model is not capturing the periodicity in the data.
 But it quickly learns and begins to reflect the patterns in your data.
+The duration of the learning process heavily depends on the characteristics and complexity of the input data.
 1. Look for anomaly data points, depicted by colored dots or cross symbols, and hover over a data point to see more details about the anomaly.
 Note that anomalies with medium or high multi-bucket impact are depicted with a cross symbol instead of a dot.
     <DocCallOut title="How are anomaly scores calculated?">
@@ -196,8 +211,7 @@ As a best practice, do not pick too many influencers.
 For example, you generally do not need more than three.
 If you pick many influencers, the results can be overwhelming, and there is some overhead to the analysis.
 
-To learn more about influencers, refer to the [Machine Learning](((ml-docs))/ml-ad-influencers.html) documentation.
-Note that the Machine learning documentation may contain details that are not valid when using a fully-managed Elastic project.
+To learn more about influencers, refer to the [((ml))](((ml-docs))/ml-ad-influencers.html) documentation.
 
 </DocCallOut>
 
