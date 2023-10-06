@@ -2,16 +2,16 @@
 id: serverlessObservabilityStreamLogFiles
 slug: /serverless/observability/stream-log-files
 title: Stream and parse any log file
-# description: Description to be written
+description: Send a log file to Elasticsearch using the standalone ((agent)) and querying it in the Log Explorer.
 tags: [ 'serverless', 'observability', 'how-to' ]
-status: rough content
+status: in testing
 ---
 
 import Feedback from '../partials/feedback/widget.mdx'
 
-import RoughContent from '../partials/rough-content-notice.mdx'
+import Testing from '../partials/in-testing-notice.mdx'
 
-<RoughContent />
+<Testing />
 
 import DownloadWidget from '../transclusion/fleet/tab-widgets/download-widget.mdx'
 import RunStandaloneWidget from '../transclusion/fleet/tab-widgets/run-standalone-widget.mdx'
@@ -19,32 +19,64 @@ import AgentLocationWidget from '../transclusion/observability/tab-widgets/logs/
 import StopWidget from '../transclusion/fleet/tab-widgets/stop-widget.mdx'
 import StartWidget from '../transclusion/fleet/tab-widgets/start-widget.mdx'
 
-{/* TODO: Rewrite this to relfect the serverless data onboarding experience. */}
+In this guide, you'll learn how to send a log file to Elasticsearch using a standalone ((agent)), configure the ((agent)) and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up.
 
-<div id="logs-stream"></div>
+The quickest way to get started is to:
 
-In this guide, you'll learn how to send a log file to Elasticsearch using a standalone ((agent)), configure the ((agent)) and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up. Once your log files are in ((es)), see the <DocLink id="serverlessObservabilityStreamLogFiles" section="get-the-most-out-of-your-log-data">Get the most out of your log data</DocLink> section to learn how to parse your log data and extract fields so you can filter and sort your logs effectively.
+1. Open your Observability project. If you don't have one, <DocLink id="serverlessObservabilityCreateAnObservabilityProject" text="create an observability project"/>.
+1. Go to **Add data**.
+1. Under _Stream log files_, click **Get stated**.
 
-<div id="logs-stream-prereq"></div>
+This will kick off a set of guided instructions in your project. These instructions will walk you through how to
+configure the standalone ((agent)) and send log data to your project.
 
-{/* Prereqs removed because they are not relevant to serverless. */}
+## Configure inputs and integration
 
-## Prerequisites
+Enter a few configuration details in the guided instructions.
 
-Before you begin, make sure you have access to an Observability serverless project.
-<DocLink id="serverlessObservabilityCreateAnObservabilityProject" text="Create an observability project"/> if you don't already have one.
+{/* Do we want to include a screenshot or will it be too difficult to maintain? */}
+![Configure inputs and integration in the Stream log files guided instructions](../images/logs-stream-logs-config.png)
 
-<div id="logs-stream-install-config-agent"></div>
+**Configure inputs**
+
+* **Log file path**: The path to your log files.
+  You can also use a pattern like `/var/log/your-logs.log*`.
+  Click **Add row** to add more log file paths.
+  
+  This will be passed to the `paths` field in the generated `elastic-agent.yml` file in a future step.
+  <br />
+  
+* **Service name**: Provide a service name to allow for distributed services running on
+  multiple hosts to correlate the related instances.
+  
+  The service name will be used in the Log Explorer.
+  It will appear in the "All logs" dropdown menu.
+
+  <DocImage url="../images/logs-stream-logs-service-name.png" alt="All logs dropdown menu on the Log Explorer page" size="l" />
+
+{/* Advanced settings? */}
+
+**Configure integration**
+
+Elastic creates an integration to streamline connecting your log data to Elastic.
+
+* **Integration name**: Give your integration a name.
+  This is a unique identifier for your stream of log data that you can later use to filter data in the Log Explorer.
+  The value must be unique within your project, all lowercase, and max 100 chars. Special characters will be replaced with `_`.
+  
+  This will be passed to the `streams.id` field in the generated `elastic-agent.yml` file in a future step.
+  <br />
+
+* **Dataset name**: Give your integration's dataset a name.
+  The name for your dataset data stream. Name this data stream anything that signifies the source of the data.
+  The value must be all lowercase and max 100 chars. Special characters will be replaced with `_`.
+  
+  This will be passed to the `data_stream.dataset` field in the generated `elastic-agent.yml` file in a future step.
 
 ## Install and configure the standalone ((agent))
 
-Complete these steps to install and configure the standalone ((agent)) and send your log data to ((es)):
-
-1. <DocLink id="serverlessObservabilityStreamLogFiles" section="step-1-download-and-extract-the-((agent))-installation-package">Download and extract the ((agent)) installation package.</DocLink>
-1. <DocLink id="serverlessObservabilityStreamLogFiles" section="step-2-install-and-start-the-((agent))">Install and start the ((agent)).</DocLink>
-1. <DocLink id="serverlessObservabilityStreamLogFiles" section="step-3-configure-the-((agent))">Configure the ((agent)).</DocLink>
-
-<div id="logs-stream-extract-agent"></div>
+After configuring the inputs and integration, you'll continue in the guided instructions to
+install and configure the standalone ((agent)).
 
 ### Step 1: Download and extract the ((agent)) installation package
 
@@ -52,10 +84,10 @@ On your host, download and extract the installation package that corresponds wit
 
 <DownloadWidget />
 
-<div id="logs-stream-install-agent"></div>
-
 ### Step 2: Install and start the ((agent))
-After downloading and extracting the installation package, you're ready to install the ((agent)). From the agent directory, run the install command that corresponds with your system:
+
+After downloading and extracting the installation package, you're ready to install the ((agent)).
+From the agent directory, run the install command that corresponds with your system:
 
 <DocCallOut title="Note">
 On macOS, Linux (tar package), and Windows, run the `install` command to
@@ -66,18 +98,16 @@ systemd, For these systems, you must enable and start the service.
 
 <RunStandaloneWidget />
 
-During installation, you're prompted with some questions:
+<br />
+
+During installation, you'll be prompted with some questions:
 
 1. When asked if you want to install the agent as a service, enter `Y`. 
 1. When asked if you want to enroll the agent in Fleet, enter `n`.
 
-<div id="logs-stream-agent-config"></div>
-
 ### Step 3: Configure the ((agent))
 
-With your agent installed, configure it by updating the `elastic-agent.yml` file. 
-
-<div id="logs-stream-yml-location"></div>
+After your agent is installed, configure it by updating the `elastic-agent.yml` file. 
 
 #### Locate your configuration file
 
@@ -85,11 +115,107 @@ After installing the agent, you'll find the `elastic-agent.yml` in one of the fo
 
 <AgentLocationWidget />
 
-<div id="logs-stream-example-config"></div>
-
 #### Update your configuration file
 
-The following is an example of a standalone ((agent)) configuration. To configure your ((agent)), replace the contents of the `elastic-agent.yml` file with this configuration:
+If you're following the guided instructions, they will include an updated configuration file
+that you can download and use.
+The values you provided in <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-inputs-and-integration">Configure inputs and integration</DocLink> will be prepoulated in the generated configuration file.
+
+The generated configuration file will contain the following fields:
+
+<DocTable columns={[
+  { title: "Field", width: "25%" },
+  { title: "Value", width: "75%" }
+]}>
+  <DocRow>
+    <DocCell>`hosts`</DocCell>
+    <DocCell>
+      Copy the ((es)) endpoint from your project's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
+
+      If you're following the guided instructions in your project, 
+      the ((es)) endpoint will be prepopulated in the configuration file.
+
+      <DocCallOut title="Tip">
+      If you need to find your project's ((es)) endpoint outside the guided instructions:
+      
+      1. Go to the **Projects** page that lists all your projects.
+      1. Click **Manage** next to the project you want to connect to.
+      1. Click **View** next to _Endpoints_.
+      1. Copy the _Elasticsearch endpoint_.
+
+      <br />
+
+      ![Copy a project's Elasticsearch endpoint](../images/log-copy-es-endpoint.png)
+      </DocCallOut>
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>`api-key`</DocCell>
+    <DocCell>
+      Use an API key to grant the agent access to your project.
+      The API key format should be `<id>:<key>`.
+
+      If you're following the guided instructions in your project, an API key will be autogenerated
+      and will be prepopulated in the downloadable configuration file.
+
+      <div id="api-key-beats"></div>
+
+      <DocCallOut title="Important" color="warning">
+      Alternatively, you can create an API key by navigating to **Project settings -> Management -> API keys**
+      and clicking **Create API key**. If you create an API key this way, you _must_ make sure it's formatted to configure ((beats)).
+      
+      Immediately after the API key is generated and while it is still being displayed, you must click the
+      **Encoded** button next to the API key and select **Beats** from the list in the tooltip.
+      Base64 encoded API keys are not currently supported in this configuration.
+
+      ![](../images/logs-stream-logs-api-key-beats.png)
+      </DocCallOut>
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>`inputs.id`</DocCell>
+    <DocCell>
+      A unique identifier for your input.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>`type`</DocCell>
+    <DocCell>
+      The type of input. For collecting logs, set this to `filestream`.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>`streams.id`</DocCell>
+    <DocCell>
+      A unique identifier for your stream of log data.
+
+      If you're following the guided instructions in your project, this will be prepopulated with
+      the value you specified in <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-inputs-and-integration">Configure inputs and integration</DocLink>.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>`data_stream.dataset`</DocCell>
+    <DocCell>
+      The name for your dataset data stream. Name this data stream anything that signifies the source of the data.
+      The default value is `generic`.
+
+      If you're following the guided instructions in your project, this will be prepopulated with
+      the value you specified in <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-inputs-and-integration">Configure inputs and integration</DocLink>.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>`paths`</DocCell>
+    <DocCell>
+      The path to your log files. You can also use a pattern like `/var/log/your-logs.log*`.
+
+      If you're following the guided instructions in your project, this will be prepopulated with
+      the value you specified in <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-inputs-and-integration">Configure inputs and integration</DocLink>.
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+If you're not using the guided instructions, you can update the default configuration in `elastic-agent.yml` manually.
+It should look something like this:
 
 ```yaml
 outputs:
@@ -107,66 +233,34 @@ inputs:
           - /var/log/your-logs.log
 ```
 
-Next, set the values for these fields:
-
-- `hosts` – Copy the ((es)) endpoint from your deployment's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
-
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![((es)) endpoint and cluster id location, 50%](images/logs-stream/-observability-es-endpoint-cluster-id.png) */}
-
-- `api-key` – Use an API key to grant the agent access to ((es)). To create an API key for your agent, see [Create API keys for standalone agents](((fleet-guide))/grant-access-to-elasticsearch.html#create-api-key-standalone-agent).
-
-<DocCallOut title="Note">
-The API key format should be `<id>:<key>`. Make sure you selected **Beats** when you created your API key. Base64 encoded API keys are not currently supported in this configuration.
-- `inputs.id` – A unique identifier for your input.
-- `type` – The type of input. For collecting logs, set this to `filestream`.
-- `streams.id` – A unique identifier for your stream of log data. 
-- `data_stream.dataset` – The name for your dataset data stream. Name this data stream anything that signifies the source of the data. The default value is `generic`.
-- `paths` – The path to your log files. You can also use a pattern like `/var/log/your-logs.log*`.
-</DocCallOut>
-
-<div id="logs-stream-restart-agent"></div>
-
 #### Restart the ((agent))
 
-After updating your configuration file, you need to restart the ((agent)):
+After updating your configuration file, you need to restart the ((agent)).
 
 First, stop the ((agent)) and its related executables using the command that works with your system:
 
 <StopWidget />
 
+<br />
+
 Next, restart the ((agent)) using the command that works with your system:
 
 <StartWidget />
 
-<div id="logs-stream-query-datastreams"></div>
-
 ## View and search your data
 
-With your ((agent)) and data streams configured, you can now view, filter, and search your log data. In ((kib)), navigate to **Observability → Logs → Stream**, and use the search bar to search for your `data_stream.type` and `data_stream.dataset`. 
-
-See the following examples for ways to search specific data types and datasets:
-
-- `data_stream.type: logs` – shows `logs` data streams.
-- `data_stream.dataset: nginx.access` – shows data streams with an `nginx.access` dataset.
-
-This example shows the search results for logs with an `apm.error` dataset and a `default` namespace:
-
-<div style={{ backgroundColor: "#F1F4FA", width: "100%", height: "250px", textAlign: "center", paddingTop: "110px", marginBottom: "20px" }}><DocIcon type="image" title="missing image"/> missing image</div>
-{/* ![example search query on the logs stream page in ((kib))](images/logs-stream/-observability-stream-logs-example.png) */}
-
-<div id="logs-stream-troubleshooting"></div>
+With your ((agent)) and data streams configured, you can now view, filter, and search your log data.
+In your Observability project, go to the **Log Explorer**.
+Use the search bar to find your `data_stream.type` and `data_stream.dataset`. 
 
 ## Troubleshoot your ((agent)) configuration
 
-If you're not seeing your log files in ((kib)), verify the following in the `elastic-agent.yml` file:
+If you're not seeing your log files in your project, verify the following in the `elastic-agent.yml` file:
 
 - The path to your logs file under `paths` is correct.
-- Your API key is in `<id>:<key>` format. If not, your API key may be in an unsupported format, and you'll need to create an API key in **Beats** format. 
+- Your API key is in `<id>:<key>` format. If not, your API key may be in an unsupported format, and you'll need to create an API key in **Beats** format. Refer to [`api-key` in the table](#api-key-beats) above.
 
-If you're still running into issues, see [((agent)) troubleshooting](((fleet-guide))/fleet-troubleshooting.html) and [Configure standalone Elastic Agents](((fleet-guide))/elastic-agent-configuration.html).
-
-<div id="logs-stream-enhance-logs"></div>
+If you're still running into issues, refer to [((agent)) troubleshooting](((fleet-guide))/fleet-troubleshooting.html) and [Configure standalone Elastic Agents](((fleet-guide))/elastic-agent-configuration.html).
 
 ## Get the most out of your log data
 
@@ -178,9 +272,9 @@ Let's look at this log example:
 2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
 ```
 
-Add this log to ((es)) using the following command in **Dev Tools**, found in your deployment in the left navigation under **Management**:
+Add this log to ((es)) using the following command in **Developer Tools -> Console**:
 
-```console
+```shell
 POST logs-example-default/_doc
 {
   "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
@@ -189,13 +283,13 @@ POST logs-example-default/_doc
 
 The previous command stores the document in `logs-example-default`. Retrieve it with the following search:
 
-```console
+```shell
 GET /logs-example-default/_search
 ```
 
-You see something like this:
+You'll see something like this:
 
-```JSON
+```json
 {
   ...
   "hits": {
@@ -216,7 +310,7 @@ You see something like this:
 
 ((es)) indexes the `message` field by default meaning you can search for phrases like `WARN` or `Disk usage exceeds`. For example, the following command searches for the phrase `WARN` in the log `message` field:
 
-```console
+```shell
 GET logs-example-default/_search
 {
   "query": {
@@ -231,22 +325,20 @@ GET logs-example-default/_search
 
 While you can search for phrases in the `message` field, you can't use this field to filter log data. Your message, however, contains all of the following potential fields you can extract and use to filter and aggregate your log data:
 
-- **@timestamp** – `2023-08-08T13:45:12.123Z` – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
-- **log.level** – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
-- **host.ip** – `192.168.1.101` – Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
-- **message** – `Disk usage exceeds 90%.` – You can search for keywords in the message field.
+- `@timestamp` (`2023-08-08T13:45:12.123Z`): Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
+- `log.level` (`WARN`): Extracting this field lets you filter logs by severity. This is helpful if you want to focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
+- `host.ip` (`192.168.1.101`): Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you're having issues with or if you want to find disparities between hosts.
+- `message` (`Disk usage exceeds 90%.`): You can search for keywords in the message field.
 
 <DocCallOut title="Note">
 These fields are part of the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html). The ECS defines a common set of fields that you can use across Elasticsearch when storing data, including log and metric data.
 </DocCallOut>
 
-<div id="logs-stream-extract-timestamp"></div>
-
 ### Extract the `@timestamp` field
 
 When you ingested the document in the previous section, you'll notice the `@timestamp` field shows when you added the data to ((es)), not when the log occurred:
 
-```JSON
+```json
         ...
         "_source": {
           "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.",
@@ -264,8 +356,6 @@ To extract the timestamp, you need to:
 1. <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-your-data-stream-with-an-index-template">Configure your data stream with an index template</DocLink>
 1. <DocLink id="serverlessObservabilityStreamLogFiles" section="create-your-data-stream">Create your data stream</DocLink>
 
-<div id="logs-stream-ingest-pipeline"></div>
-
 #### Use an ingest pipeline to extract the `@timestamp`
 
 Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The [dissect processor](((ref))/dissect-processor.html) extracts structured fields from unstructured log messages based on a pattern you set. 
@@ -274,7 +364,7 @@ Ingest pipelines consist of a series of processors that perform common transform
 
 In the following command, the dissect processor extracts the timestamp from the `message` field to the `@timestamp` field and leaves the rest of the message in the `message` field:
 
-```console
+```shell
 PUT _ingest/pipeline/logs-example-default
 {
   "description": "Extracts the timestamp",
@@ -291,17 +381,15 @@ PUT _ingest/pipeline/logs-example-default
 
 The previous command sets the following values for your ingest pipeline:
 
-- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. See the [data stream naming scheme](((fleet-guide))/data-streams.html#data-streams-naming-scheme) for more information.
-- `field` – The field you're extracting data from, `message` in this case.
-- `pattern`– The pattern of the elements in your log data. The following pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern `%{timestamp} %{message}`.
-
-<div id="logs-stream-simulate-api"></div>
+- `_ingest/pipeline/logs-example-default`: The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. Refer to the [data stream naming scheme](((fleet-guide))/data-streams.html#data-streams-naming-scheme) for more information.
+- `field`: The field you're extracting data from, `message` in this case.
+- `pattern`: The pattern of the elements in your log data. The following pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern `%{timestamp} %{message}`.
 
 #### Test your pipeline with the simulate pipeline API
 
 The [simulate pipeline API](((ref))/simulate-pipeline-api.html#ingest-verbose-param) runs the ingest pipeline without storing any documents. This lets you verify your pipeline works using multiple documents. Run the following command to test your ingest pipeline with the simulate pipeline API.
 
-```console
+```shell
 POST _ingest/pipeline/logs-example-default/_simulate
 {
   "docs": [
@@ -316,7 +404,7 @@ POST _ingest/pipeline/logs-example-default/_simulate
 
 The results should show the `@timestamp` field extracted from the `message` field:
 
-```console
+```shell
 {
   "docs": [
     {
@@ -339,13 +427,11 @@ The results should show the `@timestamp` field extracted from the `message` fiel
 Make sure you've created the index pipeline using the `PUT` command in the previous section before using the simulate pipeline API.
 </DocCallOut>
 
-<div id="logs-stream-index-template"></div>
-
 #### Configure your data stream with an index template
 
 After creating your ingest pipeline, create an index template to point your log data to your pipeline using this command:
 
-```console
+```shell
 PUT _index_template/logs-example-default-template
 {
   "index_patterns": [ "logs-example-*" ],
@@ -368,31 +454,29 @@ PUT _index_template/logs-example-default-template
 
 The previous command sets the following values for your index template:
 
-- `index_patterns`– The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-default`. Data that matches this pattern will go through your pipeline.
-- `data_stream` – Enables data streams.
-- `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, ((es)) uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
-- `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
-- `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates that help when ingesting your data.
+- `index_patterns`: The index pattern needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-default`. Data that matches this pattern will go through your pipeline.
+- `data_stream`: Enables data streams.
+- `priority`: Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, ((es)) uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
+- `index.default_pipeline`: The name of your ingest pipeline. `logs-example-default` in this case.
+- `composed_of`: Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates that help when ingesting your data.
 
 The component templates that are set in the previous index template are defined as follows:
 
-- `logs-mappings` – general mappings for logs data streams that includes disabling automatic date detection from `string` fields and specifying mappings for [`data_stream` ECS fields](((ecs-ref))/ecs-data_stream.html).
-- `logs-settings` – Sets the general settings for logs data streams including the default lifecycle policy and default pipeline: 
+- `logs-mappings`: general mappings for logs data streams that includes disabling automatic date detection from `string` fields and specifying mappings for [`data_stream` ECS fields](((ecs-ref))/ecs-data_stream.html).
+- `logs-settings`: Sets the general settings for logs data streams including the default lifecycle policy and default pipeline: 
     * The default lifecycle policy rolls over when the primary shard reaches 50 GB or after 30 days.
     * The default pipeline:
         * Sets a `@timestamp` if there isn't one using the ingest timestamp.
         * Places a hook for the `logs@custom` pipeline. If a `logs@custom` pipeline is installed, it's applied to logs ingested into this data stream.
     * Sets the [`ignore_malformed`](((ref))/ignore-malformed.html) flag to `true`. If a field in the log document contains an incorrect value type and the field's mapping type supports this flag, the document is still processed.
-        - `logs@custom` – a predefined component template that is not installed by default. Use this name to install a custom component template if you wish to override or extend any of the default mappings or settings.
-        - `ecs@dynamic_templates` – dynamic templates that automatically ensure your data stream mappings comply with the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html).
-
-<div id="logs-stream-create-data-stream"></div>
+        - `logs@custom`: a predefined component template that is not installed by default. Use this name to install a custom component template if you wish to override or extend any of the default mappings or settings.
+        - `ecs@dynamic_templates`: dynamic templates that automatically ensure your data stream mappings comply with the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html).
 
 #### Create your data stream
 
 Create your data stream using the [data stream naming scheme](((fleet-guide))/data-streams.html#data-streams-naming-scheme). Since The name needs to match the name of your pipeline, name the data stream `logs-example-default`. Post the example log to your data stream with this command:
 
-```console
+```shell
 POST logs-example-default/_doc
 {
   "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
@@ -401,13 +485,13 @@ POST logs-example-default/_doc
 
 View your documents using this command:
 
-```console
+```shell
 GET /logs-example-default/_search
 ```
 
 You should see the pipeline has extracted the `@timestamp` field:
 
-```JSON
+```json
 {
 ...
 {
@@ -431,17 +515,13 @@ You should see the pipeline has extracted the `@timestamp` field:
 
 You can now use the `@timestamp` field to sort your logs by the date and time they happened.
 
-<div id="logs-stream-timestamp-troubleshooting"></div>
-
 #### Troubleshoot your `@timestamp` field
 
 Check the following common issues and solutions with timestamps:
 
-- **Timestamp failure** – If your data has inconsistent date formats, set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
-- **Incorrect timezone** – Set your timezone using the `timezone` option on the [date processor](((ref))/date-processor.html).
-- **Incorrect timestamp format** – Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the [mapping date format](((ref))/mapping-date-format.html) for more information on timestamp formats.
-
-<div id="logs-stream-extract-log-level"></div>
+- **Timestamp failure**: If your data has inconsistent date formats, set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
+- **Incorrect timezone**: Set your timezone using the `timezone` option on the [date processor](((ref))/date-processor.html).
+- **Incorrect timestamp format**: Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the [mapping date format](((ref))/mapping-date-format.html) for more information on timestamp formats.
 
 ### Extract the `log.level` field
 
@@ -457,13 +537,11 @@ To extract and use the `log.level` field:
 1. <DocLink id="serverlessObservabilityStreamLogFiles" section="test-the-pipeline-with-the-simulate-api">Test the pipeline with the simulate API.</DocLink>
 1. <DocLink id="serverlessObservabilityStreamLogFiles" section="query-logs-based-on-loglevel">Query your logs based on the `log.level` field.</DocLink>
 
-<div id="logs-stream-log-level-pipeline"></div>
-
 #### Add `log.level` to your ingest pipeline
 
 Add the `%{log.level}` option to the dissect processor pattern in the ingest pipeline you created in the <DocLink id="serverlessObservabilityStreamLogFiles" section="use-an-ingest-pipeline-to-extract-the-timestamp">Extract the `@timestamp` field</DocLink> section:
 
-```console
+```shell
 PUT _ingest/pipeline/logs-example-default
 {
   "description": "Extracts the timestamp and log level",
@@ -480,19 +558,17 @@ PUT _ingest/pipeline/logs-example-default
 
 Now your pipeline will extract these fields:
 
-- The `@timestamp` field – `2023-08-08T13:45:12.123Z`
-- The `log.level` field – `WARN`
-- The `message` field – `192.168.1.101 Disk usage exceeds 90%.`
+- The `@timestamp` field: `2023-08-08T13:45:12.123Z`
+- The `log.level` field: `WARN`
+- The `message` field: `192.168.1.101 Disk usage exceeds 90%.`
 
 After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-your-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
-
-<div id="logs-stream-log-level-simulate"></div>
 
 #### Test the pipeline with the simulate API
 
 Test that your ingest pipeline works as expected with the [simulate pipeline API](((ref))/simulate-pipeline-api.html#ingest-verbose-param):
 
-```console
+```shell
 POST _ingest/pipeline/logs-example-default/_simulate
 {
   "docs": [
@@ -507,7 +583,7 @@ POST _ingest/pipeline/logs-example-default/_simulate
 
 The results should show the `@timestamp` and the `log.level` fields extracted from the `message` field:
 
-```JSON
+```json
 {
   "docs": [
     {
@@ -529,8 +605,6 @@ The results should show the `@timestamp` and the `log.level` fields extracted fr
 }
 ```
 
-<div id="logs-stream-log-level-query"></div>
-
 #### Query logs based on `log.level`
 
 Once you've extracted the `log.level` field, you can query for high-severity logs like `WARN` and `ERROR`, which may need immediate attention, and filter out less critical `INFO` and `DEBUG` logs.
@@ -546,7 +620,7 @@ Let's say you have the following logs with varying severities:
 
 Add them to your data stream using this command:
 
-```console
+```shell
 POST logs-example-default/_bulk
 { "create": {} }
 { "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%." }
@@ -560,7 +634,7 @@ POST logs-example-default/_bulk
 
 Then, query for documents with a log level of `WARN` or `ERROR` with this command: 
 
-```console
+```shell
 GET logs-example-default/_search
 {
   "query": {
@@ -573,7 +647,7 @@ GET logs-example-default/_search
 
 You should see the following results showing only your high-severity logs:
 
-```JSON
+```json
 {
 ...
   },
@@ -609,8 +683,6 @@ You should see the following results showing only your high-severity logs:
 }
 ```
 
-<div id="logs-stream-extract-host-ip"></div>
-
 ### Extract the `host.ip` field
 
 Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you're having issues with or find disparities between hosts. 
@@ -632,13 +704,11 @@ To extract and use the `host.ip` field:
 1. <DocLink id="serverlessObservabilityStreamLogFiles" section="test-the-pipeline-with-the-simulate-api">Test the pipeline with the simulate API.</DocLink>
 1. <DocLink id="serverlessObservabilityStreamLogFiles" section="query-logs-based-on-hostip">Query your logs based on the `host.ip` field.</DocLink>
 
-<div id="logs-stream-host-ip-pipeline"></div>
-
 #### Add `host.ip` to your ingest pipeline
 
 Add the `%{host.ip}` option to the dissect processor pattern in the ingest pipeline you created in the <DocLink id="serverlessObservabilityStreamLogFiles" section="use-an-ingest-pipeline-to-extract-the-timestamp">Extract the `@timestamp` field</DocLink> section:
 
-```console
+```shell
 PUT _ingest/pipeline/logs-example-default
 {
   "description": "Extracts the timestamp log level and host ip",
@@ -655,20 +725,18 @@ PUT _ingest/pipeline/logs-example-default
 
 Your pipeline will extract these fields:
 
-- The `@timestamp` field – `2023-08-08T13:45:12.123Z`
-- The `log.level` field – `WARN`
-- The `host.ip` field – `192.168.1.101`
-- The `message` field – `Disk usage exceeds 90%.`
+- The `@timestamp` field: `2023-08-08T13:45:12.123Z`
+- The `log.level` field: `WARN`
+- The `host.ip` field: `192.168.1.101`
+- The `message` field: `Disk usage exceeds 90%.`
 
 After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-your-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
-
-<div id="logs-stream-host-ip-simulate"></div>
 
 #### Test the pipeline with the simulate API
 
 Test that your ingest pipeline works as expected with the [simulate pipeline API](((ref))/simulate-pipeline-api.html#ingest-verbose-param):
 
-```console
+```shell
 POST _ingest/pipeline/logs-example-default/_simulate
 {
   "docs": [
@@ -683,7 +751,7 @@ POST _ingest/pipeline/logs-example-default/_simulate
 
 The results should show the `host.ip`, `@timestamp`, and `log.level` fields extracted from the `message` field:
 
-```JSON
+```json
 {
   "docs": [
     {
@@ -706,15 +774,13 @@ The results should show the `host.ip`, `@timestamp`, and `log.level` fields extr
 }
 ```
 
-<div id="logs-stream-host-ip-query"></div>
-
 #### Query logs based on `host.ip`
 
 You can query your logs based on the `host.ip` field in different ways, including using CIDR notation and range queries. 
 
 Before querying your logs, add them to your data stream using this command:
 
-```console
+```
 POST logs-example-default/_bulk
 { "create": {} }
 { "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%." }
@@ -726,13 +792,11 @@ POST logs-example-default/_bulk
 { "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
 ```
 
-<div id="logs-stream-ip-cidr"></div>
-
 ##### CIDR notation 
 
 You can use [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation) to query your log data using a block of IP addresses that fall within a certain network segment. CIDR notations uses the format of `[IP address]/[prefix length]`. The following command queries IP addresses in the `192.168.1.0/24` subnet meaning IP addresses from `192.168.1.0` to `192.168.1.255`.
 
-```console
+```shell
 GET logs-example-default/_search
 {
   "query": {
@@ -745,7 +809,7 @@ GET logs-example-default/_search
 
 Because all of the example logs are in this range, you'll get the following results:
 
-```JSON
+```json
 {
   ...
   },
@@ -816,15 +880,13 @@ Because all of the example logs are in this range, you'll get the following resu
 }
 ```
 
-<div id="logs-stream-range-query"></div>
-
 ##### Range queries
 
 Use [range queries](((ref))/query-dsl-range-query.html) to query logs in a specific range. 
 
 The following command searches for IP addresses greater than or equal to `192.168.1.100` and less than or equal to `192.168.1.102`.
 
-```console
+```shell
 GET logs-example-default/_search
 {
   "query": {
@@ -840,7 +902,7 @@ GET logs-example-default/_search
 
 You'll get the following results matching the range you've set:
 
-```JSON
+```json
 {
   ...
   },
@@ -881,13 +943,11 @@ You'll get the following results matching the range you've set:
 }
 ```
 
-<div id="logs-stream-ip-ignore-malformed"></div>
-
 #### Ignore malformed IP addresses
 
 When you're ingesting a large batch of log data, a single malformed IP address can cause the entire batch to fail. Prevent this by setting `ignore_malformed` to `true` for the `host.ip` field. Update the `host.ip` field to ignore malformed IPs using the [update mapping API](((ref))/indices-put-mapping.html):
 
-```console
+```shell
 PUT /logs-example-default/_mapping
 {
   "properties": {
@@ -898,8 +958,6 @@ PUT /logs-example-default/_mapping
   }
 }
 ```
-
-<div id="logs-stream-reroute"></div>
 
 ## Reroute log data to specific data stream
 
@@ -925,13 +983,11 @@ To use a reroute processor:
 1. <DocLink id="serverlessObservabilityStreamLogFiles" section="add-logs-to-your-data-stream">Add the example logs to your data stream.</DocLink>
 1. <DocLink id="serverlessObservabilityStreamLogFiles" section="verify-that-the-reroute-processor-worked">Query your logs and verify the high-severity logs were routed to the new data stream.</DocLink>
 
-<div id="logs-stream-reroute-pipeline"></div>
-
 #### Add a reroute processor to your ingest pipeline
 
 Add a reroute processor to your ingest pipeline with the following command:
 
-```console
+```shell
 PUT _ingest/pipeline/logs-example-default
 {
   "description": "Extracts fields and reroutes WARN",
@@ -953,19 +1009,17 @@ PUT _ingest/pipeline/logs-example-default
 
 The previous command sets the following values for your reroute processor:
 
-- `tag` – Identifier for the processor that you can use for debugging and metrics. In the example, the tag is set to `high_severity_logs`.
-- `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
-- `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
+- `tag`: Identifier for the processor that you can use for debugging and metrics. In the example, the tag is set to `high_severity_logs`.
+- `if`: Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
+- `dataset`: the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
 After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-your-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
-
-<div id="logs-stream-reroute-add-logs"></div>
 
 #### Add logs to your data stream
 
 Add the example logs to your data stream with this command:
 
-```console
+```
 POST logs-example-default/_bulk
 { "create": {} }
 { "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%." }
@@ -977,19 +1031,17 @@ POST logs-example-default/_bulk
 { "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
 ```
 
-<div id="logs-stream-reroute-verify"></div>
-
 #### Verify that the reroute processor worked
 
-The reroute processor should route any logs with a `log.level` of `WARN` or `ERROR` to the `logs-critical-default` data stream. Query the the data stream using the following command to verify the log data was routed as intended:
+The reroute processor should route any logs with a `log.level` of `WARN` or `ERROR` to the `logs-critical-default` data stream. Query the data stream using the following command to verify the log data was routed as intended:
 
-```console
+```shell
 GET log-critical-default/_search
 ```
 
 Your query should return similar results to the following:
 
-```JSON
+```json
 {
   ...
   "hits": {
