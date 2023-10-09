@@ -1,34 +1,16 @@
 
+**Are the URL, API key, and SSL configuration correct?**
 
-**Is ((agent)) healthy?**
+Double check that the intake URL, API key, and SSL configuration are correct in your APM agent configuration.
+Reference the relevant [((apm-agent)) documentation](((apm-agents-ref))/index.html) for details on how to set these configuration variables.
 
-In ((kib)) open **((fleet))** and find the host that is running the APM integration;
-confirm that its status is **Healthy**.
-If it isn't, check the ((agent)) logs to diagnose potential causes.
-See [Monitor ((agent))s](((fleet-guide))/monitor-elastic-agent.html) to learn more.
+To create a new API key, see <DocLink id="serverlessObservabilityApmKeepDataSecure" section="create-a-new-api-key" text="Create a new API key" />.
 
-**Is APM Server happy?**
+If you see requests coming through the managed intake service but they are not accepted (a response code other than `202`),
+see <DocLink id="serverlessObservabilityApmTroubleshooting" section="common-repsonse-codes">managed intake service response codes</DocLink> to narrow down the possible causes.
 
-In ((kib)), open **((fleet))** and select the host that is running the APM integration.
-Open the **Logs** tab and select the `elastic_agent.apm_server` dataset.
-Look for any APM Server errors that could help diagnose the problem.
-
-**Can the ((apm-agent)) connect to APM Server**
-
-To determine if the ((apm-agent)) can connect to the APM Server, send requests to the instrumented service and look for lines
-containing `[request]` in the APM Server logs.
-
-If no requests are logged, confirm that:
-
-1. SSL isn't <DocLink id="serverlessObservabilityApmTroubleshooting" section="ssl-client-fails-to-connect">misconfigured</DocLink>.
-1. The host is correct. For example, if you're using Docker, ensure a bind to the right interface (for example, set
-    `apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the ((apm-agent)) accordingly.
-
-If you see requests coming through the APM Server but they are not accepted (a response code other than `202`),
-see <DocLink id="serverlessObservabilityApmTroubleshooting">APM Server response codes</DocLink> to narrow down the possible causes.
-
-**Instrumentation gaps**
+**Are there instrumentation gaps?**
 
 APM agents provide auto-instrumentation for many popular frameworks and libraries.
-If the ((apm-agent)) is not auto-instrumenting something that you were expecting, data won't be sent to the ((stack)).
+If the ((apm-agent)) is not auto-instrumenting something that you were expecting, data won't be sent to Elastic.
 Reference the relevant [((apm-agent)) documentation](((apm-agents-ref))/index.html) for details on what is automatically instrumented.
