@@ -7,15 +7,13 @@ tags: [ 'serverless', 'observability', 'how-to', 'alerting' ]
 status: in testing
 ---
 
-import Actions from '../transclusion/alerting/actions.mdx'
-
 import Feedback from '../partials/feedback/widget.mdx'
 
 import Testing from '../partials/in-testing-notice.mdx'
 
 <Testing />
 
-You can create a failed transaction rate threshold rule to alert you when the rate of transaction errors in a service exceeds a defined threshold. Threshold rules can be set at different levels: environment, service, transaction type, and/or transaction name. Add actions to raise alerts via services or third-party integrations e.g. mail, Slack, Jira.
+You can create a failed transaction rate threshold rule to alert you when the rate of transaction errors in a service exceeds a defined threshold. Threshold rules can be set at different levels: environment, service, transaction type, and/or transaction name. Add actions to raise alerts via services or third-party integrations e.g. mail, Slack, Jira.  
 
 ![Create rule for failed transaction rate threshold alert](../images/alerts-create-rule-failed-transaction-rate.png)
 
@@ -35,21 +33,49 @@ To create your failed transaction rate threshold rule:
 1. **Save** your rule.
 
 <DocCallOut title="Tip">
-You can also create a failed transaction rate threshold rule directly from any page within **Applications**. Click the **Alerts and rules** button, and select **Create threshold rule** and then **Failed transaction rate**. When you create a rule this way, the **Name** and **Tags** fields will be pre-populated but you can still change these.
+You can also create a failed transaction rate threshold rule directly from any page within **Applications**. Click the **Alerts and rules** button, and select **Create threshold rule** and then **Failed transaction rate**. When you create a rule this way, the **Name** and **Tags** fields will be pre-populated but you can still change these. 
 </DocCallOut>
 
 {/* Placeholder link for connectors for now  */}
 
 <div id="action-types-slo"></div>
 
-<Actions />
+## Actions
+
+You can extend your rules by connecting them to **Actions** that use the following supported built-in integrations.
+
+<DocAccordion buttonContent="Action types">
+Actions are services or integrations with third-party systems that run as background tasks when rule conditions are met.
+
+![Rule connectors](../images/alert-action-types.png)   
+</DocAccordion>
+
+<DocAccordion buttonContent="Action frequency">
+After you select a connector, you must set the action frequency. You can choose to create a **Summary of alerts** on each check interval or on a custom interval. For example, you can send email notifications that summarize the new, ongoing, and recovered alerts every twelve hours.
+
+Alternatively, you can set the action frequency to **For each alert** and specify the conditions each alert must meet for the action to run. For example, you can send an email only when the alert status changes to critical.
+
+![Configure when a rule is triggered](../images/slo-action-frequency.png)
+</DocAccordion>
+
+<DocAccordion buttonContent="Action variables">
+Use the default notification message or customize it.
+You can add more context to the message by clicking the icon above the message text box
+and selecting from a list of available variables.
+
+![Action variables with default SLO message](../images/slo-action-variables.png)
+</DocAccordion>
+
+<DocCallOut title="Note">
+You can add an action to a rule at any time. You can create rules without adding actions, and you can also define multiple actions for a single rule. To add actions to rules, you must first create a connector for that service (e.g. email, external incident management system), which you can then use for different rules, each with their own action frequency. For more information on creating connectors, refer to <DocLink id="serverlessObservabilitySendCasesToAnExternalSystem">Send cases to an external system</DocLink>.
+</DocCallOut>
 
 <div id="create-failed-transaction-rate-threshold-example"></div>
 ## Example
 
-The failed transaction rate threshold alert triggers when the number of transaction errors in a service exceeds a defined threshold.
+The failed transaction rate threshold alert triggers when the number of transaction errors in a service exceeds a defined threshold. 
 
-Before continuing, identify the service name, environment name, and transaction type that you’d like to create a failed transaction rate threshold rule for.
+Before continuing, identify the service name, environment name, and transaction type that you’d like to create a failed transaction rate threshold rule for. 
 
 This guide will create an alert for an error group ID based on the following criteria:
 
@@ -80,3 +106,5 @@ A default message is provided as a starting point for your alert. You can use th
 Select **Save**. The alert has been created and is now active!
 
 <Feedback slug="/serverless/observability/create-slo-burn-rate-alert-rule" filepath="docs/slos/create-slo-burn-rate-alert-rule.mdx" />
+
+
