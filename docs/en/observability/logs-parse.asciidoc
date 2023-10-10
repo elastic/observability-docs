@@ -1,18 +1,18 @@
 [[logs-parse-filter]]
-= Parse and explore logs
+= Parse and organize logs
 
-Parsing your log data takes unstructured or semi-structured logs and breaks them into meaningful fields. You can use those fields to explore and analyze your data. For example, you can find logs in a specific timestamp range or filter logs by log level to focus on potential issues. 
+Parse your log data to take unstructured or semi-structured logs and break them into meaningful fields. You can use those fields to explore and analyze your data. For example, you can find logs within a specific timestamp range or filter logs by log level to focus on potential issues. 
 
-See the following sections for more on parsing and exploring your logs:
+After parsing, you can use the structured fields to further organize your logs by configuring a reroute processor to send specific logs to different target data streams.
 
-* <<logs-stream-parse>> – extracting structured fields from your unstructured log data.
-* <<logs-stream-reroute>> – route data from the generic data stream to a target data stream
-* <<logs-filter>> – Filter your data to focus on logs that meet specific criteria
-* <<logs-aggregate>> – Analyze and summarize your log data to find patterns and gain insight.
+See the following sections for more on parsing and organizing your log data:
+
+* <<logs-stream-parse>> – Extract structured fields like timestamps, log levels, or IP addresses to make querying and filtering your data easier.
+* <<logs-stream-reroute>> – Route data from the generic data stream to a target data stream for more granular control over data retention, permissions, and processing.
 
 [discrete]
 [[logs-stream-parse]]
-= Parse logs
+= Extract structured fields
 
 Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data. 
 
@@ -91,7 +91,7 @@ NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common S
 [[logs-stream-extract-timestamp]]
 == Extract the `@timestamp` field
 
-When you iadded the document to {es} in the previous section, {es} added the `@timestamp` field showing when the log was added, while the timestamp showing when the log occurred was in the unstructured `message` field:
+When you added the document to {es} in the previous section, {es} added the `@timestamp` field showing when the log was added, while the timestamp showing when the log occurred was in the unstructured `message` field:
 
 [source,JSON]
 ----
@@ -106,8 +106,7 @@ When you iadded the document to {es} in the previous section, {es} added the `@t
 <2> The timestamp in the `@timestamp` field shows when the log was added to {es}.
 
 When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to {es}. 
-To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field.
-To extract the timestamp, you need to:
+To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field by completing the following:
 
 . <<logs-stream-ingest-pipeline>>
 . <<logs-stream-simulate-api>>
@@ -370,7 +369,7 @@ The results should show the `@timestamp` and the `log.level` fields extracted fr
         "_source": {
           "message": "192.168.1.101 Disk usage exceeds 90%.",
           "log": {
-            "level": "WARN"<1>
+            "level": "WARN"
           },
           "@timestamp": "2023-8-08T13:45:12.123Z",
         },
@@ -380,7 +379,6 @@ The results should show the `@timestamp` and the `log.level` fields extracted fr
   ]
 }
 ----
-<1> The extracted `log.level` field.
 
 [discrete]
 [[logs-stream-log-level-query]]
@@ -552,7 +550,7 @@ The results should show the `host.ip`, `@timestamp`, and `log.level` fields extr
         ...
         "_source": {
           "host": {
-            "ip": "192.168.1.101"<1>
+            "ip": "192.168.1.101"
           },
           "@timestamp": "2023-08-08T13:45:12.123Z",
           "message": "Disk usage exceeds 90%.",
@@ -566,7 +564,6 @@ The results should show the `host.ip`, `@timestamp`, and `log.level` fields extr
   ]
 }
 ----
-<1> The extracted `host.ip` field.
 
 [discrete]
 [[logs-stream-host-ip-query]]
@@ -752,7 +749,7 @@ You'll get the following results only showing logs in the range you've set:
 
 [discrete]
 [[logs-stream-reroute]]
-= Reroute log data to specific data stream
+= Reroute log data to specific data streams
 
 By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization. 
 
@@ -765,6 +762,8 @@ This section shows you how to use a reroute processor to send the high-severity 
 2023-08-08T13:45:15.004Z DEBUG 192.168.1.104 Debugging connection issue.
 2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture.
 ----
+
+NOTE: When routing data to different data streams, we recommend picking a field with a limited number of distinct values to prevent an excessive increase in the number of data streams. For more details see {ref}/size-your-shards.html[Size your shards].
 
 To use a reroute processor:
 
@@ -880,193 +879,3 @@ Your should see similar results to the following showing that the high-severity 
   }
 }
 ----
-
-[discrete]
-[[logs-filter-and-aggregate]]
-= Filter and aggregate logs
-
-After sending log data to {es} and <<logs-stream-parse, extracting structured fields>>, filtering and aggregating your data helps you find specific information, gain insight, and monitor your systems more efficiently. 
-
-* <<logs-filter>> — Narrow down your log data by applying specific criteria.
-* <<logs-aggregate>> — Analyze and summarize data to find patterns and gain insight.
-
-[discrete]
-[[logs-filter]]
-== Filter logs
-
-Filtering your data using the fields you've extracted lets you focus on logs that meet specific criteria, such as log levels, timestamp ranges, or host IPs. 
-
-Log Explorer is a {kib} tool that automatically provides views of your log data based on integrations and data streams. Using the {kibana-ref}/kuery-query.html[{kib} Query Language (KQL)], you further narrow down your log data to find the data you're looking for. *Logs Explorer* is found in the Observability menu under *Logs*.
-
-{kibana-ref}/kuery-query.html[KQL] is a simple text-based query language for filtering data. Use KQL in the Logs Explorer search bar to filter your log data. 
-
-Let's look into an event that occurred within a specific time range (between September 14th and 15th).
-
-Before setting your filters, use Dev Tools to add some logs with varying timestamps and log levels to your data stream with the following command:
-
-[source,console]
-----
-POST logs-example-default/_bulk
-{ "create": {} }
-{ "message": "2023-09-15T08:15:20.234Z WARN 192.168.1.101 Disk usage exceeds 90%." }
-{ "create": {} }
-{ "message": "2023-09-14T10:30:45.789Z ERROR 192.168.1.102 Critical system failure detected." }
-{ "create": {} }
-{ "message": "2023-09-10T14:20:45.789Z ERROR 192.168.1.105 Database connection lost." }
-{ "create": {} }
-{ "message": "2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated." }
-----
-
-From Logs Explorer, add the following query in the search bar to filter for logs with within your timestamp range with log levels of `WARN` and `ERROR`:
-
-[source,text]
-----
-@timestamp >= "2023-09-14T00:00:00" and @timestamp <= "2023-09-15T23:59:59" and log.level : "ERROR" or  log.level : "WARN"
-----
-
-Under the *Documents* tab, you'll see the filtered log data matching your query. 
-
-[role="screenshot"]
-image::images/logs-kql-filter.png[Filter data by log level using KQL]
-
-Make sure your logs fall within the time range in Logs Explorer. If you don't see your logs, update the time range by clicking the image:images/time-filter-icon.png[calendar icon, width=36px].
-
-For more on using Logs Explorer, see the {kibana-ref}/discover.html[Discover] documentation.
-
-[discrete]
-[[logs-aggregate]]
-== Aggregate logs
-Use aggregation to analyze and summarize your log data to find patterns and gain insight. {ref}/search-aggregations-bucket.html[Bucket aggregations] organize log data into meaningful groups making it easier to identify patterns, trends, and anomalies within your logs. 
-
-For example, you might want to understand error distribution by analyzing the count of logs per log level.
-Start by adding some logs with varying log levels to your data stream using the following command:
-
-[source,console]
-----
-POST logs-example-default/_bulk
-{ "create": {} }
-{ "message": "2023-09-15T08:15:20.234Z WARN 192.168.1.101 Disk usage exceeds 90%." }
-{ "create": {} }
-{ "message": "2023-09-14T10:30:45.789Z ERROR 192.168.1.102 Critical system failure detected." }
-{ "create": {} }
-{ "message": "2023-09-15T12:45:55.123Z INFO 192.168.1.103 Application successfully started." }
-{ "create": {} }
-{ "message": "2023-09-14T15:20:10.789Z WARN 192.168.1.104 Network latency exceeding threshold." }
-{ "create": {} }
-{ "message": "2023-09-10T14:20:45.789Z ERROR 192.168.1.105 Database connection lost." }
-{ "create": {} }
-{ "message": "2023-09-20T09:40:32.345Z INFO 192.168.1.106 User logout initiated." }
-{ "create": {} }
-{ "message": "2023-09-21T15:20:55.678Z DEBUG 192.168.1.102 Database connection established." }
-----
-
-Next, run this command to aggregate your log data using the `log.level` field:
-
-[source,console]
-----
-POST logs-example-default/_search?size=0&filter_path=aggregations
-{
-"size": 0,
-"aggs": {
-    "log_level_distribution": {
-      "terms": {
-        "field": "log.level"
-      }
-    }
-  }
-}
-----
-
-NOTE: Searches with an aggregation return both the query results and the aggregation, so you would see the logs matching the data and the aggregation. Setting `size` to `0`, as in the previous example, limits the results to aggregations.
-
-The results should show the number of logs in each log level:
-
-[source,JSON]
-----
-{
-  "aggregations": {
-    "error_distribution": {
-      "doc_count_error_upper_bound": 0,
-      "sum_other_doc_count": 0,
-      "buckets": [
-        {
-          "key": "ERROR",
-          "doc_count": 2
-        },
-        {
-          "key": "INFO",
-          "doc_count": 2
-        },
-        {
-          "key": "WARN",
-          "doc_count": 2
-        },
-        {
-          "key": "DEBUG",
-          "doc_count": 1
-        }
-      ]
-    }
-  }
-}
-----
-
-You can also combine aggregations and queries. For example, you might want to limit the scope of the previous aggregation by adding a range query:
-
-[source,console]
-----
-GET /logs-example-default/_search
-{
-  "size": 0,
-  "query": {
-    "range": {
-      "@timestamp": {
-        "gte": "2023-09-14T00:00:00",
-        "lte": "2023-09-15T23:59:59"
-      }
-    }
-  },
-  "aggs": {
-    "my-agg-name": {
-      "terms": {
-        "field": "log.level"
-      }
-    }
-  }
-}
-----
-
-The results should show an aggregate of logs that occurred within your timestamp range:
-
-[source,JSON]
-----
-{
-  ...
-  "hits": {
-    ...
-    "hits": []
-  },
-  "aggregations": {
-    "my-agg-name": {
-      "doc_count_error_upper_bound": 0,
-      "sum_other_doc_count": 0,
-      "buckets": [
-        {
-          "key": "WARN",
-          "doc_count": 2
-        },
-        {
-          "key": "ERROR",
-          "doc_count": 1
-        },
-        {
-          "key": "INFO",
-          "doc_count": 1
-        }
-      ]
-    }
-  }
-}
-----
-
-For more on aggregation types and available aggregations, see the {ref}/search-aggregations.html[Aggregations] documentation.
