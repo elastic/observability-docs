@@ -1,11 +1,11 @@
-[[logs-parse-filter]]
+[[logs-parse]]
 = Parse and organize logs
 
-Parse your log data to take unstructured or semi-structured logs and break them into meaningful fields. You can use those fields to explore and analyze your data. For example, you can find logs within a specific timestamp range or filter logs by log level to focus on potential issues. 
+If your log data is unstructured or semi-structured, you can parse it and break it into meaningful fields. You can use those fields to explore and analyze your data. For example, you can find logs within a specific timestamp range or filter logs by log level to focus on potential issues. 
 
 After parsing, you can use the structured fields to further organize your logs by configuring a reroute processor to send specific logs to different target data streams.
 
-See the following sections for more on parsing and organizing your log data:
+Refer to the following sections for more on parsing and organizing your log data:
 
 * <<logs-stream-parse>> – Extract structured fields like timestamps, log levels, or IP addresses to make querying and filtering your data easier.
 * <<logs-stream-reroute>> – Route data from the generic data stream to a target data stream for more granular control over data retention, permissions, and processing.
@@ -16,15 +16,18 @@ See the following sections for more on parsing and organizing your log data:
 
 Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data. 
 
-Let's look at this log example:
+Follow the steps below to see how the following unstructured log data is indexed by default:
 
 [source,log]
 ----
 2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%.
 ----
 
-From *Dev Tools* found in the {kib} navigation menu under *Management*, add the example log to {es} using the following command:
+Start by storing the document in the `logs-example-default` data stream:
 
+. In {kib}, go to *Management* -> *Dev Tools*.
+. In the *Console* tab, add the example log to {es} using the following command:
++
 [source,console]
 ----
 POST logs-example-default/_doc
@@ -32,9 +35,8 @@ POST logs-example-default/_doc
   "message": "2023-08-08T13:45:12.123Z WARN 192.168.1.101 Disk usage exceeds 90%."
 }
 ----
-
-The previous command stores the document in the `logs-example-default` data stream. Retrieve it with the following search:
-
+. Then, you can retrieve the document with the following search:
++
 [source,console]
 ----
 GET /logs-example-default/_search
@@ -62,7 +64,7 @@ The results should look like this:
 }
 ----
 
-{es} indexes the `message` field by default and adds a `@timestamp` field. Since there was no timestamp set, it's set to `now`. At this point, you can search for phrases in the `message` field like `WARN` or `Disk usage exceeds`. For example, the following command searches for the phrase `WARN` in the log `message` field:
+{es} indexes the `message` field by default and adds a `@timestamp` field. Since there was no timestamp set, it's set to `now`. At this point, you can search for phrases in the `message` field like `WARN` or `Disk usage exceeds`. For example, use the following command to search for the phrase `WARN` in the log's `message` field:
 
 [source,console]
 ----
@@ -119,7 +121,7 @@ To do this, extract the timestamp from the unstructured `message` field to the s
 
 Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The {ref}/dissect-processor.html[dissect processor] extracts structured fields from unstructured log messages based on a pattern you set. 
 
-{es} can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. Since the log example's timestamp is in one of these formats, you don't need additional processors. More complex or nonstandard timestamps require a {ref}/date-processor.html[date processor] to parse the timestamp into a date field. Date processors can also set the timezone, change the target field, and change the output format of the timestamp.
+{es} can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. Since the log example's timestamp is in one of these formats, you don't need additional processors. More complex or nonstandard timestamps require a {ref}/date-processor.html[date processor] to parse the timestamp into a date field.
 
 In the following command, the dissect processor extracts the timestamp from the `message` field to the `@timestamp` field and leaves the rest of the message in the `message` field:
 
@@ -138,7 +140,7 @@ PUT _ingest/pipeline/logs-example-default<1>
   ]
 }
 ----
-<1> The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. See the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme] for more information.
+<1> The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. For more information, refer to the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme].
 <2> The field you're extracting data from, `message` in this case.
 <3> The pattern of the elements in your log data. The `%{@timestamp} %{message}` pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern.
 
@@ -213,18 +215,18 @@ PUT _index_template/logs-example-default-template
   "ignore_missing_component_templates": ["logs@custom"],
 }
 ----
-<1> The `index_pattern` needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
+<1> `index_pattern` – Needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
 <2> `data_stream` – Enables data streams.
 <3> `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, {es} uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
 <4> `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
 <5> `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
 
-The index template sets the following component templates:
+The example template above sets the following component templates:
 
 - `logs-mappings` – general mappings for log data streams that include disabling automatic date detection from `string` fields and specifying mappings for {ecs-ref}/ecs-data_stream.html[`data_stream` ECS fields].
 - `logs-settings` – general settings for log data streams including the following: 
 ** The default lifecycle policy that rolls over when the primary shard reaches 50 GB or after 30 days.
-** The default pipeline that sets a `@timestamp` if there isn't one using the ingest timestamp and places a hook for the `logs@custom` pipeline. If a `logs@custom` pipeline is installed, it's applied to logs ingested into this data stream.
+** The default pipeline uses the ingest timestamp if there is no specified `@timestamp` and places a hook for the `logs@custom` pipeline. If a `logs@custom` pipeline is installed, it's applied to logs ingested into this data stream.
 ** Sets the {ref}/ignore-malformed.html[`ignore_malformed`] flag to `true`. When ingesting a large batch of log data, a single malformed field like an IP address can cause the entire batch to fail. When set to true, malformed fields with a mapping type that supports this flag are still processed.
 - `logs@custom` – a predefined component template that is not installed by default. Use this name to install a custom component template to override or extend any of the default mappings or settings.
 - `ecs@dynamic_templates` – dynamic templates that automatically ensure your data stream mappings comply with the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)].
@@ -286,7 +288,7 @@ Check the following common issues and solutions with timestamps:
 
 - *Timestamp failure* – If your data has inconsistent date formats, set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
 - *Incorrect timezone* – Set your timezone using the `timezone` option on the {ref}/date-processor.html[date processor].
-- *Incorrect timestamp format* – Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. See the {ref}/mapping-date-format.html[mapping date format] for more information on timestamp formats.
+- *Incorrect timestamp format* – Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. For more information on timestamp formats, refer to the {ref}/mapping-date-format.html[mapping date format].
 
 [discrete]
 [[logs-stream-extract-log-level]]
@@ -470,7 +472,7 @@ The results should show only the high-severity logs:
 
 Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you're having issues with or find disparities between hosts. 
 
-The `host.ip` field is part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. Through the ECS, the `host.ip` field is mapped as an {ref}/ip.html[`ip` field type]. `ip` field types allow range queries so you can find logs with IP addresses in a specific range. You can also query `ip` field types using CIDR notation to find logs from a particular network or subnet.
+The `host.ip` field is part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. Through the ECS, the `host.ip` field is mapped as an {ref}/ip.html[`ip` field type]. `ip` field types allow range queries so you can find logs with IP addresses in a specific range. You can also query `ip` field types using Classless Inter-Domain Routing (CIDR) notation to find logs from a particular network or subnet.
 
 This section shows you how to extract the `host.ip` field from the following example logs and query based on the extracted fields:
 
@@ -763,7 +765,7 @@ This section shows you how to use a reroute processor to send the high-severity 
 2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture.
 ----
 
-NOTE: When routing data to different data streams, we recommend picking a field with a limited number of distinct values to prevent an excessive increase in the number of data streams. For more details see {ref}/size-your-shards.html[Size your shards].
+NOTE: When routing data to different data streams, we recommend picking a field with a limited number of distinct values to prevent an excessive increase in the number of data streams. For more details, refer to the {ref}/size-your-shards.html[Size your shards] documentation.
 
 To use a reroute processor:
 
