@@ -110,7 +110,7 @@ When you added the document to ((es)) in the previous section, ((es)) added the 
         ...
 ```
 [^1]: The timestamp in the `message` field shows when the log occurred.
-[^2]: The timestamp in the `@timestamp` field shows when the log was added to ((es)).
+[^2]: The timestamp in the `@timestamp` field shows when the log was added to Elasticsearch.
 
 When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to ((es)). 
 To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field by completing the following:
@@ -129,22 +129,25 @@ Ingest pipelines consist of a series of processors that perform common transform
 In the following command, the dissect processor extracts the timestamp from the `message` field to the `@timestamp` field and leaves the rest of the message in the `message` field:
 
 ```console
-PUT _ingest/pipeline/logs-example-default [^1]
+PUT _ingest/pipeline/logs-example-default
 {
   "description": "Extracts the timestamp",
   "processors": [
     {
       "dissect": {
-        "field": "message", [^2]
-        "pattern": "%{@timestamp} %{message}" [^3]
+        "field": "message",
+        "pattern": "%{@timestamp} %{message}"
       }
     }
   ]
 }
 ```
-[^1]: The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. For more information, refer to the [data stream naming scheme](((fleet-guide))/data-streams.html#data-streams-naming-scheme).
-[^2]: The field you're extracting data from, `message` in this case.
-[^3]: The pattern of the elements in your log data. The `%{@timestamp} %{message}` pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern.
+
+The previous command sets the following values for your ingest pipeline:
+
+- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. For more information, refer to the [data stream naming scheme](((fleet-guide))/data-streams.html#data-streams-naming-scheme).
+- `field` – The field you're extracting data from, `message` in this case.
+- `pattern` – The pattern of the elements in your log data. The `%{@timestamp} %{message}` pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern.
 
 #### Test the pipeline with the simulate pipeline API
 
@@ -195,15 +198,15 @@ After creating your ingest pipeline, create an index template to configure your 
 ```console
 PUT _index_template/logs-example-default-template
 {
-  "index_patterns": [ "logs-example-*" ], [^1]
-  "data_stream": { }, [^2]
-  "priority": 500, [^3]
+  "index_patterns": [ "logs-example-*" ],
+  "data_stream": { },
+  "priority": 500,
   "template": {
     "settings": {
-      "index.default_pipeline":"logs-example-default" [^4]
+      "index.default_pipeline":"logs-example-default"
     }
   },
-  "composed_of": [ [^5]
+  "composed_of": [
     "logs-mappings",
     "logs-settings",
     "logs@custom",
@@ -212,11 +215,14 @@ PUT _index_template/logs-example-default-template
   "ignore_missing_component_templates": ["logs@custom"],
 }
 ```
-[^1]: `index_pattern` – Needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
-[^2]: `data_stream` – Enables data streams.
-[^3]: `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, ((es)) uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
-[^4]: `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
-[^5]: `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
+
+The previous command sets the following values for your index template:
+
+- `index_pattern` – Needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
+- `data_stream` – Enables data streams.
+- `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, ((es)) uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
+- `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
+- `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
 
 The example template above sets the following component templates:
 
@@ -740,17 +746,20 @@ PUT _ingest/pipeline/logs-example-default
         "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}"
       },
       "reroute": {
-        "tag": "high_severity_logs", [^1]
-        "if" : "ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'", [^2]
-        "dataset": "critical" [^3]
+        "tag": "high_severity_logs",
+        "if" : "ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",
+        "dataset": "critical"
       }
     }
   ]
 }
 ```
-[^1]: `tag` – Identifier for the processor that you can use for debugging and metrics. In the example, the tag is set to `high_severity_logs`.
-[^2]: `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
-[^3]: `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
+
+The previous command sets the following values for your reroute processor:
+
+- `tag` – Identifier for the processor that you can use for debugging and metrics. In the example, the tag is set to `high_severity_logs`.
+- `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
+- `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
 After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
 
