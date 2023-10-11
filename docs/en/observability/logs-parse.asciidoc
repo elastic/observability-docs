@@ -93,7 +93,7 @@ NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common S
 [[logs-stream-extract-timestamp]]
 == Extract the `@timestamp` field
 
-When you added the document to {es} in the previous section, {es} added the `@timestamp` field showing when the log was added, while the timestamp showing when the log occurred was in the unstructured `message` field:
+When you added the log to {es} in the previous section, the `@timestamp` field was added showing when the log was added, while the timestamp showing when the log occurred was in the unstructured `message` field:
 
 [source,JSON]
 ----
@@ -107,8 +107,8 @@ When you added the document to {es} in the previous section, {es} added the `@ti
 <1> The timestamp in the `message` field shows when the log occurred.
 <2> The timestamp in the `@timestamp` field shows when the log was added to {es}.
 
-When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to {es}. 
-To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field by completing the following:
+To investigate issues effectively, extract the timestamp from the unstructured `message` field into the structured `@timestamp` field. This enables efficient filtering by date and time ranges.
+Extract the `@timestamp` field by completing the following:
 
 . <<logs-stream-ingest-pipeline>>
 . <<logs-stream-simulate-api>>
@@ -123,7 +123,7 @@ Ingest pipelines consist of a series of processors that perform common transform
 
 {es} can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. Since the log example's timestamp is in one of these formats, you don't need additional processors. More complex or nonstandard timestamps require a {ref}/date-processor.html[date processor] to parse the timestamp into a date field.
 
-In the following command, the dissect processor extracts the timestamp from the `message` field to the `@timestamp` field and leaves the rest of the message in the `message` field:
+Use the following command to extract the timestamp from the `message` field into the `@timestamp` field:
 
 [source,console]
 ----
@@ -186,13 +186,13 @@ The results should show the `@timestamp` field extracted from the `message` fiel
 }
 ----
 
-NOTE: Make sure you've created the index pipeline using the `PUT` command in the previous section before using the simulate pipeline API.
+NOTE: Make sure you've created the ingest pipeline using the `PUT` command in the previous section before using the simulate pipeline API.
 
 [discrete]
 [[logs-stream-index-template]]
 === Configure a data stream with an index template
 
-After creating your ingest pipeline, create an index template to configure your data stream's backing indices using this command:
+After creating your ingest pipeline, run the following command to create an index template to configure your data stream's backing indices:
 
 [source,console]
 ----
@@ -217,7 +217,7 @@ PUT _index_template/logs-example-default-template
 ----
 <1> `index_pattern` – Needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
 <2> `data_stream` – Enables data streams.
-<3> `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, {es} uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
+<3> `priority` – Sets the priority of you Index Template. Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, {es} uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
 <4> `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
 <5> `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
 
@@ -335,7 +335,7 @@ Now your pipeline will extract these fields:
 - The `log.level` field – `WARN`
 - The `message` field – `192.168.1.101 Disk usage exceeds 90%.`
 
-After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+In addition to your ingest pipeline, use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-log-level-simulate]]
@@ -519,7 +519,7 @@ Your pipeline will extract these fields:
 - The `host.ip` field – `192.168.1.101`
 - The `message` field – `Disk usage exceeds 90%.`
 
-After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+In addition to your ingest pipeline, use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-host-ip-simulate]]
@@ -803,7 +803,7 @@ PUT _ingest/pipeline/logs-example-default
 <2> `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
 <3> `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
-After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+In addition to your ingest pipeline, use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-reroute-add-logs]]
