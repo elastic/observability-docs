@@ -93,7 +93,7 @@ NOTE: These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common S
 [[logs-stream-extract-timestamp]]
 == Extract the `@timestamp` field
 
-When you added the log to {es} in the previous section, the `@timestamp` field was added showing when the log was added, while the timestamp showing when the log occurred was in the unstructured `message` field:
+When you added the log to {es} in the previous section, the `@timestamp` field showed when the log was added. The timestamp showing when the log actually occurred was in the unstructured `message` field:
 
 [source,JSON]
 ----
@@ -107,8 +107,8 @@ When you added the log to {es} in the previous section, the `@timestamp` field w
 <1> The timestamp in the `message` field shows when the log occurred.
 <2> The timestamp in the `@timestamp` field shows when the log was added to {es}.
 
-To investigate issues effectively, extract the timestamp from the unstructured `message` field into the structured `@timestamp` field. This enables efficient filtering by date and time ranges.
-Extract the `@timestamp` field by completing the following:
+When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to your project. 
+To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field by completing the following:
 
 . <<logs-stream-ingest-pipeline>>
 . <<logs-stream-simulate-api>>
@@ -335,7 +335,7 @@ Now your pipeline will extract these fields:
 - The `log.level` field – `WARN`
 - The `message` field – `192.168.1.101 Disk usage exceeds 90%.`
 
-In addition to your ingest pipeline, use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+In addition to setting an ingest pipeline, you need to set an index template. You can use the index template created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-log-level-simulate]]
@@ -519,7 +519,7 @@ Your pipeline will extract these fields:
 - The `host.ip` field – `192.168.1.101`
 - The `message` field – `Disk usage exceeds 90%.`
 
-In addition to your ingest pipeline, use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+In addition to setting an ingest pipeline, you need to set an index template. You can use the index template created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-host-ip-simulate]]
@@ -803,7 +803,7 @@ PUT _ingest/pipeline/logs-example-default
 <2> `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
 <3> `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
-In addition to your ingest pipeline, use the index template you created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
+In addition to setting an ingest pipeline, you need to set an index template. You can use the index template created in the <<logs-stream-index-template, Extract the `@timestamp` field>> section.
 
 [discrete]
 [[logs-stream-reroute-add-logs]]
