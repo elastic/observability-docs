@@ -27,9 +27,6 @@ import OpenTelemetry from '../transclusion/apm/guide/open-telemetry/otel-get-sta
 In this guide you'll learn how to collect and send Application Performance Monitoring (APM) data
 to Elastic, then explore and visualize the data in real time.
 
-{/* Do we want to direct serverless users to the discuss forum for the initial launch? */}
-{/* For feedback and questions, please contact us in the [discuss forum](((forum))). */}
-
 <div id="add-apm-integration-agents"></div>
 
 ## Step 1: Add data
@@ -38,76 +35,81 @@ You'll use APM agents to send APM data from your application to Elastic. Elastic
 written in several languages and supports OpenTelemetry. Which agent you'll use depends on the language used in your service.
 
 To send APM data to Elastic, you must install an APM agent and configure it to send data to
-your project. While there are many configuration options, all APM agents use:
-
-<DocTable columns={[
-  { title: 'Option', width: '25%' },
-  { title: 'Description', width: '75%' }
-]}>
-  <DocRow>
-    <DocCell>**Service name**</DocCell>
-    <DocCell>
-      The APM integration maps an instrumented service's name &mdash; defined in
-      each ((apm-agent))'s configuration &mdash; to the index where its data is stored in ((es)).
-      Service names are case-insensitive and must be unique.
-      
-      For example, you cannot have a service named `Foo` and another named `foo`.
-      Special characters will be removed from service names and replaced with underscores (`_`).
-    </DocCell>
-  </DocRow>
-  <DocRow>
-    {/* Does this substitution make sense? */}
-    {/* Code comments in the serverless UI use "APM Server" */}
-    {/* The actual agent option is some variation of "serverUrl" */}
-    <DocCell>**Managed intake service URL**</DocCell>
-    <DocCell>
-      The host and port that the managed intake service listens for events on.
-      
-      If you're following the step-by-step instructions in the UI, the server URL will be prepopulated in
-      the code snippet that's provided.
-    </DocCell>
-  </DocRow>
-  <DocRow>
-    <DocCell>**API key**</DocCell>
-    <DocCell>
-      Authentication method for communication between ((apm-agent)) and the managed intake service.
-      
-      You can create and delete API keys in Applications Settings. Go to any page in the
-      **Application** section of the main menu, click **Settings** in the top bar, and go
-      to the **APM agent keys** tab.
-
-      Alternatively, if you're following the step-by-step instructions in the UI and click **Create API Key**,
-      the API key will be prepopulated in the code snippet.
-    </DocCell>
-  </DocRow>
-  <DocRow>
-    <DocCell>**Environment**</DocCell>
-    <DocCell>
-      The name of the environment this service is deployed in, for example "production" or "staging".
-
-      Environments allow you to easily filter data on a global level in the UI.
-      It's important to be consistent when naming environments across agents.
-    </DocCell>
-  </DocRow>
-</DocTable>
-
-To start sending APM data to Elastic:
+your project:
 
 1. <DocLink id="serverlessObservabilityCreateAnObservabilityProject">Create a new ((observability)) project</DocLink>, or open an existing one.
-1. To install and configure one or more APM agents you can either go to **Add data** -> **Collect application performance monitoring data** and follow the prompts in the UI, or use the instructions below:
+1. To install and configure one or more APM agents, do one of following:
+    * In your Observability project, go to **Add data** -> **Collect application performance data** and follow the prompts.
+    * Use the following instructions:
 
-    <DocTabs hasBorder>
-      <DocTab name="Java"><Java /></DocTab>
-      <DocTab name="Node.js"><Node /></DocTab>
-      <DocTab name="Python"><Python /></DocTab>
-      <DocTab name="Ruby"><Ruby /></DocTab>
-      <DocTab name="Go"><Go /></DocTab>
-      <DocTab name=".NET"><Net /></DocTab>
-      <DocTab name="PHP"><Php /></DocTab>
-      <DocTab name="OpenTelemetry"><OpenTelemetry /></DocTab>
-    </DocTabs>
+        <DocTabs hasBorder>
+          <DocTab name="Java"><Java /></DocTab>
+          <DocTab name="Node.js"><Node /></DocTab>
+          <DocTab name="Python"><Python /></DocTab>
+          <DocTab name="Ruby"><Ruby /></DocTab>
+          <DocTab name="Go"><Go /></DocTab>
+          <DocTab name=".NET"><Net /></DocTab>
+          <DocTab name="PHP"><Php /></DocTab>
+          <DocTab name="OpenTelemetry"><OpenTelemetry /></DocTab>
+        </DocTabs>
 
-    <br />
+        <br />
+
+        While there are many configuration options, all APM agents require:
+
+        <DocTable columns={[
+          { title: 'Option', width: '25%' },
+          { title: 'Description', width: '75%' }
+        ]}>
+          <DocRow>
+            <DocCell>**Service name**</DocCell>
+            <DocCell>
+              The APM integration maps an instrumented service's name &mdash; defined in
+              each ((apm-agent))'s configuration &mdash; to the index where its data is stored.
+              Service names are case-insensitive and must be unique.
+              
+              For example, you cannot have a service named `Foo` and another named `foo`.
+              Special characters will be removed from service names and replaced with underscores (`_`).
+            </DocCell>
+          </DocRow>
+          <DocRow>
+            {/* Does this substitution make sense? */}
+            {/* Code comments in the serverless UI use "APM Server" */}
+            {/* The actual agent option is some variation of "serverUrl" */}
+            <DocCell>**Server URL**</DocCell>
+            <DocCell>
+              The host and port that the managed intake service listens for events on.
+
+              To find the URL for your project:
+              
+              1. Go to the [Cloud console](https://cloud.elastic.co/).
+              1. Select your project.
+              1. Select **Manage**.
+              1. Next to _Endpoints_, select **View**.
+              1. Copy the _APM endpoint_.
+            </DocCell>
+          </DocRow>
+          <DocRow>
+            <DocCell>**API key**</DocCell>
+            <DocCell>
+              Authentication method for communication between ((apm-agent)) and the managed intake service.
+              
+              You can create and delete API keys in Applications Settings:
+              1. Go to any page in the _Applications_ section of the main menu.
+              1. Click **Settings** in the top bar.
+              1. Go to the **APM agent keys** tab.
+            </DocCell>
+          </DocRow>
+          <DocRow>
+            <DocCell>**Environment**</DocCell>
+            <DocCell>
+              The name of the environment this service is deployed in, for example "production" or "staging".
+
+              Environments allow you to easily filter data on a global level in the UI.
+              It's important to be consistent when naming environments across agents.
+            </DocCell>
+          </DocRow>
+        </DocTable>
 
 1. If you're using the step-by-step instructions in the UI, after you've installed and configured an agent,
 you can click **Check Agent Status** to verify that the agent is sending data.
