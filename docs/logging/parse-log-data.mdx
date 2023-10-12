@@ -35,7 +35,7 @@ Follow the steps below to see how the following unstructured log data is indexed
 Start by storing the document in the `logs-example-default` data stream:
 
 1. In your Observability project, go to **Developer Tools**.
-1. In the **Console** tab, add the example log to ((es)) using the following command:
+1. In the **Console** tab, add the example log to your project using the following command:
 
     ```console
     POST logs-example-default/_doc
@@ -71,7 +71,9 @@ The results should look like this:
 }
 ```
 
-((es)) indexes the `message` field by default and adds a `@timestamp` field. Since there was no timestamp set, it's set to `now`. At this point, you can search for phrases in the `message` field like `WARN` or `Disk usage exceeds`. For example, use the following command to search for the phrase `WARN` in the log's `message` field:
+Your project indexes the `message` field by default and adds a `@timestamp` field. Since there was no timestamp set, it's set to `now`. 
+At this point, you can search for phrases in the `message` field like `WARN` or `Disk usage exceeds`. 
+For example, run the following command to search for the phrase `WARN` in the log's `message` field:
 
 ```console
 GET logs-example-default/_search
@@ -94,12 +96,12 @@ While you can search for phrases in the `message` field, you can't use this fiel
 - **message** – `Disk usage exceeds 90%.` – You can search for phrases or words in the message field.
 
 <DocCallOut title="Note">
-These fields are part of the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html). The ECS defines a common set of fields that you can use across Elasticsearch when storing data, including log and metric data.
+These fields are part of the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html). The ECS defines a common set of fields that you can use across your project when storing data, including log and metric data.
 </DocCallOut>
 
 ### Extract the `@timestamp` field
 
-When you added the document to ((es)) in the previous section, ((es)) added the `@timestamp` field showing when the log was added, while the timestamp showing when the log occurred was in the unstructured `message` field:
+When you added the log to your project in the previous section, the `@timestamp` field showed when the log was added. The timestamp showing when the log actually occurred was in the unstructured `message` field:
 
 ```json
         ...
@@ -110,9 +112,9 @@ When you added the document to ((es)) in the previous section, ((es)) added the 
         ...
 ```
 [^1]: The timestamp in the `message` field shows when the log occurred.
-[^2]: The timestamp in the `@timestamp` field shows when the log was added to Elasticsearch.
+[^2]: The timestamp in the `@timestamp` field shows when the log was added to your project.
 
-When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to ((es)). 
+When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to your project. 
 To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field by completing the following:
 
 1. <DocLink id="serverlessObservabilityParseLogData" section="use-an-ingest-pipeline-to-extract-the-timestamp-field">Use an ingest pipeline to extract the `@timestamp` field</DocLink>
@@ -122,11 +124,15 @@ To do this, extract the timestamp from the unstructured `message` field to the s
 
 #### Use an ingest pipeline to extract the `@timestamp` field
 
-Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The [dissect processor](((ref))/dissect-processor.html) extracts structured fields from unstructured log messages based on a pattern you set. 
+Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. 
+To extract the `@timestamp` field from the example log, use an ingest pipeline with a [dissect processor](((ref))/dissect-processor.html). 
+The dissect processor extracts structured fields from unstructured log messages based on a pattern you set. 
 
-((es)) can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. Since the log example's timestamp is in one of these formats, you don't need additional processors. More complex or nonstandard timestamps require a [date processor](((ref))/date-processor.html) to parse the timestamp into a date field.
+Your project can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. 
+Since the log example's timestamp is in one of these formats, you don't need additional processors. 
+More complex or nonstandard timestamps require a [date processor](((ref))/date-processor.html) to parse the timestamp into a date field.
 
-In the following command, the dissect processor extracts the timestamp from the `message` field to the `@timestamp` field and leaves the rest of the message in the `message` field:
+Use the following command to extract the timestamp from the `message` field into the `@timestamp` field:
 
 ```console
 PUT _ingest/pipeline/logs-example-default
@@ -151,7 +157,10 @@ The previous command sets the following values for your ingest pipeline:
 
 #### Test the pipeline with the simulate pipeline API
 
-The [simulate pipeline API](((ref))/simulate-pipeline-api.html#ingest-verbose-param) runs the ingest pipeline without storing any documents. This lets you verify your pipeline works using multiple documents. Run the following command to test your ingest pipeline with the simulate pipeline API.
+The [simulate pipeline API](((ref))/simulate-pipeline-api.html#ingest-verbose-param) runs the ingest pipeline without storing any documents. 
+This lets you verify your pipeline works using multiple documents. 
+
+Run the following command to test your ingest pipeline with the simulate pipeline API.
 
 ```console
 POST _ingest/pipeline/logs-example-default/_simulate
@@ -188,12 +197,12 @@ The results should show the `@timestamp` field extracted from the `message` fiel
 ```
 
 <DocCallOut title="Note">
-Make sure you've created the index pipeline using the `PUT` command in the previous section before using the simulate pipeline API.
+Make sure you've created the ingest pipeline using the `PUT` command in the previous section before using the simulate pipeline API.
 </DocCallOut>
 
 #### Configure a data stream with an index template
 
-After creating your ingest pipeline, create an index template to configure your data stream's backing indices using this command:
+After creating your ingest pipeline, run the following command to create an index template to configure your data stream's backing indices:
 
 ```console
 PUT _index_template/logs-example-default-template
@@ -220,7 +229,7 @@ The previous command sets the following values for your index template:
 
 - `index_pattern` – Needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
 - `data_stream` – Enables data streams.
-- `priority` – Index templates with higher priority take precedence over lower priority. If a data stream matches multiple index templates, ((es)) uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
+- `priority` – Sets the priority of your index templates. Index templates with a higher priority take precedence. If a data stream matches multiple index templates, your project uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
 - `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
 - `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
 
@@ -325,7 +334,7 @@ Now your pipeline will extract these fields:
 - The `log.level` field – `WARN`
 - The `message` field – `192.168.1.101 Disk usage exceeds 90%.`
 
-After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
+In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
 
 #### Test the pipeline with the simulate API
 
@@ -493,7 +502,7 @@ Your pipeline will extract these fields:
 - The `host.ip` field – `192.168.1.101`
 - The `message` field – `Disk usage exceeds 90%.`
 
-After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
+In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
 
 #### Test the pipeline with the simulate API
 
@@ -761,7 +770,7 @@ The previous command sets the following values for your reroute processor:
 - `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
 - `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
-After creating your pipeline, an index template points your log data to your pipeline. Use the index template you created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
+In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
 
 ### Add logs to a data stream
 

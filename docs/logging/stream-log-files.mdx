@@ -2,7 +2,7 @@
 id: serverlessObservabilityStreamLogFiles
 slug: /serverless/observability/stream-log-files
 title: Stream any log file
-description: Send a log file to Elasticsearch using the standalone ((agent)).
+description: Send a log file to your Observability project using the standalone ((agent)).
 tags: [ 'serverless', 'observability', 'how-to' ]
 status: in testing
 ---
@@ -19,16 +19,17 @@ import AgentLocationWidget from '../transclusion/observability/tab-widgets/logs/
 import StopWidget from '../transclusion/fleet/tab-widgets/stop-widget.mdx'
 import StartWidget from '../transclusion/fleet/tab-widgets/start-widget.mdx'
 
-This guide shows you how to send a log file to Elasticsearch using a standalone ((agent)) and configure the ((agent)) and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up.
+This guide shows you how to send a log file to your Observability project using a standalone ((agent)) and configure the ((agent)) and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up.
 
 The quickest way to get started is to:
 
 1. Open your Observability project. If you don't have one, <DocLink id="serverlessObservabilityCreateAnObservabilityProject" text="create an observability project"/>.
 1. Go to **Add data**.
-1. Under _Stream log files_, click **Get stated**.
+1. Under _Stream log files_, click **Get started**.
 
-This will kick off a set of guided instructions in your project. These instructions will walk you through how to
-configure the standalone ((agent)) and send log data to your project.
+This will kick off a set of guided instructions that walk you through configuring the standalone ((agent)) and sending log data to your project.
+
+To install and configure the ((agent)) manually, refer to <DocLink id="serverlessObservabilityStreamLogFiles" section="manually-install-agent-logs">Manually install and configure the standalone ((agent))</DocLink>.
 
 ## Configure inputs and integration
 
@@ -48,11 +49,6 @@ Enter a few configuration details in the guided instructions.
   
 * **Service name**: Provide a service name to allow for distributed services running on
   multiple hosts to correlate the related instances.
-  
-  The service name will be used in the Log Explorer.
-  It will appear in the "All logs" dropdown menu.
-
-  <DocImage url="../images/logs-stream-logs-service-name.png" alt="All logs dropdown menu on the Log Explorer page" size="l" />
 
 {/* Advanced settings? */}
 
@@ -65,6 +61,11 @@ Elastic creates an integration to streamline connecting your log data to Elastic
   The value must be unique within your project, all lowercase, and max 100 chars. Special characters will be replaced with `_`.
   
   This will be passed to the `streams.id` field in the generated `elastic-agent.yml` file in a future step.
+
+  The integration name will be used in the Log Explorer.
+  It will appear in the "All logs" dropdown menu.
+
+  <DocImage url="../images/logs-stream-logs-service-name.png" alt="All logs dropdown menu on the Log Explorer page" size="l" />
   <br />
 
 * **Dataset name**: Give your integration's dataset a name.
@@ -73,10 +74,23 @@ Elastic creates an integration to streamline connecting your log data to Elastic
   
   This will be passed to the `data_stream.dataset` field in the generated `elastic-agent.yml` file in a future step.
 
-## Install and configure the standalone ((agent))
+## Install the ((agent))
 
 After configuring the inputs and integration, you'll continue in the guided instructions to
 install and configure the standalone ((agent)).
+
+Run the command under **Install the ((agent))** that corresponds with your system to download, extract, and install the ((agent)).
+Turning on **Automatically download the agent's config** includes your updated ((agent)) configuration file in the download.
+
+If you do not want to automatically download the configuration, click **Download config file** to download it manually and 
+add it to `/opt/Elastic/Agent/elastic-agent.yml` on the host where you installed the ((agent)).
+The values you provided in <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-inputs-and-integration">Configure inputs and integration</DocLink> will be prepopulated in the generated configuration file.
+
+<div id="manually-install-agent-logs"></div>
+
+## Manually install and configure the standalone ((agent))
+
+If you're not using the guided instructions, follow these steps to manually install and configure your the ((agent)).
 
 ### Step 1: Download and extract the ((agent)) installation package
 
@@ -110,17 +124,32 @@ After your agent is installed, configure it by updating the `elastic-agent.yml` 
 
 #### Locate your configuration file
 
-After installing the agent, you'll find the `elastic-agent.yml` in one of the following locations according to your system:
+You'll find the `elastic-agent.yml` in one of the following locations according to your system:
 
 <AgentLocationWidget />
 
 #### Update your configuration file
 
-If you're following the guided instructions, they will include an updated configuration file
-that you can download and use.
-The values you provided in <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-inputs-and-integration">Configure inputs and integration</DocLink> will be prepopulated in the generated configuration file.
+Update the default configuration in the `elastic-agent.yml` file manually.
+It should look something like this:
 
-The generated configuration file will contain the following fields:
+```yaml
+outputs:
+  default:
+    type: elasticsearch
+    hosts: '<your-elasticsearch-endpoint>:<port>'
+    api_key: 'your-api-key'
+inputs:
+  - id: your-log-id
+    type: filestream
+    streams:
+      - id: your-log-stream-id
+        data_stream.dataset: generic
+        paths:
+          - /var/log/your-logs.log
+```
+
+You need to set the values for the following fields:
 
 <DocTable columns={[
   { title: "Field", width: "25%" },
@@ -213,24 +242,6 @@ The generated configuration file will contain the following fields:
   </DocRow>
 </DocTable>
 
-If you're not using the guided instructions, you can update the default configuration in `elastic-agent.yml` manually.
-It should look something like this:
-
-```yaml
-outputs:
-  default:
-    type: elasticsearch
-    hosts: '<your-elasticsearch-endpoint>:<port>'
-    api_key: 'your-api-key'
-inputs:
-  - id: your-log-id
-    type: filestream
-    streams:
-      - id: your-log-stream-id
-        data_stream.dataset: generic
-        paths:
-          - /var/log/your-logs.log
-```
 #### Restart the ((agent))
 
 After updating your configuration file, you need to restart the ((agent)).
