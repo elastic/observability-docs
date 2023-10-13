@@ -16,8 +16,8 @@ After parsing, you can use the structured fields to further organize your logs b
 
 Refer to the following sections for more on parsing and organizing your log data:
 
-* <DocLink id="serverlessObservabilityParseLogData" section="extract-structured-fields">Extract structured fields</DocLink> – Extract structured fields like timestamps, log levels, or IP addresses to make querying and filtering your data easier.
-* <DocLink id="serverlessObservabilityParseLogData" section="reroute-log-data-to-specific-data-streams">Reroute log data to specific data streams</DocLink> – Route data from the generic data stream to a target data stream for more granular control over data retention, permissions, and processing.
+* <DocLink id="serverlessObservabilityParseLogData" section="extract-structured-fields">Extract structured fields</DocLink>: Extract structured fields like timestamps, log levels, or IP addresses to make querying and filtering your data easier.
+* <DocLink id="serverlessObservabilityParseLogData" section="reroute-log-data-to-specific-data-streams">Reroute log data to specific data streams</DocLink>: Route data from the generic data stream to a target data stream for more granular control over data retention, permissions, and processing.
 
 ## Extract structured fields
 
@@ -87,10 +87,10 @@ GET logs-example-default/_search
 
 While you can search for phrases in the `message` field, you can't use this field to filter log data. Your message, however, contains all of the following potential fields you can extract and use to filter and aggregate your log data:
 
-- **@timestamp** – `2023-08-08T13:45:12.123Z` – Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
-- **log.level** – `WARN` – Extracting this field lets you filter logs by severity. This is helpful if you want to focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
-- **host.ip** – `192.168.1.101` – Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
-- **message** – `Disk usage exceeds 90%.` – You can search for phrases or words in the message field.
+- **@timestamp** (`2023-08-08T13:45:12.123Z`): Extracting this field lets you sort logs by date and time. This is helpful when you want to view your logs in the order that they occurred or identify when issues happened.
+- **log.level** (`WARN`): Extracting this field lets you filter logs by severity. This is helpful if you want to focus on high-severity WARN or ERROR-level logs, and reduce noise by filtering out low-severity INFO-level logs.
+- **host.ip** (`192.168.1.101`): Extracting this field lets you filter logs by the host IP addresses. This is helpful if you want to focus on specific hosts that you’re having issues with or if you want to find disparities between hosts.
+- **message** (`Disk usage exceeds 90%.`): You can search for phrases or words in the message field.
 
 <DocCallOut title="Note">
 These fields are part of the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html). The ECS defines a common set of fields that you can use across your project when storing data, including log and metric data.
@@ -148,9 +148,9 @@ PUT _ingest/pipeline/logs-example-default
 
 The previous command sets the following values for your ingest pipeline:
 
-- `_ingest/pipeline/logs-example-default` – The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. For more information, refer to the [data stream naming scheme](((fleet-guide))/data-streams.html#data-streams-naming-scheme).
-- `field` – The field you're extracting data from, `message` in this case.
-- `pattern` – The pattern of the elements in your log data. The `%{@timestamp} %{message}` pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern.
+- `_ingest/pipeline/logs-example-default`: The name of the pipeline,`logs-example-default`, needs to match the name of your data stream. You'll set up your data stream in the next section. For more information, refer to the [data stream naming scheme](((fleet-guide))/data-streams.html#data-streams-naming-scheme).
+- `field`: The field you're extracting data from, `message` in this case.
+- `pattern`: The pattern of the elements in your log data. The `%{@timestamp} %{message}` pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern.
 
 #### Test the pipeline with the simulate pipeline API
 
@@ -224,21 +224,21 @@ PUT _index_template/logs-example-default-template
 
 The previous command sets the following values for your index template:
 
-- `index_pattern` – Needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
-- `data_stream` – Enables data streams.
-- `priority` – Sets the priority of your index templates. Index templates with a higher priority take precedence. If a data stream matches multiple index templates, your project uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
-- `index.default_pipeline` – The name of your ingest pipeline. `logs-example-default` in this case.
-- `composed_of` – Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
+- `index_pattern`: Needs to match your log data stream. Naming conventions for data streams are `<type>-<dataset>-<namespace>`. In this example, your logs data stream is named `logs-example-*`. Data that matches this pattern will go through your pipeline.
+- `data_stream`: Enables data streams.
+- `priority`: Sets the priority of your index templates. Index templates with a higher priority take precedence. If a data stream matches multiple index templates, your project uses the template with the higher priority. Built-in templates have a priority of `200`, so use a priority higher than `200` for custom templates.
+- `index.default_pipeline`: The name of your ingest pipeline. `logs-example-default` in this case.
+- `composed_of`: Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
 
 The example template above sets the following component templates:
 
-- `logs-mappings` – general mappings for log data streams that include disabling automatic date detection from `string` fields and specifying mappings for [`data_stream` ECS fields](((ecs-ref))/ecs-data_stream.html).
-- `logs-settings` – general settings for log data streams including the following: 
+- `logs-mappings`: general mappings for log data streams that include disabling automatic date detection from `string` fields and specifying mappings for [`data_stream` ECS fields](((ecs-ref))/ecs-data_stream.html).
+- `logs-settings`: general settings for log data streams including the following: 
     * The default lifecycle policy that rolls over when the primary shard reaches 50 GB or after 30 days.
     * The default pipeline uses the ingest timestamp if there is no specified `@timestamp` and places a hook for the `logs@custom` pipeline. If a `logs@custom` pipeline is installed, it's applied to logs ingested into this data stream.
     * Sets the [`ignore_malformed`](((ref))/ignore-malformed.html) flag to `true`. When ingesting a large batch of log data, a single malformed field like an IP address can cause the entire batch to fail. When set to true, malformed fields with a mapping type that supports this flag are still processed.
-        - `logs@custom` – a predefined component template that is not installed by default. Use this name to install a custom component template to override or extend any of the default mappings or settings.
-        - `ecs@dynamic_templates` – dynamic templates that automatically ensure your data stream mappings comply with the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html).
+        - `logs@custom`: a predefined component template that is not installed by default. Use this name to install a custom component template to override or extend any of the default mappings or settings.
+        - `ecs@dynamic_templates`: dynamic templates that automatically ensure your data stream mappings comply with the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html).
 
 #### Create a data stream
 
@@ -261,22 +261,23 @@ You should see the pipeline has extracted the `@timestamp` field:
 
 ```json
 {
-...
-{
   ...
-  "hits": {
+  {
     ...
-    "hits": [
-      {
-        "_index": ".ds-logs-example-default-2023.08.09-000001",
-        "_id": "RsWy3IkB8yCtA5VGOKLf",
-        "_score": 1,
-        "_source": {
-          "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
-          "@timestamp": "2023-08-08T13:45:12.123Z" [^1]
+    "hits": {
+      ...
+      "hits": [
+        {
+          "_index": ".ds-logs-example-default-2023.08.09-000001",
+          "_id": "RsWy3IkB8yCtA5VGOKLf",
+          "_score": 1,
+          "_source": {
+            "message": "WARN 192.168.1.101 Disk usage exceeds 90%.",
+            "@timestamp": "2023-08-08T13:45:12.123Z" [^1]
+          }
         }
-      }
-    ]
+      ]
+    }
   }
 }
 ```
@@ -288,9 +289,9 @@ You can now use the `@timestamp` field to sort your logs by the date and time th
 
 Check the following common issues and solutions with timestamps:
 
-- **Timestamp failure** – If your data has inconsistent date formats, set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
-- **Incorrect timezone** – Set your timezone using the `timezone` option on the [date processor](((ref))/date-processor.html).
-- **Incorrect timestamp format** – Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. For more information on timestamp formats, refer to the [mapping date format](((ref))/mapping-date-format.html).
+- **Timestamp failure:** If your data has inconsistent date formats, set `ignore_failure` to `true` for your date processor. This processes logs with correctly formatted dates and ignores those with issues.
+- **Incorrect timezone:** Set your timezone using the `timezone` option on the [date processor](((ref))/date-processor.html).
+- **Incorrect timestamp format:** Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. For more information on timestamp formats, refer to the [mapping date format](((ref))/mapping-date-format.html).
 
 ### Extract the `log.level` field
 
@@ -327,9 +328,9 @@ PUT _ingest/pipeline/logs-example-default
 
 Now your pipeline will extract these fields:
 
-- The `@timestamp` field – `2023-08-08T13:45:12.123Z`
-- The `log.level` field – `WARN`
-- The `message` field – `192.168.1.101 Disk usage exceeds 90%.`
+- The `@timestamp` field: `2023-08-08T13:45:12.123Z`
+- The `log.level` field: `WARN`
+- The `message` field: `192.168.1.101 Disk usage exceeds 90%.`
 
 In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
 
@@ -494,10 +495,10 @@ PUT _ingest/pipeline/logs-example-default
 
 Your pipeline will extract these fields:
 
-- The `@timestamp` field – `2023-08-08T13:45:12.123Z`
-- The `log.level` field – `WARN`
-- The `host.ip` field – `192.168.1.101`
-- The `message` field – `Disk usage exceeds 90%.`
+- The `@timestamp` field: `2023-08-08T13:45:12.123Z`
+- The `log.level` field: `WARN`
+- The `host.ip` field: `192.168.1.101`
+- The `message` field: `Disk usage exceeds 90%.`
 
 In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
 
@@ -763,9 +764,9 @@ PUT _ingest/pipeline/logs-example-default
 
 The previous command sets the following values for your reroute processor:
 
-- `tag` – Identifier for the processor that you can use for debugging and metrics. In the example, the tag is set to `high_severity_logs`.
-- `if` – Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
-- `dataset` – the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
+- `tag`: Identifier for the processor that you can use for debugging and metrics. In the example, the tag is set to `high_severity_logs`.
+- `if`: Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
+- `dataset`: the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
 In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <DocLink id="serverlessObservabilityParseLogData" section="configure-a-data-stream-with-an-index-template">Extract the `@timestamp` field</DocLink> section.
 
