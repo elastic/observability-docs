@@ -163,7 +163,7 @@ Use Playwright to simulate and validate user workflows including:
 * Simulating https://playwright.dev/docs/api/class-mouse[mouse],
   https://playwright.dev/docs/api/class-touchscreen[touch], or
   https://playwright.dev/docs/api/class-keyboard[keyboard] events.
-* Making assertions using https://playwright.dev/docs/test-assertions[`@playwright/test`'s `expect` function].
+* Making assertions using https://playwright.dev/docs/test-assertions[`@playwright/test`'s `expect` function]. Read more in <<synthetics-make-assertions>>.
 
 Visit the https://playwright.dev/docs[Playwright documentation] for information.
 
@@ -179,14 +179,18 @@ There is also some Playwright functionality that is not supported out-of-the-box
 in Elastic Synthetics including:
 
 * https://playwright.dev/docs/api/class-video[Videos]
+* The https://playwright.dev/docs/api/class-locatorassertions#locator-assertions-to-have-screenshot-1[`toHaveScreenshot`] and https://playwright.dev/docs/api/class-snapshotassertions[`toMatchSnapshot`] assertions
 
 [discrete]
 [[synthetics-make-assertions]]
 = Make assertions
 
-Check that a value meets a specific condition.
 A more complex `step` might wait for a page element to be selected
 and then make sure that it matches an expected value.
+
+Elastic Synthetics uses `@playwright/test`'s `expect` function to make assertions and
+supports all https://playwright.dev/docs/test-assertions[Playwright assertions] _except_
+`toHaveScreenshot` and `toMatchSnapshot`.
 
 For example, on a page using the following HTML:
 
@@ -215,9 +219,6 @@ step('Assert placeholder text', async () => {
 <1> Find the `input` element with class `new-todo`.
 <2> Use the assertion library provided by the Synthetics agent to check that
 the value of the `placeholder` attribute matches a specific string.
-
-Elastic Synthetics uses https://playwright.dev/docs/test-assertions[`@playwright/test`'s `expect` function].
-For a complete list of available assertions, refer to https://playwright.dev/docs/api/class-genericassertions#methods[the Playwright documentation].
 
 [discrete]
 [[synthetics-request-param]]
