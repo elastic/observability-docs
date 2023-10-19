@@ -184,16 +184,35 @@ You need to set the values for the following fields:
 
       <div id="api-key-beats"></div>
 
-      <DocCallOut title="Important" color="warning">
-      Alternatively, you can create an API key by navigating to **Project settings -> Management -> API keys**
-      and clicking **Create API key**. If you create an API key this way, you _must_ make sure it's formatted to configure ((beats)).
+      If configuring the ((agent)) manually, create an API key:
       
-      Immediately after the API key is generated and while it is still being displayed, you must click the
+      1. Navigate to **Project settings -> Management -> API keys** and click **Create API key**. 
+      1. Select **Restrict privileges** and add the following JSON to give privileges for ingesting logs.
+          ```json
+          {
+            "standalone_agent": {
+              "cluster": [
+                "monitor"
+              ],
+              "indices": [
+                {
+                  "names": [
+                    "logs-*-*" 
+                  ],
+                  "privileges": [
+                    "auto_configure", "create_doc"
+                  ]
+                }
+              ]
+            }
+          }
+          ```
+      1. You _must_ set the API key to configure ((beats)). 
+      Immediately after the API key is generated and while it is still being displayed, click the
       **Encoded** button next to the API key and select **Beats** from the list in the tooltip.
       Base64 encoded API keys are not currently supported in this configuration.
 
-      ![](../images/logs-stream-logs-api-key-beats.png)
-      </DocCallOut>
+          ![](../images/logs-stream-logs-api-key-beats.png)
     </DocCell>
   </DocRow>
   <DocRow>
