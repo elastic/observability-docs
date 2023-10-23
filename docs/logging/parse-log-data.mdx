@@ -229,15 +229,15 @@ The previous command sets the following values for your index template:
 - `index.default_pipeline`: The name of your ingest pipeline. `logs-example-default` in this case.
 - `composed_of`: Here you can set component templates. Component templates are building blocks for constructing index templates that specify index mappings, settings, and aliases. Elastic has several built-in templates to help when ingesting your log data.
 
-The example template above sets the following component templates:
+The example index template above sets the following component templates:
 
 - `logs-mappings`: general mappings for log data streams that include disabling automatic date detection from `string` fields and specifying mappings for [`data_stream` ECS fields](((ecs-ref))/ecs-data_stream.html).
 - `logs-settings`: general settings for log data streams including the following: 
     * The default lifecycle policy that rolls over when the primary shard reaches 50 GB or after 30 days.
     * The default pipeline uses the ingest timestamp if there is no specified `@timestamp` and places a hook for the `logs@custom` pipeline. If a `logs@custom` pipeline is installed, it's applied to logs ingested into this data stream.
     * Sets the [`ignore_malformed`](((ref))/ignore-malformed.html) flag to `true`. When ingesting a large batch of log data, a single malformed field like an IP address can cause the entire batch to fail. When set to true, malformed fields with a mapping type that supports this flag are still processed.
-        - `logs@custom`: a predefined component template that is not installed by default. Use this name to install a custom component template to override or extend any of the default mappings or settings.
-        - `ecs@dynamic_templates`: dynamic templates that automatically ensure your data stream mappings comply with the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html).
+    * `logs@custom`: a predefined component template that is not installed by default. Use this name to install a custom component template to override or extend any of the default mappings or settings.
+    * `ecs@dynamic_templates`: dynamic templates that automatically ensure your data stream mappings comply with the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html).
 
 #### Create a data stream
 
@@ -750,7 +750,9 @@ PUT _ingest/pipeline/logs-example-default
       "dissect": {
         "field": "message",
         "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}"
-      },
+      }
+    },
+    {
       "reroute": {
         "tag": "high_severity_logs",
         "if" : "ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",
