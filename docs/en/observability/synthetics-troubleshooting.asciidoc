@@ -104,14 +104,32 @@ To fix this issue, you can either:
 * Create multiple {private-location}s and spread your browser monitors across them more evenly (effectively horizontally scaling your {private-location}s).
 
 [discrete]
+[[synthetics-troubleshooting-no-locations]]
+== No locations are available
+
+If there are no options available in the _Locations_ dropdown when you try to create a monitor in the Synthetics app
+or if no locations are listed when using the <<elastic-synthetics-locations-command,`location` command>>,
+you might not have permission to use Elastic managed locations and there might not be any
+<<monitor-via-private-agent,Private Locations>> available yet.
+
+There are a few ways to fix this:
+
+* If you have <<synthetics-role-write,write access>> including the privileges for <<synthetics-role-write-private-locations,creating new Private Locations>>, you can <<monitor-via-private-agent,create a new Private Location>>. Then try creating the monitor again.
+* If you do _not_ have the right privileges to create a Private Location, you can ask someone with the <<synthetics-role-write-private-locations,necessary privileges>> to create a Private Location or ask an administrator with a <<synthetics-role-setup,setup role>> to give you the necessary privileges and <<monitor-via-private-agent,create a new Private Location>>. Then try creating the monitor again.
+* If you want to create a monitor to run on Elastic's global managed infrastructure, ask an administrator with a <<synthetics-role-setup,setup role>> to update <<disable-managed-locations,`Synthetics and Uptime` sub-feature privileges>> for the role you're currently assigned. Then try creating the monitor again.
+
+[discrete]
 [[synthetics-troubleshooting-public-locations-disabled]]
 == You do not have permission to use Elastic managed locations
 
 If you try to create or edit a monitor hosted on Elastic's global managed infrastructure but see a note that you do not have permission to use Elastic managed locations, an administrator has restricted the use of public locations.
 
-To fix this, ask an administrator with a <<synthetics-role-setup,setup role>> to update
+To fix this you can either:
+
+* Ask an administrator with a <<synthetics-role-setup,setup role>> to update
 <<disable-managed-locations,`Synthetics and Uptime` sub-feature privileges>> for the role you're
 currently assigned or assign you a role that allows using Elastic's global managed infrastructure.
+* Use a <<monitor-via-private-agent,Private Location>>.
 
 [discrete]
 [[synthetics-troubleshooting-get-help]]
