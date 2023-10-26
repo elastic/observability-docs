@@ -192,8 +192,6 @@ This can also be set in the configuration file using
 <<synthetics-configuration-monitor,`monitor.locations` in the configuration file>>.
 The value defined via the CLI will take precedence.
 
-// If Elastic managed locations is disabled, will they see an error message? What will it say?
-
 `--private-locations Array<string>`::
 The <<synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas 
 `locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
@@ -227,8 +225,6 @@ npx @elastic/synthetics locations --url <kibana-host> --auth <api-key>
 
 Run `npx @elastic/synthetics locations` with no flags to list all the available global locations managed by Elastic for running synthetics monitors.
 
-// If Elastic managed locations is disabled, will they see a list of public locations? Or an error message?
-
 To list both locations on Elastic's global managed infrastructure and {private-locations}, include:
 
 `--url <string>`::
@@ -236,3 +232,9 @@ The {kib} URL for the deployment from which to fetch all available public and {p
 
 `--auth <string>`::
 API key used for {kibana-ref}/api-keys.html[{kib} authentication].
+
+NOTE: If an administrator has disabled Elastic managed locations for the role you are assigned
+and you do _not_ include `--url` and `--auth`, all global locations managed by Elastic will be listed.
+However, you will not be able to push to these locations with your API key and will see an error:
+_You don't have permission to use Elastic managed global locations_. For more details, refer to the
+<<synthetics-troubleshooting-public-locations-disabled,troubleshooting docs>>.
