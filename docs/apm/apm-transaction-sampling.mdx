@@ -50,8 +50,13 @@ Again, the sample rates of `Service B` and `Service C` are ignored.
 
 Head-based sampling is implemented in the APM agents and SDKs, and
 requires the sample rate to be propagated between services and the managed intake service.
-This functionality is not currently supported by OpenTelemetry,
-which results in inaccurate APM throughput, latency, and error metrics.
+Most samplers in OpenTelemetry do not support propagating sample rate,
+which results in inaccurate span based metrics, e.g. APM throughput, latency, and error metrics.
+
+[Consistent probability samplers](https://opentelemetry.io/docs/specs/otel/trace/tracestate-probability-sampling/)
+in OpenTelemetry propagate the sample rate,
+therefore span based metric extrapolation will work and you will see accurate span based metrics.
+With other samplers, that don't propagate sample rate, span based metrics will be inaccurate.
 
 ## Sampled data and visualizations
 
