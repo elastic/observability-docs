@@ -47,17 +47,6 @@ You can run {project-monitors} on one or both of the following:
   To use {private-location}s you must create a {private-location} before continuing.
   For step-by-step instructions, refer to <<synthetics-private-location>>.
 
-// Should we mention the possibility of not being able to run monitors on public locations
-// here or is disabling public locations rare enough that it's not worth adding more complexity
-// to the getting started guide? If they see an error or warning, they should be able to
-// diagnose the issue by viewing the troubleshooting doc.
-
-[NOTE]
-====
-Administrators can restrict access to Elastic's global managed testing infrastructure.
-Read more in <<disable-managed-locations,writer role documentation>>.
-====
-
 [NOTE]
 ====
 If you are setting up Synthetics for a deployment configured with
@@ -71,7 +60,7 @@ For more details, refer to <<synthetics-traffic-filters>>.
 [[synthetics-get-started-project-init]]
 = Create a project
 
-Start by creating your first project. Run the command below to create a new 
+Start by creating your first project. Run the command below to create a new
 project named `projects-test` in the current directory.
 
 [source,sh]
@@ -108,7 +97,7 @@ Read more in the <<disable-managed-locations,writer role documentation>>.
 ====
 
 . Set the `SYNTHETICS_API_KEY` environment variable in your terminal.
-  You will most likely want to set this permanently. 
+  You will most likely want to set this permanently.
   This is done differently in https://learn.microsoft.com/en-us/powershell/module/microsoft.powershell.core/about/about_environment_variables?view=powershell-7.2#saving-changes-to-environment-variables[Powershell] and https://unix.stackexchange.com/a/117470[Bash].
 
 NOTE: If you are pushing to a <<synthetics-private-location,{private-location}>>, you must use an API key generated in 8.4 or higher.
@@ -118,13 +107,23 @@ Then, take a look at key files and directories inside your project:
 * `journeys` is where you'll add `.ts` and `.js` files defining your browser monitors. When you create a new project, this directory will contain files defining sample monitors.
 * `lightweight` is where you'll add `.yaml` files defining your lightweight monitors.  When you create a new project, this directory will contain a file defining sample monitors.
 * `synthetics.config.ts` contains settings for your project. When you create a new project, it will contain some basic configuration options that you can customize later.
++
+[NOTE]
+====
+The `synthetics.config.ts` in the sample project uses a location on Elastic's global managed testing infrastructure.
+Administrators can restrict access to Elastic's global managed testing infrastructure.
+When you attempt to <<synthetics-get-started-project-push,`push` the sample monitors>>,
+if you see an error stating that you don't have permission to use Elastic managed global locations,
+refer to the <<synthetics-troubleshooting-no-locations,troubleshooting guide>> for guidance.
+====
+
 * `package.json` contains NPM settings for your project. Learn more in the https://docs.npmjs.com/about-packages-and-modules[NPM documentation].
 * `.github` contains sample workflow files to use with GitHub Actions.
 
 [discrete]
 = Examine sample monitors
 
-Inside the `lightweight` directory you'll find sample lightweight monitors. 
+Inside the `lightweight` directory you'll find sample lightweight monitors.
 Here's an example of a YAML file defining a lightweight monitor:
 
 [source,yml]
@@ -141,7 +140,7 @@ heartbeat.monitors:
 For more details on lightweight monitor configuration options,
 refer to <<synthetics-lightweight>>.
 
-Inside the `journeys` directory you'll find sample browser monitors. 
+Inside the `journeys` directory you'll find sample browser monitors.
 Here's an example of a TypeScript file defining a browser monitor:
 
 [source,ts]
@@ -169,6 +168,7 @@ For more details on writing journeys and configuring browser monitors,
 refer to <<synthetics-journeys>>.
 
 [discrete]
+[[synthetics-get-started-project-push]]
 = Test and connect to the {stack}
 
 While inside the project directory you can do two things with the `npx @elastic/synthetics` command:
