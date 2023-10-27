@@ -1,0 +1,83 @@
+[[custom-threshold-alert]]
+= Create a custom threshold rule
+
+preview::[]
+
+Create a custom threshold rule to trigger alerts when an {observability} data type reaches or exceeds a given value.
+
+. To access this page, go to **{observability}** -> **Alerts**.
+. Click **Manage Rules** -> **Create rule**.
+. Under **Select rule type**, select **Custom threshold**.
+
+[role="screenshot"]
+image::images/custom-threshold-rule.png[Custom threshold alert configuration,75%]
+
+[discrete]
+[[custom-threshold-scope]]
+= Define the rule scope
+
+Specify the following settings to define the data you want to apply your rule to:
+
+* *Select a data view:* Select a data view that points to the indices or data streams that you're creating a rule for. Create a new data view by clicking *Create a data view*. Refer to {kibana-ref}/data-views.html[Create a data view] for more on creating data views.
+* *Define query filter (optional):* Use a query filter to narrow down the data that your rule applies to. For example, set a query filter to a specific host name--`host.name:host-1`-- for the rule to only apply to that host.
+
+[discrete]
+[[custom-threshold-rule-conditions]]
+= Set rule conditions
+
+Set the conditions that for the rule to detect.
+
+[discrete]
+[[custom-threshold-aggregation]]
+== Aggregation
+
+Aggregations summarize your data to make it easier to analyze.
+Set any of the following aggregation types to gather data to create your rule.
+
+* *Average:* The average value of a numeric field.
+* *Max:* The highest value of a numeric field.
+* *Min:* The lowest value of a numeric field.
+* *Cardinality:* The approximate number of unique values in a field.
+* *Document count:* The total number of documents in a field.
+* *Sum:* The total of a numeric field in your dataset.
+
+For example, if you want to gather the total number of log documents with a log level of `warn` or `error`, set the *Aggregation* to *Document count*, and set the *KQL Filter* to `log.level: ("warn" or "error")`. You can then set trigger alerts when the total number reaches a specific threshold. The following section contains more information on setting equations and thresholds.
+
+[discrete]
+[[custom-threshold-equation]]
+== Equation and threshold
+
+Set an equation using basic math or boolean logic for your aggregations.
+
+[discrete]
+[[custom-threshold-chart-preview]]
+== Preview chart
+
+The preview chart provides a visualization of your configuration and how many entries match your configuration.
+The shaded area shows the threshold you've set.
+
+image::images/custom-threshold-preview-chart.png[Custom threshold preview chart,75%]
+
+[discrete]
+[[custom-threshold-group-by]]
+== Group alerts by (optional)
+
+Set one or more *group alerts by* fields for custom threshold rules to perform a composite aggregation against the selected fields.
+When any of these groups match the selected rule conditions, an alert is triggered _per group_.
+
+When you select multiple groupings, the group name is separated by commas.
+
+For example, if you group alerts by the `host.name` and `host.architecture` fields, and there are two hosts (`Host A` and `Host B`) and two architectures (`Architecture A` and `Architecture B`), the composite aggregation forms multiple groups.
+
+If the `Host A, Architecture A` group matches the rule conditions, but the `Host B, Architecture B` group doesn't, one alert is triggered for `Host A, Architecture A`.
+
+If you select one field--for example, `host.name`--and `Host A` matches the conditions but `Host B` doesn't, one alert is triggered for `Host A`.
+If both groups matches the conditions, alerts are triggered for both groups.
+
+[IMPORTANT]
+=====
+When *group alerts by* fields are selected, but no documents contain the selected field(s) within the given time range of when the alert is triggered, you can't determine the group(s). This is relevant when the rule condition is sensitive to a certain number of documents, and that number might be `0`.
+
+For example, when querying if a host has less than five documents matching a condition, an alert is not triggered
+due to the host not reporting logs for the duration of the query.
+=====
