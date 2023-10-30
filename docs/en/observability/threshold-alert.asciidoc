@@ -3,7 +3,7 @@
 
 preview::[]
 
-Create a custom threshold rule to trigger alerts when an {observability} data type reaches or exceeds a given value.
+Create a custom threshold rule to trigger an alert when an {observability} data type reaches or exceeds a given value.
 
 . To access this page, go to **{observability}** -> **Alerts**.
 . Click **Manage Rules** -> **Create rule**.
@@ -16,20 +16,20 @@ image::images/custom-threshold-rule.png[Custom threshold alert configuration,75%
 [[custom-threshold-scope]]
 = Define rule data
 
-Specify the following settings to define the data you want to apply your rule to:
+Specify the following settings to define the data the rule applies to:
 
 * *Select a data view:* Select a data view that points to the indices or data streams that you're creating a rule for. Create a new data view by clicking *Create a data view*. Refer to {kibana-ref}/data-views.html[Create a data view] for more on creating data views.
-* *Define query filter (optional):* Use a query filter to narrow down the data that your rule applies to. For example, set a query filter to a specific host name--`host.name:host-1`-- for the rule to only apply to that host.
+* *Define query filter (optional):* Use a query filter to narrow down the data that the rule applies to. For example, set a query filter to a specific host name--`host.name:host-1`--to only apply the rule to that host.
 
 [discrete]
 [[custom-threshold-rule-conditions]]
 = Set rule conditions
 
-Set the conditions that for the rule to detect.
+Set the conditions for the rule to detect using aggregations, an equation, and a threshold.
 
 [discrete]
 [[custom-threshold-aggregation]]
-== Aggregation
+== Set aggregations
 
 Aggregations summarize your data to make it easier to analyze.
 Set any of the following aggregation types to gather data to create your rule.
@@ -41,28 +41,44 @@ Set any of the following aggregation types to gather data to create your rule.
 * *Document count:* The total number of documents in a field.
 * *Sum:* The total of a numeric field in your dataset.
 
-For example, if you want to gather the total number of log documents with a log level of `warn` or `error`, set the *Aggregation* to *Document count*, and set the *KQL Filter* to `log.level: ("warn" or "error")`. You can then set trigger alerts when the total number reaches a specific threshold. The following section contains more information on setting equations and thresholds.
+For example, to gather the total number of log documents with a log level of `warn`, set the *Aggregation* to *Document count*, and set the *KQL Filter* to `log.level: "warn"`. Set the threshold to `IS ABOVE 100` to trigger an alert when the number of log documents with a log level of `warn` reaches 100. The following section contains more information on setting equations and thresholds.
 
 [discrete]
 [[custom-threshold-equation]]
-== Equation and threshold
+== Set the equation and threshold
 
-Set an equation using basic math or boolean logic for your aggregations.
+Set an equation using your aggregations, and, based on the results of your equation, set a threshold to define under which conditions to trigger an alert. The equations use basic math or boolean logic. The following examples show some possible use cases.
 
-Then, set a threshold using the following comparators:
-
-* *Is above:* greater than the threshold
-* *Is above or equals:* greater than or equal to the threshold
-* *Is below:* less than the threshold
-* *Is below or equals:* less than or equal to the threshold
-* *Is between:* within the range of two threshold numbers
-* *Is not between:* outside of the range of two threshold numbers
+[horizontal]
+*Math equation*:: Add, subtract, multiply, or divide your aggregations to define conditions for alerting.
++
+*Example*
++
+Set an equation and threshold to to trigger an alert when a metric is above a threshold. For this example, we'll use average CPU usage--the percentage of CPU time spent in states other than `idle` or `IOWait` normalized by the number of CPU cores--and trigger an alert when CPU usage is above a specific percentage. To do this, set the following aggregations, equation, and threshold:
++
+. Set the following aggregations:
+** *Aggregation A:* Average `system.cpu.user.pct`
+** *Aggregation B:* Average `system.cpu.system.pct`
+** *Aggregation C:* Max `system.cpu.cores`.
+. Set the equation to `(A + B) / C * 100`
+. Set the threshold to `IS ABOVE 95` to alert when CPU usage is above 95%.
+*Boolean logic*:: Use conditional operators and comparison operators with you aggregations to define conditions for alerting.
++
+*Example*
++
+Set an equation and threshold to trigger an alert when two fields that should have same value differ. For this example, we'll use `kubernetes.statefulset.replicas.ready` and `kubernetes.statefulset.replicas.desired`, and trigger an alert when their values differ. To do this, set the following aggregations, equation, and threshold:
++
+. Set the following aggregations:
+** *Aggregation A:* Sum `kubernetes.statefulset.replicas.ready`
+** *Aggregation B:* Sum `kubernetes.statefulset.desired`
+. Set the equation to `A == B ? 1 : 0`. If A and B are equal, the result is `1`. If they're not equal, the result is `0`.
+. Set the threshold to `IS BELOW 1` to trigger an alert when the result is `0` and the field values do not match.
 
 [discrete]
 [[custom-threshold-chart-preview]]
 == Preview chart
 
-The preview chart provides a visualization of your configuration and how many entries match your configuration.
+The preview chart provides a visualization of how many entries match your configuration.
 The shaded area shows the threshold you've set.
 
 image::images/custom-threshold-preview-chart.png[Custom threshold preview chart,75%]
