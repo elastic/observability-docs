@@ -4,7 +4,6 @@ slug: /serverless/observability/stream-log-files
 title: Stream any log file
 description: Send a log file to your Observability project using the standalone ((agent)).
 tags: [ 'serverless', 'observability', 'how-to' ]
-status: in testing
 ---
 
 <p><DocBadge template="technical preview" /></p>
@@ -39,10 +38,10 @@ Enter a few configuration details in the guided instructions.
 * **Log file path**: The path to your log files.
   You can also use a pattern like `/var/log/your-logs.log*`.
   Click **Add row** to add more log file paths.
-  
+
   This will be passed to the `paths` field in the generated `elastic-agent.yml` file in a future step.
   <br />
-  
+
 * **Service name**: Provide a service name to allow for distributed services running on
   multiple hosts to correlate the related instances.
 
@@ -55,7 +54,7 @@ Elastic creates an integration to streamline connecting your log data to Elastic
 * **Integration name**: Give your integration a name.
   This is a unique identifier for your stream of log data that you can later use to filter data in the Log Explorer.
   The value must be unique within your project, all lowercase, and max 100 chars. Special characters will be replaced with `_`.
-  
+
   This will be passed to the `streams.id` field in the generated `elastic-agent.yml` file in a future step.
 
   The integration name will be used in the Log Explorer.
@@ -67,7 +66,7 @@ Elastic creates an integration to streamline connecting your log data to Elastic
 * **Dataset name**: Give your integration's dataset a name.
   The name for your dataset data stream. Name this data stream anything that signifies the source of the data.
   The value must be all lowercase and max 100 chars. Special characters will be replaced with `_`.
-  
+
   This will be passed to the `data_stream.dataset` field in the generated `elastic-agent.yml` file in a future step.
 
 ## Install the ((agent))
@@ -78,7 +77,7 @@ install and configure the standalone ((agent)).
 Run the command under **Install the ((agent))** that corresponds with your system to download, extract, and install the ((agent)).
 Turning on **Automatically download the agent's config** includes your updated ((agent)) configuration file in the download.
 
-If you do not want to automatically download the configuration, click **Download config file** to download it manually and 
+If you do not want to automatically download the configuration, click **Download config file** to download it manually and
 add it to `/opt/Elastic/Agent/elastic-agent.yml` on the host where you installed the ((agent)).
 The values you provided in <DocLink id="serverlessObservabilityStreamLogFiles" section="configure-inputs-and-integration">Configure inputs and integration</DocLink> will be prepopulated in the generated configuration file.
 
@@ -111,12 +110,12 @@ systemd, For these systems, you must enable and start the service.
 
 During installation, you'll be prompted with some questions:
 
-1. When asked if you want to install the agent as a service, enter `Y`. 
+1. When asked if you want to install the agent as a service, enter `Y`.
 1. When asked if you want to enroll the agent in Fleet, enter `n`.
 
 ### Step 3: Configure the ((agent))
 
-After your agent is installed, configure it by updating the `elastic-agent.yml` file. 
+After your agent is installed, configure it by updating the `elastic-agent.yml` file.
 
 #### Locate your configuration file
 
@@ -157,12 +156,12 @@ You need to set the values for the following fields:
     <DocCell>
       Copy the ((es)) endpoint from your project's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
 
-      If you're following the guided instructions in your project, 
+      If you're following the guided instructions in your project,
       the ((es)) endpoint will be prepopulated in the configuration file.
 
       <DocCallOut title="Tip">
       If you need to find your project's ((es)) endpoint outside the guided instructions:
-      
+
       1. Go to the **Projects** page that lists all your projects.
       1. Click **Manage** next to the project you want to connect to.
       1. Click **View** next to _Endpoints_.
@@ -186,8 +185,8 @@ You need to set the values for the following fields:
       <div id="api-key-beats"></div>
 
       If configuring the ((agent)) manually, create an API key:
-      
-      1. Navigate to **Project settings -> Management -> API keys** and click **Create API key**. 
+
+      1. Navigate to **Project settings -> Management -> API keys** and click **Create API key**.
       1. Select **Restrict privileges** and add the following JSON to give privileges for ingesting logs.
           ```json
           {
@@ -198,7 +197,7 @@ You need to set the values for the following fields:
               "indices": [
                 {
                   "names": [
-                    "logs-*-*" 
+                    "logs-*-*"
                   ],
                   "privileges": [
                     "auto_configure", "create_doc"
@@ -208,7 +207,7 @@ You need to set the values for the following fields:
             }
           }
           ```
-      1. You _must_ set the API key to configure ((beats)). 
+      1. You _must_ set the API key to configure ((beats)).
       Immediately after the API key is generated and while it is still being displayed, click the
       **Encoded** button next to the API key and select **Beats** from the list in the tooltip.
       Base64 encoded API keys are not currently supported in this configuration.

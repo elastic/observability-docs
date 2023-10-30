@@ -4,12 +4,11 @@ slug: /serverless/observability/parse-log-data
 title: Parse and route logs
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'how-to' ]
-status: in testing
 ---
 
 <p><DocBadge template="technical preview" /></p>
 
-If your log data is unstructured or semi-structured, you can parse it and break it into meaningful fields. You can use those fields to explore and analyze your data. For example, you can find logs within a specific timestamp range or filter logs by log level to focus on potential issues. 
+If your log data is unstructured or semi-structured, you can parse it and break it into meaningful fields. You can use those fields to explore and analyze your data. For example, you can find logs within a specific timestamp range or filter logs by log level to focus on potential issues.
 
 After parsing, you can use the structured fields to further organize your logs by configuring a reroute processor to send specific logs to different target data streams.
 
@@ -20,7 +19,7 @@ Refer to the following sections for more on parsing and organizing your log data
 
 ## Extract structured fields
 
-Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data. 
+Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data.
 
 Follow the steps below to see how the following unstructured log data is indexed by default:
 
@@ -67,8 +66,8 @@ The results should look like this:
 }
 ```
 
-Your project indexes the `message` field by default and adds a `@timestamp` field. Since there was no timestamp set, it's set to `now`. 
-At this point, you can search for phrases in the `message` field like `WARN` or `Disk usage exceeds`. 
+Your project indexes the `message` field by default and adds a `@timestamp` field. Since there was no timestamp set, it's set to `now`.
+At this point, you can search for phrases in the `message` field like `WARN` or `Disk usage exceeds`.
 For example, run the following command to search for the phrase `WARN` in the log's `message` field:
 
 ```console
@@ -110,7 +109,7 @@ When you added the log to your project in the previous section, the `@timestamp`
 [^1]: The timestamp in the `message` field shows when the log occurred.
 [^2]: The timestamp in the `@timestamp` field shows when the log was added to your project.
 
-When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to your project. 
+When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to your project.
 To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field by completing the following:
 
 1. <DocLink id="serverlessObservabilityParseLogData" section="use-an-ingest-pipeline-to-extract-the-timestamp-field">Use an ingest pipeline to extract the `@timestamp` field</DocLink>
@@ -120,12 +119,12 @@ To do this, extract the timestamp from the unstructured `message` field to the s
 
 #### Use an ingest pipeline to extract the `@timestamp` field
 
-Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. 
-To extract the `@timestamp` field from the example log, use an ingest pipeline with a [dissect processor](((ref))/dissect-processor.html). 
-The dissect processor extracts structured fields from unstructured log messages based on a pattern you set. 
+Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed.
+To extract the `@timestamp` field from the example log, use an ingest pipeline with a [dissect processor](((ref))/dissect-processor.html).
+The dissect processor extracts structured fields from unstructured log messages based on a pattern you set.
 
-Your project can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. 
-Since the log example's timestamp is in one of these formats, you don't need additional processors. 
+Your project can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields.
+Since the log example's timestamp is in one of these formats, you don't need additional processors.
 More complex or nonstandard timestamps require a [date processor](((ref))/date-processor.html) to parse the timestamp into a date field.
 
 Use the following command to extract the timestamp from the `message` field into the `@timestamp` field:
@@ -153,8 +152,8 @@ The previous command sets the following values for your ingest pipeline:
 
 #### Test the pipeline with the simulate pipeline API
 
-The [simulate pipeline API](((ref))/simulate-pipeline-api.html#ingest-verbose-param) runs the ingest pipeline without storing any documents. 
-This lets you verify your pipeline works using multiple documents. 
+The [simulate pipeline API](((ref))/simulate-pipeline-api.html#ingest-verbose-param) runs the ingest pipeline without storing any documents.
+This lets you verify your pipeline works using multiple documents.
 
 Run the following command to test your ingest pipeline with the simulate pipeline API.
 
@@ -232,7 +231,7 @@ The previous command sets the following values for your index template:
 The example index template above sets the following component templates:
 
 - `logs-mappings`: general mappings for log data streams that include disabling automatic date detection from `string` fields and specifying mappings for [`data_stream` ECS fields](((ecs-ref))/ecs-data_stream.html).
-- `logs-settings`: general settings for log data streams including the following: 
+- `logs-settings`: general settings for log data streams including the following:
     * The default lifecycle policy that rolls over when the primary shard reaches 50 GB or after 30 days.
     * The default pipeline uses the ingest timestamp if there is no specified `@timestamp` and places a hook for the `logs@custom` pipeline. If a `logs@custom` pipeline is installed, it's applied to logs ingested into this data stream.
     * Sets the [`ignore_malformed`](((ref))/ignore-malformed.html) flag to `true`. When ingesting a large batch of log data, a single malformed field like an IP address can cause the entire batch to fail. When set to true, malformed fields with a mapping type that supports this flag are still processed.
@@ -401,7 +400,7 @@ POST logs-example-default/_bulk
 { "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
 ```
 
-Then, query for documents with a log level of `WARN` or `ERROR` with this command: 
+Then, query for documents with a log level of `WARN` or `ERROR` with this command:
 
 ```console
 GET logs-example-default/_search
@@ -454,7 +453,7 @@ The results should show only the high-severity logs:
 
 ### Extract the `host.ip` field
 
-Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you're having issues with or find disparities between hosts. 
+Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you're having issues with or find disparities between hosts.
 
 The `host.ip` field is part of the [Elastic Common Schema (ECS)](((ecs-ref))/ecs-reference.html). Through the ECS, the `host.ip` field is mapped as an [`ip` field type](((ref))/ip.html). `ip` field types allow range queries so you can find logs with IP addresses in a specific range. You can also query `ip` field types using Classless Inter-Domain Routing (CIDR) notation to find logs from a particular network or subnet.
 
@@ -545,7 +544,7 @@ The results should show the `host.ip`, `@timestamp`, and `log.level` fields extr
 
 #### Query logs based on `host.ip`
 
-You can query your logs based on the `host.ip` field in different ways, including using CIDR notation and range queries. 
+You can query your logs based on the `host.ip` field in different ways, including using CIDR notation and range queries.
 
 Before querying your logs, add them to your data stream using this command:
 
@@ -561,7 +560,7 @@ POST logs-example-default/_bulk
 { "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
 ```
 
-##### CIDR notation 
+##### CIDR notation
 
 You can use [CIDR notation](https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation) to query your log data using a block of IP addresses that fall within a certain network segment. CIDR notations uses the format of `[IP address]/[prefix length]`. The following command queries IP addresses in the `192.168.1.0/24` subnet meaning IP addresses from `192.168.1.0` to `192.168.1.255`.
 
@@ -651,7 +650,7 @@ Because all of the example logs are in this range, you'll get the following resu
 
 ##### Range queries
 
-Use [range queries](((ref))/query-dsl-range-query.html) to query logs in a specific range. 
+Use [range queries](((ref))/query-dsl-range-query.html) to query logs in a specific range.
 
 The following command searches for IP addresses greater than or equal to `192.168.1.100` and less than or equal to `192.168.1.102`.
 
@@ -716,7 +715,7 @@ You'll get the following results only showing logs in the range you've set:
 
 ## Reroute log data to specific data streams
 
-By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, use a [reroute processor](((ref))/reroute-processor.html) to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization. 
+By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, use a [reroute processor](((ref))/reroute-processor.html) to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization.
 
 This section shows you how to use a reroute processor to send the high-severity logs (`WARN` or `ERROR`) from the following example logs to a specific data stream and keep the regular logs (`DEBUG` and `INFO`) in the default data stream:
 
