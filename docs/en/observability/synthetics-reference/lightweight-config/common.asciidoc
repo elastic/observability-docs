@@ -46,7 +46,7 @@ name
 (<<synthetics-lightweight-data-string,string>>)
 a| Human readable name for this monitor.
 
-*Examples*: 
+*Examples*:
 
 [source,yaml]
 ----
@@ -216,6 +216,62 @@ Enable TLS certificate alerts on this monitor.
 [source,yaml]
 ----
 alert.tls.enabled: true
+----
+
+////////////////////////
+locations
+////////////////////////
+| [[monitor-locations]] *`locations`*
+(list of https://github.com/elastic/synthetics/blob/{synthetics_version}/src/locations/public-locations.ts#L28-L37[`SyntheticsLocationsType`])
+a| Where to deploy the monitor. Monitors can be deployed in multiple locations so that you can detect differences in availability and response times across those locations.
+
+To list available locations you can:
+
+* Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>>.
+* Go to *Synthetics* -> *Management* and click *Create monitor*. Locations will be listed in _Locations_.
+
+// If no `locations` or `private_locations` are specified in the monitor configuration, but is defined in the <<synthetics-configuration,project configuration file>>, the monitors will be pushed to the locations listed in the project configuration file.
+
+*Examples*:
+
+[source,yaml]
+----
+locations: ["asia-northeast1-a", "asia-south1-a"]
+----
+
+[source,yaml]
+----
+locations:
+  - asia-northeast1-a
+  - asia-south1-a
+----
+
+////////////////////////
+private_locations
+////////////////////////
+| [[monitor-private_locations]] *`private_locations`*
+(list of <<synthetics-lightweight-data-string,string>>s)
+a| The <<synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas  `locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
+
+To list available {private-location}s you can:
+
+* Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>> with the {kib} URL for the deployment from which to fetch available locations.
+* Go to *Synthetics* -> *Management* and click *Create monitor*. {private-location}s will be listed in _Locations_.
+
+// If no `locations` or `private_locations` are specified in the monitor configuration, but is defined in the <<synthetics-configuration,project configuration file>>, the monitors will be pushed to the locations listed in the project configuration file.
+
+*Examples*:
+
+[source,yaml]
+----
+private_locations: ["Private Location 1", "Private Location 2"]
+----
+
+[source,yaml]
+----
+private_locations:
+  - Private Location 1
+  - Private Location 2
 ----
 
 |===
