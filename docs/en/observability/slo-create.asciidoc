@@ -9,7 +9,7 @@ beta::[]
 
 IMPORTANT: Before creating an SLO, you need to <<slo-privileges, configure your SLO access>>.
 
-To create an SLO, go to *Observability → SLOs*: 
+To create an SLO, go to *Observability → SLOs*:
 
 * If you're creating your first SLO, you'll see an introductory page. Click the *Create SLO* button.
 * If you've created SLOs before, click the *Create new SLO* button in the upper-right corner of the page.
@@ -26,18 +26,18 @@ From here, complete the following steps:
 
 The type of SLI to use depends on the location of your data:
 
-* <<custom-kql-sli, Custom KQL>> — create an SLI based on raw logs coming from your services. 
+* <<custom-kql-sli, Custom KQL>> — create an SLI based on raw logs coming from your services.
 * <<custom-metric-sli, Custom metric>> — create an SLI to define custom equations from metric fields in your indices.
 * <<histogram-metric-sli, Histogram metric>> — create an SLI based on histogram metrics.
-* <<apm-latency-and-availability-sli, APM latency and APM availability>> — create an SLI based on services using application performance monitoring (APM). 
+* <<apm-latency-and-availability-sli, APM latency and APM availability>> — create an SLI based on services using application performance monitoring (APM).
 
 [discrete]
 [[custom-kql-sli]]
 == Custom KQL
 
-Create an indicator based on any of your {es} indices or data views. You define two queries: one that yields the good events from your index, and one that yields the total events from your index. 
+Create an indicator based on any of your {es} indices or data views. You define two queries: one that yields the good events from your index, and one that yields the total events from your index.
 
-*Example:* You can define a custom KQL indicator based on the `service-logs` with the *good query* defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the *total query* defined as `nested.field.env : “production”`. 
+*Example:* You can define a custom KQL indicator based on the `service-logs` with the *good query* defined as `nested.field.response.latency <= 100 and nested.field.env : “production”` and the *total query* defined as `nested.field.env : “production”`.
 
 When defining a custom KQL SLI, set the following fields:
 
@@ -54,7 +54,7 @@ When defining a custom KQL SLI, set the following fields:
 
 Create an indicator to define custom equations from metric fields in your indices.
 
-*Example:* You can define *Good events* as the sum of the field `processor.processed` with a filter of `"processor.outcome: \"success\""`, and the *Total events* as the sum of `processor.processed` with a filter of `"processor.outcome: *"`. 
+*Example:* You can define *Good events* as the sum of the field `processor.processed` with a filter of `"processor.outcome: \"success\""`, and the *Total events* as the sum of `processor.processed` with a filter of `"processor.outcome: *"`.
 
 When defining a custom metric SLI, set the following fields:
 
@@ -76,11 +76,11 @@ When defining a custom metric SLI, set the following fields:
 [[histogram-metric-sli]]
 == Histogram metric
 
-Histograms record data in a compressed format and can record latency and delay metrics. You can create an SLI based on histogram metrics using a `range` aggregation or a `value_count` aggregation for both the good and total events. Filtering with KQL queries is supported on both event types. 
+Histograms record data in a compressed format and can record latency and delay metrics. You can create an SLI based on histogram metrics using a `range` aggregation or a `value_count` aggregation for both the good and total events. Filtering with KQL queries is supported on both event types.
 
 When using a `range` aggregation, both the `from` and `to` thresholds are required for the range and the events are the total number of events within that range. The range includes the `from` value and excludes the `to` value.
 
-*Example:* You can define your *Good events* using the `processor.latency` field with a filter of `"processor.outcome: \"success\""`, and your *Total events* using the `processor.latency` field with a filter of `"processor.outcome: *"`. 
+*Example:* You can define your *Good events* using the `processor.latency` field with a filter of `"processor.outcome: \"success\""`, and your *Total events* using the `processor.latency` field with a filter of `"processor.outcome: *"`.
 
 When defining a histogram metric SLI, set the following fields:
 
@@ -89,7 +89,7 @@ When defining a histogram metric SLI, set the following fields:
 ** *Timestamp field* — The timestamp field used by the index.
 ** *Query filter* — A KQL filter to specify relevant criteria by which to filter the index documents. For example, `field.environment : "production" and service.name : "my-service"`.
 * *Good events*
-** *Aggregation* — The type of aggregation to use for good events, either *Value count* or *Range*. 
+** *Aggregation* — The type of aggregation to use for good events, either *Value count* or *Range*.
 ** *Field* — The field used to aggregate events considered good or successful. For example, `processor.latency`.
 ** *From* — (`range` aggregation only) The starting value of the range for good events. For example, `0`.
 ** *To* — (`range` aggregation only) The ending value of the range for good events. For example, `100`.
@@ -110,7 +110,7 @@ When defining a histogram metric SLI, set the following fields:
 [[apm-latency-sli]]
 === APM latency
 
-Create an indicator based on the APM data that you received from your instrumented services and a latency threshold. 
+Create an indicator based on the APM data that you received from your instrumented services and a latency threshold.
 
 *Example:* You can define an indicator on an APM service named `banking-service` for the `production` environment, and the transaction name `POST /deposit` with a latency threshold value of 300ms.
 
@@ -118,7 +118,7 @@ Create an indicator based on the APM data that you received from your instrument
 [[apm-availability-sli]]
 === APM availability
 
-Create an indicator based on the APM data received from your instrumented services. 
+Create an indicator based on the APM data received from your instrumented services.
 
 *Example:* You can define an indicator on an APM service named `search-service` for the `production` environment, and the transaction name `POST /search`.
 
@@ -143,7 +143,7 @@ After defining your SLI, you need to set your objectives. To set your objectives
 [discrete]
 [[slo-budgeting-method]]
 == Select your budgeting method
-You can select either an *occurrences* or a *timeslices* budgeting method: 
+You can select either an *occurrences* or a *timeslices* budgeting method:
 
 [cols="1,1"]
 |===
@@ -166,7 +166,7 @@ If the SLO target is 98%, we have a `100-98 = 2%` error budget or `8640 * 0.02 =
 [discrete]
 [[slo-time-window]]
 == Set your time window
-Select the durations over which you want to compute your SLO. The time window uses the data from the defined rolling period. For example, the last 30 days. 
+Select the durations over which you want to compute your SLO. The time window uses the data from the defined rolling period. For example, the last 30 days.
 
 [discrete]
 [[slo-target]]
@@ -180,7 +180,19 @@ After setting your objectives, give your SLO a name, a short description, and ad
 
 [discrete]
 [[slo-alert-checkbox]]
-= SLO burn rate alert rule
+= Create an SLO burn rate alert rule
+
 When the *Create an SLO burn rate alert rule* checkbox is selected, the *Create rule* window opens immediately after you click the *Create SLO* button.
-Here you can define your SLO burn rate alert rule. 
+Here you can define your SLO burn rate alert rule.
 For more information, see <<slo-burn-rate-alert, Create an SLO burn rate rule>>.
+
+[discrete]
+[[slo-dashboard]]
+= Add an SLO Overview panel to a custom dashboard
+
+After you've created your SLO, you can monitor it from the _SLOs_ page in Observability,
+but you can also add an _SLO Overview_ panel to a custom dashboard.
+Read more about dashboards in {kibana-ref}/dashboard.html[Dashboard and visualizations].
+
+[role="screenshot"]
+image::images/slo-overview-embeddable-widget.png[Using the Add panel button to add an SLO Overview widget to a dashboard]
