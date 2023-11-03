@@ -230,21 +230,29 @@ To list available locations you can:
 * Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>>.
 * Go to *Synthetics* -> *Management* and click *Create monitor*. Locations will be listed in _Locations_.
 
-// If no `locations` or `private_locations` are specified in the monitor configuration, but is defined in the <<synthetics-configuration,project configuration file>>, the monitors will be pushed to the locations listed in the project configuration file.
-
 *Examples*:
 
 [source,yaml]
 ----
-locations: ["asia-northeast1-a", "asia-south1-a"]
+locations: ["japan", "india"]
 ----
 
 [source,yaml]
 ----
 locations:
-  - asia-northeast1-a
-  - asia-south1-a
+  - japan
+  - india
 ----
+
+[NOTE]
+====
+This can also be set in the project configuration file using
+<<synthetics-configuration-monitor,`monitor.locations` in the project configuration file>>
+or via the CLI using the <<elastic-synthetics-push-command,`--location` flag on `push`>>.
+
+The value defined via the CLI will take precedence over the value defined in the lightweight monitor configuration,
+and the value defined in the lightweight monitor configuration will take precedence over the value defined in _project_ configuration file.
+====
 
 ////////////////////////
 private_locations
@@ -257,8 +265,6 @@ To list available {private-location}s you can:
 
 * Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>> with the {kib} URL for the deployment from which to fetch available locations.
 * Go to *Synthetics* -> *Management* and click *Create monitor*. {private-location}s will be listed in _Locations_.
-
-// If no `locations` or `private_locations` are specified in the monitor configuration, but is defined in the <<synthetics-configuration,project configuration file>>, the monitors will be pushed to the locations listed in the project configuration file.
 
 *Examples*:
 
@@ -273,6 +279,16 @@ private_locations:
   - Private Location 1
   - Private Location 2
 ----
+
+[NOTE]
+====
+This can also be set in the project configuration file using
+<<synthetics-configuration-monitor,`monitor.privateLocations` in the project configuration file>>
+or via the CLI using the <<elastic-synthetics-push-command,`--privateLocations` flag on `push`>>.
+
+The value defined via the CLI will take precedence over the value defined in the lightweight monitor configuration,
+and the value defined in the lightweight monitor configuration will take precedence over the value defined in _project_ configuration file.
+====
 
 |===
 
