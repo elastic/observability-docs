@@ -18,7 +18,7 @@ image::images/custom-threshold-rule.png[Custom threshold alert configuration,75%
 
 Specify the following settings to define the data the rule applies to:
 
-* *Select a data view:* Select a data view that points to the indices or data streams that you're creating a rule for. Create a new data view by clicking *Create a data view*. Refer to {kibana-ref}/data-views.html[Create a data view] for more on creating data views.
+* *Select a data view:* Click the data view field to search for and select a data view that points to the indices or data streams that you're creating a rule for. You can also create a _new_ data view by clicking *Create a data view*. Refer to {kibana-ref}/data-views.html[Create a data view] for more on creating data views.
 * *Define query filter (optional):* Use a query filter to narrow down the data that the rule applies to. For example, set a query filter to a specific host name using the query filter `host.name:host-1` to only apply the rule to that host.
 
 [discrete]
@@ -32,7 +32,7 @@ Set the conditions for the rule to detect using aggregations, an equation, and a
 === Set aggregations
 
 Aggregations summarize your data to make it easier to analyze.
-Set any of the following aggregation types to gather data to create your rule.
+Set any of the following aggregation types to gather data to create your rule:
 
 * *Average:* The average value of a numeric field.
 * *Max:* The highest value of a numeric field.
@@ -46,31 +46,39 @@ For example, to gather the total number of log documents with a log level of `wa
 . Set the *Aggregation* to *Document count*, and set the *KQL Filter* to `log.level: "warn"`.
 . Set the threshold to `IS ABOVE 100` to trigger an alert when the number of log documents with a log level of `warn` reaches 100.
 
-The following section contains more information on setting equations and thresholds.
-
 [discrete]
 [[custom-threshold-equation]]
 === Set the equation and threshold
 
 Set an equation using your aggregations. Based on the results of your equation, set a threshold to define when to trigger an alert. The equations use basic math or boolean logic. Refer to the following examples for possible use cases.
 
-[horizontal]
-*Math equation*:: Add, subtract, multiply, or divide your aggregations to define conditions for alerting.
-+
-*Example* +
-Set an equation and threshold to to trigger an alert when a metric is above a threshold. For this example, we'll use average CPU usage—the percentage of CPU time spent in states other than `idle` or `IOWait` normalized by the number of CPU cores—and trigger an alert when CPU usage is above a specific percentage. To do this, set the following aggregations, equation, and threshold:
-+
+[discrete]
+[[custom-threshold-math-equation]]
+=== Basic math equation
+
+Add, subtract, multiply, or divide your aggregations to define conditions for alerting.
+
+*Example*
+
+Set an equation and threshold to trigger an alert when a metric is above a threshold. For this example, we'll use average CPU usage—the percentage of CPU time spent in states other than `idle` or `IOWait` normalized by the number of CPU cores—and trigger an alert when CPU usage is above a specific percentage. To do this, set the following aggregations, equation, and threshold:
+
 . Set the following aggregations:
 ** *Aggregation A:* Average `system.cpu.user.pct`
 ** *Aggregation B:* Average `system.cpu.system.pct`
 ** *Aggregation C:* Max `system.cpu.cores`.
 . Set the equation to `(A + B) / C * 100`
 . Set the threshold to `IS ABOVE 95` to alert when CPU usage is above 95%.
-*Boolean logic*:: Use conditional operators and comparison operators with you aggregations to define conditions for alerting.
-+
-*Example* +
+
+[discrete]
+[[custom-threshold-boolean-equation]]
+=== Boolean logic
+
+Use conditional operators and comparison operators with you aggregations to define conditions for alerting.
+
+*Example*
+
 Set an equation and threshold to trigger an alert when the number of stateful pods differs from the number of desired pods. For this example, we'll use `kubernetes.statefulset.ready` and `kubernetes.statefulset.desired`, and trigger an alert when their values differ. To do this, set the following aggregations, equation, and threshold:
-+
+
 . Set the following aggregations:
 ** *Aggregation A:* Sum `kubernetes.statefulset.ready`
 ** *Aggregation B:* Sum `kubernetes.statefulset.desired`
@@ -121,10 +129,10 @@ Extend your rules by connecting them to actions that use the following supported
 [role="screenshot"]
 image::images/alert-action-types.png[Alert action types]
 
-After you select a connector, you must set the action frequency. You can choose to create a summary of alerts on each check interval or on a custom interval. Alternatively, you can set the action frequency such that you choose how often the action runs (for example, at each check interval, only when the alert status changes, or at a custom action interval). In this case, you must also select the specific threshold condition that affects when actions run: `Fired` or `Recovered`.
+After you select a connector, you must set the action frequency. You can choose to create a summary of alerts on each check interval or on a custom interval. Alternatively, you can set the action frequency such that you choose how often the action runs (for example, at each check interval, only when the alert status changes, or at a custom action interval). In this case, you must also select the specific threshold condition that affects when actions run: `Alert`, `No Data`, or `Recovered`.
 
 [role="screenshot"]
-image::images/log-threshold-run-when-selection.png[Configure when a rule is triggered]
+image::images/custom-threshold-run-when.png[Configure when a rule is triggered]
 
 You can also further refine the conditions under which actions run by specifying that actions only run when they match a KQL query or when an alert occurs within a specific time frame:
 
