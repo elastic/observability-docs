@@ -2,12 +2,12 @@
 = View infrastructure metrics by resource type
 
 The *Inventory* page provides a metrics-driven view of your entire infrastructure grouped by 
-the resources that you are monitoring. All monitored resources emitting
+the resources you are monitoring. All monitored resources emitting
 a core set of infrastructure metrics are displayed to give you a quick view of the overall health
 of your infrastructure.
 
 To access this page from the main {kib} menu, go to
-*{observability} -> Infrastructure*. The *Inventory* page is displayed by default.
+*{observability} -> Infrastructure -> Inventory*.
 
 [role="screenshot"]
 image::images/metrics-app.png[{infrastructure-app} in {kib}]
@@ -28,174 +28,19 @@ Need help getting started? Follow the steps in
 ====
 // end::add-metrics-tip[]
 
-An overview of the hosts that you are monitoring and the current CPU usage
-for each host are displayed in a waffle map of one or more rectangular grids. 
-Alternatively, you can change this map view to a table view.
-
-Without leaving the *Inventory* page, you can view enhanced metrics relating to each host
-running in your infrastructure. On the waffle map, select the host to display the host metrics
-overlay.
-
-The host details overlay contains the following tabs:
-
-// This is collapsed by default
-[%collapsible]
-.*Metrics*
-====
-
-[role="screenshot"]
-image::images/metrics-overlay.png[Host metrics]
-
-The *Metrics* tab displays CPU, load, memory, and network metrics relating to the host, along with the log rate
-and any custom metric that you have defined. You can change the time range to view metrics over the last 15 minutes,
-hour, 3 hours, 24 hours, or over the previous seven days. You can also hover over a specific time period on a chart
-to compare the various metrics at that given time.
-
-A chart is also displayed for each <<custom-metrics,custom metric>> that you
-have added and defined on the **Inventory** page.
-
-====
-
-[%collapsible]
-.*Logs*
-====
-
-[role="screenshot"]
-image::images/logs-overlay.png[Host logs]
-
-The *Logs* tab displays logs relating to the host that you have selected. By default, the logs tab displays the following columns. 
-
-|=== 
-
-| *Timestamp* | The timestamp of the log entry from the `timestamp` field. 
-
-| *Message* | The message extracted from the document.
-The content of this field depends on the type of log message.
-If no special log message type is detected, the {ecs-ref}/ecs-base.html[Elastic Common Schema (ECS)]
-base field, `message`, is used.
-
-|=== 
-
-You can customize the logs view by adding a column for an arbitrary field you would like
-to filter by. For more information, refer to <<customize-stream-page,Customize Stream>>.
-To view the logs in the {logs-app} for a detailed analysis, click *Open in Logs*.
-====
-
-[%collapsible]
-.*Processes*
-====
-
-[role="screenshot"]
-image::images/processes-overlay.png[Host processes]
-
-The *Processes* tab lists the total number of processes (`system.process.summary.total`) running on the host,
-along with the total number of processes in these various states:
-
-* Running (`system.process.summary.running`)
-* Sleeping (`system.process.summary.sleeping`)
-* Stopped (`system.process.summary.stopped`)
-* Idle (`system.process.summary.idle`)
-* Dead (`system.process.summary.dead`)
-* Zombie (`system.process.summary.zombie`)
-* Unknown (`system.process.summary.unknown`)
-
-The processes listed in the *Top processes* table are based on an aggregation of the top CPU and the top memory consuming processes.
-The number of top processes is controlled by `process.include_top_n.by_cpu` and `process.include_top_n.by_memory`.
-
-|=== 
-
-| *Command* | Full command line that started the process, including the absolute path to the executable, and all the arguments (`system.process.cmdline`).
-| *PID* | Process id (`process.pid`).
-| *User* | User name (`user.name`).
-| *CPU* | The percentage of CPU time spent by the process since the last event (`system.process.cpu.total.pct`).
-| *Time* | The time the process started (`system.process.cpu.start_time`). 
-| *Memory* | The percentage of memory (`system.process.memory.rss.pct`) the process occupied in main memory (RAM). 
-| *State* | The current state of the process and the total number of processes (`system.process.state`). Expected values are: `running`, `sleeping`, `dead`, `stopped`,
-`idle`, `zombie`, and `unknown`.
-
-|=== 
-====
-
-[%collapsible]
-.*Metadata*
-====
-
-[role="screenshot"]
-image::images/metadata-overlay.png[Host metadata]
-
-The *Metadata* tab lists all the meta information relating to the host:
-
-* Host information
-* Cloud information
-* Agent information
-
-All of this information can help when investigating events—for example, filtering by operating system or architecture.
-====
-
-[%collapsible]
-.*Anomalies*
-====
-
-[role="screenshot"]
-image::images/anomalies-overlay.png[Anomalies]
-
-The *Anomalies* table displays a list of each single metric {anomaly-detect} job for the specific host. By default, anomaly
-jobs are sorted by time to show the most recent job. 
-
-Along with the name of each anomaly job, detected anomalies with a severity score equal to 50, or higher, are listed. These
-scores represent a severity of "warning" or higher in the selected time period. The *summary* value represents the increase between
-the actual value and the expected ("typical") value of the host metric in the anomaly record result.
-
-To drill down and analyze the metric anomaly, select *Actions > Open in Anomaly Explorer* to view the
-{ml-docs}/ml-gs-results.html[Anomaly Explorer in {ml-app}]. You can also select *Actions > Show in Inventory* to view the host
-Inventory page, filtered by the specific metric. 
-====
-
-[%collapsible]
-.*Osquery*
-====
-
-[IMPORTANT]
-=====
-You must have an active {fleet-guide}/elastic-agent-installation.html[{agent}] with an assigned agent policy
-that includes the {integrations-docs}/osquery_manager.html[Osquery Manager]
-integration and have Osquery {kibana-ref}/kibana-privileges.html[{kib} privileges] as a user.
-=====
-
-[role="screenshot"]
-image::images/osquery-overlay.png[Osquery]
-
-The *Osquery* tab allows you to build SQL statements to query your host data.
-You can create and run live or saved queries against
-the {agent}. Osquery results are stored in {es}
-so that you can use the {stack} to search, analyze, and
-visualize your host metrics. To create saved queries and add scheduled query groups,
-refer to {kibana-ref}/osquery.html[Osquery].
-
-In the example above, we query for the top 5 memory hogs running on the host.
-Under the *Results* tab, the total virtual memory size (`total_size` renamed to
-`memory_used` to be a little more user friendly) is returned in descending order,
-along with the process ID (`pid`), and the process path (`name`).
-
-To view more information about the query, click the *Status* tab. A query status can result in
-`success`, `error` (along with an error message), or `pending` (if the {agent} is offline).
-
-Other options include:
-
-* View in Discover to search, filter, and view information about the structure of host metric fields. To learn more, refer to {kibana-ref}/discover.html[Discover].
-* View in Lens to create visualizations based on your host metric fields. To learn more, refer to {kibana-ref}/lens.html[Lens].
-* View the results in full screen mode.
-* Add, remove, reorder, and resize columns.
-* Sort field names in ascending or descending order.
-====
-
 [discrete]
 [[filter-resources]]
-== Filter related resources
+== Filter the Inventory view
 
-To help you get started with your analysis faster, you can change the high-level view from
-hosts to Kubernetes pods, Docker containers, or AWS, which includes EC2 instances, S3 buckets,
-RDS databases, and SQS queues. When you hover over each resource, the metrics specific to
+To get started with your analysis, select the type of resources you want to show
+in the high-level view. From the *Show* menu, select one of the following:
+
+* *Hosts* (the default)
+* *Kubernetes Pods*
+* *Docker Containers*
+* *AWS*, which includes EC2 instances, S3 buckets, RDS databases, and SQS queues
+
+When you hover over each resource, the metrics specific to
 that resource are displayed.
 
 You can sort by resource, group the resource by specific fields related to it, and sort by
@@ -211,6 +56,39 @@ For example, enter `host.hostname : "host1"` to view only the information for `h
 To examine the metrics for a specific time, use the time filter to select the date and time.
 
 [discrete]
+[[analyze-hosts-inventory]]
+== View host metrics
+
+By default the *Inventory* page displays a waffle map that shows the hosts you
+are monitoring and the current CPU usage for each host.
+Alternatively, you can click the *Table view* icon image:images/table-view-icon.png[]
+to switch to a table view.
+
+Without leaving the *Inventory* page, you can view enhanced metrics relating to each host
+running in your infrastructure. On the waffle map, select a host to display the host details
+overlay.
+
+TIP: To expand the overlay and view more detail, click *Open as page* in the upper-right corner.
+
+The host details overlay contains the following tabs:
+
+include::host-details-partial.asciidoc[]
+
+NOTE: These metrics are also available when viewing hosts on the **Hosts**
+page.
+
+[discrete]
+[[analyze-resource-metrics]]
+== View metrics for other resources
+
+When you have searched and filtered for a specific resource, you can drill down to analyze the
+metrics relating to it. For example, when viewing Kubernetes Pods in the high-level view,
+click the Pod you want to analyze and select *Kubernetes Pod metrics*.
+
+[role="screenshot"]
+image::images/pod-metrics.png[Kubernetes pod metrics]
+
+[discrete]
 [[custom-metrics]]
 == Add custom metrics
 
@@ -221,20 +99,6 @@ Select your resource, and from the *Metric* filter menu, click *Add metric*.
 
 [role="screenshot"]
 image::images/add-custom-metric.png[Add custom metrics]
-
-Your custom metrics are available in the **Group by** filter menu
-so that you can group your resources by custom fields.
-
-[discrete]
-[[analyze-resource-metrics]]
-== Analyze resource metrics
-
-When you have searched and filtered for a specific resource, you can drill-down to analyze the
-metrics relating to it. For example, to view the metrics relating to a particular Kubernetes pod, 
-click on the pod displayed in the high-level view, and then select *Kubernetes Pod metrics*.
-
-[role="screenshot"]
-image::images/pod-metrics.png[Kubernetes pod metrics]
 
 [discrete]
 [[apm-uptime-integration]]
