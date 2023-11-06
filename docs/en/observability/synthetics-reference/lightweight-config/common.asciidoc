@@ -234,6 +234,78 @@ By default, monitors are automatically retested if the monitor goes from "up" to
 retest_on_failure: false
 ----
 
+////////////////////////
+locations
+////////////////////////
+| [[monitor-locations]] *`locations`*
+(list of https://github.com/elastic/synthetics/blob/{synthetics_version}/src/locations/public-locations.ts#L28-L37[`SyntheticsLocationsType`])
+a| Where to deploy the monitor. You can deploy monitors in multiple locations to detect differences in availability and response times across those locations.
+
+To list available locations you can:
+
+* Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>>.
+* Go to *Synthetics* -> *Management* and click *Create monitor*. Locations will be listed in _Locations_.
+
+*Examples*:
+
+[source,yaml]
+----
+locations: ["japan", "india"]
+----
+
+[source,yaml]
+----
+locations:
+  - japan
+  - india
+----
+
+[NOTE]
+====
+This can also be set using
+<<synthetics-configuration-monitor,`monitor.locations` in the project configuration file>>
+or via the CLI using the <<elastic-synthetics-push-command,`--location` flag on `push`>>.
+
+The value defined via the CLI takes precedence over the value defined in the lightweight monitor configuration,
+and the value defined in the lightweight monitor configuration takes precedence over the value defined in _project_ configuration file.
+====
+
+////////////////////////
+private_locations
+////////////////////////
+| [[monitor-private_locations]] *`private_locations`*
+(list of <<synthetics-lightweight-data-string,string>>s)
+a| The <<synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas  `locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
+
+To list available {private-location}s you can:
+
+* Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>> and specify the {kib} URL of the deployment. This will fetch all available private locations associated with the deployment.
+* Go to *Synthetics* -> *Management* and click *Create monitor*. {private-location}s will be listed in _Locations_.
+
+*Examples*:
+
+[source,yaml]
+----
+private_locations: ["Private Location 1", "Private Location 2"]
+----
+
+[source,yaml]
+----
+private_locations:
+  - Private Location 1
+  - Private Location 2
+----
+
+[NOTE]
+====
+This can also be set using
+<<synthetics-configuration-monitor,`monitor.privateLocations` in the project configuration file>>
+or via the CLI using the <<elastic-synthetics-push-command,`--privateLocations` flag on `push`>>.
+
+The value defined via the CLI takes precedence over the value defined in the lightweight monitor configuration,
+and the value defined in the lightweight monitor configuration takes precedence over the value defined in _project_ configuration file.
+====
+
 |===
 
 :!hardbreaks-option:
