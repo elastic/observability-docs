@@ -17,7 +17,7 @@ health and performance metrics to help you quickly:
 * Filter and search the data to focus on the hosts you care about the most.
 
 To access this page from the main {kib} menu, go to
-**{observability} -> Infrastructure**, and then click **Hosts**.
+**{observability} -> Infrastructure -> Hosts**.
 
 [role="screenshot"]
 image::images/hosts.png[Screenshot of the Hosts page]
@@ -32,20 +32,19 @@ The **Hosts** page provides a few different ways to view host metrics:
 * Overview tiles show the number of hosts returned by your search plus
 averages of key metrics, including CPU usage, memory usage, and throughput.
 * The Host limit controls the maximum number of hosts shown on the page. The
-default is 20, which means the page shows data for the top 20 hosts based on the
+default is 50, which means the page shows data for the top 50 hosts based on the
 most recent timestamps. You can increase the host limit to see data for more
 hosts, but doing so may impact query performance.
 * The Hosts table shows a breakdown of metrics for each host. You may need to
 page through the list or change the number of rows displayed on each page to see
 all of your hosts.
-* Each host name is an active link to an overview page with additional metrics
-about the host, such as CPU usage, load, memory usage, and network traffic.
+* Each host name is an active link to a <<view-host-details, host details>> page,
+which includes metrics, host metadata, alerts, processes, logs, and anomalies.
+You can optionally open the host details in an overlay.
 * Table columns are sortable, but note that the sorting behavior is applied to
 the already returned data set.
-* The **Metrics** view shows metrics trending over time, including normalized
-load, CPU usage, memory usage, network inbound, network outbound, disk read
-IOPS, and disk write IOPS. Place your cursor over a line to view metrics at a
-specific point in time.
+* The tabs at the bottom of the page show an overview of the metrics, logs,
+and alerts for all hosts returned by your search.
 
 [discrete]
 [[analyze-hosts-filter-view]]
@@ -65,35 +64,29 @@ and include (or exclude) metrics for those hosts.
 include (or exclude) metrics for the selected cloud providers.
 * Change the date range in the Time Picker, or click and drag on a
 visualization to change the date range.
-* In the visualizations under **Metrics**, click a point on a line and apply
-filters to set other visualizations on the page to the same time and/or host.
+* Within a visualization, click a point on a line and apply filters to set other
+visualizations on the page to the same time and/or host.
 
 To learn more about filtering data in {kib}, refer to
 {kibana-ref}/kibana-concepts-analysts.html[{kib} concepts].
 
 [discrete]
-[[analyze-hosts-open-in-lens]]
-== Open in Lens
+[[analyze-hosts-inspect-data]]
+== View metrics
 
-Metrics visualizations are powered by Lens, meaning you can continue your analysis
-in Lens if you require more flexibility. Under **Metrics**, hover your cursor
-over a visualization, then click the ellipsis icon in the upper-right corner to
-open the visualization in Lens.
+On the **Metrics** tab, view metrics trending over time, including normalized load,
+CPU usage, memory usage, network inbound, network outbound, disk read IOPS, and
+disk write IOPS. Place your cursor over a line to view metrics at a specific
+point in time. From within each visualization, you can choose to inspect
+and download the metrics or open the visualization in Lens.
 
-[role="screenshot"]
-image::images/hosts-open-in-lens.png[Screenshot showing option to open in Lens]
-
-In Lens, you can examine all the fields and formulas used to create the
-visualization, make modifications to the visualization, and save your changes.
-
-For more information about using Lens, refer to the
-{kibana-ref}/lens.html[{kib} documentation about Lens].
+To see metrics for a specific host, refer to <<view-host-details>>.
 
 [discrete]
-[[analyze-hosts-inspect-data]]
-== Inspect and download metrics
+[[inspect-metrics]]
+=== Inspect and download metrics
 
-On the **Metrics** tab, you can access a text-based view of the data underlying
+You can access a text-based view of the data underlying
 your metrics visualizations and optionally download the data to a
 comma-separated (CSV) file.
 
@@ -110,6 +103,24 @@ Notice that you can change the view to **View: Requests** to explore the request
 used to fetch the data and the response returned from {es}. You can click links
 to further inspect and analyze the request in the **Dev Console** or
 **Search Profiler**.
+
+[discrete]
+[[analyze-hosts-open-in-lens]]
+=== Open in Lens
+
+Metrics visualizations are powered by Lens, meaning you can continue your
+analysis in Lens if you require more flexibility. Hover your cursor over a
+visualization, then click the ellipsis icon in the upper-right corner to open
+the visualization in Lens.
+
+[role="screenshot"]
+image::images/hosts-open-in-lens.png[Screenshot showing option to open in Lens]
+
+In Lens, you can examine all the fields and formulas used to create the
+visualization, make modifications to the visualization, and save your changes.
+
+For more information about using Lens, refer to the
+{kibana-ref}/lens.html[{kib} documentation about Lens].
 
 [discrete]
 [[analyze-hosts-view-logs]]
@@ -129,6 +140,8 @@ Logs app. To add log sources or columns (such as host name), refer to
 Click **Open in Logs** to tail your log files. For more information, refer to
 <<tail-logs>>.
 
+To see logs for a specific host, refer to <<view-host-details>>.
+
 [discrete]
 [[analyze-hosts-view-alerts]]
 == View alerts
@@ -145,6 +158,26 @@ From the **Actions** menu, you can choose to:
 
 [role="screenshot"]
 image::images/hosts-view-alerts.png[Screenshot showing Alerts view]
+
+To see alerts for a specific host, refer to <<view-host-details>>.
+
+[discrete]
+[[view-host-details]]
+== View host details
+
+Without leaving the **Hosts** page, you can view enhanced metrics relating to
+each host running in your infrastructure. In the list of hosts, find the host
+you want to monitor, then click the **Toggle dialog with details**
+icon image:images/expand-icon.png[] to display the host details overlay.
+
+TIP: To expand the overlay and view more detail, click *Open as page* in the upper-right corner.
+
+The host details overlay contains the following tabs:
+
+include::host-details-partial.asciidoc[]
+
+NOTE: These metrics are also available when viewing hosts on the **Inventory**
+page.
 
 [discrete]
 [[analyze-hosts-why-dashed-lines]]
