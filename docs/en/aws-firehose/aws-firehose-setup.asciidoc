@@ -43,15 +43,28 @@ In {kib}, navigate to *Management > Integrations* in the sidebar.
 Find the *AWS* integration by searching or browsing the catalog.
 
 [role="screenshot"]
-image::images/firehose-integrations-page.png[Integrations catalogue with the "AWS" integration highlighted]
+image::images/aws-integrations-page.png[Integrations catalogue with the "AWS" integration highlighted]
  
 Navigate to the *Settings* tab and click *Install AWS assets*.
 Confirm by clicking *Install AWS* in the popup. 
  
 [role="screenshot"]
 image::images/firehose-integrations-install-assets.png[AWS integration settings page with the "Install AWS assets" button highlighted]
+
+We also added an integration called Amazon Kinesis Data Firehose to automatically route AWS service logs to the respective integrations, which include field mappings, ingest pipelines, predefined dashboards and ect.
+In order to leverage the rerouting, Amazon Kinesis Data Firehose integration needs to be installed.
+
+In {kib}, navigate to *Management > Integrations* in the sidebar.
+Enable *Display beta integrations* first and then find the *Amazon Kinesis Data Firehose* integration by searching or browsing the catalog.
+
+[role="screenshot"]
+image::images/firehose-integration-page.png[Integrations catalogue with the "Firehose" integration highlighted]
+
+Click *Add Amazon Kinesis Data Firehose* on this page.
+
+[role="screenshot"]
+image::images/firehose-integration-add.png[Firehose integration page with the "Add" button highlighted]
 --
- 
 . [[aws-firehose-create-delivery-stream]] Create a delivery stream in Amazon Kinesis Data Firehose.
 +
 --
@@ -103,8 +116,16 @@ A duration of 60-300s should be suitable for most use cases.
 
 * Elastic recommends setting the *`es_datastream_name`* parameter to help route data to the correct integration data streams.
 If this parameter is not specified, data is sent to the *`logs-generic-default`* data stream by default.
+
+[WARNING]
+====
+The default data stream will change to `logs-awsfirehose-default` in the near future.
+Please use `es_datastream_name` parameter with `logs-awsfirehose-default` to avoid breaking change.
+====
+
 * You can use the *`es_datastream_name`* parameter to route documents to any data stream.
-When using Elastic integrations, you must set this parameter.
+When Amazon Kinesis Data Firehose integration is installed, routing will be done automatically with `es_datastream_name` sets to `logs-awsfirehose-default`.
+When using Elastic AWS integrations without the Firehose integration, you must set this parameter to specific data streams like `logs-aws.vpcflow-default` for ingesting VPC flow logs.
 +
 Elastic integrations use data streams with specific naming conventions, and Firehose records need to be routed to the relevant data stream to use preconfigured index mappings, ingest pipelines, and dashboards.
 +
