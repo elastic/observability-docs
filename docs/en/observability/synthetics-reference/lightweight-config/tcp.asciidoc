@@ -6,11 +6,8 @@
 
 // hosts
 | [[monitor-tcp-hosts]] *`hosts`*
-(list of <<synthetics-lightweight-data-string,string>>s)
-a| *Required*. A list of hosts to ping. The entries in the list can be:
-
-* *A plain host name, such as `localhost`, or an IP address.*
-  If you specify this option, you must also specify a value for <<monitor-tcp-ports,`ports`>>.  If the monitor is {heartbeat-ref}/configuration-ssl.html[configured to use SSL], Synthetics establishes an SSL/TLS-based connection. Otherwise, it establishes a plain TCP connection.
+(<<synthetics-lightweight-data-string,string>>)
+a| *Required*. The host to ping. The entries in the list can be:
 
 * *A hostname and port, such as `localhost:12345`.*
   Synthetics connects to the port on the specified host. If the monitor is {heartbeat-ref}/configuration-ssl.html[configured to use SSL], Synthetics establishes an SSL/TLS-based connection. Otherwise, it establishes a TCP connection.
@@ -24,32 +21,17 @@ a| *Required*. A list of hosts to ping. The entries in the list can be:
 
 [source,yaml]
 ----
-hosts: ["localhost"]
+hosts: "localhost"
 ----
 
 [source,yaml]
 ----
-hosts: ["localhost:8000"]
+hosts: "localhost:8000"
 ----
 
 [source,yaml]
 ----
-hosts: ["tcp://localhost:8000"]
-----
-
-////////////////
-ports
-////////////////
-| [[monitor-tcp-ports]] *`ports`*
-(list of <<synthetics-lightweight-data-string,string>>s)
-a| A list of ports to ping if the host specified in <<monitor-tcp-hosts,`hosts`>> does not contain a port number. It is generally preferable to use a single value here, since each port will be monitored using a separate `id`, with the given `id` value, used as a prefix in the Synthetics data, and the configured `name` shared across events sent via this check.
-
-*Example*:
-
-[source,yaml]
-----
-hosts: ["localhost"]
-ports: [80, 9200, 5044]
+hosts: "tcp://localhost:8000"
 ----
 
 ////////////////
