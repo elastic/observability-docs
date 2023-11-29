@@ -5,8 +5,8 @@ Logs formatted in Elastic Common Schema (ECS) don't require manual parsing, and 
 
 You can format your logs in ECS format the following ways:
 
-* <<ecs-loggers,undefined>> plugins for your logging libraries that reformat your logs into ECS format.
-* <<apm-agent-ecs-reformatting,undefined>> Java, Ruby, and Python {apm-agent}s automatically reformat application logs to ECS format without a logger.
+* <<ecs-loggers>>: plugins for your logging libraries that reformat your logs into ECS format.
+* <<apm-agent-ecs-reformatting>>: Java, Ruby, and Python {apm-agent}s automatically reformat application logs to ECS format without a logger.
 
 [discrete]
 [[ecs-loggers]]
@@ -18,7 +18,7 @@ In addition, pairing ECS loggers with your framework's {apm-agent} allows you to
 
 [discrete]
 [[get-started-ecs-logging]]
-== Get started
+== Get started with ECS loggers
 
 For more information on adding an ECS logger to your application, refer to the guide for your framework:
 
@@ -39,7 +39,7 @@ Java, Ruby, and Python {apm-agent}s can automatically reformat application logs 
 To set up log ECS reformatting:
 
 . <<enable-log-ecs-reformatting,Enable {apm-agent} reformatting>>
-. <<ingest-ecs-logs,Ingest logs with {filebeat} or {agent}.>>
+. <<ingest-ecs-logs,Ingest logs with {filebeat} or {agent}>>
 . <<view-ecs-logs,View logs in Log Explorer>>
 
 [discrete]
@@ -58,8 +58,8 @@ Log ECS reformatting is controlled by the `log_ecs_reformatting` configuration o
 
 After enabling log ECS reformatting, send your application logs to your project using one of the following shipping tools:
 
-* <<ingest-ecs-logs-with-filebeat,undefined>> A lightweight data shipper that sends log data to your project.
-* <<ingest-ecs-logs-with-agent,undefined>> A single agent for logs, metrics, security data, and threat prevention. With Fleet, you can centrally manage {agent} policies and lifecycles directly from your project.
+* <<ingest-ecs-logs-with-filebeat, {filebeat}>>: A lightweight data shipper that sends log data to your project.
+* <<ingest-ecs-logs-with-agent, {agent}>>: A single agent for logs, metrics, security data, and threat prevention. With Fleet, you can centrally manage {agent} policies and lifecycles directly from your project.
 
 [discrete]
 [[ingest-ecs-logs-with-filebeat]]
@@ -157,14 +157,14 @@ Add the custom logs integration to ingest and centrally manage your logs using {
 
 To add the custom logs integration to your project:
 
-. From your project, navigate to **Project Settings →   Integrations**.
+. From your deployment's home page, click **Add Integrations**.
 . Type `custom` in the search bar and select **Custom Logs**.
 . Click **Install {agent}** at the bottom of the page, and follow the instructions for your system to install the {agent}.
 . After installing the {agent}, click **Save and continue** to configure the integration from the **Add Custom Logs integration** page.
 . Give your integration a meaningful name and description.
 . Add the **Log file path**. For example, `/var/log/your-logs.log`.
 . Click **Advanced options**.
-. In the **Processors** text box, add the following YAML configuration to add processors that enhance your data. See {filebeat-ref}/filtering-and-enhancing-data.html[processors] to learn more.
+. In the **Processors** text box, add the following YAML configuration to add processors that enhance your data. Refer to {filebeat-ref}/filtering-and-enhancing-data.html[processors] to learn more.
 +
 [source,yaml]
 ----
@@ -185,18 +185,18 @@ processors:
     keys_under_root: true <4>
   fields_under_root: true <5>
   fields:
-    service.name: your_service_name [^6]
-    service.version: your_service_version [^6]
-    service.environment: your_service_environment [^6]
+    service.name: your_service_name <6>
+    service.version: your_service_version <6>
+    service.environment: your_service_environment <6>
 ----
 +
-<1>: Values from the decoded JSON object overwrite the fields that {agent} normally adds (type, source, offset, etc.) in case of conflicts.
-<2>: {agent} adds an "error.message" and "error.type: json" key in case of JSON unmarshalling errors.
-<3>: {agent} will recursively de-dot keys in the decoded JSON, and expand them into a hierarchical object structure.
-<4>: By default, the decoded JSON is placed under a "json" key in the output document. When set to `true`, the keys are copied top level in the output document.
-<5>: When set to `true`, custom fields are stored as top-level fields in the output document instead of being grouped under a fields sub-dictionary.
-<6>: The `service.name` (required), `service.version` (optional), and `service.environment` (optional) of the service you're collecting logs from, used for log correlation.
-. An agent policy is created that defines the data your {agent} collects.
+<1> Values from the decoded JSON object overwrite the fields that {agent} normally adds (type, source, offset, etc.) in case of conflicts.
+<2> {agent} adds an "error.message" and "error.type: json" key in case of JSON unmarshalling errors.
+<3> {agent} will recursively de-dot keys in the decoded JSON, and expand them into a hierarchical object structure.
+<4> By default, the decoded JSON is placed under a "json" key in the output document. When set to `true`, the keys are copied top level in the output document.
+<5> When set to `true`, custom fields are stored as top-level fields in the output document instead of being grouped under a fields sub-dictionary.
+<6> The `service.name` (required), `service.version` (optional), and `service.environment` (optional) of the service you're collecting logs from, used for log correlation.
+. Give your agent policy a name. The agent policy defines the data your {agent} collects.
 . Save your integration to add it to your deployment.
 
 [discrete]
