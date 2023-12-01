@@ -1,0 +1,241 @@
+[[logs-plaintext]]
+= Plaintext application logs
+
+Ingest and parse plaintext logs, including existing logs, from any programming language or framework without modifying your application or its configuration.
+
+Plaintext logs require some additional setup that structured logs do not require:
+
+* To search, filter, and aggregate effectively, you need to parse plaintext logs using an ingest pipeline to extract structured fields. Parsing is based on log format, so you might have to maintain different settings for different applications.
+* To <<correlate-plaintext-logs,correlate plaintext logs>>, you need to inject IDs into log messages and parse them using an ingest pipeline.
+
+To ingest, parse, and correlate plaintext logs:
+
+. Ingest plaintext logs with <<ingest-plaintext-logs-with-filebeat,{filebeat}>> or <<ingest-plaintext-logs-with-the-agent,{agent}>> and parse them before indexing with an ingest pipeline.
+. <<correlate-plaintext-logs,Correlate plaintext logs with an {apm-agent}.>>
+. <<view-plaintext-logs,View logs in Log Explorer>>
+
+[discrete]
+[[ingest-plaintext-logs]]
+= Ingest logs
+
+Send application logs to {es} using one of the following shipping tools:
+
+* <<ingest-plaintext-logs-with-filebeat, {filebeat}>> A lightweight data shipper that sends log data to {es}.
+* <<ingest-plaintext-logs-with-the-agent,{agent}>> A single agent for logs, metrics, security data, and threat prevention. Combined with Fleet, you can centrally manage {agent} policies and lifecycles directly from {kib}.
+
+[discrete]
+[[ingest-plaintext-logs-with-filebeat]]
+== Ingest logs with {filebeat}
+
+Follow these steps to ingest application logs with {filebeat}.
+
+[discrete]
+[[step-1-plaintext-install-filebeat]]
+=== Step 1: Install {filebeat}
+
+Install {filebeat} on the server you want to monitor by running the commands that align with your system:
+
+include::tab-widgets/logs/filebeat-install-widget.asciidoc[]
+
+[discrete]
+[[step-2-plaintext-connect-to-your-project]]
+=== Step 2: Connect to {es}
+
+Connect to {es} using an API key to set up {filebeat}. Set the following information in the `filebeat.yml` file:
+
+[source,yaml]
+----
+output.elasticsearch:
+  hosts: ["your-projects-elasticsearch-endpoint"]
+  api_key: "id:api_key"
+----
+
+. Set the `hosts` to your deployment's {es} endpoint. Copy the {es} endpoint from your deployment's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
++
+--
+[role="screenshot"]
+image::images/es-endpoint-cluster-id.png[{es} endpoint and cluster id location, 50%]
+--
+. From **Developer tools**, run the following command to create an API key that grants `manage` permissions for the `cluster` and the `filebeat-*` indices using:
++
+[source,console]
+----
+POST /_security/api_key
+{
+  "name": "filebeat_host001",
+  "role_descriptors": {
+    "filebeat_writer": {
+      "cluster": ["manage"],
+      "index": [
+        {
+          "names": ["filebeat-*"],
+          "privileges": ["manage", "create_doc"]
+        }
+      ]
+    }
+  }
+}
+----
++
+Refer to {filebeat-ref}/beats-api-keys.html[Grant access using API keys] for more information.
+
+[discrete]
+[[step-3-plaintext-configure-filebeat]]
+=== Step 3: Configure {filebeat}
+
+Add the following configuration to your `filebeat.yaml` file to start collecting log data.
+
+[source,yaml]
+----
+filebeat.inputs:
+- type: filestream  <1>
+  enabled: true
+  paths: /path/to/logs.log  <2>
+----
+<1> Reads lines from an active log file.
+<2> Paths that you want {filebeat} to crawl and fetch logs from.
+
+[discrete]
+[[step-4-plaintext-set-up-and-start-filebeat]]
+=== Step 4: Set up and start {filebeat}
+
+{filebeat} comes with predefined assets for parsing, indexing, and visualizing your data. To load these assets:
+
+From the {filebeat} installation directory, set the {ref}/index-templates.html[index template] by running the command that aligns with your system:
+
+include::tab-widgets/logs/filebeat-setup-widget.asciidoc[]
+
+From the {filebeat} installation directory, start filebeat by running the command that aligns with your system:
+
+include::{beats-root}/libbeat/docs/tab-widgets/start-widget-filebeat.asciidoc[]
+
+[discrete]
+[[step-5-plaintext-parse-logs-with-an-ingest-pipeline]]
+=== Step 5: Parse logs with an ingest pipeline
+
+Use an ingest pipeline to parse the contents of your logs into structured, {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]-compatible fields.
+
+Create an ingest pipeline that defines a {ref}/dissect-processor.html[dissect processor] to extract structured ECS fields from your log messages. In your project, navigate to **Developer Tools** and using a command similar to the following example:
+
+[source,console]
+----
+PUT _ingest/pipeline/filebeat* <1>
+{
+  "description": "Extracts the timestamp log level and host ip",
+  "processors": [
+    {
+      "dissect": { <2>
+        "field": "message", <3>
+        "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}" <4>
+      }
+    }
+  ]
+}
+----
+
+<1> `_ingest/pipeline/filebeat*`: The name of the pipeline. Update the pipeline name to match the name of your data stream. For more information, refer to {fleet-guide}/data-streams.html#data-streams-naming-scheme[Data stream naming scheme].
+<2> `processors.dissect`: Adds a {ref}/dissect-processor.html[dissect processor] to extract structured fields from your log message.
+<3> `field`: The field you're extracting data from, `message` in this case.
+<4> `pattern`: The pattern of the elements in your log data. The pattern varies depending on your log format. `%{@timestamp}`, `%{log.level}`, `%{host.ip}`, and `%{message}` are common {ecs-ref}/ecs-reference.html[ECS] fields. This pattern would match a log file in this format: `2023-11-07T09:39:01.012Z ERROR 192.168.1.110 Server hardware failure detected.`
+
+Refer to <<logs-stream-parse>> for more on using ingest pipelines to parse your log data.
+
+After creating your pipeline, specify the pipeline for filebeat in the `filebeat.yml` file:
+
+[source,yaml]
+----
+output.elasticsearch:
+  hosts: ["your-projects-elasticsearch-endpoint"]
+  api_key: "id:api_key"
+  pipeline: "your-pipeline" <1>
+----
+<1> Add the `pipeline` output and the name of your pipeline to the output.
+
+[discrete]
+[[ingest-plaintext-logs-with-the-agent]]
+== Ingest logs with the {agent}
+
+Follow these steps to ingest and centrally manage your logs using {agent} and {fleet}.
+
+[discrete]
+[[step-1-plaintext-add-the-custom-logs-integration-to-your-project]]
+=== Step 1: Add the custom logs integration to your project
+
+To add the custom logs integration to your project:
+
+. From your deployment's home page, click **Add Integrations**.
+. Type `custom` in the search bar and select **Custom Logs**.
+. Click **Add Custom Logs**.
+. Click **Install {agent}** at the bottom of the page, and follow the instructions for your system to install the {agent}.
+. After installing the {agent}, configure the integration from the **Add Custom Logs integration** page.
+. Give your integration a meaningful name and description.
+. Add the **Log file path**. For example, `/var/log/your-logs.log`.
+. Give your agent policy a name. The agent policy defines the data your {agent} collects.
+. Save your integration to add it to your deployment.
+
+[discrete]
+[[step-2-plaintext-add-an-ingest-pipeline-to-your-integration]]
+=== Step 2: Add an ingest pipeline to your integration
+
+To aggregate or search for information in plaintext logs, use an ingest pipeline with your integration to parse the contents of your logs into structured, {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]-compatible fields.
+
+. From the custom logs integration, select **Integration policies** tab.
+. Select the integration policy you created in the previous section.
+. Click **Change defaults → Advanced options**.
+. Under **Ingest pipelines**, click **Add custom pipeline**.
+. Create an ingest pipeline with a {ref}/dissect-processor.html[dissect processor] to extract structured fields from your log messages.
++
+Click **Import processors** and add a similar JSON to the following example:
++
+[source,JSON]
+----
+{
+  "description": "Extracts the timestamp log level and host ip",
+  "processors": [
+    {
+      "dissect": { <1>
+        "field": "message", <2>
+        "pattern": "%{@timestamp} %{log.level} %{host.ip} %{message}" <3>
+      }
+    }
+  ]
+}
+----
++
+<1> `processors.dissect`: Adds a {ref}/dissect-processor.html[dissect processor] to extract structured fields from your log message.
+<2> `field`: The field you're extracting data from, `message` in this case.
+<3> `pattern`: The pattern of the elements in your log data. The pattern varies depending on your log format. `%{@timestamp}`, `%{log.level}`, `%{host.ip}`, and `%{message}` are common {ecs-ref}/ecs-reference.html[ECS] fields. This pattern would match a log file in this format: `2023-11-07T09:39:01.012Z ERROR 192.168.1.110 Server hardware failure detected.`
+. Click **Create pipeline**.
+. Save and deploy your integration.
+
+[discrete]
+[[correlate-plaintext-logs]]
+= Correlate logs
+
+Correlate your application logs with trace events to:
+
+* view the context of a log and the parameters provided by a user
+* view all logs belonging to a particular trace
+* easily move between logs and traces when debugging application issues
+
+Log correlation works on two levels:
+
+* at service level: annotation with `service.name`, `service.version`, and `service.environment` allow you to link logs with APM services
+* at trace level: annotation with `trace.id` and `transaction.id` allow you to link logs with traces
+
+Learn about correlating plaintext logs in the agent-specific ingestion guides:
+
+* {apm-go-ref}/logs.html[Go]
+* {apm-java-ref}/logs.html#log-correlation-ids[Java]
+* {apm-dotnet-ref}/log-correlation.html[.NET]
+* {apm-node-ref}/log-correlation.html[Node.js]
+* {apm-py-ref}/logs.html#log-correlation-ids[Python]
+* {apm-ruby-ref}/log-correlation.html[Ruby]
+
+[discrete]
+[[view-plaintext-logs]]
+= View logs
+
+To view logs ingested by {filebeat}, go to *Discover* from the main menu and create a data view based on the `filebeat-*` index pattern. Refer to {kibana-ref}/data-views.html[Create a data view] for more information.
+
+To view logs ingested by {agent}, go to Log Explorer by clicking *Explorer* under *Logs* from the {observability} main menu. Refer to the <<logs-filter-and-aggregate>> documentation for more information on viewing and filtering your logs in {kib}.
