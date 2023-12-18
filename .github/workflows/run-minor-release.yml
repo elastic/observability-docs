@@ -1,0 +1,43 @@
+---
+name: run-minor-release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'The version (semver format: major.minor.patch)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  
+jobs:
+  run-minor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set github config
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "github-actions[bot]"
+
+      - name: create branch release
+        run: |-
+          echo "### minor - ${CURRENT_RELEASE}" >> $GITHUB_STEP_SUMMARY
+          make -C .github prepare-major-minor-release create-branch-major-minor-release
+
+      - name: prepare next release
+        run: make -C .github prepare-next-release create-prs-next-release
+        env:
+          CURRENT_RELEASE: ${{ inputs.version }}
+
+      - if: ${{ failure() }}
+        uses: elastic/apm-pipeline-library/.github/actions/slack-message@current
+        with:
+          url: ${{ secrets.VAULT_ADDR }}
+          roleId: ${{ secrets.VAULT_ROLE_ID }}
+          secretId: ${{ secrets.VAULT_SECRET_ID }}
+          channel: '#observablt-bots'
+          message: ":traffic_cone: release automation failed for `${{ github.repository }}@${{ inputs.version }}`, @robots-ci please look what's going on <https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}|here>"
