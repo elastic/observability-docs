@@ -70,4 +70,4 @@ create-prs-next-release:
 		--body "Merge as soon as $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch was created." \
 		--assignee "$(GITHUB_USERNAME)" \
 		--reviewer "$(PROJECT_REVIEWERS)" \
-		--label 'team:automation' || echo "There are no changes"
+		--label 'Team:Automation' || echo "There are no changes"
