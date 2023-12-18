@@ -1,6 +1,7 @@
 .SHELLFLAGS = -euc
 SHELL = /bin/bash
 
+##############################
 ## Project details
 #############################
 PROJECT_MAJOR_VERSION ?= $(shell echo $(CURRENT_RELEASE) | cut -f1 -d.)
@@ -14,11 +15,23 @@ NEXT_RELEASE ?= $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION).$(shell expr $
 
 BACKPORT_BRANCH_NAME = add-backport-next-$(NEXT_PROJECT_MINOR_VERSION)
 
+##############################
 ## observability-docs specific
 ##############################
 PROJECT_REVIEWERS ?= elastic/observablt-robots
 
-## Update the references on the github labels using major.minor format
+##############################
+## public make goals
+##############################
+## @help:create-major-minor-release:Prepare a major/minor release by creating a new branch and pushing to the upstream
+.PHONY: create-major-minor-release
+create-major-minor-release: prepare-major-minor-release create-branch-major-minor-release
+
+## @help:create-next-release:Prepare the original branch for the next release cycle and the relevant PRs.
+.PHONY: create-next-release
+create-next-release: prepare-next-release create-prs-next-release
+
+## Update the references on the github labels using major.minor format. INTERNAL
 .PHONY: update-labels
 update-labels:
 	echo '  - name: backport patches to $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch' >> .mergify.yml

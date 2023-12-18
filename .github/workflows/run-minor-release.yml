@@ -24,12 +24,12 @@ jobs:
           git config --global user.name "github-actions[bot]"
 
       - name: create branch release
-        run: |-
-          echo "### minor - ${CURRENT_RELEASE}" >> $GITHUB_STEP_SUMMARY
-          make -C .github prepare-major-minor-release create-branch-major-minor-release
+        run: make -C .github create-major-minor-release
+        env:
+          CURRENT_RELEASE: ${{ inputs.version }}
 
       - name: prepare next release
-        run: make -C .github prepare-next-release create-prs-next-release
+        run: make -C .github create-next-release
         env:
           CURRENT_RELEASE: ${{ inputs.version }}
 
