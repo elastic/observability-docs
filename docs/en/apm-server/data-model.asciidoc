@@ -88,7 +88,7 @@ This example shows what span documents can look like when indexed in {es}.
 ====
 [source,json]
 ----
-include::./data/elasticsearch/generated/spans.json[]
+include::{apm-server-root}/docs/data/elasticsearch/generated/spans.json[]
 ----
 ====
 
@@ -159,7 +159,7 @@ This example shows what transaction documents can look like when indexed in {es}
 ====
 [source,json]
 ----
-include::./data/elasticsearch/generated/transactions.json[]
+include::{apm-server-root}/docs/data/elasticsearch/generated/transactions.json[]
 ----
 ====
 
@@ -212,7 +212,7 @@ This example shows what error documents can look like when indexed in {es}.
 ====
 [source,json]
 ----
-include::./data/elasticsearch/generated/errors.json[]
+include::{apm-server-root}/docs/data/elasticsearch/generated/errors.json[]
 ----
 ====
 
@@ -252,6 +252,29 @@ For a full list of tracked metrics, see the relevant agent documentation:
 * {apm-ruby-ref-v}/metrics.html[Ruby]
 
 [float]
+<<<<<<< HEAD
+=======
+===== Example system metric document
+
+This example shows what system metric documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+This example contains JVM metrics produced by the {apm-java-agent}.
+and contains two related metrics: `jvm.gc.time` and `jvm.gc.count`. These are accompanied by various fields describing
+the environment in which the metrics were captured: service name, host name, Kubernetes pod UID, container ID, process ID, and more.
+These fields make it possible to search and aggregate across various dimensions, such as by service, host, and Kubernetes pod.
+
+[source,json]
+----
+include::{apm-server-root}/docs/data/elasticsearch/metricset.json[]
+----
+====
+
+[float]
+>>>>>>> d4309b55 ([apm docs consolidation] Clean up  (#3476))
 ==== Calculated metrics
 
 APM agents and APM Server calculate metrics from trace events to power visualizations in the {apm-app}.
@@ -283,6 +306,24 @@ You can filter and group by these dimensions:
 --
 
 [float]
+<<<<<<< HEAD
+=======
+===== Example breakdown metric document
+
+This example shows what breakdown metric documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::{apm-server-root}/docs/data/elasticsearch/span_breakdown.json[]
+----
+====
+
+[float]
+>>>>>>> d4309b55 ([apm docs consolidation] Clean up  (#3476))
 ===== Transaction metrics
 
 To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
@@ -335,6 +376,70 @@ You can filter and group by these dimensions (some of which are optional, for ex
 The `@timestamp` field of these documents holds the start of the aggregation interval.
 
 [float]
+<<<<<<< HEAD
+=======
+===== Example transaction document
+
+This example shows what transaction documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::{apm-server-root}/docs/data/elasticsearch/transaction_metric.json[]
+----
+====
+
+[float]
+===== Service-transaction metrics
+
+To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
+APM Server aggregates transaction events into service-transaction metrics.
+Service-transaction metrics are similar to transaction metrics, but they usually
+have a much lower cardinality as they have significantly fewer dimensions.
+The UI uses them when fewer details of the transactions are needed.
+
+*`transaction.duration.summary`* and *`transaction.duration.histogram`*::
++
+--
+These metrics represent the latency summary and latency distribution of service transaction groups,
+used to power service-oriented visualizations and analytics in Elastic APM.
+
+These metric documents can be identified by searching for `metricset.name: service_transaction`.
+
+You can filter and group by these dimensions:
+
+* `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
+* `service.environment`: The environment of the service that made the request
+* `service.language.name`: The language name of the service that served the transaction, for example `Go`
+* `service.name`: The name of the service that made the request
+* `transaction.type`: The type of the enclosing transaction, for example `request`
+--
+
+The `@timestamp` field of these documents holds the start of the aggregation interval.
+
+[float]
+===== Example service-transaction document
+
+This example shows what service-transaction documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::{apm-server-root}/docs/data/elasticsearch/service_transaction_metric.json[]
+----
+====
+
+[float]
+>>>>>>> d4309b55 ([apm docs consolidation] Clean up  (#3476))
 ===== Service-destination metrics
 
 To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
@@ -364,6 +469,59 @@ You can filter and group by these dimensions:
 The `@timestamp` field of these documents holds the start of the aggregation interval.
 
 [float]
+<<<<<<< HEAD
+=======
+===== Example service-destination document
+
+This example shows what service-destination documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::{apm-server-root}/docs/data/elasticsearch/service_destination_metric.json[]
+----
+====
+
+[float]
+===== Service-summary metrics
+
+To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
+APM Server aggregates transaction, error, log, and metric events into service-summary metrics.
+
+These metric documents can be identified by searching for `metricset.name: service_summary`.
+
+You can filter and group by these dimensions:
+
+* `agent.name`: The name of the {apm-agent} that instrumented the operation, for example `java`
+* `labels`: Key-value object containing string labels set globally by the APM agents.
+* `metricset.interval`: A string with the aggregation interval the metricset represents.
+* `numeric_labels`: Key-value object containing numeric labels set globally by the APM agents.
+* `service.environment`: The environment of the service that made the request
+* `service.language.name`: The language name of the service that served the transaction, for example `Go`
+* `service.name`: The name of the service that made the request
+
+The `@timestamp` field of these documents holds the start of the aggregation interval.
+
+[float]
+===== Example service-summary document
+
+This example shows what service-summary documents can look like when indexed in {es}.
+
+[%collapsible]
+.Expand {es} document
+====
+
+[source,json]
+----
+include::{apm-server-root}/docs/data/elasticsearch/service_summary_metric.json[]
+----
+====
+
+[float]
+>>>>>>> d4309b55 ([apm docs consolidation] Clean up  (#3476))
 ==== Data streams
 
 Metrics are stored in the following data streams:
