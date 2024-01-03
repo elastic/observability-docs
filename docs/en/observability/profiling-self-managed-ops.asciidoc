@@ -40,6 +40,7 @@ Storage considerations: the Elasticsearch disks' bandwidth and latency will affe
 Allocate data to hot nodes for best performance and user experience.
 If storage becomes a concern, tune the data retention by customizing the Universal Profiling <<profiling-ilm-custom-policy,"ILM policy">>.
 
+[[profiling-self-managed-ops-configuration]]
 == Configuration
 
 Both collector and symbolizer can be configured via YAML file and CLI flags, with the latter taking precedence over the former.
@@ -48,6 +49,7 @@ The files contain comments that explain the purpose of each configuration option
 
 Currently, modifying the configuration file requires a restart of the backend binaries.
 
+[[profiling-self-managed-ops-configuration-cli-overrides]]
 === Overriding config values via CLI flags
 
 When building configuration options for each of the backend binaries, you can use CLI flags to override the values in the YAML configuration file.
@@ -56,11 +58,13 @@ The overrides **must** contain the full path to the configuration option and mus
 For example, to enable TLS in the HTTP server of the collector, you can pass the `-E pf-elastic-collector.ssl.enabled=true` flag.
 This will override the `ssl.enabled` option found in the YAML configuration file.
 
+[[profiling-self-managed-ops-monioring]]
 == Monitoring
 
 Collector and symbolizer should be monitored to ensure they are running and healthy. Without both services running, profiling data will not be ingested and symbolized,
 and querying Kibana will result in no data returned.
 
+[[profiling-self-managed-ops-monioring-logs]]
 === Logs
 
 Both applications will always log to standard output.
@@ -75,6 +79,7 @@ Logs can be collected by a log collector, such as Filebeat, and sent to Elastics
 Depending on the installation method, a filebeat input of type `journald` (for OS packages), `log` (for binaries) or `container` can be used to process the logs.
 Refer to the https://www.elastic.co/guide/en/beats/filebeat/current/configuring-howto-filebeat.html[filebeat documentation] for more information.
 
+[[profiling-self-managed-ops-monioring-metrics]]
 === Metrics
 
 Both applications can expose metrics in JSON as well as in the Prometheus format.
@@ -87,7 +92,8 @@ For both formats, you can customize where the metrics will be exposed through th
 You can scrape metrics from any of the two formats via metricbeat, consuming the JSON directly via `http` module, or the Prometheus endpoint with the `prometheus` module.
 For both formats, if an HTTP server is used the URI to scrape metrics from will be `/metrics`.
 
-For example, the following configuration for collector
+For example, the following configuration for collector will expose metrics in Prometheus format on port 9090 and in JSON format on port 9191,
+so you can scrape them connecting to `http://127.0.0.1:9090/metrics` and `http://127.0.0.1:9191/metrics` respectively.
 
 [source,yaml]
 ----
@@ -97,7 +103,18 @@ pf-elastic-collector:
     expvar_host: ":9191"
 ----
 
-will expose metrics in Prometheus format on port 9090 and in JSON format on port 9191, so you can scrape them connecting to `http://127.0.0.1:9090/metrics` and `http://127.0.0.1:9191/metrics` respectively.
+Optionally, you can also expose the `expvar` format over a Unix Domain Socket, by setting the `expvar_socket` configuration option to a valid path.
+For example, the following configuration for collector will expose metrics in Prometheus format on port 9090,
+and in JSON format over a Unix Domain Socket at `/tmp/collector.sock`.
+
+[source,yaml]
+----
+pf-elastic-collector:
+  metrics:
+    prometheus_host: ":9090"
+    expvar_host: "/tmp/collector.sock"
+----
+
 
 Find below a list of the most relevant metrics exposed by the backend binaries, you should include them in your monitoring dashboards to detect issues with the backend.
 
