@@ -2,78 +2,89 @@
 = Logs resource guide
 
 ++++
-<titleabbrev>Resource guide</titleabbrev>
+<titleabbrev>Logs</titleabbrev>
 ++++
 
-In this guide, you'll find resources on sending log data to {es}, configuring your logs, and analyzing your logs.
+Logs are an important tool for ensuring the performance and reliability of your applications and infrastructure. They provide important information for debugging, analyzing performance, and managing compliance.
+
+In this guide, you'll find resources for sending log data to {es}, configuring your logs, and analyzing your logs.
 
 [discrete]
 [[logs-getting-started-checklist]]
 == Get started with logs
 
-If you're new to ingesting, viewing, and analyzing logs with Elastic, see <<logs-metrics-get-started, Get started with logs and metrics>> for an overview of adding integrations, installing and running an {agent}, and monitoring logs.
+For a high-level overview on ingesting, viewing, and analyzing logs with Elastic, refer to <<logs-metrics-get-started, Get started with logs and metrics>>.
+
+To get started ingesting, parsing, and filtering your own data, refer to these pages:
+
+* *<<logs-stream>>*: send log files from your system to {es} using a standalone {agent} and configure the {agent} and your data streams using the `elastic-agent.yml` file.
+* *<<logs-parse>>*: break your log messages into meaningful fields that you can use to filter and analyze your data.
+* *<<logs-filter-and-aggregate>>*: find specific information in your log data to gain insight and monitor your systems.
+
+The following sections in this guide provide resources to important concepts or advanced use cases for working with your logs.
 
 [discrete]
 [[logs-send-data-checklist]]
-== Send logs data to {es}
+== Send log data to {es}
 
-You can send logs data to {es} in different ways depending on your needs:
+You can send log data to {es} in different ways depending on your needs:
 
-- {agent}
-- {filebeat}
+* *{agent}*: a single agent for logs, metrics, security data, and threat prevention. It can be deployed either standalone or managed by {fleet}:
+** *Standalone*: Manually configure, deploy and update an {agent} on each host.
+** *Fleet*: Centrally manage and update {agent} policies and lifecycles in {kib}.
+* *{filebeat}*: a lightweight, logs-specific shipper for forwarding and centralizing log data.
 
-When choosing between {agent} and {beats}, consider the different features and functionalities between the two options.
-See {fleet-guide}/beats-agent-comparison.html[{agent} and {beats} capabilities] for more information on which option best fits your situation.
+Refer to the {fleet-guide}/beats-agent-comparison.html[{agent} and {beats} capabilities comparison] for more information on which option best fits your situation.
 
 [discrete]
 [[agent-ref-guide]]
-=== {agent}
-{agent} uses https://www.elastic.co/integrations/data-integrations[integrations] to ingest logs from Kubernetes, MySQL, and many more data sources.
-You have the following options when installing and managing an {agent}:
+=== Install {agent}
+The following pages detail installing and managing the {agent} in different modes.
+
+* *Standalone {agent}*
++
+Install an {agent} and manually configure it locally on the system where it's installed.
+You are responsible for managing and upgrading the agents.
++
+Refer to <<logs-stream>> to learn how to send a log file to {es} using a standalone {agent} and configure the {agent} and your data streams using the `elastic-agent.yml` file.
 
 * *{fleet}-managed {agent}*
 +
 Install an {agent} and use {fleet} in {kib} to define, configure, and manage your agents in a central location.
 +
-See {fleet-guide}/install-fleet-managed-elastic-agent.html[install {fleet}-managed {agent}].
-
-* *Standalone {agent}*
-+
-Install an {agent} and manually configure it locally on the system where it’s installed.
-You are responsible for managing and upgrading the agents.
-This approach is reserved for advanced users only.
-+
-See {fleet-guide}/install-standalone-elastic-agent.html[install standalone {agent}].
+Refer to {fleet-guide}/install-fleet-managed-elastic-agent.html[install {fleet}-managed {agent}].
 
 * *{agent} in a containerized environment*
 +
-Run an {agent} inside of a container -- either with {fleet-server} or standalone.
+Run an {agent} inside of a container—either with {fleet-server} or standalone.
 +
-See {fleet-guide}/install-elastic-agents-in-containers.html[install {agent} in containers].
+Refer to {fleet-guide}/install-elastic-agents-in-containers.html[install {agent} in a containerized environment].
 
 [discrete]
 [[beats-ref-guide]]
-=== {filebeat}
+=== Install {filebeat}
 {filebeat} is a lightweight shipper for forwarding and centralizing log data.
 Installed as a service on your servers, {filebeat} monitors the log files or locations that you specify, collects log events, and forwards them
-either to https://www.elastic.co/products/elasticsearch[Elasticsearch] or
-https://www.elastic.co/products/logstash[Logstash] for indexing.
+either to {ref}[{es}] or
+{logstash-ref}[Logstash] for indexing.
 
-- {filebeat-ref}/filebeat-overview.html[{filebeat} overview] – general information on {filebeat} and how it works.
-- {filebeat-ref}/filebeat-installation-configuration.html[{filebeat} quick start] – basic installation instructions to get you started.
-- {filebeat-ref}/setting-up-and-running.html[Set up and run {filebeat}] – information on how to install, set up, and run {filebeat}.
+- {filebeat-ref}/filebeat-overview.html[{filebeat} overview]: general information on {filebeat} and how it works.
+- {filebeat-ref}/filebeat-installation-configuration.html[{filebeat} quick start]: basic installation instructions to get you started.
+- {filebeat-ref}/setting-up-and-running.html[Set up and run {filebeat}]: information on how to install, set up, and run {filebeat}.
 
 [discrete]
 [[logs-configure-data-checklist]]
-== Configure logs
+== Parse and organize your logs
 
-The following resources provide information on configuring your logs:
+To get started parsing and organizing your logs, refer to <<logs-parse>> for information on breaking unstructured log data into meaningful fields you can use to filter and aggregate your data.
 
-- {ref}/data-streams.html[Data streams] – Efficiently store append-only time series data in multiple backing indices partitioned by time and size.
-- {kibana-ref}/data-views.html[Data views] – Query log entries from the data streams of specific datasets or namespaces.
-- {ref}/example-using-index-lifecycle-policy.html[Index lifecycle management] – Configure the built-in logs policy based on your application's performance, resilience, and retention requirements.
-- {ref}/ingest.html[Ingest pipeline] – Parse and transform log entries into a suitable format before indexing.
-- {ref}/mapping.html[Mapping] – define how data is stored and indexed.
+The following resources provide information on important concepts related to parsing and organizing your logs:
+
+- {ref}/data-streams.html[Data streams]: Efficiently store append-only time series data in multiple backing indices partitioned by time and size.
+- {kibana-ref}/data-views.html[Data views]: Query log entries from the data streams of specific datasets or namespaces.
+- {ref}/example-using-index-lifecycle-policy.html[Index lifecycle management]: Configure the built-in logs policy based on your application's performance, resilience, and retention requirements.
+- {ref}/ingest.html[Ingest pipeline]: Parse and transform log entries into a suitable format before indexing.
+- {ref}/mapping.html[Mapping]: define how data is stored and indexed.
 
 [discrete]
 [[logs-monitor-checklist]]
@@ -83,10 +94,10 @@ With the {logs-app} in {kib} you can search, filter, and tail all your logs inge
 
 The following resources provide information on viewing and monitoring your logs:
 
-- <<tail-logs>> – monitor all of the log events flowing in from your servers, virtual machines, and containers in a centralized view.
-- <<inspect-log-anomalies>> use {ml} to detect log anomalies automatically.
-- <<categorize-logs>> – use {ml} to categorize log messages to quickly identify patterns in your log events.
-- <<configure-data-sources>> – Specify the source configuration for logs in the Logs app settings in the Kibana configuration file.
+- <<tail-logs>>: monitor all of the log events flowing in from your servers, virtual machines, and containers in a centralized view.
+- <<inspect-log-anomalies>>: use {ml} to detect log anomalies automatically.
+- <<categorize-logs>>: use {ml} to categorize log messages to quickly identify patterns in your log events.
+- <<configure-data-sources>>: Specify the source configuration for logs in the Logs app settings in the Kibana configuration file.
 
 [discrete]
 [[logs-app-checklist]]
