@@ -52,18 +52,39 @@ along with the total number of processes in these various states:
 The processes listed in the *Top processes* table are based on an aggregation of the top CPU and the top memory consuming processes.
 The number of top processes is controlled by `process.include_top_n.by_cpu` and `process.include_top_n.by_memory`.
 
-|=== 
+|===
 
 | *Command* | Full command line that started the process, including the absolute path to the executable, and all the arguments (`system.process.cmdline`).
 | *PID* | Process id (`process.pid`).
 | *User* | User name (`user.name`).
 | *CPU* | The percentage of CPU time spent by the process since the last event (`system.process.cpu.total.pct`).
-| *Time* | The time the process started (`system.process.cpu.start_time`). 
-| *Memory* | The percentage of memory (`system.process.memory.rss.pct`) the process occupied in main memory (RAM). 
+| *Time* | The time the process started (`system.process.cpu.start_time`).
+| *Memory* | The percentage of memory (`system.process.memory.rss.pct`) the process occupied in main memory (RAM).
 | *State* | The current state of the process and the total number of processes (`system.process.state`). Expected values are: `running`, `sleeping`, `dead`, `stopped`,
 `idle`, `zombie`, and `unknown`.
 
-|=== 
+|===
+====
+
+[%collapsible]
+.*Universal Profiling*
+====
+
+[role="screenshot"]
+image::images/universal-profiling-overlay.png[Host Universal Profiling]
+
+The *Universal Profiling* tab shows CPU usage down to the application code level.
+From here, you can find the sources of resource usage, and identify code that can be optimized to reduce infrastructure costs.
+The Universal Profile tab has the following views.
+
+|===
+
+| *Flamegraph* | A visual representation of the functions that consume the most resources. Each rectangle represents a function. The rectangle width represents the time spent in the function. The number of stacked rectangles represents the stack depth, or the number of functions called to reach the current function.
+
+| *Top 10 Functions* | A list of the most expensive lines of code on your host. See the most frequently sampled functions, broken down by CPU time, annualized CO2, and annualized cost estimates.
+
+|===
+
 ====
 
 [%collapsible]
@@ -73,18 +94,18 @@ The number of top processes is controlled by `process.include_top_n.by_cpu` and 
 [role="screenshot"]
 image::images/logs-overlay.png[Host logs]
 
-The *Logs* tab displays logs relating to the host that you have selected. By default, the logs tab displays the following columns. 
+The *Logs* tab displays logs relating to the host that you have selected. By default, the logs tab displays the following columns.
 
-|=== 
+|===
 
-| *Timestamp* | The timestamp of the log entry from the `timestamp` field. 
+| *Timestamp* | The timestamp of the log entry from the `timestamp` field.
 
 | *Message* | The message extracted from the document.
 The content of this field depends on the type of log message.
 If no special log message type is detected, the {ecs-ref}/ecs-base.html[Elastic Common Schema (ECS)]
 base field, `message`, is used.
 
-|=== 
+|===
 
 You can customize the logs view by adding a column for an arbitrary field you would like
 to filter by. For more information, refer to <<customize-stream-page,Customize Stream>>.
@@ -99,7 +120,7 @@ To view the logs in the {logs-app} for a detailed analysis, click *Open in Logs*
 image::images/anomalies-overlay.png[Anomalies]
 
 The *Anomalies* table displays a list of each single metric {anomaly-detect} job for the specific host. By default, anomaly
-jobs are sorted by time, showing the most recent jobs first. 
+jobs are sorted by time, showing the most recent jobs first.
 
 Along with the name of each anomaly job, detected anomalies with a severity score equal to 50, or higher, are listed. These
 scores represent a severity of "warning" or higher in the selected time period. The *summary* value represents the increase between
@@ -107,7 +128,7 @@ the actual value and the expected ("typical") value of the host metric in the an
 
 To drill down and analyze the metric anomaly, select *Actions -> Open in Anomaly Explorer* to view the
 {ml-docs}/ml-gs-results.html[Anomaly Explorer in {ml-app}]. You can also select *Actions -> Show in Inventory* to view the host
-Inventory page, filtered by the specific metric. 
+Inventory page, filtered by the specific metric.
 ====
 
 [%collapsible]
