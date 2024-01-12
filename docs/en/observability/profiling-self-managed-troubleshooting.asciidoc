@@ -11,9 +11,9 @@ Refer to the following sections to troubleshoot any issues you encounter when se
 == Application behavior
 
 [discrete]
-=== Missing stacktraces in the UI
+=== Missing stack traces in the UI
 
-If there is a sudden drop in the number of stacktraces in the UI, or if the UI is displaying none at all,
+If there is a sudden drop in the number of stack traces in the UI, or if the UI is displaying none at all,
 the collector service may be having trouble and thus data ingestion is impacted.
 
 The status of the collector can be inferred from the health checks and the metrics exposed.
@@ -27,15 +27,15 @@ Most notable causes of an impaired collector are:
 === Missing symbols
 
 One of the most useful features of Universal Profiling is the ability to display the source code file and line number
-of the stacktrace frames.
+of the stack trace frames.
 This is only possible if the symbols are processed correctly in the backend services.
 
-When the symbols are missing, the UI will display the stacktrace frames of native applications with an hexadecimal addresses, in the form `0x1234abcd`.
-If this is happening for most of the native frames, including public OS packages' files, this is a sign that the debug symbols are not being processed correctly.
+When the symbols are missing, the UI will display the stack trace frames of native applications with an hexadecimal addresses, in the form `0x1234abcd`.
+If this is happening for most of the native frames, including public OS package files, this is a sign that the debug symbols are not being processed correctly.
 
 It is possible to verify that the symbolizer is working correctly by using the health check endpoint and the metrics exposed.
 
-Most notable causes of an impaired symbolizer are:
+The most notable causes of an impaired symbolizer are:
 
 . symbolizer is not able to connect to the debug symbol endpoint: this is an internet-exposed endpoint, so it may be blocked by a firewall
 . symbolizer is not starting up properly: the symbolizer may be crashing on startup, possibly due to misconfigurations,
@@ -68,24 +68,24 @@ Refer to <<profiling-self-managed-ops-monitoring-metrics, Metrics>> for instruct
 
 We don't yet provide pre-built Kibana dashboards to monitor the services, but we have compiled a list of the most useful metrics to monitor.
 The prominent peak of goroutines or memory usage is a sign that the service is under stress and may be having trouble.
-If there's the possibility to have access to Linux kernel telemetry for the hosts running the backend services, the most important metrics to monitor are the CPU throttling and the network usage.
+If there's the possibility of having access to Linux kernel telemetry for the hosts running the backend services, the most important metrics to monitor are the CPU throttling and the network usage.
 
 [discrete]
 === Reading debug logs
 
-The backend services can be configured to log at debug level, which can be useful to troubleshoot issues.
+The backend services can be configured to log at debug level, which can be useful for troubleshooting issues.
 To do so, there's a `verbose` config entry in each YAML configuration file, which can be set to `true` to enable debug logging.
 The same configuration option can be set through the CLI flags, as detailed in <<profiling-self-managed-ops-configuration-cli-overrides, Use CLI flags to override configuration file values">>.
 
 When running the backend services in verbose mode, the logs will be helpful to troubleshoot issues.
 
-IMPORTANT: debug logs may be creating an output that is unsuited for long-running production deployments.
+IMPORTANT: Debug logs create an output that is unsuited for long-running production deployments.
 The verbose mode should only be enabled on a single replica at a time, and only for a short period of time,
 as it reduces performance and increases the CPU usage of the service.
 
 When verbose mode is enabled, there will be fine-grained information logged about the operations of the service.
-In case of collectors, the component responsible for ingesting data in Elasticsearch will be the most frequent.
-For symbolizer most of the logs will be related to the processing of native frames, initially detected by the collector.
+In the case of collectors, the component responsible for ingesting data in Elasticsearch will be the most frequent.
+For symbolizers most of the logs will be related to the processing of native frames, initially detected by the collector.
 
 If you are troubleshooting startup issues for both services, logs are the most useful source of information.
 On startup, each service will log if it is able to parse configurations and to start serving the incoming requests.
