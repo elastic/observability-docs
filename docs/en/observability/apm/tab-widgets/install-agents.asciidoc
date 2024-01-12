@@ -1,3 +1,79 @@
+// tag::android[]
+*Add the agent to your project*
+
+First, add the https://plugins.gradle.org/plugin/co.elastic.apm.android[Elastic APM agent plugin] to your application's `build.gradle` file as shown below:
+
+[source,groovy]
+----
+// Android app's build.gradle file
+plugins {
+    id "com.android.application"
+    id "co.elastic.apm.android" version "[latest_version]" <1>
+}
+----
+<1> The Elastic plugin declaration must be added below the Android app plugin declaration (`com.android.application`) and below the Kotlin plugin declaration (if used).
+
+*Configure the agent*
+
+After adding the agent plugin, configure it.
+A minimal configuration sets the Elastic APM Server endpoint as shown below:
+
+[source,groovy]
+----
+// Android app's build.gradle file
+plugins {
+    //...
+    id "co.elastic.apm.android" version "[latest_version]" <1>
+}
+
+elasticApm {
+    // Minimal configuration
+    serverUrl = "https://your.elastic.server"
+
+    // Optional
+    serviceName = "your app name" <2>
+    serviceVersion = "0.0.0" <3>
+    apiKey = "your server api key" <4>
+    secretToken = "your server auth token" <5>
+}
+----
+<1> You can find the latest version in the https://plugins.gradle.org/plugin/co.elastic.apm.android[Gradle plugin portal].
+<2> Defaults to your `android.defaultConfig.applicationId` value.
+<3> Defaults to your `android.defaultConfig.versionName` value.
+<4> Defaults to null.
+More info on API Keys {ref}/security-api-create-api-key.html[here].
+<5> Defaults to null.
+
+NOTE: When both `secretToken` and `apiKey` are provided, apiKey has priority and secretToken is ignored.
+
+*Initialize the agent*
+
+After syncing your project with the Gradle changes above, the Elastic APM agent needs to be initialized within your https://developer.android.com/reference/android/app/Application[Application class].
+This example shows the simplest way to configure the agent:
+
+[source,java]
+----
+// Your Application class
+
+class MyApp extends android.app.Application {
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        ElasticApmAgent.initialize(this); <1>
+    }
+}
+----
+<1> Initialize the Elastic APM agent once.
+
+All that's left is to compile and run your application.
+That's it!
+
+*Learn more in the agent reference*
+
+Read more in the {apm-android-ref}/intro.html[APM Android Agent Reference].
+// end::android[]
+
 // tag::go[]
 *Install the agent*
 
@@ -58,8 +134,6 @@ func main() {
 // ***************************************************
 
 // tag::ios[]
-
-experimental::[]
 
 *Add the agent dependency to your project*
 
@@ -139,6 +213,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 <3> Enable TLS for Open telemetry exporters
 <4> Set secret token for APM server connection
 
+*Learn more in the agent reference*
+
+Read more in the {apm-ios-ref}/intro.html[APM iOS Agent Reference].
 // end::ios[]
 
 // ***************************************************
