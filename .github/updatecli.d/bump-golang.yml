@@ -1,0 +1,42 @@
+---
+name: Bump golang version to latest version in the APM Server docs.
+pipelineid: 'updatecli-bump-golang'
+
+actions:
+  default:
+    title: '[updatecli] Bump Golang version to {{ source "latestGoVersion" }}'
+    kind: github/pullrequest
+    scmid: default
+    spec:
+      description: |-
+        ### What
+        Bump go release version with the latest available version in https://github.com/elastic/apm-server
+
+scms:
+  default:
+    kind: github
+    spec:
+      user: '{{ requiredEnv "GIT_USER" }}'
+      email: '{{ requiredEnv "GIT_EMAIL" }}'
+      owner: elastic
+      repository: observability-docs
+      token: '{{ requiredEnv "GITHUB_TOKEN" }}'
+      username: '{{ requiredEnv "GIT_USER" }}'
+      branch: main
+
+sources:
+  latestGoVersion:
+    kind: file
+    spec:
+      file: https://raw.githubusercontent.com/elastic/apm-server/main/.go-version
+
+targets:
+  update-version-asciidoc:
+    name: 'Update version.asciidoc with Golang version {{ source "latestGoVersion" }}'
+    sourceid: latestGoVersion
+    scmid: default
+    kind: file
+    spec:
+      file: docs/en/observability/apm/version.asciidoc
+      matchpattern: '(:go-version:) \d+.\d+.\d+'
+      replacepattern: '$1 {{ source "latestGoVersion" }}'
