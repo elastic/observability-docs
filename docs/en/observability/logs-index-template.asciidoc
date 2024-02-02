@@ -1,0 +1,54 @@
+[[logs-index-template]]
+= Logs index template reference
+
+[[custom-logs-index-template]]
+== View index templates
+
+Index templates are used to configure the backing indices of data streams as they are created.
+These index templates are composed of multiple component templates--reusable building blocks
+that configure index mappings, settings, and aliases.
+
+The default Logs index template can be viewed in {kib}.
+Navigate to **{stack-manage-app}** → **Index Management** → **Index Templates**, and search for `logs`.
+Select any of the logs index templates to view their relevant component templates.
+
+[discrete]
+[custom-logs-template-edit]
+=== Edit the {es} index template
+
+{es} has a built-in index template for the `logs-*-*` index pattern, which is composed of component templates including:
+
+* `logs@mappings`
+* `logs@settings`
+* `logs@custom`
+* `ecs@mappings`
+
+You can use the `@custom` component template to customize your {es} indices. The `logs@custom` template is not installed by default, but you can create a template named `logs@custom` to override and extend default mappings or settings.
+
+Open {kib} and navigate to **{stack-manage-app}** → **Index Management** → **Component Templates**.
+
+. Click *Create component template*.
+. Name the component template logs@custom.
+. Add any custom metadata, index settings, or mappings.
+
+[discrete]
+[[custom-logs-template-default-field]]
+=== Set the `default_field` using the custom template
+
+The `logs-*-*` index template uses `default_field: [*]` meaning queries without specified fields will search across all fields.
+You can update the `default_field` to  search in the `message` field instead of all fields using the `logs@custom` component template.
+
+Either create the `logs@custom` template as detailed in the previous section, or edit the existing one to include the following in the *Index settings*:
+
+[source,json]
+----
+{
+  "index": {
+    "query": {
+      "default_field": [
+        "message"
+      ]
+    }
+  }
+}
+----
