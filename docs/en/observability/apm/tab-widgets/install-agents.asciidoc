@@ -1,5 +1,5 @@
 // tag::android[]
-*Add the agent to your project*
+*1. Add the agent to your project*
 
 First, add the https://plugins.gradle.org/plugin/co.elastic.apm.android[Elastic APM agent plugin] to your application's `build.gradle` file as shown below:
 
@@ -13,7 +13,7 @@ plugins {
 ----
 <1> The Elastic plugin declaration must be added below the Android app plugin declaration (`com.android.application`) and below the Kotlin plugin declaration (if used).
 
-*Configure the agent*
+*2. Configure the agent*
 
 After adding the agent plugin, configure it.
 A minimal configuration sets the Elastic APM integration endpoint as shown below:
@@ -46,7 +46,7 @@ More info on API Keys {ref}/security-api-create-api-key.html[here].
 
 NOTE: When both `secretToken` and `apiKey` are provided, apiKey has priority and secretToken is ignored.
 
-*Initialize the agent*
+*3. Initialize the agent*
 
 After syncing your project with the Gradle changes above, the Elastic APM agent needs to be initialized within your https://developer.android.com/reference/android/app/Application[Application class].
 This example shows the simplest way to configure the agent:
@@ -75,7 +75,7 @@ Read more in the {apm-android-ref}/intro.html[APM Android Agent Reference].
 // end::android[]
 
 // tag::go[]
-*Install the agent*
+*1. Install the agent*
 
 Install the Elastic APM Go agent package using `go get`:
 
@@ -84,7 +84,7 @@ Install the Elastic APM Go agent package using `go get`:
 go get -u go.elastic.co/apm/v2
 ----
 
-*Configure the agent*
+*2. Configure the agent*
 
 To simplify development and testing,
 the agent defaults to sending data to the Elastic APM integration at `http://localhost:8200`.
@@ -104,7 +104,7 @@ export ELASTIC_APM_SERVICE_NAME=
 export ELASTIC_APM_SECRET_TOKEN=
 ----
 
-*Instrument your application*
+*3. Instrument your application*
 
 Instrumentation is the process of extending your application’s code to report trace data to Elastic APM. Go applications must be instrumented manually at the source code level. There are two ways to instrument your applications:
 
@@ -123,7 +123,7 @@ Instrumentation is the process of extending your application’s code to report 
 
 // tag::ios[]
 
-*Add the agent dependency to your project*
+*1. Add the agent dependency to your project*
 
 Add the Elastic APM iOS Agent to your Xcode project or your `Package.swift`.
 
@@ -132,8 +132,7 @@ Here are instructions for adding a https://developer.apple.com/documentation/swi
 Details of adding dependencies to your Package.swift can be found on https://developer.apple.com/documentation/xcode/creating_a_standalone_swift_package_with_xcode#3578941['Add a Dependency on Another Swift Package'].
 Below is a helpful code-snippet:
 
-`package.swift`:
-[source,swift,linenums,highlight=2;10]
+[source,swift]
 ----
 Package(
     dependencies:[
@@ -149,11 +148,11 @@ Package(
 ])
 ----
 
-*Initialize the agent*
+*2. Initialize the agent*
 
 If you're using `SwiftUI` to build your app add the following to your `App.swift`:
 
-[source,swift,linenums,swift,highlight=2;4..15;19]
+[source,swift]
 ----
 import SwiftUI
 import ElasticApm
@@ -185,10 +184,9 @@ struct MyApp: App {
 <1> The APM integration host and port
 <2> Set secret token for APM integration connection
 
-If you're not using `SwiftUI` you can alternatively add the same thing to your AppDelegate file:
+If you're not using `SwiftUI` you can alternatively add the same thing to your `AppDelegate.swift` file:
 
-`AppDelegate.swift`
-[source,swift,linenums,highlight=2;7..11]
+[source,swift]
 ----
 import UIKit
 import ElasticApm
@@ -216,23 +214,13 @@ Read more in the {apm-ios-ref}/intro.html[APM iOS Agent Reference].
 // ***************************************************
 
 // tag::java[]
-
-There are three different ways to set up the Elastic APM Java Agent:
-
-. **Manual setup with `-javaagent` flag** +
-  Manually set up and configure the agent with the `-javaagent` JVM option. No application code change required, requires
+Manually set up and configure the agent with the `-javaagent` JVM option. No application code change required, requires
 application restart. See below for more information on this setup method.
-. **Automatic setup with `apm-agent-attach-cli.jar`** +
-  Automatically set up the agent without needing to alter the configuration of your JVM or application server. No application code
-  nor JVM options changes required, allows attaching to a running JVM. Refer to the {apm-java-ref-v}/setup-attach-cli.html[Java agent documentation] for more information on this setup method.
-. **Programmatic API setup to self-attach** +
-  Set up the agent with a one-line code change and an extra `apm-agent-attach` dependency. No modification of JVM options,
-  the agent artifact is embedded within the packaged application binary. Refer to the {apm-java-ref-v}/setup-attach-api.html[Java agent documentation] for more information on this setup method.
 
-*Download the {apm-agent}*
+*1. Download the {apm-agent}*
 
 The first step in getting started with the Elastic APM Java agent is to retrieve a copy of the agent jar.
-Java agent releases are published to https://repo.maven.apache.org/maven2/[Maven central], in order to get a copy you can either:
+Java agent releases are published to https://repo.maven.apache.org/maven2/[Maven central]. In order to get a copy you can either:
 
 - download manually the link:https://oss.sonatype.org/service/local/artifact/maven/redirect?r=releases&g=co.elastic.apm&a=elastic-apm-agent&v=LATEST[latest agent]
 or link:https://mvnrepository.com/artifact/co.elastic.apm/elastic-apm-agent[previous releases] from Maven central.
@@ -243,24 +231,31 @@ or link:https://mvnrepository.com/artifact/co.elastic.apm/elastic-apm-agent[prev
 curl -o 'elastic-apm-agent.jar' -L 'https://oss.sonatype.org/service/local/artifact/maven/redirect?r=releases&g=co.elastic.apm&a=elastic-apm-agent&v=LATEST'
 ----
 
-*Add `-javaagent` flag*
+*2. Add `-javaagent` flag*
 
 When starting your application, add the JVM flag `-javaagent:/path/to/elastic-apm-agent-<version>.jar`
 
-*Generic setup*
+*3. Configure*
 
+Different application servers have different ways of setting the `-javaagent` flag and system properties.
 Start your application (for example a Spring Boot application or other embedded servers) and add the `-javaagent` JVM flag.
-Use the `-D` prefix to configure the agent using system properties.
+Use the `-D` prefix to configure the agent using system properties:
 
 [source,bash]
 ----
 java -javaagent:/path/to/elastic-apm-agent-<version>.jar -Delastic.apm.service_name=my-cool-service -Delastic.apm.application_packages=org.example,org.another.example -Delastic.apm.server_url=http://127.0.0.1:8200 -jar my-application.jar
 ----
 
-*Learn more in the agent reference*
+See {apm-java-ref-v}/setup-javaagent.html[Manual setup with `-javaagent` flag] to learn more.
 
-* {apm-java-ref-v}/setup.html[Complete setup instructions]
-* {apm-java-ref-v}/supported-technologies-details.html[Supported technologies]
+*Alternate setup methods*
+
+* **Automatic setup with `apm-agent-attach-cli.jar`** +
+  Automatically set up the agent without needing to alter the configuration of your JVM or application server. No application code
+  nor JVM options changes required, allows attaching to a running JVM. Refer to the {apm-java-ref-v}/setup-attach-cli.html[Java agent documentation] for more information on this setup method.
+* **Programmatic API setup to self-attach** +
+  Set up the agent with a one-line code change and an extra `apm-agent-attach` dependency. No modification of JVM options,
+  the agent artifact is embedded within the packaged application binary. Refer to the {apm-java-ref-v}/setup-attach-api.html[Java agent documentation] for more information on this setup method.
 
 // end::java[]
 
@@ -270,19 +265,17 @@ java -javaagent:/path/to/elastic-apm-agent-<version>.jar -Delastic.apm.service_n
 // tag::net[]
 *Set up the {apm-agent}*
 
-The .NET agent can be added to an application in three different ways
+The .NET agent can be added to an application in a few different ways:
 
-Profiler runtime instrumentation::
+* **Profiler runtime instrumentation**:
 The agent supports auto instrumentation without any code change and without
 any recompilation of your projects. See {apm-dotnet-ref-v}/setup-auto-instrumentation.html[Profiler auto instrumentation].
-
-NuGet packages::
+* **NuGet packages**:
 The agent ships as a set of {apm-dotnet-ref-v}/packages.html[NuGet packages] available on https://nuget.org[nuget.org].
 You can add the Agent and specific instrumentations to a .NET application by
 referencing one or more of these packages and following the package documentation.
-
-Host startup hook::
-On **.NET Core 3.0+ or .NET 5+**, the agent supports auto instrumentation without any code change and without
+* **Host startup hook**:
+On .NET Core 3.0+ or .NET 5+, the agent supports auto instrumentation without any code change and without
 any recompilation of your projects. See {apm-dotnet-ref-v}/setup-dotnet-net-core.html[Zero code change setup on .NET Core]
 for more details.
 
@@ -296,7 +289,7 @@ for more details.
 // ***************************************************
 
 // tag::node[]
-*Install the {apm-agent}*
+*1. Install the {apm-agent}*
 
 Install the {apm-agent} for Node.js as a dependency to your application.
 
@@ -305,7 +298,7 @@ Install the {apm-agent} for Node.js as a dependency to your application.
 npm install elastic-apm-node --save
 ----
 
-*Initialization*
+*2. Initialization*
 
 It's important that the agent is started before you require *any* other modules in your Node.js application - i.e. before `http` and before your router etc.
 
@@ -347,7 +340,7 @@ The agent will now monitor the performance of your application and record any un
 
 // tag::php[]
 
-*Install the agent*
+*1. Install the agent*
 
 Install the agent using one of the https://github.com/elastic/apm-agent-php/releases/latest[packages for supported platforms].
 
@@ -380,7 +373,30 @@ NOTE: The agent is currently only available for Linux operating system.
 1. Download the agent source from https://github.com/elastic/apm-agent-php/.
 2. Execute the following commands to build the agent and install it:
 
-*Configure the agent*
+[source,bash]
+----
+cd apm-agent-php
+# for linux glibc - libc distributions (Ubuntu, Redhat, etc)
+export BUILD_ARCHITECTURE=linux-x86-64
+# for linux with musl - libc distributions (Alpine)
+export BUILD_ARCHITECTURE=linuxmusl-x86-64
+# provide a path to php-config tool
+export PHP_CONFIG=php-config
+
+# build extensions
+make -f .ci/Makefile build
+
+# run extension tests
+PHP_VERSION=`$PHP_CONFIG --version | cut -d'.' -f 1,2` make -f .ci/Makefile run-phpt-tests
+
+# install agent extensions
+sudo cp agent/native/_build/${BUILD_ARCHITECTURE}-release/ext/elastic_apm-*.so `$PHP_CONFIG --extension-dir`
+
+# install automatic loader
+sudo cp agent/native/_build/${BUILD_ARCHITECTURE}-release/loader/code/elastic_apm_loader.so `$PHP_CONFIG --extension-dir`
+----
+
+*2. Enable and configure the APM agent*
 
 Enable and configure your agent inside of the `php.ini` file:
 
@@ -403,7 +419,7 @@ elastic_apm.bootstrap_php_part_file=<repo root>/agent/php/bootstrap_php_part.php
 // tag::python[]
 Django::
 +
-*Install the {apm-agent}*
+*1. Install the {apm-agent}*
 +
 Install the {apm-agent} for Python as a dependency.
 +
@@ -412,7 +428,7 @@ Install the {apm-agent} for Python as a dependency.
 $ pip install elastic-apm
 ----
 +
-*Configure the agent*
+*2. Configure the agent*
 +
 Agents are libraries that run inside of your application process.
 APM services are created programmatically based on the `SERVICE_NAME`.
@@ -446,7 +462,7 @@ MIDDLEWARE = (
 
 Flask::
 +
-*Install the {apm-agent}*
+*1. Install the {apm-agent}*
 +
 Install the {apm-agent} for Python as a dependency.
 +
@@ -455,7 +471,7 @@ Install the {apm-agent} for Python as a dependency.
 $ pip install elastic-apm[flask]
 ----
 +
-*Configure the agent*
+*2. Configure the agent*
 +
 Agents are libraries that run inside of your application process.
 APM services are created programmatically based on the `SERVICE_NAME`.
@@ -495,7 +511,7 @@ apm = ElasticAPM(app)
 // ***************************************************
 
 // tag::ruby[]
-*Install the {apm-agent}*
+*1. Install the {apm-agent}*
 
 Add the agent to your Gemfile.
 
@@ -503,7 +519,7 @@ Add the agent to your Gemfile.
 ----
 gem 'elastic-apm'
 ----
-*Configure the agent*
+*2. Configure the agent*
 
 Ruby on Rails::
 +
@@ -580,11 +596,11 @@ server_url: 'http://localhost:8200'
 // ***************************************************
 
 // tag::rum[]
-*Enable Real User Monitoring (RUM)*
+*1. Enable Real User Monitoring (RUM)*
 
 RUM is disabled by default. Enable it by setting `Enable RUM` to `true`.
 
-*Set up the agent*
+*2. Set up the agent*
 
 Set up the agent with `<script>` tags or by using a bundler.
 
