@@ -3,6 +3,27 @@
 
 APM has the following known issues:
 
+*traces-apm@custom ingest pipeline applied to certain data streams unintentionally* +
+_APM Server versions: 8.12.0_ +
+
+// Describe the conditions in which this issue occurs
+If you're using the Elastic APM Server v8.12.0,
+// Describe the behavior of the issue
+the `traces-apm@custom` ingest pipeline is now additionally applied to data streams `traces-apm.sampled-*`
+and `traces-apm.rum-*`, and applied twice for `traces-apm-*`. This bug impacts users with a non-empty `traces-apm@custom` ingest pipeline.
+
+If you rely on this unintended behavior in 8.12.0, please rename your pipeline to `traces-apm.integration@custom` to preserve this behavior in later versions.
+
+// Describe why it happens
+// This happens because...
+
+// Include exact error messages linked to this issue
+// so users searching for the error message end up here.
+
+// Link to fix?
+A fix was released in 8.12.1: https://github.com/elastic/kibana/pull/175448[elastic/kibana#175448].
+
+
 *Ingesting new JVM metrics in 8.9 and 8.10 breaks upgrade to 8.11 and stops ingestion* +
 _APM Server versions: 8.11.0, 8.11.1_ +
 _Elastic APM Java Agent versions: 1.39.0+_
