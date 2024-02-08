@@ -38,22 +38,29 @@ Failed installing package [apm] due to error: [ResponseError: mapper_parsing_exc
 A fix was released in 8.11.2: https://github.com/elastic/kibana/pull/171712[elastic/kibana#171712].
 
 [[apm-empty-metricset-values]]
-*APM Server accepts empty metricset values that should have been rejected* +
-_APM Server versions: < 8.11.0_ +
+*Upgrading APM Server to 8.11+ might break event intake from older APM Java Agents* +
+_APM Server versions: >=8.11.0_ +
 _Elastic APM Java Agent versions: < 1.43.0_
 
 // Describe the conditions in which this issue occurs
-If you are using APM Server (< v8.11.0) and/or the Elastic APM Java Agent (< v1.43.0),
+If you are using APM Server (> v8.11.0) and/or the Elastic APM Java Agent (< v1.43.0),
 // Describe the behavior of the issue
 the agent may be sending empty histogram metricsets.
+
 // Describe why it happens
-This issue was a result of validation not being properly applied.
+In previous APM Server versions some data validation was not properly applied,
+leading the APM Server to accept empty histogram metricsets where it shouldn't.
+This bug was fixed in the APM Server in 8.11.0.
+
+The APM Java Agent (< v1.43.0) was sending this kind of invalid data under certain circumstances.
+If you upgrade the APM Server to v8.11.0+ _without_ upgrading the APM Java Agent version,
+metricsets can be rejected by the APM Server and can result in additional error logs in the Java Agent.
 
 // Include exact error messages linked to this issue
 // so users searching for the error message end up here.
 
 // Link to fix
-This was fixed in APM server in 8.11.0 and in the Elastic APM Java Agent in 1.43.0.
+The fix is to upgrade the Elastic APM Java Agent to a version >= 1.43.0.
 Find details in https://github.com/elastic/apm-data/pull/157[elastic/apm-data#157].
 
 // TEMPLATE
