@@ -2,6 +2,22 @@
 = Known issues
 
 APM has the following known issues:
+////
+TEMPLATE
+Note: Add known issues for newer Elastic Stack
+versions to the top of this page
+
+*Brief description* +
+_Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
+
+Detailed description including:
+
+The conditions in which this issue occurs
+The behavior of the issue
+Why it happens
+If applicable, exact error messages linked to this issue so users searching for the error message end up here
+Link to fix
+////
 
 *traces-apm@custom ingest pipeline applied to certain data streams unintentionally* +
 _APM Server versions: 8.12.0_ +
@@ -24,12 +40,39 @@ If you rely on this unintended behavior in 8.12.0, please rename your pipeline t
 A fix was released in 8.12.1: https://github.com/elastic/kibana/pull/175448[elastic/kibana#175448].
 
 
-*Ingesting new JVM metrics in 8.9 and 8.10 breaks upgrade to 8.11 and stops ingestion* +
-_APM Server versions: 8.11.0, 8.11.1_ +
-_Elastic APM Java Agent versions: 1.39.0+_
+[[apm-empty-metricset-values]]
+*Upgrading APM Server to 8.11+ might break event intake from older APM Java agents* +
+_APM Server versions: >=8.11.0_ +
+_Elastic APM Java agent versions: < 1.43.0_
 
 // Describe the conditions in which this issue occurs
-If you're using the Elastic APM Java Agent v1.39.0+ to send new JVM metrics to APM Server v8.9.x and v8.10.x,
+If you are using APM Server (> v8.11.0) and the Elastic APM Java agent (< v1.43.0),
+// Describe the behavior of the issue
+the agent may be sending empty histogram metricsets.
+
+// Describe why it happens
+In previous APM Server versions some data validation was not properly applied,
+leading the APM Server to accept empty histogram metricsets where it shouldn't.
+This bug was fixed in the APM Server in 8.11.0.
+
+The APM Java agent (< v1.43.0) was sending this kind of invalid data under certain circumstances.
+If you upgrade the APM Server to v8.11.0+ _without_ upgrading the APM Java agent version,
+metricsets can be rejected by the APM Server and can result in additional error logs in the Java agent.
+
+// Include exact error messages linked to this issue
+// so users searching for the error message end up here.
+
+// Link to fix
+The fix is to upgrade the Elastic APM Java agent to a version >= 1.43.0.
+Find details in https://github.com/elastic/apm-data/pull/157[elastic/apm-data#157].
+
+
+*Ingesting new JVM metrics in 8.9 and 8.10 breaks upgrade to 8.11 and stops ingestion* +
+_APM Server versions: 8.11.0, 8.11.1_ +
+_Elastic APM Java agent versions: 1.39.0+_
+
+// Describe the conditions in which this issue occurs
+If you're using the Elastic APM Java agent v1.39.0+ to send new JVM metrics to APM Server v8.9.x and v8.10.x,
 // Describe the behavior of the issue
 upgrading to 8.11.0 or 8.11.1 will silently fail and stop ingesting APM metrics.
 // Describe why it happens
@@ -55,14 +98,5 @@ Failed installing package [apm] due to error: [ResponseError: mapper_parsing_exc
 		mapper_parsing_exception: Field [jvm.memory.non_heap.pool.committed] attempted to shadow a time_series_metric]
 ----
 
-// Link to fix?
+// Link to fix
 A fix was released in 8.11.2: https://github.com/elastic/kibana/pull/171712[elastic/kibana#171712].
-
-// TEMPLATE
-
-////
-*Brief description* +
-_Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
-
-Detailed description.
-////
