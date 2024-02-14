@@ -12,13 +12,17 @@ Follow these steps to add the Kubernetes integration to your policy:
 //add screenshots if necessary
 
 . Select *Add integrations* from your deployment's homepage.
++
+[role="screenshot"]
+image::images/add-integration.png[Add integration button]
 . Enter "Kubernetes" in the search bar, and select the *Kubernetes* integration.
 . Click *Add Kubernetes* at the top of the Kubernetes integration page.
 . Click *Add integration only (skip agent installation)* at the bottom of the Add integration page.
++
+[role="screenshot"]
+image::images/skip-agent-button.png[Add integration only (skip agent installation) button]
 
-You're now on the *Add Kubernetes integration* page.
-From here, you'll configure the integration to collect metrics and logs from the different Kubernetes components.
-Continue to <<monitor-k8s-configure-integration, Step 2>> to configure your integration.
+Continue to <<monitor-k8s-configure-integration>>.
 
 [discrete]
 [[monitor-k8s-configure-integration]]
@@ -70,13 +74,12 @@ You have the following options for collecting Kubernetes logs:
 [[monitor-kubernetes-integration-kubelet]]
 === Collect Kubernetes metrics from kubelet API
 
-Turn this option on to collect metrics from the kubelet API.
+Collecting metrics from the kubelet API is on by default.
 Kubelet is an agent that runs on each Kubernetes node that is key to managing individual pods and the nodes that host them.
-{agent} can collect metrics from the kubelet API to gather important information about the state of your Kubernetes nodes, pods, containers, and other resources.
+For more information on kubelet, refer to the Kubernetes https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/[kubelet docs].
 
-Refer to Kubernetes' https://kubernetes.io/docs/reference/command-line-tools-reference/kubelet/[kubelet docs] for more information.
-
-With the Kubernetes integration, you can collect container, node, pod, system, and volume metrics using the kubelet API. Click to expand the following list of available metrics from the kubelet API.
+{agent} along with the Kubernetes integration can collect metrics from the kubelet API to gather important information about the state of your Kubernetes nodes, pods, containers, and other resources.
+paleExpand the following list to see all available metrics from the kubelet API.
 
 [%collapsible]
 .Expand to see available metrics from the kubelet API
@@ -96,7 +99,7 @@ With the Kubernetes integration, you can collect container, node, pod, system, a
 Provide the following information for each of the kubelet API options:
 
 [horizontal]
-*Add Metadata*:: On by default, this option adds metadata to events. The metadata is valuable for grouping and exploring related data.
+*Add Metadata*:: This option adds metadata to events. The metadata is valuable for grouping and exploring related data. This option is on by default.
 *Bearer Token File*:: The file path to the token used to authenticate with the kubelet API.
 *Hosts*:: The address of the kubelet API server that Elastic will connect to for collecting metrics. `${env.NODE_NAME}` is an environment variable that represents the name of the Kubernetes node. Port `10250` is the default port where the kubelet API listens for HTTPS connections.
 *Period*:: How frequently to poll the kubelet API for metrics. The default is every 10 seconds.
@@ -104,7 +107,7 @@ Provide the following information for each of the kubelet API options:
 
 [discrete]
 [[monitor-k8s-kubelet-configure-metadata]]
-==== Configure the kubelet API metadata enrichment
+==== Configure kubelet API metadata enrichment
 
 Under **Kubernetes Container metrics** and **Kubernetes Pod metrics**, you can configure metadata enrichment from **Advanced options → Add node and namespace metadata**.
 
@@ -128,14 +131,13 @@ From here, update the `add_resource_metadata` block to configure enrichment:
 NOTE: You need to deploy `kube-state-metrics` before you can use it to collect metric data.
 To learn how, refer to the Kubernetes https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[deployment docs].
 
-Turn this option on to collect metrics from `kube-state-metrics`.
+Collecting metrics from `kube-state-metrics` is on by default.
 The `kube-state-metrics` service provides cluster-wide metrics on the health of Kubernetes objects.
-
 Refer to the https://github.com/kubernetes/kube-state-metrics[kube-state-metrics docs] for more information.
 
-If you have a large Kubernetes deployment, refer to the https://github.com/elastic/elastic-agent/blob/main/docs/elastic-agent-ksm-sharding.md[`kube-state-metrics` sharding] documentation for more on supporting your deployment.
+`kube-state-metrics` provides horizontal sharding to support large Kubernetes deployments. Refer to the https://github.com/elastic/elastic-agent/blob/main/docs/elastic-agent-ksm-sharding.md[`kube-state-metrics` sharding] documentation for more information.
 
-With the Kubernetes integration, you can collect a number of metrics for using the `kube-state-metrics`. Click to expand the following list of available metrics from `kube-state-metrics`.
+With the Kubernetes integration, you can collect a number of metrics using the `kube-state-metrics`. Expand the following list to see all available metrics from `kube-state-metrics`.
 
 [%collapsible]
 .Expand to see available metrics from `kube-state-metrics`
@@ -165,14 +167,14 @@ With the Kubernetes integration, you can collect a number of metrics for using t
 Provide the following information for each of the `kube-state-metrics` options:
 
 [horizontal]
-*Add Metadata*:: On by default, this option adds metadata to events. The metadata is valuable for grouping and exploring related data.
+*Add Metadata*:: This option adds metadata to events. The metadata is valuable for grouping and exploring related data. This option is on by default.
 *Hosts*:: The address where `kube-state-metrics` is running. Port 8080 is the default.
 *Leader Election*:: When on (default behavior), only the elastic agent which holds the leadership lock will retrieve metrics from the `kube_state_metrics`. This prevents duplicate data in multi-node Kubernetes clusters.
 *Period*:: How frequently to poll the `kube-state-metrics` for metrics. The default is every 10 seconds.
 
 [discrete]
 [[monitor-k8s-kube-state-configure-metadata]]
-==== Configure the `kube-state-metrics` metadata enrichment
+==== Configure `kube-state-metrics` metadata enrichment
 
 Under **Kubernetes Container metrics** and **Kubernetes Pod metrics**, you can configure metadata enrichment from **Advanced options → Add node and namespace metadata**.
 
@@ -202,7 +204,7 @@ add_resource_metadata:
 [[monitor-kubernetes-integration-k8s-api-metrics]]
 === Collect Kubernetes metrics from Kubernetes API server
 
-Turn this option on to get metrics from the `kube-apiserver`.
+Collecting metrics from the `kube-apiserver` is on by default.
 The `kube-apiserver` sets up and validates pods, services, and other API objects.
 These metrics provide insight into the API server's performance, workload, and health.
 
@@ -226,7 +228,7 @@ Provide the following information to collect `kube-apiserver` metrics:
 === Collect Kubernetes metrics from Kubernetes proxy
 
 The `kube-proxy` runs on each node and maintains network rules.
-Turn this option on to get metrics from the `kube-proxy`.
+Collecting metrics from the `kube-proxy` is on by default.
 These metrics provide insight into the proxy's networking activity, performance, and resource usage.
 
 Refer to {integrations-docs}/kubernetes/kube-proxy[`kube-proxy` metrics] for more on the metrics collected.
@@ -291,7 +293,7 @@ Provide the following information to collect `kube-controller-manager` metrics:
 
 Event metrics give you an overall view of what's happening in a cluster.
 These metrics help you understand what's happening in your cluster and improve reliability and stability.
-Turn this option on to collect event metrics.
+Collecting Kubernetes events from the Kubernetes API server is on by default.
 
 Refer to {integrations-docs}/kubernetes/events[events metrics] for more on the metrics collected.
 
@@ -311,7 +313,7 @@ Provide the following information to collect Kubernetes events metrics:
 [[monitor-kubernetes-integration-container-logs]]
 === Collect Kubernetes container logs
 
-Turn this option on to collect and parse Kubernetes container logs.
+Collecting and parsing Kubernetes container logs is on by default.
 Containers running within Kubernetes pods publish logs to stdout or stderr.
 These logs are written to a location known to kubelet.
 By default, the container parser is enabled.
@@ -326,7 +328,7 @@ Refer to {integrations-docs}/kubernetes/container-logs[Kubernetes container logs
 Provide the following information to collect container logs:
 
 [horizontal]
-*Use Symlinks*:: A symlink is lightweight and doesn't contain the data of the log files, but points to their actual location. Turn this on to use symlinks.
+*Use Symlinks*:: A symlink is lightweight and doesn't contain the data of the log files, but points to their actual location. Symlinks are used by default.
 *Condition*:: You can specify a condition to control whether a configuration is applied to the running Elastic Agent.
 
 [discrete]
@@ -345,14 +347,17 @@ Refer to {integrations-docs}/kubernetes/audit-logs[Kubernetes audit logs] for mo
 [[monitor-k8s-update-agent-config]]
 == Part 2: Configure and install the standalone {agent}
 
-After configuring your integration, you need to download and update your manifest. First, download the manifest by  completing the following steps:
+After configuring your integration, you need to download and update your manifest. First, download the manifest by completing the following steps:
 
 . At the bottom of the *Add Kubernetes integration* page, click *Save and continue*.
 . Click *Add {agent} to your hosts*.
 . Under *Enroll in Fleet?*, select *Run standalone*.
-. Under *Configure the agent*, click *Download Manifest*.
++
+[role="screenshot"]
+image::images/run-standalone-option.png[Select run standalone under Enroll in Fleet]
+. Under *Configure the agent*, select *Download Manifest*.
 
-After downloading the manifest, update the `ES_USERNAME` and `ES_PASSWORD` environment variables in the DaemonSet to match your {es} credentials.
+After downloading the manifest, open it and update the `ES_USERNAME` and `ES_PASSWORD` environment variables in the DaemonSet to match your {es} credentials.
 
 You can also further modify the manifest to fit your needs. For example, you might want to enable autodiscovery to automatically discover container logs. Refer to the {fleet-guide}/elastic-agent-kubernetes-autodiscovery.html[autodiscovery docs] in the {fleet} guide for more on enabling autodiscovery in your manifest.
 
