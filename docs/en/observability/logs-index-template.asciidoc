@@ -1,44 +1,47 @@
 [[logs-index-template]]
 = Logs index template reference
 
-[[custom-logs-index-template]]
-== View index templates
-
-Index templates are used to configure the backing indices of data streams as they are created.
-These index templates are composed of multiple component templates--reusable building blocks
+Index templates are used to configure the backing indices of data streams as they're created.
+These index templates are composed of multiple {ref}/indices-component-template.html[component templates]—reusable building blocks
 that configure index mappings, settings, and aliases.
 
-The default Logs index template can be viewed in {kib}.
+You can view the default `logs` index template in {kib}.
 Navigate to **{stack-manage-app}** → **Index Management** → **Index Templates**, and search for `logs`.
-Select any of the logs index templates to view their relevant component templates.
+Select the `logs` index templates to view relevant component templates.
 
 [discrete]
-[custom-logs-template-edit]
-=== Edit the {es} index template
+[[custom-logs-template-edit]]
+== Edit the `logs` index template
 
-{es} has a built-in index template for the `logs-*-*` index pattern, which is composed of component templates including:
+The default `logs` index template for the `logs-*-*` index pattern is composed of the following component templates:
 
 * `logs@mappings`
 * `logs@settings`
 * `logs@custom`
 * `ecs@mappings`
 
-You can use the `@custom` component template to customize your {es} indices. The `logs@custom` template is not installed by default, but you can create a template named `logs@custom` to override and extend default mappings or settings.
+You can use the `logs@custom` component template to customize your {es} indices. The `logs@custom` component template is not installed by default, but you can create a component template named `logs@custom` to override and extend default mappings or settings. To do this:
 
-Open {kib} and navigate to **{stack-manage-app}** → **Index Management** → **Component Templates**.
-
+. Open {kib} and navigate to **{stack-manage-app}** → **Index Management** → **Component Templates**.
 . Click *Create component template*.
 . Name the component template logs@custom.
 . Add any custom metadata, index settings, or mappings.
+
+Changes to component templates are not applied retroactively to existing indices. For changes to take effect, create a new write index for impacted data streams by triggering a rollover. Do this using the {es} {ref}/indices-rollover-index.html[Rollover API]. For example, to roll over the `logs-generic-default` data stream, run:
+
+[source,console]
+----
+POST /logs-generic-default/_rollover/
+----
 
 [discrete]
 [[custom-logs-template-default-field]]
 === Set the `default_field` using the custom template
 
-The `logs-*-*` index template uses `default_field: [*]` meaning queries without specified fields will search across all fields.
+The `logs` index template uses `default_field: [*]` meaning queries without specified fields will search across all fields.
 You can update the `default_field` to  search in the `message` field instead of all fields using the `logs@custom` component template.
 
-Either create the `logs@custom` template as detailed in the previous section, or edit the existing one to include the following in the *Index settings*:
+Either create the `logs@custom` component template as outlined in the previous section, or add the following code to the *Index settings* of the `logs` index template:
 
 [source,json]
 ----
