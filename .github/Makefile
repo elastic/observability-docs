@@ -16,11 +16,6 @@ NEXT_PROJECT_MINOR_VERSION ?= $(PROJECT_MAJOR_VERSION).$(shell expr $(PROJECT_MI
 BACKPORT_BRANCH_NAME = add-backport-next-$(NEXT_PROJECT_MINOR_VERSION)
 
 ##############################
-## observability-docs specific
-##############################
-PROJECT_REVIEWERS ?= elastic/obs-docs
-
-##############################
 ## public make goals
 ##############################
 ## @help:create-major-minor-release:Prepare a major/minor release by creating a new branch and pushing to the upstream
@@ -86,7 +81,6 @@ create-prs-next-release:
 	gh pr create \
 		--title "backport: Add backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) label" \
 		--body "Merge as soon as $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch was created." \
-		--reviewer "$(PROJECT_REVIEWERS)" \
 		--base main \
 		--label 'Team:Automation' || echo "There are no changes"
 
