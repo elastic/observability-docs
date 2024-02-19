@@ -5,9 +5,9 @@
 <titleabbrev>Troubleshoot</titleabbrev>
 ++++
 
-You can use the host-agent logs to find errors.
+You can use the Universal Profiling Agent logs to find errors.
 
-The following is an example of a _healthy_ host-agent output:
+The following is an example of a _healthy_ Universal Profiling Agent output:
 
 [source,logs]
 ----
@@ -29,7 +29,7 @@ time="..." level=info msg="Attached tracer program"
 time="..." level=info msg="Attached sched monitor"
 ----
 
-A host-agent deployment is working if the output of the following command is empty:
+A Universal Profiling Agent deployment is working if the output of the following command is empty:
 
 [source,logs]
 ----
@@ -38,16 +38,16 @@ head host-agent.log -n 15 | grep "level=error"
 
 If running this command outputs error-level logs, the following are possible causes:
 
-* The host-agent is running on an unsupported version of the Linux kernel, or its missing kernel features.
+* The Universal Profiling Agent is running on an unsupported version of the Linux kernel, or its missing kernel features.
 +
-If the host-agent is running on an unsupported kernel version, the following is logged:
+If the Universal Profiling Agent is running on an unsupported kernel version, the following is logged:
 +
 [source,logs]
 ----
-Host Agent requires kernel version 4.15 or newer but got 3.10.0
+Universal Profiling Agent requires kernel version 4.15 or newer but got 3.10.0
 ----
 +
-If eBPF features are not available in the kernel, the host-agent fails to start, and one of the following is logged:
+If eBPF features are not available in the kernel, the Universal Profiling Agent fails to start, and one of the following is logged:
 +
 [source,logs]
 ----
@@ -60,7 +60,7 @@ or
 ----
 Failed to probe tracepoint
 ----
-* The host-agent is not able to connect to {ecloud}. In this case, a similar message to the following is logged:
+* The Universal Profiling Agent is not able to connect to {ecloud}. In this case, a similar message to the following is logged:
 +
 [source,logs]
 ----
@@ -68,13 +68,13 @@ Failed to setup gRPC connection (retrying...): context deadline exceeded
 ----
 +
 Verify the `collection-agent` configuration value is set and is equal to what was printed  in Kibana, when clicking to *Add Data*.
-* The secret token is not valid, or it has been changed. In this case, the host-agent shuts down, and logs a similar message to the following:
+* The secret token is not valid, or it has been changed. In this case, the Universal Profiling Agent gent shuts down, and logs a similar message to the following:
 +
 [source,logs]
 ----
 rpc error: code = Unauthenticated desc = authentication failed
 ----
-* The host-agent is unable to send data to your deployment. In this case, a similar message to the following is logged:
+* The Universal Profiling Agent is unable to send data to your deployment. In this case, a similar message to the following is logged:
 +
 [source,logs]
 ----
@@ -82,7 +82,7 @@ Failed to report hostinfo (retrying...): rpc error: code = Unimplemented desc = 
 ----
 +
 This typically means that your {ecloud} cluster has not been configured for Universal Profiling. To configure your {ecloud} cluster, follow the steps in <<profiling-configure-data-ingestion,configure data ingestion>>.
-* The collector (part of the backend in {ecloud} that receives data from the host-agent) ran out of memory. In this case, a similar message to the following is logged:
+* The collector (part of the backend in {ecloud} that receives data from the Universal Profiling Agent) ran out of memory. In this case, a similar message to the following is logged:
 
 +
 [source,logs]
@@ -95,35 +95,35 @@ you need to restart the collector by clicking *Force Restart* under *Integration
 
 +
 For non-demo workloads, verify that the Integrations Server has at least the recommended 4GB of RAM. You can check this on the Integrations Server page under *Instances*.
-* The host-agent is incompatible with the {stack} version. In this case, the following message is logged:
+* The Universal Profiling Agent is incompatible with the {stack} version. In this case, the following message is logged:
 +
 [source,logs]
 ----
 rpc error: code = FailedPrecondition desc= HostAgent version is unsupported, please upgrade to the latest version
 ----
 +
-Follow the host-agent deployment instructions shown in Kibana which will always be correct for the {stack} version that you are using.
-* You are using a host-agent from a newer {stack} version, configured to connect to an older {stack} version cluster. In this case, the following message is logged:
+Follow the Universal Profiling Agent deployment instructions shown in Kibana which will always be correct for the {stack} version that you are using.
+* You are using a Universal Profling Agent from a newer {stack} version, configured to connect to an older {stack} version cluster. In this case, the following message is logged:
 +
 [source,logs]
 ----
 rpc error: code = FailedPrecondition desc= Backend is incompatible with HostAgent, please check your configuration
 ----
 +
-Follow the host-agent deployment instructions shown in Kibana which will always be correct for the {stack} version that you are using.
+Follow the Universal Profiling Agent deployment instructions shown in Kibana which will always be correct for the {stack} version that you are using.
 
-If you're unable to find a solution to the host-agent failure, you can raise a support request indicating `Universal Profiling` and `host-agent` as the source of the problem.
+If you're unable to find a solution to the Universal Profiling Agent failure, you can raise a support request indicating `Universal Profiling` and `Universal Profiling Agent` as the source of the problem.
 
 [discrete]
 [[profiling-enable-verbose-logging]]
-== Enable verbose logging in host-agent
+== Enable verbose logging in Universal Profiling Agent
 
-During the support process, you may be asked to provide debug logs from one of the host-agent installations from your
+During the support process, you may be asked to provide debug logs from one of the Universal Profiling Agent installations from your
 deployment.
 
 To enable debug logs, add the `-verbose` command-line flag or the `verbose true` setting in the configuration file.
 
-NOTE: We recommend only enabling debug logs on a single instance of host-agent rather than an entire deployment to limit the amount of logs produced.
+NOTE: We recommend only enabling debug logs on a single instance of Universal Profiling Agent rather than an entire deployment to limit the amount of logs produced.
 
 [discrete]
 [[profiling-improve-load-time]]
@@ -135,17 +135,17 @@ Setting the Kibana cluster option `server.compression.brotli.enabled: true` redu
 
 [discrete]
 [[profiling-troubleshoot-kubernetes]]
-== Troubleshoot host-agent {k8s} deployments
+== Troubleshoot Universal Profiling Agent {k8s} deployments
 
-When the Helm chart installation finishes, the output has instructions on how to check the host-agent pod status and read logs.
-The following sections provide potential scenarios when host-agent installation *is not healthy*.
+When the Helm chart installation finishes, the output has instructions on how to check the Universal Profiling Agent pod status and read logs.
+The following sections provide potential scenarios when Universal Profiling Agent installation *is not healthy*.
 
 [discrete]
 [[profiling-taints]]
 === Taints
 
 {k8s} clusters often include https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/[taints and tolerations] in their setup.
-In these cases, a host-agent installation may show no pods or very few pods running, even for a large cluster.
+In these cases, a Universal Profiling Agent installation may show no pods or very few pods running, even for a large cluster.
 
 This is because a taint precludes the execution of pods on a node unless the workload has been tolerated.
 The Helm chart `tolerations` key in the `values.yaml` sets the toleration of taints using the official {k8s} scheduling API
@@ -153,7 +153,7 @@ format.
 
 The following examples provide a `tolerations` config that you can add to the Helm chart `values.yaml`:
 
-* To deploy the host-agent on all nodes with taint `workload=python:NoExecute`, add the following to the `values.yaml`:
+* To deploy the Universal Profiling Agent on all nodes with taint `workload=python:NoExecute`, add the following to the `values.yaml`:
 +
 [source,yaml]
 ----
@@ -162,7 +162,7 @@ tolerations:
   value: "python"
   effect: "NoExecute"
 ----
-* To deploy the host-agent on all nodes tainted with _key_ `production` and effect `NoSchedule` (no value provided), add the following to the `values.yaml`:
+* To deploy the Universal Profiling Agent on all nodes tainted with _key_ `production` and effect `NoSchedule` (no value provided), add the following to the `values.yaml`:
 +
 [source,yaml]
 ----
@@ -171,7 +171,7 @@ tolerations:
     effect: "NoSchedule"
     operator: Exists
 ----
-* To deploy the host-agent on all nodes, tolerating all taints, add the following to the `values.yaml`:
+* To deploy the Universal Profiling Agent on all nodes, tolerating all taints, add the following to the `values.yaml`:
 +
 [source,yaml]
 ----
@@ -187,7 +187,7 @@ tolerations:
 === Security policy enforcement
 
 Some {k8s} clusters are configured with hardened security add-ons to limit the blast radius of exploited application vulnerabilities.
-Different hardening methodologies can impair host-agent operations and may, for example, result in pods continuously restarting after displaying a `CrashLoopBackoff` status.
+Different hardening methodologies can impair Universal Profiling Agent operations and may, for example, result in pods continuously restarting after displaying a `CrashLoopBackoff` status.
 
 [discrete]
 [[profiling-kubernetes-podsecuritypolicy]]
@@ -195,7 +195,7 @@ Different hardening methodologies can impair host-agent operations and may, for 
 
 This {k8s} API has been deprecated, but some still use it. A PodSecurityPolicy (PSP) may explicitly prevent the execution of `privileged` containers across the entire cluster.
 
-Since host-agent _needs_ privileges in most kernels/CRI, you need to build a PSP to allow the host-agent DaemonSet to run.
+Since Universal Profiling Agent _needs_ privileges in most kernels/CRI, you need to build a PSP to allow the Universal Profiling Agent DaemonSet to run.
 
 [discrete]
 [[profiling-policy-engines]]
@@ -203,19 +203,19 @@ Since host-agent _needs_ privileges in most kernels/CRI, you need to build a PSP
 
 Read more about {k8s} policy engines in the https://github.com/kubernetes/sig-security/blob/main/sig-security-docs/papers/policy/kubernetes-policy-management.md[SIG-Security documentation].
 
-The following tools _may_ prevent the execution of host-agent pods as the Helm chart builds a cluster role and binds it into the host-agent service account (we use it for container metadata):
+The following tools _may_ prevent the execution of Universal Profiling Agent pods as the Helm chart builds a cluster role and binds it into the Universal Profiling Agent service account (we use it for container metadata):
 
 * Open Policy Agent Gatekeeper
 * Kyverno
 * Fairwinds Polaris
 
-If you have a policy engine in place, configure it to allow the host-agent execution and RBAC configs.
+If you have a policy engine in place, configure it to allow the Universal Profiling Agent execution and RBAC configs.
 
 [discrete]
 [[profiling-network-config]]
 ==== Network configurations
 
-In some instances, your host-agent pods may be running fine, but they will not connect to the remote data collector gRPC interface and stay in the startup phase, while trying to connect periodically.
+In some instances, your Universal Profiling Agent pods may be running fine, but they will not connect to the remote data collector gRPC interface and stay in the startup phase, while trying to connect periodically.
 
 The following are potential causes:
 
@@ -226,9 +226,9 @@ The following are potential causes:
 [[profiling-os-level-security]]
 ==== OS-level security
 
-These settings _are not part of {k8s}_ and may have been included in the node setup. They can prevent the host-agent from working properly, as they intercept syscalls from the host-agent to the kernel and modify or block them.
+These settings _are not part of {k8s}_ and may have been included in the node setup. They can prevent the Universal Profiling Agent from working properly, as they intercept syscalls from the Universal Profiling Agent to the kernel and modify or block them.
 
-If you have implemented security hardening (some providers listed below), you should know the privileges the host-agent needs.
+If you have implemented security hardening (some providers listed below), you should know the privileges the Universal Profiling Agent needs.
 
 * gVisor on GKE
 * seccomp filters
@@ -241,7 +241,7 @@ If you have implemented security hardening (some providers listed below), you sh
 
 You can submit a support request from the https://cloud.elastic.co/support[support request page] in the {ecloud} console.
 
-In the support request, specify if your issue deals with the host-agent or the Kibana app.
+In the support request, specify if your issue deals with the Universal Profiling Agent or the Kibana app.
 
 [discrete]
 [[profiling-send-feedback]]
