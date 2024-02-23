@@ -11,7 +11,7 @@ IMPORTANT: To run Universal Profiling on self-hosted Elastic stack, you need an 
 
 Here you'll find information on running Universal Profiling when hosting the Elastic stack on your own infrastructure.
 
-Universal Profiling consists of a client part (the host-agent) and a server part (the backend). This documentation focuses on the server part.
+Universal Profiling consists of a client part (the Universal Profiling Agent) and a server part (the backend). This documentation focuses on the server part.
 
 [discrete]
 [[profiling-self-managed-supported-platforms]]
@@ -105,9 +105,9 @@ a| * ✅ Helm charts
 
 The backend is made up of two services: the collector and the symbolizer.
 
-* The collector receives profiling data from the host-agents and sends it to {es}.
+* The collector receives profiling data from the Universal Profiling Agents and sends it to {es}.
 It listens on an HTTP server and serves a gRPC endpoint.
-* The symbolizer processes debug symbols that are not available on the host-agent, and symbolizes native frames from OS packages.
+* The symbolizer processes debug symbols that are not available on the Universal Profiling Agent, and symbolizes native frames from OS packages.
 It also listens on an HTTP server and serves an endpoint to upload private debug symbols.
 Refer to <<profiling-add-symbols, Adding symbols>> for more information on the importance of adding symbols.
 
@@ -293,7 +293,7 @@ We also display the default application settings; you can refer to the comments 
 Copy the content of the snippet below in the `/etc/Elastic/universal-profiling/pf-elastic-collector.yml` file.
 
 Customize the content of `pf-elastic-collector.auth.secret_token` with a secret token of your choice.
-This token will be used by the host-agent to authenticate to the collector; you cannot use an empty string as a token.
+This token will be used by the Universal Profiling Agent to authenticate to the collector; you cannot use an empty string as a token.
 Adjust the `ssl` section if you want to protect the collector's endpoint with TLS.
 
 Customize the content of the `output.elasticsearch` section, using the Elasticsearch endpoint and <<profiling-self-managed-create-api-keys, API key>> to set the `hosts` and `api_key` values, respectively.
@@ -812,7 +812,7 @@ helm install --create-namespace -n universal-profiling symbolizer elastic/profil
 . Check the pods are running and read their logs, by following the steps listed in the output of the `helm install` commands.
 
 NOTE: In the previous examples, we used the charts' default values to configure Kubernetes resources. These **do not** include the creation of an `Ingress` resource.
-If you want to expose the services to an host-agent and symbtool deployment outside the Kubernetes cluster, you need to set up the `ingress` section of each chart.
+If you want to expose the services to an Universal Profiling Agent and symbtool deployment outside the Kubernetes cluster, you need to set up the `ingress` section of each chart.
 
 Continue to <<profiling-self-managed-install-next-steps>>.
 
@@ -824,7 +824,7 @@ With the backend installed, we recommend testing the backend and reading the doc
 [discrete]
 === Test the backend
 
-Follow the steps described in <<profiling-install-host-agent, Install the host-agent>> to install the host-agent on a machine, and verify that the backend is working as expected.
+Follow the steps described in <<profiling-install-profiling-agent, Install the Universal Profiling Agent>> to install the Universal Profiling Agent on a machine, and verify that the backend is working as expected.
 
 The agent logs will show that the agent is sending data to the backend, and navigating to Kibana you should be able to see data in the **Stacktraces** view.
 Inspect the backend services logs to verify that the data is being received and ingested.
