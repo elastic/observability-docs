@@ -100,3 +100,33 @@ Failed installing package [apm] due to error: [ResponseError: mapper_parsing_exc
 
 // Link to fix
 A fix was released in 8.11.2: https://github.com/elastic/kibana/pull/171712[elastic/kibana#171712].
+
+
+*APM integration package upgrade through Fleet causes excessive rollovers* +
+_APM Server versions: 7.16.0 to 8.12.1 +
+
+// Describe the conditions in which this issue occurs
+If you're upgrading APM integration package to any version before 8.12.2,
+// Describe the behavior of the issue
+in some rare cases, the upgrade fails with a mapping conflict error. The upgrade process keeps rolling
+over the data stream in an unsuccessful attempt to work around the error. As a result, many empty backing indices for
+APM data streams are created.
+// Describe why it happens
+// This happens because...
+
+// Include exact error messages linked to this issue
+// so users searching for the error message end up here.
+During upgrade, you will see the following errors:
+
+* Fleet error on integration package upgrade:
++
+[source,txt]
+----
+Mappings update for metrics-apm.service_destination.10m-default failed due to ResponseError: illegal_argument_exception
+	Root causes:
+		illegal_argument_exception: Mapper for [metricset.interval] conflicts with existing mapper:
+	Cannot update parameter [value] from [10m] to [null]
+----
+
+// Link to fix
+A fix was released in 8.12.2: https://github.com/elastic/apm-server/pull/12219[elastic/apm-server#12219].
