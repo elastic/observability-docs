@@ -12,15 +12,9 @@ Follow these steps to add the Kubernetes integration to your policy:
 //add screenshots if necessary
 
 . Select *Add integrations* from your deployment's homepage.
-+
-[role="screenshot"]
-image::images/add-integration.png[Add integration button]
 . Enter "Kubernetes" in the search bar, and select the *Kubernetes* integration.
 . Click *Add Kubernetes* at the top of the Kubernetes integration page.
 . Click *Add integration only (skip agent installation)* at the bottom of the Add integration page.
-+
-[role="screenshot"]
-image::images/skip-agent-button.png[Add integration only (skip agent installation) button]
 
 Continue to <<monitor-k8s-configure-integration>>.
 
@@ -46,7 +40,7 @@ like CPU, memory, disk utilization, and disk and network I/O.
 * The applications running as Kubernetes pods, such as application servers and
 databases, each producing its own set of metrics.
 
-* Additional Kubernetes resources (like services, deployments, cronjobs) are valuable assets of the whole infrastructure and produce their own set of metrics that need monitoring
+* Additional Kubernetes resources (like services, deployments, cronjobs) are valuable assets of the whole infrastructure and produce their own set of metrics that need monitoring.
 
 {agent} along with the Kubernetes integration provides a unified solution to monitor all layers of your Kubernetes technology stack, so you don't need multiple technologies to collect metrics.
 
@@ -115,13 +109,13 @@ From here, update the `add_resource_metadata` block to configure enrichment:
 
 ["source", "yaml", subs="attributes"]
 ----
-# add_resource_metadata:
-#   namespace:
-#     include_labels: ["namespacelabel1"]
-#   node:
-#     include_labels: ["nodelabel2"]
-#     include_annotations: ["nodeannotation1"]
-#   deployment: false
+ add_resource_metadata:
+   namespace:
+     include_labels: ["namespacelabel1"]
+   node:
+     include_labels: ["nodelabel2"]
+     include_annotations: ["nodeannotation1"]
+   deployment: false
 ----
 
 [discrete]
@@ -169,7 +163,7 @@ Provide the following information for each of the `kube-state-metrics` options:
 [horizontal]
 *Add Metadata*:: This option adds metadata to events. The metadata is valuable for grouping and exploring related data. This option is on by default.
 *Hosts*:: The address where `kube-state-metrics` is running. Port 8080 is the default.
-*Leader Election*:: When on (default behavior), only the elastic agent which holds the leadership lock will retrieve metrics from the `kube_state_metrics`. This prevents duplicate data in multi-node Kubernetes clusters.
+*Leader Election*:: When on (default behavior), only the {agent} that holds the leadership lock will retrieve metrics from the `kube_state_metrics`. This prevents duplicate data in multi-node Kubernetes clusters.
 *Period*:: How frequently to poll the `kube-state-metrics` for metrics. The default is every 10 seconds.
 
 [discrete]
@@ -219,8 +213,8 @@ Provide the following information to collect `kube-apiserver` metrics:
 [horizontal]
 *Bearer Token File*:: The file path to the token used to authenticate with the `kube-apiserver`.
 *Hosts*:: The address of the Kubernetes API server that the integration connects to. It uses the `KUBERNETES_SERVICE_HOST` and `KUBERNETES_SERVICE_PORT` environment variables.
-*Leader Election*:: When on (default behavior) only the elastic agent which holds the leadership lock will retrieve metrics from the `kube-apiserver`. This prevents duplicate data in multi-node Kubernetes clusters.
-*Period*:: How frequently Elastic to poll the `kube-state-metrics` for metrics. The default is every 30 seconds.
+*Leader Election*:: When on (default behavior), only the {agent} that holds the leadership lock will retrieve metrics from the `kube-apiserver`. This prevents duplicate data in multi-node Kubernetes clusters.
+*Period*:: How frequently to poll the `kube-state-metrics` for metrics. The default is every 30 seconds.
 *SSL Certificate Authorities*:: The path to the certificate authority (CA) bundle used to verify the Kubernetes API server's TLS certificate.
 
 [discrete]
@@ -241,7 +235,7 @@ Provide the following information to collect Kubernetes Proxy metrics:
 
 [horizontal]
 *Hosts*:: The address where `kube-proxy` is running. Port 10249 is the default.
-*Period*:: How frequently Elastic to poll the `kube-state-metrics` for metrics. The default is every 10 seconds.
+*Period*:: How frequently to poll the `kube-state-metrics` for metrics. The default is every 10 seconds.
 
 [discrete]
 [[monitor-kubernetes-integration-k8s-scheduler]]
@@ -262,7 +256,7 @@ Provide the following information to collect Kubernetes scheduler metrics:
 [horizontal]
 *Bearer Token File*:: The file path to the token used to authenticate with the `kube-scheduler`.
 *Hosts*:: The address and port of the `kube-scheduler` from which the Elastic integration should collect metrics. Port `10259` is the default.
-*Period*:: How frequently Elastic to poll the `kube-scheduler` for metrics. The default is every 10 seconds.
+*Period*:: How frequently to poll the `kube-scheduler` for metrics. The default is every 10 seconds.
 *SSL Verification Mode*:: Specify how to handle SSL verification. Defaults to `none` meaning that SSL verification is disabled.
 
 [discrete]
@@ -284,7 +278,7 @@ Provide the following information to collect `kube-controller-manager` metrics:
 [horizontal]
 *Bearer Token File*:: The file path to the token used to authenticate with the `kube-controller-manager`.
 *Hosts*:: The address and port of the `kube-controller-manager` from which the integration should collect metrics. Port 10259 is the default.
-*Period*:: How frequently Elastic to poll the `kube-controller-manager` for metrics. The default is every 10 seconds.
+*Period*:: How frequently to poll the `kube-controller-manager` for metrics. The default is every 10 seconds.
 *SSL Verification Mode*:: Specify how to handle SSL verification. Defaults to `none` meaning that SSL verification is disabled.
 
 [discrete]
@@ -304,10 +298,10 @@ Refer to {integrations-docs}/kubernetes/events[events metrics] for more on the m
 Provide the following information to collect Kubernetes events metrics:
 
 [horizontal]
-*Period*:: How frequently Elastic to poll the `kube-api-server` for events. The default is every 10 seconds.
+*Period*:: How frequently to poll the `kube-api-server` for events. The default is every 10 seconds.
 *Add Metadata*:: Turn on to add metadata to events. The metadata is valuable for grouping and exploring related data.
 *Skip older events*:: Ignores events that occurred before a certain time
-*Leader Election*:: When on (default behavior) only the elastic agent which holds the leadership lock will retrieve metrics from the `kube-apiserver`. This prevents duplicate data in multi-node Kubernetes clusters.
+*Leader Election*:: When on (default behavior), only the {agent} that holds the leadership lock will retrieve metrics from the `kube-apiserver`. This prevents duplicate data in multi-node Kubernetes clusters.
 
 [discrete]
 [[monitor-kubernetes-integration-container-logs]]
