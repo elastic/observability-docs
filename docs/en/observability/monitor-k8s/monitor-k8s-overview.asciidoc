@@ -2,76 +2,54 @@
 [[kubernetes-monitoring-architecture]]
 == Monitoring architecture
 
-The {stack} provides 4 main components for monitoring Kubernetes:
+The {stack} provides the following components for monitoring Kubernetes:
 
-1. Lightweight agents, called {beats}, to collect observability data. Some
-{beats} include preconfigured data collection modules to ease the collection
-and parsing of data for common applications such as Apache, MySQL, and Kafka.
+1. {agent} is a single, unified way to add monitoring for data like logs and metrics to your host.
 
-2. APM (described later) to monitor, detect, and diagnose complex application
+2. {agent} Kubernetes integration, in tandem with {agent}, collects logs and metrics from Kubernetes clusters.
+
+3. APM (described later) to monitor, detect, and diagnose complex application
 performance issues.
 
-3. {es} for storing and searching your data.
+4. {es} for storing and searching your data.
 
-4. {observability} apps in {kib} for visualizing and managing your observability
-data.
+5. {observability} apps in {kib} for visualizing and managing your observability data.
 
 image::images/k8s-monitoring-architecture.png[Kubernetes monitoring architecture]
 
-
-{beats} agents are deployed to Kubernetes as DaemonSets. This deployment
-architecture ensures that the agents are available to capture both system and
-application-level observability data.
-
-**{filebeat}**: Collects logs from pods, containers, and applications running on
-Kubernetes.
-
-{filebeat} communicates with the Kubernetes API server to retrieve information
-about the pods running on the host, all the metadata annotations, and the
-location of the log files.
-
-When autodiscovery is configured, {filebeat} automatically discovers what
-kind of components are running in a pod and applies the logging modules needed
-to capture logs for those components.
-
-**{metricbeat}**: Collects and preprocesses system and service metrics, such as
-information about running processes, as well as CPU, memory, disk, and network
-utilization numbers.
-
-Because {metricbeat} runs on each node, it can collect metrics from the Kubelet
-API. These metrics provide important information about the state of the
-Kubernetes nodes, pods, containers, and other resources.
-
-For cluster-wide metrics, {metricbeat} accesses the `kube-state-metrics`
-service directly or gets metrics scraped by Prometheus.
-
-When hints-based autodiscovery is configured, {metricbeat} looks for hints
-in Kubernetes pod annotations or Docker labels and launches the proper
-configuration to collect application metrics.
-
-
-**Other {beats} (not shown)**: Collect and process other types of data, such as
-Uptime data and network traffic.
+The default installation of {agent} is deployed to Kubernetes as a DaemonSet to ensure an instance is running on each node of the cluster.
+It collects logs and metrics from pods, containers, and applications running on Kubernetes.
 
 [discrete]
 [[beats-metadata]]
-=== Metadata
+== Metadata
 
-All {beats} agents provide processors for adding metadata to events. The
+{agent} provides processors for adding metadata to events. The
 metadata is valuable for grouping and exploring related data. For example, when
-you're analyzing container logs, you want to know the host and container name,
-and you want to be able to correlate logs, metrics, and traces.
+analyzing container logs, you want to know the host and container name,
+and be able to correlate logs, metrics, and traces.
 
 The default deployments include processors, when needed, for enriching events
-with cloud, Kubernetes, and host metadata.
+with cloud and host metadata.
 
 image::images/metadata-processors.png[Metadata processors for cloud, Kubernetes, and host metadata]
 
-Now that you have a basic understanding of the monitoring architecture, let's
-learn how to deploy monitoring to your Kubernetes environment.
+For more on these processors, refer to the {fleet-guide}/add-cloud-metadata-processor.html[`add_cloud_metadata`] and {fleet-guide}/add_host_metadata-processor.html[`add_host_metadata`] documentation.
+
+By default, the Kubernetes integration enriches logs and metrics with valuable metadata.
+
+All Kubernetes metrics are enriched with metadata by default. The enrichment happens in code, and can be configured with the `add_resource_metadata` block on each dataset.
+For more information on configuring the `add_resource_metadata` block, refer to <<monitor-k8s-kubelet-configure-metadata>> and <<monitor-k8s-kube-state-configure-metadata>>.
+
+All Kubernetes logs are enriched with metadata by default. For more on configuring metadata enrichment, refer to <<monitor-kubernetes-integration-container-logs>>.
+
+Now that you have a basic understanding of the monitoring architecture, let's learn how to deploy monitoring to your Kubernetes environment.
 
 [discrete]
 == Before you begin
 
-To monitor Kubernetes, you need {es} for storing and searching your
-observability data, and {kib} for visualizing and managing it.
+Before you can monitor Kubernetes, you need the following:
+
+* {es} for storing and searching your observability data and {kib} for visualizing and managing it.
+* If you want to collect Kubernetes state metrics, you need to deploy `kube-state-metrics`.
+For deployment instructions, refer to the Kubernetes https://github.com/kubernetes/kube-state-metrics#kubernetes-deployment[docs].
