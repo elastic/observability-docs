@@ -1,6 +1,6 @@
 [discrete]
 [[monitor-kubernetes-application-performance]]
-== Part 3: Monitor application performance
+== Part 4: Monitor application performance
 
 Quickly triage and troubleshoot application performance problems with the help of Elastic
 application performance monitoring (APM).
@@ -9,16 +9,16 @@ Think of a latency spike -- APM can help you narrow the scope of your investigat
 Because you've also ingested and correlated logs and metrics, you can then link the problem to CPU and memory utilization or error log entries of a particular Kubernetes pod.
 
 [discrete]
-=== Step 1: Set up APM Server
+=== Step 1: Set up APM
 
-Application monitoring data is streamed from your applications running in Kubernetes to APM Server,
+Application monitoring data is streamed from your applications running in Kubernetes to APM,
 where it is validated, processed, and transformed into {es} documents.
 
-There are many ways to deploy APM Server when working with Kubernetes,
+There are many ways to deploy APM when working with Kubernetes,
 but this guide assumes that you're using our hosted {ess} on {ecloud}.
-If you haven't done so already, enable APM Server in the {ess-console}[{ess} console].
+If you haven't done so already, enable APM in the {ess-console}[{ess} console].
 
-If you want to manage APM Server yourself, there are a few alternative options:
+If you want to manage APM yourself, there are a few alternative options:
 
 [%collapsible]
 .Expand alternatives
@@ -41,7 +41,14 @@ like when directing traces from multiple applications to separate {es} clusters.
 === Step 2: Save your secret token
 
 A {observability-guide}/secret-token.html[secret token] is used to secure communication between APM agents
-and APM Server. On the {ecloud} deployment page, select *APM* and copy your APM Server secret token.
+and APM Server. To create or update your secret token in {kib}:
+
+. Open Kibana and navigate to Fleet.
+. Under the *Agent policies* tab, select the policy you would like to configure.
+. Find the Elastic APM integration and select *Actions → Edit integration*.
+. Navigate to *Agent authorization → Secret token* and set the value of your token.
+. Click Save integration. The APM Server will restart before the change takes effect.
+
 To avoid exposing the secret token, you can store it in a Kubernetes secret. For example:
 
 [source, cmd]
@@ -203,19 +210,19 @@ kubectl apply -f demo.yml
 [discrete]
 === View your traces in {kib}
 
-To view your application's trace data, open {kib} and go to *{observability} > APM*.
+To view your application's trace data, open {kib} and go to *{observability} → Services*.
 
 The {apm-app} allows you to monitor your software services and applications in real-time:
 visualize detailed performance information on your services, identify and analyze errors,
 and monitor host-level and agent-specific metrics like JVM and Go runtime metrics.
 
-[screenshot]
-image::images/spring-apm-app-2.png[{apm-app} Kubernetes]
+[role="screenshot"]
+image::images/apm-app-landing.png[{apm-app} Kubernetes]
 
 Having access to application-level insights with just a few clicks can drastically decrease the time you spend debugging errors, slow response times, and crashes.
 
 Best of all, because Kubernetes environment variables have been mapped to APM metadata events,
 you can filter your trace data by Kubernetes `namespace`, `node.name`, `pod.name`, and `pod.uid`.
 
-[screenshot]
+[role="screenshot"]
 image::images/apm-app-kubernetes-filter.png[{apm-app} Kubernetes]
