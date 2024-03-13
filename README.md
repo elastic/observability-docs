@@ -34,6 +34,6 @@ To build the docs:
 ../docs/build_docs --doc ./docs/en/observability/index.asciidoc --chunk 3 --resource ../apm-server --resource ../ingest-docs/docs --open
 ```
 
-The above command assumes that [elastic/docs](https://github.com/elastic/docs), [elastic/beats](https://github.com/elastic/beats), and [elastic/apm-server](https://github.com/elastic/apm-server) are checked out into the same parent directory.
+The above command assumes that [elastic/docs](https://github.com/elastic/docs), [elastic/ingest-docs](https://github.com/elastic/ingest-docs), and [elastic/apm-server](https://github.com/elastic/apm-server) are checked out into the same parent directory.
 
 If you prefer to use aliases, you can load the [elastic/docs/doc_build_aliases.sh file](https://github.com/elastic/docs/blob/master/doc_build_aliases.sh), which has the resources defined for you.
