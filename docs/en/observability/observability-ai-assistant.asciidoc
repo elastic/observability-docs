@@ -69,9 +69,6 @@ To set up the AI Assistant:
 .. In the *URL* field, enter the AI provider's API endpoint URL.
 .. Under *Authentication*, enter the API key or access key/secret you created in the previous step.
 
-//TODO: Resolve this question:
-**REVIEWERS:** What is the best link to use for AWS Bedrock security? The one I've provided above, or the link that's provided in the product? (https://docs.aws.amazon.com/IAM/latest/UserGuide/security-creds.html)
-
 [discrete]
 [[obs-ai-add-data]]
 == Add data to the AI Assistant knowledge base
@@ -190,39 +187,30 @@ beta::[]
 
 The AI Assistant uses functions to include relevant context in the chat conversation through text, data, and visual components. Both you and the AI Assistant can suggest functions. You can also edit the AI Assistant's function suggestions and inspect function responses.
 
-The following table lists available functions:
-
-//TODO: Resolve this question:
-**REVIEWERS**: Is the list of functions here correct? Only a subset are actually shown in the UI. None of the apm functions are shown in the UI right now.
-
-//TODO: Resolve this question:
-**REVIEWERS**: Should we replace this table with the UI instructions for showing the list of functions (like we did in serverless)?
-There are some good arguments for doing this, but I wonder if seeing this info might actually be useful for people who are exploring the
-docs to figure out what is possible. If so, it's better to keep the table, IMO. In not, then maybe just telling users how to see the list in the UI is good enough.
+You can suggest the following functions:
 
 [horizontal]
 `alerts`:: Get alerts for {observability}.
-`context`:: Add context based on what is shown on the screen and documents recalled from the knowledge base that match the query.
 `elasticsearch`:: Call {es} APIs on your behalf.
-`execute_query`:: Display the results of an ES|QL query.
+`kibana`:: Call {kib} APIs on your behalf.
+`summarize`:: Summarize parts of the conversation.
+`visualize_query`:: Visualize charts for ES|QL queries.
+
+Additional functions are available when your cluster has APM data:
+
+[horizontal]
 `get_apm_correlations`:: Get field values that are more prominent in the foreground set than the background set. This can be useful in determining which attributes (such as `error.message`, `service.node.name`, or `transaction.name`) are contributing to, for instance, a higher latency. Another option is a time-based comparison, where you compare before and after a change point.
 `get_apm_downstream_dependencies`:: Get the downstream dependencies (services or uninstrumented backends) for a service. Map the downstream dependency name to a service by returning both `span.destination.service.resource` and `service.name`. Use this to drill down further if needed.
 `get_apm_error_document`:: Get a sample error document based on the grouping name. This also includes the stacktrace of the error, which might hint to the cause.
 `get_apm_service_summary`:: Get a summary of a single service, including the language, service version, deployments, the environments, and the infrastructure that it is running in. For example, the number of pods and a list of their downstream dependencies. It also returns active alerts and anomalies.
 `get_apm_services_list`:: Get the list of monitored services, their health statuses, and alerts.
 `get_apm_timeseries`:: Display different APM metrics (such as throughput, failure rate, or latency) for any service or all services and any or all of their dependencies. Displayed both as a time series and as a single statistic. Additionally, the function  returns any changes, such as spikes, step and trend changes, or dips. You can also use it to compare data by requesting two different time ranges, or, for example, two different service versions.
-`get_dataset_info`:: Get information about available indices and datasets, and the fields available on them.
-`kibana`:: Call {kib} APIs on your behalf.
-`lens`:: Create custom visualizations, using {kibana-ref}/lens.html[Lens], that you can add to dashboards.
-`recall`:: Recall previous learning. This function has been renamed to `context`.
-`summarize`:: Summarize parts of the conversation.
-`query`:: Generate, execute, or visualize a query based on the user's request. This function can also explain how ES/QL works and convert queries from one language to another.
 
-//TODO: Resolve this question:
-**REVIEWERS**: Has the "recall" function really has been renamed to "context". Can we just remove the description or do we need to mention that it's been renamed here?
+TIP: Internal functions used by the AI Assistant are not shown here because they are not available for you to suggest.
+You can learn more about these functions by asking the AI Assistant about them. For example, you can ask the AI Assistant,
+"What is the context function?"
 
-//TODO: Resolve this question:
-**REVIEWERS**: Is the above description of the query function true or is the AI making stuff up? My original description said something like: "Construct and render an ES/QL query using the LLM in a multi-step process to improve the output." Also do the functions I've added here actually exist, or was AI making that up too?
+//TODO: Make sure execute_query is not an internal function.
 
 [discrete]
 [[obs-ai-prompts]]
