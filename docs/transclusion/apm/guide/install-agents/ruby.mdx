@@ -1,6 +1,6 @@
 {/* Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/ruby.mdx */}
 
-**Install the ((apm-agent))**
+**1. Install the ((apm-agent))**
 
 Add the agent to your Gemfile.
 
@@ -8,7 +8,7 @@ Add the agent to your Gemfile.
 gem 'elastic-apm'
 ```
 
-**Configure the agent**
+**2. Configure the agent**
 
 <DocTabs>
   <DocTab name="Ruby on Rails">
@@ -17,10 +17,16 @@ gem 'elastic-apm'
 
     ```ruby
     # config/elastic_apm.yml:
-    service_name: '<your-service-name>'
-    api_key: '<your-api-key>'
-    server_url: '<your-apm-endpoint>'
-    environment: '<your-environment>'
+
+    # Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
+    # Defaults to the name of your Rails app
+    service_name: 'my-service'
+
+    # Use if APM integration requires a token
+    secret_token: ''
+
+    # Set custom APM integration host and port (default: http://localhost:8200)
+    server_url: 'http://localhost:8200'
     ```
 
   </DocTab>
@@ -29,16 +35,21 @@ gem 'elastic-apm'
 
     ```ruby
     # config.ru
-    require 'sinatra/base'
-    class MySinatraApp < Sinatra::Base
-      use ElasticAPM::Middleware
-      # ...
+
+    app = lambda do |env|
+      [200, {'Content-Type' => 'text/plain'}, ['ok']]
     end
-    ElasticAPM.start(
-      app: MySinatraApp, # required
-      config_file: '' # optional, defaults to config/elastic_apm.yml
-    )
-    run MySinatraApp
+
+    # Wraps all requests in transactions and reports exceptions
+    use ElasticAPM::Middleware
+
+    # Start an instance of the Agent
+    ElasticAPM.start(service_name: 'NothingButRack')
+
+    run app
+
+    # Gracefully stop the agent when process exits.
+    # Makes sure any pending transactions are sent.
     at_exit { ElasticAPM.stop }
     ```
 
@@ -46,11 +57,23 @@ gem 'elastic-apm'
 
     ```ruby
     # config/elastic_apm.yml:
-    service_name: '<your-service-name>'
-    api_key: '<your-api-key>'
-    server_url: '<your-apm-endpoint>'
-    environment: '<your-environment>'
+
+    # Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
+    # Defaults to the name of your Rack app's class.
+    service_name: 'my-service'
+
+    # Use if APM integration requires a token
+    secret_token: ''
+
+    # Set custom APM integration host and port (default: http://localhost:8200)
+    server_url: 'http://localhost:8200'
     ```
 
   </DocTab>
 </DocTabs>
+
+
+**Learn more in the ((apm-agent)) reference**
+
+* [Supported technologies](((apm-ruby-ref))/supported-technologies.html)
+* [Advanced configuration](((apm-ruby-ref))/configuration.html)

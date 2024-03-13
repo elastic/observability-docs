@@ -1,41 +1,41 @@
 {/* Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/go.mdx */}
 
-**Install the agent**
+**1. Install the agent**
 
-Install the ((apm-agent)) packages for Go.
-
-```go
-go get go.elastic.co/apm
-```
-
-**Configure the agent**
-
-Agents are libraries that run inside of your application process.
-APM services are created programmatically based on the executable file name, or the `ELASTIC_APM_SERVICE_NAME` environment variable.
+Install the ((apm-agent)) package using `go get`:
 
 ```go
-# Initialize using environment variables:
-
-export ELASTIC_APM_SERVICE_NAME=<your-service-name>
-export ELASTIC_APM_API_KEY=<your-api-key>
-export ELASTIC_APM_SERVER_URL=<your-apm-endpoint>
-export ELASTIC_APM_ENVIRONMENT=<your-environment>
+go get -u go.elastic.co/apm/v2
 ```
 
-**Instrument your application**
+**2. Configure the agent**
 
-Instrument your Go application by using one of the provided instrumentation modules or by using the tracer API directly.
+To simplify development and testing,
+the agent defaults to sending data to Elastic at `http://localhost:8200`.
+To send data to an alternative location, you must configure `ELASTIC_APM_SERVER_URL`.
 
 ```go
-import (
-	"net/http"
+# The APM integration host and port
+export ELASTIC_APM_SERVER_URL=
 
-	"go.elastic.co/apm/module/apmhttp"
-)
+# If you do not specify `ELASTIC_APM_SERVICE_NAME`, the Go agent will use the
+# executable name. For example, if your executable is called "my-app.exe", then your
+# service will be identified as "my-app".
+export ELASTIC_APM_SERVICE_NAME=
 
-func main() {
-	mux := http.NewServeMux()
-	...
-	http.ListenAndServe(":8080", apmhttp.Wrap(mux))
-}
+# Secret tokens are used to authorize requests to the APM integration
+export ELASTIC_APM_SECRET_TOKEN=
 ```
+
+**3. Instrument your application**
+
+Instrumentation is the process of extending your application's code to report trace data to Elastic APM. Go applications must be instrumented manually at the source code level. To instrument your applications, use one of the following approaches:
+
+* [Built-in instrumentation modules](((apm-go-ref))/builtin-modules.html).
+* [Custom instrumentation](((apm-go-ref))/custom-instrumentation.html) and context propagation with the Go Agent API.
+<br />
+**Learn more in the ((apm-agent)) reference**
+
+* [Supported technologies](((apm-go-ref))/supported-tech.html)
+* [Advanced configuration](((apm-go-ref))/configuration.html)
+* [Detailed guide to instrumenting Go source code](((apm-go-ref))/getting-started.html)
