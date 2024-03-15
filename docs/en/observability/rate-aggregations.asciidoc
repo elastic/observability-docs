@@ -1,0 +1,54 @@
+[[understanding-rate-aggregations]]
+= Understanding rate aggregations
+
+You can use a rate aggregation to analyze the rate at which a specific field changes over time.
+This type of aggregation is useful when you want to analyze fields like counters,
+which track the number of times a specific action occurred since a specific date.
+
+For example, imagine you have a counter field called something like `restarts` that increments each time a service restarts.
+You could use an aggregation like `Average` to analyze the field,
+but the resulting chart would show a mostly straight, upward-trending line.
+Using a rate aggregation instead produces a line with dips and spikes that more accurately represent changes in value over time.
+
+Likewise, when you define an alerting rule to detect when the number of restarts exceeds a specified threshold,
+using a rate aggregation ensures that an alert is created when the threshold is exceeded at any given point in time.
+
+[discrete]
+[[how-rates-are-calculated]]
+== How rates are calculated
+
+Rates used in alerting rules are calculated by comparing the maximum value of the field in the previous bucket to the maximum value of the field in the current bucket, then dividing the result by the number of seconds in the selected interval.
+For example, if the average value of the `restarts` counter is higher in the current bucket, the rate would be calculated as:
+
+`(max_value_in_current_bucket - max_value_in_previous_bucket)/interval_in_seconds`
+
+[discrete]
+[[rate-aggregation-example]]
+== Example
+
+//TODO: We need a good example here. This is just taken from slack, but I think we need something realistic.
+
+In this example, let's assume all the documents sent to Elastic have a counter field called `restarts`.
+
+[source,json]
+----
+{
+"timestamp": 0000,
+"restarts": 0
+}
+
+{
+"timestamp": 12000,
+"restarts": 0
+}
+
+{
+"timestamp:" 24000,
+"restarts": 1
+}
+----
+
+Let's assume the timestamp is UNIX timestamp on milliseconds, and we started counting on Thursday, January 1, 1970 12:00:00 AM
+In that case, if we create a threshold rule that counts the rate of restarts for the last 1 minute (between the last 2 buckets),
+the value would be 0.0166666666667, which is practically the result of 1/60
+so if we divide the threshold we would like to set by 60, it works as expected.
