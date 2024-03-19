@@ -1,13 +1,18 @@
 [[obs-ai-assistant]]
 = Observability AI Assistant
 
-The AI Assistant uses generative AI, powered by a {kibana-ref}/openai-action-type.html[connector] for OpenAI or Azure OpenAI Service, to provide:
+The AI Assistant uses generative AI to provide:
 
 * *Contextual insights* — open prompts throughout {observability} that explain errors and messages and suggest remediation.
 * *Chat* —  have conversations with the AI Assistant. Chat uses function calling to request, analyze, and visualize your data.
 
 [role="screenshot"]
 image::images/obs-assistant2.gif[Observability AI assistant preview]
+
+The AI Assistant integrates with your large language model (LLM) provider through our supported Elastic connectors:
+
+* {kibana-ref}/openai-action-type.html[OpenAI connector] for OpenAI or Azure OpenAI Service.
+* {kibana-ref}/bedrock-action-type.html[Amazon Bedrock connector] for Amazon Bedrock, specifically for the Claude models.
 
 [IMPORTANT]
 ====
@@ -33,6 +38,7 @@ The AI assistant requires the following:
 * An account with a third-party generative AI provider that supports function calling. The Observability AI Assistant supports the following providers:
 ** OpenAI `gpt-4`+.
 ** Azure OpenAI Service `gpt-4`(0613) or `gpt-4-32k`(0613) with API version `2023-07-01-preview` or more recent.
+** AWS Bedrock, specifically the Anthropic Claude models. Note that we do not currently support Claude 3.0 models.
 * The knowledge base requires a 4 GB {ml} node.
 
 [discrete]
@@ -47,17 +53,21 @@ Elastic does not control third-party tools, and assumes no responsibility or lia
 [[obs-ai-set-up]]
 == Set up the AI Assistant
 
+//TODO: When we add support for additional LLMs, we might want to provide setup steps for each type of connector,
+//or make these steps more generic and rely on the UI text to help users with the setup.
+
 To set up the AI Assistant:
 
-. Create an API key from your AI provider to authenticate requests from the AI Assistant. You'll use this in the next step. Refer to your provider's documentation for information on generating API keys:
+. Create an authentication key with your AI provider to authenticate requests from the AI Assistant. You'll use this in the next step. Refer to your provider's documentation for information about creating authentication keys:
 +
-* https://platform.openai.com/docs/api-reference[OpenAI]
-* https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference[Azure OpenAI Service]
+* https://platform.openai.com/docs/api-reference[OpenAI API keys]
+* https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference[Azure OpenAI Service API keys]
+* https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html[Amazon Bedrock authentication keys and secrets]
 
-. From *{stack-manage-app}* -> *{connectors-ui}* in {kib}, create a {kibana-ref}/openai-action-type.html[OpenAI connector].
+. From *{stack-manage-app}* -> *{connectors-ui}* in {kib}, create an {kibana-ref}/openai-action-type.html[OpenAI] or {kibana-ref}/bedrock-action-type.html[Amazon Bedrock] connector.
 . Authenticate communication between {observability} and the AI provider by providing the following information:
-.. Enter the AI provider's API endpoint URL in the *URL* field.
-.. Enter the API key you created in the previous step in the *API Key* field.
+.. In the *URL* field, enter the AI provider's API endpoint URL.
+.. Under *Authentication*, enter the API key or access key/secret you created in the previous step.
 
 [discrete]
 [[obs-ai-add-data]]
@@ -177,21 +187,25 @@ beta::[]
 
 The AI Assistant uses functions to include relevant context in the chat conversation through text, data, and visual components. Both you and the AI Assistant can suggest functions. You can also edit the AI Assistant's function suggestions and inspect function responses.
 
-The following table lists available functions:
+You can suggest the following functions:
 
 [horizontal]
-`summarize`:: Summarize parts of the conversation.
-`recall`:: Recall previous learning.
-`lens`:: Create custom visualizations, using {kibana-ref}/lens.html[Lens], that you can add to dashboards.
+`alerts`:: Get alerts for {observability}.
 `elasticsearch`:: Call {es} APIs on your behalf.
 `kibana`:: Call {kib} APIs on your behalf.
-`alerts`:: Get alerts for {observability}
-`get_apm_timeseries`:: Display different APM metrics (such as throughput, failure rate, or latency) for any service or all services and any or all of their dependencies. Displayed both as a time series and as a single statistic. Additionally, the function  returns any changes, such as spikes, step and trend changes, or dips. You can also use it to compare data by requesting two different time ranges, or, for example, two different service versions.
-`get_apm_error_document`:: Get a sample error document based on the grouping name. This also includes the stacktrace of the error, which might hint to the cause.
+`summarize`:: Summarize parts of the conversation.
+`visualize_query`:: Visualize charts for ES|QL queries.
+
+Additional functions are available when your cluster has APM data:
+
+[horizontal]
 `get_apm_correlations`:: Get field values that are more prominent in the foreground set than the background set. This can be useful in determining which attributes (such as `error.message`, `service.node.name`, or `transaction.name`) are contributing to, for instance, a higher latency. Another option is a time-based comparison, where you compare before and after a change point.
 `get_apm_downstream_dependencies`:: Get the downstream dependencies (services or uninstrumented backends) for a service. Map the downstream dependency name to a service by returning both `span.destination.service.resource` and `service.name`. Use this to drill down further if needed.
+`get_apm_error_document`:: Get a sample error document based on the grouping name. This also includes the stacktrace of the error, which might hint to the cause.
 `get_apm_service_summary`:: Get a summary of a single service, including the language, service version, deployments, the environments, and the infrastructure that it is running in. For example, the number of pods and a list of their downstream dependencies. It also returns active alerts and anomalies.
 `get_apm_services_list`:: Get the list of monitored services, their health statuses, and alerts.
+`get_apm_timeseries`:: Display different APM metrics (such as throughput, failure rate, or latency) for any service or all services and any or all of their dependencies. Displayed both as a time series and as a single statistic. Additionally, the function  returns any changes, such as spikes, step and trend changes, or dips. You can also use it to compare data by requesting two different time ranges, or, for example, two different service versions.
+
 
 [discrete]
 [[obs-ai-prompts]]
