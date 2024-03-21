@@ -8,12 +8,17 @@ tags: [ 'serverless', 'observability', 'overview' ]
 
 <p><DocBadge template="technical preview" /></p>
 
-The AI Assistant uses generative AI, powered by a [connector](((kibana-ref))/openai-action-type.html) for OpenAI or Azure OpenAI Service, to provide:
+The AI Assistant uses generative AI to provide:
 
 * **Chat**: Have conversations with the AI Assistant. Chat uses function calling to request, analyze, and visualize your data.
 * **Contextual insights**: Open prompts throughout ((observability)) that explain errors and messages and suggest remediation.
 
 ![Observability AI assistant preview](../images/ai-assistant-overview.gif)
+
+The AI Assistant integrates with your large language model (LLM) provider through our supported Elastic connectors:
+
+* [OpenAI connector](((kibana-ref))/openai-action-type.html) for OpenAI or Azure OpenAI Service.
+* [Amazon Bedrock connector](((kibana-ref))/bedrock-action-type.html) for Amazon Bedrock, specifically for the Claude models.
 
 <DocCallOut title="Important" color="warning">
 The AI Assistant is powered by an integration with your large language model (LLM) provider.
@@ -33,6 +38,7 @@ The AI assistant requires the following:
 * An account with a third-party generative AI provider that supports function calling. The Observability AI Assistant supports the following providers:
     * OpenAI `gpt-4`+.
     * Azure OpenAI Service `gpt-4`(0613) or `gpt-4-32k`(0613) with API version `2023-07-01-preview` or more recent.
+    * AWS Bedrock, specifically the Anthropic Claude models. Note that we do not currently support Claude 3.0 models.
 * The knowledge base requires a 4 GB ((ml)) node.
 
 ## Your data and the AI Assistant
@@ -45,13 +51,14 @@ Elastic does not control third-party tools, and assumes no responsibility or lia
 
 To set up the AI Assistant:
 
-1. Create an API key from your AI provider to authenticate requests from the AI Assistant. You'll use this in the next step. Refer to your provider's documentation for information on generating API keys:
-    * [OpenAI](https://platform.openai.com/docs/api-reference)
-    * [Azure OpenAI Service](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference)
-1. From **Project settings** → **Management** → **Connectors**, create a [OpenAI connector](((kibana-ref))/openai-action-type.html).
+1. Create an authentication key with your AI provider to authenticate requests from the AI Assistant. You'll use this in the next step. Refer to your provider's documentation for information about creating authentication keys:
+    * [OpenAI API keys](https://platform.openai.com/docs/api-reference)
+    * [Azure OpenAI Service API keys](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference)
+    * [Amazon Bedrock authentication keys and secrets](https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html)
+1. From **Project settings** → **Management** → **Connectors**, create an [OpenAI](((kibana-ref))/openai-action-type.html) or [Amazon Bedrock](((kibana-ref))/bedrock-action-type.html) connector.
 1. Authenticate communication between ((observability)) and the AI provider by providing the following information:
-    1. Enter the AI provider's API endpoint URL in the **URL** field.
-    1. Enter the API key you created in the previous step in the **API Key** field.
+    1. In the **URL** field, enter the AI provider's API endpoint URL.
+    1. Under **Authentication**, enter the API key or access key/secret you created in the previous step.
 
 ## Add data to the AI Assistant knowledge base
 
@@ -157,9 +164,59 @@ This opens the AI Assistant flyout, where you can ask the assistant questions ab
 
 The AI Assistant uses several functions to include relevant context in the chat conversation through text, data, and visual components. Both you and the AI Assistant can suggest functions. You can also edit the AI Assistant's function suggestions and inspect function responses. For example, you could use the `kibana` function to call a ((kib)) API on your behalf.
 
-For a list of available functions, click **Call function <DocIcon type="arrowRight" title="Right-facing arrow icon" />**.
+You can suggest the following functions:
 
-![Observability AI assistant chat functions](../images/ai-assistant-functions.png)
+<DocTable columns={[{ title: "Function", "width": "30%"  }, { title: "Description", "width": "70%"  }]}>
+    <DocRow>
+        <DocCell>`alerts`</DocCell>
+        <DocCell>Get alerts for ((observability)).</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`elasticsearch`</DocCell>
+        <DocCell>Call ((es)) APIs on your behalf.</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`kibana`</DocCell>
+        <DocCell>Call ((kib)) APIs on your behalf.</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`summarize`</DocCell>
+        <DocCell>Summarize parts of the conversation.</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`visualize_query`</DocCell>
+        <DocCell>Visualize charts for ES|QL queries.</DocCell>
+    </DocRow>
+</DocTable>
+
+Additional functions are available when your cluster has APM data:
+
+<DocTable columns={[{ title: "Function", "width": "30%"  }, { title: "Description", "width": "70%"  }]}>
+    <DocRow>
+        <DocCell>`get_apm_correlations`</DocCell>
+        <DocCell>Get field values that are more prominent in the foreground set than the background set. This can be useful in determining which attributes (such as `error.message`, `service.node.name`, or `transaction.name`) are contributing to, for instance, a higher latency. Another option is a time-based comparison, where you compare before and after a change point.</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`get_apm_downstream_dependencies`</DocCell>
+        <DocCell>Get the downstream dependencies (services or uninstrumented backends) for a service. Map the downstream dependency name to a service by returning both `span.destination.service.resource` and `service.name`. Use this to drill down further if needed.</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`get_apm_error_document`</DocCell>
+        <DocCell>Get a sample error document based on the grouping name. This also includes the stacktrace of the error, which might hint to the cause.</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`get_apm_service_summary`</DocCell>
+        <DocCell>Get a summary of a single service, including the language, service version, deployments, the environments, and the infrastructure that it is running in. For example, the number of pods and a list of their downstream dependencies. It also returns active alerts and anomalies.</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`get_apm_services_list`</DocCell>
+        <DocCell>Get the list of monitored services, their health statuses, and alerts.</DocCell>
+    </DocRow>
+    <DocRow>
+        <DocCell>`get_apm_timeseries`</DocCell>
+        <DocCell>Display different APM metrics (such as throughput, failure rate, or latency) for any service or all services and any or all of their dependencies. Displayed both as a time series and as a single statistic. Additionally, the function  returns any changes, such as spikes, step and trend changes, or dips. You can also use it to compare data by requesting two different time ranges, or, for example, two different service versions.</DocCell>
+    </DocRow>
+</DocTable>
 
 ### AI Assistant contextual prompts
 
