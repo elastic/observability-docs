@@ -7,6 +7,60 @@
 
 The Elastic Serverless Forwarder is an Amazon Web Services (AWS) Lambda function that ships logs from your AWS environment to Elastic. The Elastic Serverless Forwarder works with Elastic Stack 7.17 and later.
 
+[discrete]
+[[aws-esf-what-you-learn]]
+=== What you'll learn
+
+You'll learn how to:
+
+- Create and configure an S3 bucket
+- Enable AWS VPC flow logs to be sent to an S3 bucket
+- Create and configure an SQS simple queue
+- Install and configure the Elastic AWS integration from {kib}
+
+[discrete]
+[[aws-esf-prerequisites]]
+=== Before you begin
+
+Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}].
+The deployment includes an {es} cluster for storing and searching your data,
+and {kib} for visualizing and managing your data.
+You also need an AWS account with permissions to pull the necessary data from AWS.
+
+With this tutorial, you will learn how to use the Elastic Serverless Forwarder to analyze Amazon Virtual Private Cloud (Amazon VPC) Flow Logs in the Elastic Stack.
+Ingesting Amazon VPC Flow Logs into Elastic enables you to monitor and analyze network traffic within your Amazon VPC, more specifically:
+
+- Analyze the flow log data in Kibana
+- Assess security groups rules and uncover security gaps
+- Set alerts
+- Identify latency issues
+
+For more details about Elastic serverless forwarder, check the related https://www.elastic.co/guide/en/esf/current/aws-elastic-serverless-forwarder.html[documentation].
+
+[discrete]
+[[esf-step-one]]
+=== Step 1: Create an S3 Bucket
+
+To create an Amazon S3 bucket for use with flow logs, check https://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html[Create a bucket] in the Amazon Simple Storage Service User Guide.
+
+[discrete]
+[[esf-step-two]]
+=== Step 2: Enable AWS VPC flow logs to be sent to an S3 bucket
+
+On the EC2 console select specific network interfaces and from Actions menu “create flow log”. Select the destination as the S3 bucket you created in the previous step. For more details, refer to the https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs-s3.html[AWS documentation].
+
+[discrete]
+[[esf-step-three]]
+=== Step 3:  Create an SQS simple queue
+
+Create an SQS simple queue and set up an appropriate access policy so that S3 event notifications from S3 are sent to the queue. On the S3 bucket (vpc-flow-logs) configure event notifications for all objects “create events” to be sent to the SQS queue (flow-logs-queue). For more details, refer to the https://docs.aws.amazon.com/AmazonS3/latest/userguide/ways-to-add-notification-config-to-bucket.html[AWS documentation].
+
+[discrete]
+[[esf-step-four]]
+=== Step 4: Install the Elastic AWS integration {kib} 
+
+{kib} offers prebuilt dashboards, ingest node configurations, and other assets that help you get the most value out of the logs you ingest. Go to Integrations in {kib} and search for AWS. Click the AWS integration to see more details, select Settings and click Install AWS assets to install all the AWS integration assets.
+
+
 
 Reuse content from this blog: https://www.elastic.co/blog/elastic-and-aws-serverless-application-repository-speed-time-to-actionable-insights-with-frictionless-log-ingestion-from-amazon-s3
-
