@@ -22,8 +22,8 @@ Ingesting Amazon VPC Flow Logs into Elastic enables you to monitor and analyze n
 
 You'll learn how to:
 
-- Collect VPC flow logs and S3 access logs from AWS
-- Create and configure an SQS simple queue
+- Enable AWS VPC flow logs to be sent to your S3 bucket
+- Create an SQS queue and notifications for VPC flow logs
 - Install and configure the Elastic AWS integration from {kib}
 
 [discrete]
@@ -31,22 +31,30 @@ You'll learn how to:
 === Before you begin
 
 Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}].
-The deployment includes an {es} cluster for storing and searching your data,
-and {kib} for visualizing and managing your data.
+The deployment includes an {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data.
 You also need an AWS account with permissions to pull the necessary data from AWS.
-
 
 [discrete]
 [[esf-step-one]]
 === Step 1: Create an S3 Bucket
 
-To create an Amazon S3 bucket for use with flow logs, check https://docs.aws.amazon.com/AmazonS3/latest/gsg/CreatingABucket.html[Create a bucket] in the Amazon Simple Storage Service User Guide.
+1. In the https://s3.console.aws.amazon.com/s3[AWS S3 console], choose *Create bucket* from the left navigation pane. 
+2. Specify the AWS region in which you want it deployed.
+3. Enter the bucket name.
+
+For more details, refer to the Amazon documentation on how to https://docs.aws.amazon.com/AmazonS3/latest/userguide/creating-bucket.html[Create your first S3 bucket].
 
 [discrete]
 [[esf-step-two]]
-=== Step 2: Enable AWS VPC flow logs to be sent to an S3 bucket
+=== Step 2: Enable AWS VPC flow logs to be sent to your S3 bucket
 
-On the EC2 console select specific network interfaces and from Actions menu “create flow log”. Select the destination as the S3 bucket you created in the previous step. For more details, refer to the https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs-s3.html[AWS documentation].
+1. In the https://console.aws.amazon.com/ec2/[Amazon EC2 console], choose *Network Interfaces* from the left navigation pane.
+2. Select the the network interface you want to use.
+3. From the *Actions* drop-down menu, choose *Create flow log*.
+4. For *Destination*, select *Send to an S3 bucket*.
+5. For *S3 bucket ARN*, entre the name of the S3 bucket you created in the previous step. 
+
+For more details, refer to the Amazon documentation on how to https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs-s3.html[Create a flow log that publishes to Amazon S3].
 
 [discrete]
 [[esf-step-three]]
@@ -54,9 +62,11 @@ On the EC2 console select specific network interfaces and from Actions menu “c
 
 The Amazon Simple Queue Service (SQS) event notification on Amazon S3 serves as a trigger for the Lambda function. When a new log file gets written to an Amazon S3 bucket and meets the criteria, a notification is generated that triggers the Lambda function.
 
-Create the Amazon Simple Queue Service (SQS) and set up an appropriate access policy so that event notifications from Amazon S3 bucket are sent to the queue. 
+1. In the https://console.aws.amazon.com/sqs/[SQS console] create a standard SQS queue that uses the default settings.
+2. Edit the queue you created to define an advanced access policy. The access policy allows S3 ObjectCreated events to be sent to the queue.
+3. Go to the properties of the S3 bucket containing the VPC flow logs and enable event notification.
 
-For more details, refer to the AWS documentation about https://docs.aws.amazon.com/AmazonS3/latest/userguide/ways-to-add-notification-config-to-bucket.html[Configuring a bucket for notifications].
+For more details, refer to the AWS documentation on how to https://docs.aws.amazon.com/AmazonS3/latest/userguide/ways-to-add-notification-config-to-bucket.html[Configure a bucket for notifications].
 
 [discrete]
 [[esf-step-four]]
