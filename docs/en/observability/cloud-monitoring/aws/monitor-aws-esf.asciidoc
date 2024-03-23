@@ -8,10 +8,10 @@
 The Elastic Serverless Forwarder is an Amazon Web Services (AWS) Lambda function that ships logs from your AWS environment to Elastic. The Elastic Serverless Forwarder works with Elastic Stack 7.17 and later.
 For more details about Elastic Serverless Forwarder, check the related https://www.elastic.co/guide/en/esf/current/aws-elastic-serverless-forwarder.html[documentation].
 
-In this tutorial, you'll learn how to use the Elastic Serverless Forwarder to analyze Amazon Virtual Private Cloud (Amazon VPC) Flow Logs in the Elastic Stack.
+In this tutorial, you'll learn how to use the Elastic Serverless Forwarder -- that is published in the AWS Serverless Application Repository (SAR) -- to analyze Amazon Virtual Private Cloud (Amazon VPC) Flow Logs in the Elastic Stack.
 Ingesting Amazon VPC Flow Logs into Elastic enables you to monitor and analyze network traffic within your Amazon VPC, more specifically:
 
-- Analyze the flow log data in Kibana
+- Analyze the flow log data in {kib}
 - Assess security groups rules and uncover security gaps
 - Set alerts
 - Identify latency issues
@@ -50,19 +50,17 @@ On the EC2 console select specific network interfaces and from Actions menu “c
 
 [discrete]
 [[esf-step-three]]
-=== Step 3:  Create an SQS simple queue
+=== Step 3:  Create an SQS queue and notifications for VPC flow logs
 
-Create an SQS simple queue and set up an appropriate access policy so that S3 event notifications from S3 are sent to the queue. 
+The Amazon Simple Queue Service (SQS) event notification on Amazon S3 serves as a trigger for the Lambda function. When a new log file gets written to an Amazon S3 bucket and meets the criteria, a notification is generated that triggers the Lambda function.
+
+Create the Amazon Simple Queue Service (SQS) and set up an appropriate access policy so that event notifications from Amazon S3 bucket are sent to the queue. 
+
+For more details, refer to the AWS documentation about https://docs.aws.amazon.com/AmazonS3/latest/userguide/ways-to-add-notification-config-to-bucket.html[Configuring a bucket for notifications].
 
 [discrete]
 [[esf-step-four]]
-=== Step 4:  Enable event notification
-
-On the S3 bucket, configure event notifications to be sent to the SQS queue. For more details, refer to the https://docs.aws.amazon.com/AmazonS3/latest/userguide/ways-to-add-notification-config-to-bucket.html[AWS documentation].
-
-[discrete]
-[[esf-step-five]]
-=== Step 5: Install the Elastic AWS integration 
+=== Step 4: Install the Elastic AWS integration 
 
 {kib} offers prebuilt dashboards, ingest node configurations, and other assets that help you get the most value out of the logs you ingest. 
 
