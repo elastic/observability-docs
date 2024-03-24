@@ -58,7 +58,7 @@ For more details, refer to the Amazon documentation on how to https://docs.aws.a
 
 [discrete]
 [[esf-step-three]]
-=== Step 3:  Create an SQS queue and notifications for VPC flow logs
+=== Step 3: Create an SQS queue and notifications for VPC flow logs
 
 The Amazon Simple Queue Service (SQS) event notification on Amazon S3 serves as a trigger for the Lambda function. When a new log file gets written to an Amazon S3 bucket and meets the criteria, a notification is generated that triggers the Lambda function.
 
@@ -77,6 +77,73 @@ For more details, refer to the AWS documentation on how to https://docs.aws.amaz
 1. Go to *Integrations* in {kib} and search for AWS. 
 2. Click the AWS integration, select *Settings* and click *Install AWS assets* to install all the AWS integration assets.
 
+*TBD* == we might need extra details here
 
+[discrete]
+[[esf-step-five]]
+=== Step 5: Create a new S3 bucket
+
+You create a new S3 bucket and queue for the access logs, then configure the older S3 bucket to generate access logs.
+
+1. In the https://s3.console.aws.amazon.com/s3[AWS S3 console], click *Create* bucket. Give the bucket a name and specify the region where you want it deployed.
++
+IMPORTANT: Make sure you create the S3 bucket and SQS queue (next step) in the same region as the bucket containing VPC flow logs.
+
+2. Follow the steps you learned earlier to create an SQS queue and edit the access policy (use the ARNs of the new S3 bucket and queue). Make a note of the queue URL because you will need it later when you configure S3 access log collection.
+
+3. Configure the new S3 bucket to send notifications to the new queue when objects are created (follow the steps you learned earlier).
+
+4. Go back to the old S3 bucket (the one that contains VPC flow logs), and under Properties, edit the Server access logging properties. Enable server access logging, and select the new bucket you created as the target bucket.
+
+[discrete]
+[[esf-step-six]]
+=== Step 6: Create a configuration file to specify the source and destination  
+
+Elastic Serverless Forwarder uses the configuration file to know the input source and the Elastic connection for the destination information.
+
+1. In Elastic Cloud, from the AWS Integrations page click *Connection details* on the upper right corner and copy your Cloud ID. 
+2. Create a Base64 encoded API key for authentication 
+
+*TBD* == clarify if personal or cross-cluster API Key
+
+You are going to reference both the Cloud ID and the newly created API key from the configuration file. Here is an example:
+
+[source,yml]
+----
+inputs:
+    - type: "s3-sqs"
+        id: "arn:aws:sqs:us-east-1:
+outputs:
+    - type: "elasticsearch"
+        args:
+            cloud_id: "Prod_cluster123:
+            api_key: " "
+----
+
+[discrete]
+[[esf-step-seven]]
+=== Step 7: Ingest VPC flow logs into Elastic
+
+Deploy the Elastic Serverless Forwarder from AWS SAR and provide appropriate configurations for the Lambda function to start ingesting VPC flow logs into Elastic.
+
+1. From the Lambda console select *Functions* and *Create a function*.
+2. Select *Browse serverless app repository* and search for *elastic-serverless-forwarder*.
+3. Select the application.
+4. On the *Review, configure and deploy* page of the application, fill in the following fields:
++
+- Specify the S3 Bucket in ElasticServerlessForwarderS3Buckets where the VPC Flow Logs are sent. The value is the ARN of the S3 Bucket you created on step 1.
++
+- Specify the configuration file path in ElasticServerlessForwarderS3ConfigFile. The value is the S3 URL in the format "s3://bucket-name/config-file-name" pointing to the configuration file (sarconfig.yaml) that you created in step 6.
++
+- Specify the S3 SQS Notifications queue used as the trigger of the Lambda function in ElasticServerlessForwarderS3SQSEvents. The value is the ARN of the SQS Queue you created on step 3.
+
+The above values are used by the Lambda deployment to create minimal IAM policies and set up the environment variables for the Lambda function to execute properly.
+The deployed Lambda will read the VPC flow log files as they get written to the S3 bucket and send it to Elastic.
+
+[discrete]
+[[esf-step-eight]]
+=== Step 8: Visualize AWS logs
+
+Navigate to Kibana to see your logs parsed and visualized in the [Logs AWS] VPC Flow Log Overview dashboard.
 
 Reuse content from this blog: https://www.elastic.co/blog/elastic-and-aws-serverless-application-repository-speed-time-to-actionable-insights-with-frictionless-log-ingestion-from-amazon-s3
