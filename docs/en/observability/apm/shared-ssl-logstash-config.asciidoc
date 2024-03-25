@@ -1,38 +1,27 @@
-//////////////////////////////////////////////////////////////////////////
-//// This content is shared by all Elastic Beats. Make sure you keep the
-//// descriptions here generic enough to work for all Beats that include
-//// this file. When using cross references, make sure that the cross
-//// references resolve correctly for any files that include this one.
-//// Use the appropriate variables defined in the index.asciidoc file to
-//// resolve Beat names: beatname_uc and beatname_lc.
-//// Use the following include to pull this content into a doc file:
-//// include::../../libbeat/docs/shared-ssl-logstash-config.asciidoc[]
-//////////////////////////////////////////////////////////////////////////
-
 [float]
 [[configuring-ssl-logstash]]
 == Secure communication with {ls}
 
-You can use SSL mutual authentication to secure connections between {beatname_uc} and {ls}. This ensures that
-{beatname_uc} sends encrypted data to trusted {ls} servers only, and that the {ls} server receives data from
-trusted {beatname_uc} clients only.
+You can use SSL mutual authentication to secure connections between APM Server and {ls}. This ensures that
+APM Server sends encrypted data to trusted {ls} servers only, and that the {ls} server receives data from
+trusted APM Server clients only.
 
 To use SSL mutual authentication:
 
 . Create a certificate authority (CA) and use it to sign the certificates that you plan to use for
-{beatname_uc} and {ls}. Creating a correct SSL/TLS infrastructure is outside the scope of this
+APM Server and {ls}. Creating a correct SSL/TLS infrastructure is outside the scope of this
 document. There are many online resources available that describe how to create certificates.
 +
 TIP: If you are using {security-features}, you can use the
 {ref}/certutil.html[`elasticsearch-certutil` tool] to generate certificates.
 
-. Configure {beatname_uc} to use SSL. In the +{beatname_lc}.yml+ config file, specify the following settings under
+. Configure APM Server to use SSL. In the +apm-server.yml+ config file, specify the following settings under
 `ssl`:
 +
-* `certificate_authorities`: Configures {beatname_uc} to trust any certificates signed by the specified CA. If
+* `certificate_authorities`: Configures APM Server to trust any certificates signed by the specified CA. If
 `certificate_authorities` is empty or not set, the trusted certificate authorities of the host system are used.
 
-* `certificate` and `key`: Specifies the certificate and key that {beatname_uc} uses to authenticate with
+* `certificate` and `key`: Specifies the certificate and key that APM Server uses to authenticate with
 {ls}.
 +
 For example:
@@ -55,7 +44,7 @@ For more information about these configuration options, see <<configuration-ssl>
 * `ssl_certificate` and `ssl_key`: Specify the certificate and key that {ls} uses to authenticate with the client.
 * `ssl_verify_mode`: Specifies whether the {ls} server verifies the client certificate against the CA. You
 need to specify either `peer` or `force_peer` to make the server ask for the certificate and validate it. If you
-specify `force_peer`, and {beatname_uc} doesn't provide a certificate, the {ls} connection will be closed. If you choose not to use {ref}/certutil.html[`certutil`], the certificates that you obtain must allow for both `clientAuth` and `serverAuth` if the extended key usage extension is present.
+specify `force_peer`, and APM Server doesn't provide a certificate, the {ls} connection will be closed. If you choose not to use {ref}/certutil.html[`certutil`], the certificates that you obtain must allow for both `clientAuth` and `serverAuth` if the extended key usage extension is present.
 +
 For example:
 +
@@ -80,7 +69,7 @@ For more information about these options, see the
 [[testing-ssl-logstash]]
 === Validate the {ls} server's certificate
 
-Before running {beatname_uc}, you should validate the {ls} server's certificate. You can use `curl` to validate the certificate even though the protocol used to communicate with {ls} is not based on HTTP. For example:
+Before running APM Server, you should validate the {ls} server's certificate. You can use `curl` to validate the certificate even though the protocol used to communicate with {ls} is not based on HTTP. For example:
 
 [source,shell]
 ------------------------------------------------------------------------------
@@ -130,14 +119,14 @@ curl: (51) SSL: certificate verification failed (result: 5)
 See the <<ssl-client-fails,troubleshooting docs>> for info about resolving this issue.
 
 [float]
-=== Test the {beatname_uc} to {ls} connection
+=== Test the APM Server to {ls} connection
 
-If you have {beatname_uc} running as a service, first stop the service. Then test your setup by running {beatname_uc} in
+If you have APM Server running as a service, first stop the service. Then test your setup by running APM Server in
 the foreground so you can quickly see any errors that occur:
 
 ["source","sh",subs="attributes,callouts"]
 ------------------------------------------------------------------------------
-{beatname_lc} -c {beatname_lc}.yml -e -v
+apm-server -c apm-server.yml -e -v
 ------------------------------------------------------------------------------
 
 Any errors will be printed to the console. See the <<ssl-client-fails,troubleshooting docs>> for info about
