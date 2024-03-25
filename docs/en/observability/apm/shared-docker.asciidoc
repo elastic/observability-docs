@@ -1,8 +1,6 @@
 [[running-on-docker]]
 ==== Run APM Server on Docker
 
-:dockerimage: docker.elastic.co/apm/{beatname_lc}:{version}
-
 Docker images for APM Server are available from the Elastic Docker
 registry. The base image is https://hub.docker.com/_/ubuntu[ubuntu:22.04].
 
@@ -35,7 +33,7 @@ ifeval::["{release-state}"!="unreleased"]
 +
 ["source", "sh", subs="attributes"]
 ------------------------------------------------
-docker pull {dockerimage}
+docker pull docker.elastic.co/apm/apm_server:{version}
 ------------------------------------------------
 
 . Verify the Docker image:
@@ -43,14 +41,14 @@ docker pull {dockerimage}
 ["source", "sh", subs="attributes"]
 ----
 wget https://artifacts.elastic.co/cosign.pub
-cosign verify --key cosign.pub {dockerimage}
+cosign verify --key cosign.pub docker.elastic.co/apm/apm_server:{version}
 ----
 +
 The `cosign` command prints the check results and the signature payload in JSON format:
 +
 [source,sh,subs="attributes"]
 ----
-Verification for {dockerimage} --
+Verification for docker.elastic.co/apm/apm_server:{version} --
 The following checks were performed on each of these signatures:
   - The cosign claims were validated
   - Existence of the claims in the transparency log was verified offline
@@ -90,7 +88,7 @@ docker run -d \
   --name=apm-server \
   --user=apm-server \
   --volume="$(pwd)/apm-server.docker.yml:/usr/share/apm-server/apm-server.yml:ro" \
-  {dockerimage} \
+  docker.elastic.co/apm/apm_server:{version} \
   --strict.perms=false -e \
   -E output.elasticsearch.hosts=["elasticsearch:9200"] <1> <2>
 --------------------------------------------
@@ -134,8 +132,6 @@ Here is an example Dockerfile to achieve this:
 
 ["source", "dockerfile", subs="attributes"]
 --------------------------------------------
-FROM {dockerimage}
+FROM docker.elastic.co/apm/apm_server:{version}
 COPY --chmod=0644 --chown=1000:1000 apm-server.yml /usr/share/apm-server/apm-server.yml
 --------------------------------------------
-
-:!dockerimage:
