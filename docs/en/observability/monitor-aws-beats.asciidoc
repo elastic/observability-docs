@@ -1,10 +1,7 @@
-:tutorial: tutorial
-:aws: AWS
-
 [[monitor-aws]]
-== Monitor Amazon Web Services ({aws}) with {beats}
+== Monitor Amazon Web Services (AWS) with {beats}
 
-In this tutorial, you’ll learn how to monitor your {aws} infrastructure using
+In this tutorial, you’ll learn how to monitor your AWS infrastructure using
 Elastic {observability}: Logs and Infrastructure metrics.
 
 [discrete]
@@ -31,10 +28,10 @@ and {kib} for visualizing and managing your data.
 With this tutorial, we assume that your logs and your infrastructure
 data are already shipped to CloudWatch. We are going to show you how you can
 stream your data from CloudWatch to {es}. If you don’t know how to put
-your {aws} logs and infrastructure data in CloudWatch, Amazon provides a lot of
+your AWS logs and infrastructure data in CloudWatch, Amazon provides a lot of
 documentation around this specific topic:
 
-* Collect your logs and infrastructure data from specific https://www.youtube.com/watch?v=vAnIhIwE5hY[{aws} services]
+* Collect your logs and infrastructure data from specific https://www.youtube.com/watch?v=vAnIhIwE5hY[AWS services]
 * Export your logs https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/S3ExportTasksConsole.html[to an S3 bucket]
 
 
@@ -45,7 +42,7 @@ documentation around this specific topic:
 To centralize your logs in {es}, you need to have an S3 bucket.
 {filebeat}, the agent you'll use to collect logs, has an input for S3.
 
-In the https://s3.console.aws.amazon.com/s3[{aws} S3 console], click on *Create
+In the https://s3.console.aws.amazon.com/s3[AWS S3 console], click on *Create
 bucket*. Give the bucket a *name* and specify the *region* in which you want it
 deployed.
 
@@ -130,7 +127,7 @@ image::configure-notification-output.png[Event Notification Setting]
 [[aws-step-four]]
 === Step 4: Install and configure {filebeat}
 
-To monitor {aws} using the {stack}, you need two main components:
+To monitor AWS using the {stack}, you need two main components:
 an Elastic deployment to store and analyze the data and an agent to collect and
 ship the data.
 
@@ -140,11 +137,11 @@ include::{observability-docs-root}/docs/en/shared/install-configure-filebeat.asc
 
 [discrete]
 [[aws-step-five]]
-=== Step 5: Configure the {aws} Module
+=== Step 5: Configure the AWS Module
 
 Now that the output is working, you can set up the
-{filebeat-ref}/filebeat-module-aws.html[{filebeat} {aws}] module which
-will automatically create the {aws} input. This
+{filebeat-ref}/filebeat-module-aws.html[{filebeat} AWS] module which
+will automatically create the AWS input. This
 module checks SQS for new messages regarding the new object created in the S3
 bucket and uses the information in these messages to retrieve logs from S3
 buckets. With this setup, periodic polling from each S3 bucket is not needed.
@@ -161,7 +158,7 @@ access logs are useful for many applications. For example, access log
 information can be useful in security and access audits. It can also help you
 learn about your customer base and understand your Amazon S3 bill.
 
-Let's enable the {aws} module in {filebeat}.
+Let's enable the AWS module in {filebeat}.
 
 [source,bash]
 ----
@@ -192,7 +189,7 @@ Edit the `modules.d/aws.yml` file with the following configurations.
 <2> This is the AWS profile defined following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
 <3> Add the URL to the queue containing notifications around the bucket containing the EC2 logs
 
-Make sure that the {aws} user used to collect the logs from S3 has at least the
+Make sure that the AWS user used to collect the logs from S3 has at least the
 following permissions attached to it:
 
 [source,yml]
@@ -215,7 +212,7 @@ following permissions attached to it:
 ----
 
 You can now upload your logs to the S3 bucket. If you are using CloudWatch,
-make sure to edit the policy of your bucket as shown in https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/S3ExportTasksConsole.html[step 3 of the {aws} user guide].
+make sure to edit the policy of your bucket as shown in https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/S3ExportTasksConsole.html[step 3 of the AWS user guide].
 This will help you avoid permissions issues.
 
 Start {filebeat} to collect the logs.
@@ -306,11 +303,11 @@ This gives you an overview of how your S3 buckets are being accessed.
 [[aws-step-seven]]
 === Step 7: Collect Infrastructure metrics
 
-To monitor your {aws} infrastructure you will need to first make sure your
+To monitor your AWS infrastructure you will need to first make sure your
 infrastructure data are being shipped to CloudWatch. To ship the data to
-{es} we are going to use the {aws} module from {metricbeat}. This module
+{es} we are going to use the AWS module from {metricbeat}. This module
 periodically fetches monitoring metrics from AWS CloudWatch using
-**GetMetricData** API for {aws} services.
+**GetMetricData** API for AWS services.
 
 [IMPORTANT]
 ====
@@ -328,20 +325,20 @@ In a new terminal window, run the following commands.
 include::{observability-docs-root}/docs/en/shared/install-configure-metricbeat.asciidoc[]
 :leveloffset: -3
 
-Now that the output is working, you are going to set up the {aws} module.
+Now that the output is working, you are going to set up the AWS module.
 
 [discrete]
 [[aws-step-nine]]
-=== Step 9: Configure the {aws} module
+=== Step 9: Configure the AWS module
 
-To collect metrics from your {aws} infrastructure, we'll use the
-{metricbeat-ref}/metricbeat-module-aws.html[{metricbeat} {aws}] module. This module
+To collect metrics from your AWS infrastructure, we'll use the
+{metricbeat-ref}/metricbeat-module-aws.html[{metricbeat} AWS] module. This module
 contains many metricsets: `billing`, `cloudwatch`, `dynamodb`, `ebs`,
 `ec2`, `elb`, `lambda`, and many more. Each metricset is created to help you
 stream and process your data. In this tutorial, we're going to show you a
 few examples using the `ec2` and the `billing` metricsets.
 
-. Let's enable the {aws} module in {metricbeat}.
+. Let's enable the AWS module in {metricbeat}.
 +
 [source,bash]
 ----
@@ -376,7 +373,7 @@ few examples using the `ec2` and the `billing` metricsets.
 <3> Defines the metricset that is going to be used.
 <4> This is the AWS profile defined following the https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-files.html[AWS standard].
 
-Make sure that the {aws} user used to collect the metrics from CloudWatch has at
+Make sure that the AWS user used to collect the metrics from CloudWatch has at
 least the following permissions attached to it:
 
 [source,yml]
@@ -415,7 +412,7 @@ You can now start {metricbeat}:
 
 Now that the metrics are being streamed to {es} we can visualize them in
 {kib}. In {kib}, open the main menu and click
-**Infrastructure**. Make sure to show the **{aws}** source and the **EC2 Instances**:
+**Infrastructure**. Make sure to show the **AWS** source and the **EC2 Instances**:
 
 image::EC2-instances.png[Your EC2 Infrastructure]
 
@@ -428,7 +425,7 @@ AWS] EC2 Overview**:
 image::ec2-dashboard.png[EC2 Overview]
 
 // lint ignore metricbeat
-If you want to track your billings on {aws}, you can also check the
+If you want to track your billings on AWS, you can also check the
 **[Metricbeat AWS] Billing Overview** dashboard:
 
 image::aws-billing.png[Billing Overview]
