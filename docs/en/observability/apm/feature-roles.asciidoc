@@ -39,7 +39,7 @@ requirements and the minimum privileges required to use specific features.
 
 Typically, you need to create the following separate roles:
 
-* <<apm-privileges-to-publish-events,Writer role>>: To publish events collected by {beatname_uc}.
+* <<apm-privileges-to-publish-events,Writer role>>: To publish events collected by APM Server.
 * <<apm-privileges-to-publish-monitoring,Monitoring role>>: One for sending monitoring
 information, and another for viewing it.
 * <<apm-privileges-api-key,API key role>>: To create and manage API keys.
@@ -133,22 +133,22 @@ Monitoring on {ecloud} is enabled by clicking the *Enable* button in the *Monito
 ===== Internal collection
 
 If you're using <<apm-monitoring-internal-collection,internal collection>> to
-collect metrics about {beatname_uc}, {security-features} provides
-the +{beat_monitoring_user}+ {ref}/built-in-users.html[built-in user] and
-+{beat_monitoring_user}+ {ref}/built-in-roles.html[built-in role] to send
+collect metrics about APM Server, {security-features} provides
+the +apm_system+ {ref}/built-in-users.html[built-in user] and
++apm_system+ {ref}/built-in-roles.html[built-in role] to send
 monitoring information. You can use the built-in user, if it's available in your
 environment, or create a user who has the built-in role assigned,
 or create a user and manually assign the privileges needed to send monitoring
 information.
 
-If you use the built-in +{beat_monitoring_user}+ user,
+If you use the built-in +apm_system+ user,
 make sure you set the password before using it.
 
-If you don't use the +{beat_monitoring_user}+ user:
+If you don't use the +apm_system+ user:
 
 --
 . Create a *monitoring role*, called something like
-+{beat_default_index_prefix}_monitoring_writer+, that has the following privileges:
++apm_monitoring_writer+, that has the following privileges:
 +
 [options="header"]
 |====
@@ -176,7 +176,7 @@ See <<apm-monitoring-metricbeat-collection>>
 for complete details on setting up {metricbeat} collection.
 
 If you're <<apm-monitoring-metricbeat-collection,using {metricbeat}>> to collect
-metrics about {beatname_uc}, {security-features} provides the `remote_monitoring_user`
+metrics about APM Server, {security-features} provides the `remote_monitoring_user`
 {ref}/built-in-users.html[built-in user], and the `remote_monitoring_collector`
 and `remote_monitoring_agent` {ref}/built-in-roles.html[built-in roles] for
 collecting and sending monitoring information. You can use the built-in user, if
@@ -197,7 +197,7 @@ information. Assign the following roles to the *monitoring user*:
 |Role | Purpose
 
 |`remote_monitoring_collector`
-|Collect monitoring metrics from {beatname_uc}
+|Collect monitoring metrics from APM Server
 
 |`remote_monitoring_agent`
 |Send monitoring data to the monitoring cluster
@@ -211,7 +211,7 @@ information. Assign the following roles to the *monitoring user*:
 To grant users the required privileges for viewing monitoring data:
 
 . Create a *monitoring role*, called something like
-+{beat_default_index_prefix}_monitoring_viewer+, that has the following privileges:
++apm_monitoring_viewer+, that has the following privileges:
 +
 [options="header"]
 |====
@@ -227,14 +227,14 @@ To grant users the required privileges for viewing monitoring data:
 |====
 +
 . Assign the *monitoring role*, along with the following built-in roles, to users who
-need to view monitoring data for {beatname_uc}:
+need to view monitoring data for APM Server:
 +
 [options="header"]
 |====
 |Role | Purpose
 
 |`monitoring_user`
-|Grants access to monitoring indices for {beatname_uc}
+|Grants access to monitoring indices for APM Server
 |====
 
 ////
@@ -260,7 +260,7 @@ that has the following `cluster` level privileges:
 | Privilege | Purpose
 
 |`manage_own_api_key`
-|Allow {beatname_uc} to create, retrieve, and invalidate API keys
+|Allow APM Server to create, retrieve, and invalidate API keys
 |====
 
 . Depending on what the **API key role** will be used for,
@@ -333,11 +333,11 @@ assign the user the following privileges:
 
 | Index
 |`read` on `.apm-agent-configuration` index, `allow_restricted_indices: true`
-|Allow {beatname_uc} to manage central configurations in {es}
+|Allow APM Server to manage central configurations in {es}
 |====
 
 The above privileges should be sufficient for APM agent central configuration to work properly
-as long as {beatname_uc} communicates with {es} successfully.
+as long as APM Server communicates with {es} successfully.
 If it fails, it may fallback to read agent central configuration via {kib} if configured,
 which requires the following privileges:
 
@@ -346,8 +346,8 @@ which requires the following privileges:
 |Type | Privilege | Purpose
 
 | Spaces
-|`Read` on {beat_kib_app}
-|Allow {beatname_uc} to manage central configurations via the {beat_kib_app}
+|`Read` on {apm-app}
+|Allow APM Server to manage central configurations via the {apm-app}
 |====
 
 TIP: Looking for privileges and roles needed to use central configuration from the {apm-app} or {apm-app} API?
@@ -374,11 +374,11 @@ assign the user the following privileges:
 
 |Index
 |`read` on `.apm-source-map` index
-|Allow {beatname_uc} to read RUM source maps from {es}
+|Allow APM Server to read RUM source maps from {es}
 |====
 
 The above privileges should be sufficient for RUM source mapping to work properly
-as long as {beatname_uc} communicates with {es} successfully.
+as long as APM Server communicates with {es} successfully.
 If it fails, it may fallback to read source maps via {kib} if configured,
 which requires additional {kib} privileges.
 See {kibana-ref}/rum-sourcemap-api.html[RUM source map API] for more details.

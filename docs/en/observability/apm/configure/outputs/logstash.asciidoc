@@ -169,7 +169,7 @@ Matrix].
 === Configuration options
 
 You can specify the following options in the `logstash` section of the
-+{beatname_lc}.yml+ config file:
++apm-server.yml+ config file:
 
 ==== `enabled`
 
@@ -221,7 +221,7 @@ will switch to another host if the selected one becomes unresponsive. The defaul
 output.logstash:
   hosts: ["localhost:5044", "localhost:5045"]
   loadbalance: true
-  index: {beatname_lc}
+  index: apm-server
 ------------------------------------------------------------------------------
 
 ==== `ttl`
@@ -274,8 +274,8 @@ that when a proxy is used the name resolution occurs on the proxy server.
 ==== `index`
 
 The index root name to write events to. The default is `apm-server`. For
-example +"{beat_default_index_prefix}"+ generates +"[{beat_default_index_prefix}-]{version}-YYYY.MM.DD"+
-indices (for example, +"{beat_default_index_prefix}-{version}-2017.04.26"+).
+example +"apm"+ generates +"[apm-]{version}-YYYY.MM.DD"+
+indices (for example, +"apm-{version}-2017.04.26"+).
 
 NOTE: This parameter's value will be assigned to the `metadata.beat` field. It
 can then be accessed in {ls}'s output section as `%{[@metadata][beat]}`.
@@ -327,7 +327,7 @@ The default is `false`.
 ==== `backoff.init`
 
 The number of seconds to wait before trying to reconnect to {ls} after
-a network error. After waiting `backoff.init` seconds, {beatname_uc} tries to
+a network error. After waiting `backoff.init` seconds, APM Server tries to
 reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
 default is `1s`.
@@ -338,4 +338,4 @@ The maximum number of seconds to wait before attempting to connect to
 {ls} after a network error. The default is `60s`.
 
 // Logstash security
-include::{apm-server-dir}/shared-ssl-logstash-config.asciidoc[]
+include::{observability-docs-root}/docs/en/observability/apm/shared-ssl-logstash-config.asciidoc[]

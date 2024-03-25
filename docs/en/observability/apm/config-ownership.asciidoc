@@ -3,38 +3,38 @@
 ==== Configuration file ownership
 
 On systems with POSIX file permissions,
-the {beatname_uc} configuration file is subject to ownership and file permission checks.
-These checks prevent unauthorized users from providing or modifying configurations that are run by {beatname_uc}.
+the APM Server configuration file is subject to ownership and file permission checks.
+These checks prevent unauthorized users from providing or modifying configurations that are run by APM Server.
 
 When installed via an RPM or DEB package,
-the configuration file at +/etc/{beatname_lc}/{beatname_lc}.yml+ will be owned by +{beatname_lc}+,
+the configuration file at +/etc/apm-server/apm-server.yml+ will be owned by +apm-server+,
 and have file permissions of `0600` (`-rw-------`).
 
-{beatname_uc} will only start if the configuration file is owned by the user running the process,
+APM Server will only start if the configuration file is owned by the user running the process,
 or by running as root with configuration ownership set to `root:root`
 
 You may encounter the following errors if your configuration file fails these checks:
 
 ["source", "systemd", subs="attributes"]
 -----
-Exiting: error loading config file: config file ("/etc/{beatname_lc}/{beatname_lc}.yml")
+Exiting: error loading config file: config file ("/etc/apm-server/apm-server.yml")
 must be owned by the user identifier (uid=1000) or root
 -----
 
 To correct this problem you can change the ownership of the configuration file with:
-+chown {beatname_lc}:{beatname_lc} /etc/{beatname_lc}/{beatname_lc}.yml+.
++chown apm-server:apm-server /etc/apm-server/apm-server.yml+.
 
 You can also make root the config owner, although this is not recommended:
-+sudo chown root:root /etc/{beatname_lc}/{beatname_lc}.yml+.
++sudo chown root:root /etc/apm-server/apm-server.yml+.
 
 ["source", "systemd", subs="attributes"]
 -----
-Exiting: error loading config file: config file ("/etc/{beatname_lc}/{beatname_lc}.yml")
+Exiting: error loading config file: config file ("/etc/apm-server/apm-server.yml")
 can only be writable by the owner but the permissions are "-rw-rw-r--"
-(to fix the permissions use: 'chmod go-w /etc/{beatname_lc}/{beatname_lc}.yml')
+(to fix the permissions use: 'chmod go-w /etc/apm-server/apm-server.yml')
 -----
 
-To correct this problem, use +chmod go-w /etc/{beatname_lc}/{beatname_lc}.yml+ to
+To correct this problem, use +chmod go-w /etc/apm-server/apm-server.yml+ to
 remove write privileges from anyone other than the owner.
 
 [float]

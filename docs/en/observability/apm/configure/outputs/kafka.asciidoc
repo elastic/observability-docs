@@ -13,7 +13,7 @@ The Kafka output is not yet supported by {fleet}-managed APM Server.
 
 The Kafka output sends events to Apache Kafka.
 
-To use this output, edit the {beatname_uc} configuration file to disable the {es}
+To use this output, edit the APM Server configuration file to disable the {es}
 output by commenting it out, and enable the Kafka output by uncommenting the
 Kafka section.
 
@@ -35,14 +35,12 @@ output.kafka:
   max_message_bytes: 1000000
 ------------------------------------------------------------------------------
 
-NOTE: Events bigger than <<apm-kafka-max_message_bytes,`max_message_bytes`>> will be dropped. To avoid this problem, make sure {beatname_uc} does not generate events bigger than <<apm-kafka-max_message_bytes,`max_message_bytes`>>.
+NOTE: Events bigger than <<apm-kafka-max_message_bytes,`max_message_bytes`>> will be dropped. To avoid this problem, make sure APM Server does not generate events bigger than <<apm-kafka-max_message_bytes,`max_message_bytes`>>.
 
-ifdef::apm-server[]
 [float]
 === {kib} configuration
 
 include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
-endif::[]
 
 [[apm-kafka-compatibility]]
 === Compatibility
@@ -52,19 +50,14 @@ might work as well, but are not supported.
 
 === Configuration options
 
-You can specify the following options in the `kafka` section of the +{beatname_lc}.yml+ config file:
+You can specify the following options in the `kafka` section of the +apm-server.yml+ config file:
 
 ==== `enabled`
 
 The `enabled` config is a boolean setting to enable or disable the output. If set
 to false, the output is disabled.
 
-ifndef::apm-server[]
-The default value is `true`.
-endif::[]
-ifdef::apm-server[]
 The default value is `false`.
-endif::[]
 
 ==== `hosts`
 
@@ -73,7 +66,7 @@ The cluster metadata contain the actual Kafka brokers events are published to.
 
 ==== `version`
 
-Kafka version {beatname_lc} is assumed to run against. Defaults to 1.0.0.
+Kafka version apm-server is assumed to run against. Defaults to 1.0.0.
 
 Event timestamps will be added, if version 0.10.0.0+ is enabled.
 
@@ -125,7 +118,7 @@ topic dynamically.
 ==== `topics`
 
 An array of topic selector rules. Each rule specifies the `topic` to use for
-events that match the rule. During publishing, {beatname_uc} sets the `topic`
+events that match the rule. During publishing, APM Server sets the `topic`
 for each event based on the first matching rule in the array. Rules
 can contain conditionals, format string-based fields, and name mappings. If the
 `topics` setting is missing or no rule matches, the
@@ -236,7 +229,7 @@ metadata for the configured topics. The default is false.
 ==== `max_retries`
 
 ifdef::ignores_max_retries[]
-{beatname_uc} ignores the `max_retries` setting and retries indefinitely.
+APM Server ignores the `max_retries` setting and retries indefinitely.
 endif::[]
 
 ifndef::ignores_max_retries[]
@@ -251,7 +244,7 @@ endif::[]
 ==== `backoff.init`
 
 The number of seconds to wait before trying to republish to Kafka
-after a network error. After waiting `backoff.init` seconds, {beatname_uc}
+after a network error. After waiting `backoff.init` seconds, APM Server
 tries to republish. If the attempt fails, the backoff timer is increased
 exponentially up to `backoff.max`. After a successful publish, the backoff
 timer is reset. The default is `1s`.
@@ -328,4 +321,8 @@ Configuration options for SSL parameters like the root CA for Kafka connections.
  The Kafka host keystore should be created with the
 `-keyalg RSA` argument to ensure it uses a cipher supported by
 https://github.com/Shopify/sarama/wiki/Frequently-Asked-Questions#why-cant-sarama-connect-to-my-kafka-cluster-using-ssl[{filebeat}'s Kafka library].
+<<<<<<< HEAD
 See <<apm-configuration-ssl>> for more information.
+=======
+See <<configuration-ssl>> for more information.
+>>>>>>> 2294df01bf57c9d65abc986b6c7f23d17e05b4ca

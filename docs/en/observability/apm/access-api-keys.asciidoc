@@ -7,11 +7,11 @@ access to {es} resources. You can set API keys to expire at a certain time,
 and you can explicitly invalidate them. Any user with the `manage_api_key`
 or `manage_own_api_key` cluster privilege can create API keys.
 
-{beatname_uc} instances typically send both collected data and monitoring
+APM Server instances typically send both collected data and monitoring
 information to {es}. If you are sending both to the same cluster, you can use the same
 API key. For different clusters, you need to use an API key per cluster.
 
-NOTE: For security reasons, we recommend using a unique API key per {beatname_uc} instance.
+NOTE: For security reasons, we recommend using a unique API key per APM Server instance.
 You can create as many API keys per user as necessary.
 
 [float]
@@ -29,15 +29,15 @@ In the role descriptors box, assign the appropriate privileges to the new API ke
 [source,json,subs="attributes,callouts"]
 ----
 {
-    "{beat_default_index_prefix}_writer": {
+    "apm_writer": {
         "index": [
             {
-                "names": ["{beat_default_index_prefix}-*"],
+                "names": ["apm-*"],
                 "privileges": ["create_index", "create_doc"]
             }
         ]
     },
-    "{beat_default_index_prefix}_sourcemap": {
+    "apm_sourcemap": {
         "index": [
             {
                 "names": [".apm-source-map"],
@@ -45,7 +45,7 @@ In the role descriptors box, assign the appropriate privileges to the new API ke
             }
         ]
     },
-    "{beat_default_index_prefix}_agentcfg": {
+    "apm_agentcfg": {
         "index": [
             {
                 "names": [".apm-agent-configuration"],
@@ -64,7 +64,7 @@ and input the lifetime of the API key in days.
 
 Click **Create API key**. In the dropdown, switch to **{beats}** and copy the API key.
 
-You can now use this API key in your +{beatname_lc}.yml+ configuration file:
+You can now use this API key in your +apm-server.yml+ configuration file:
 
 ["source","yml",subs="attributes"]
 --------------------
@@ -89,7 +89,7 @@ For example:
 [source,json,subs="attributes,callouts"]
 ----
 {
-    "{beat_default_index_prefix}_monitoring": {
+    "apm_monitoring": {
         "index": [
             {
                 "names": [".monitoring-beats-*"],
@@ -108,7 +108,7 @@ and input the lifetime of the API key in days.
 
 Click **Create API key**. In the dropdown, switch to **{beats}** and copy the API key.
 
-You can now use this API key in your +{beatname_lc}.yml+ configuration file like this:
+You can now use this API key in your +apm-server.yml+ configuration file like this:
 
 ["source","yml",subs="attributes"]
 --------------------
@@ -128,17 +128,17 @@ For example:
 ------------------------------------------------------------
 POST /_security/api_key
 {
-  "name": "{beat_default_index_prefix}_host001", <1>
+  "name": "apm_host001", <1>
   "role_descriptors": {
-    "{beat_default_index_prefix}_writer": { <2>
+    "apm_writer": { <2>
       "index": [
         {
-          "names": ["{beat_default_index_prefix}-*"],
+          "names": ["apm-*"],
           "privileges": ["create_index", "create_doc"]
         }
       ]
     },
-    "{beat_default_index_prefix}_sourcemap": {
+    "apm_sourcemap": {
       "index": [
         {
           "names": [".apm-source-map"],
@@ -146,7 +146,7 @@ POST /_security/api_key
         }
       ]
     },
-    "{beat_default_index_prefix}_agentcfg": {
+    "apm_agentcfg": {
       "index": [
         {
           "names": [".apm-agent-configuration"],
