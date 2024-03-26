@@ -12,6 +12,10 @@ For example, if your long lookback period is one hour, your short lookback perio
 For each lookback period, the burn rate is computed as the error rate divided by the error budget.
 When the burn rates for both periods surpass the threshold, an alert is triggered.
 
+NOTE: When you use the UI to create an SLO, a default SLO burn rate alert rule is created automatically.
+The burn rate rule will use the default configuration and no connector.
+You must configure a connector if you want to receive alerts for SLO breaches.
+
 To create an SLO burn rate rule, go to *Observability → SLOs*. Click the more options icon to the right of the SLO you want to add a burn rate rule for, and select *Create new alert rule* from the drop-down menu:
 
 [role="screenshot"]
@@ -22,19 +26,19 @@ To create your SLO burn rate rule:
 . Set your long lookback period under *Lookback period (hours)*. Your short lookback period is set automatically.
 . Set your *Burn rate threshold*. Under this field, you'll see how long you have until your error budget is exhausted.
 . Set how often the condition is evaluated in the *Check every* field.
+. Optionally, change the number of consecutive runs that must meet the rule conditions before an alert occurs in the *Advanced options*.
 
 [discrete]
 [[action-types-slo]]
 == Action types
 
-You can extend your rules by connecting them to actions that use the following
+Extend your rules by connecting them to actions that use the following
 supported built-in integrations. Actions are {kib} services or integrations with
 third-party systems that run as background tasks on the {kib} server when rule conditions are met.
 
 You can configure action types on the <<configure-uptime-alert-connectors,Settings>> page.
 
-[role="screenshot"]
-image::images/alert-action-types.png[Uptime rule connectors]
+include::../shared/alerting-connectors.asciidoc[]
 
 After you select a connector, you must set the action frequency. You can choose to create a *Summary of alerts* on each check interval or on a custom interval. For example, you can send email notifications that summarize the new, ongoing, and recovered alerts every twelve hours.
 
@@ -53,6 +57,20 @@ and selecting from a list of available variables.
 
 [role="screenshot"]
 image::images/slo-action-variables.png[Action variables with default SLO message]
+
+The following variables are specific to this rule type.
+You an also specify {kibana-ref}/rule-action-variables.html[variables common to all rules].
+
+`context.alertDetailsUrl`:: Link to the alert troubleshooting view for further context and details. This will be an empty string if the `server.publicBaseUrl` is not configured.
+`context.burnRateThreshold`:: The burn rate threshold value.
+`context.longWindow`:: The window duration with the associated burn rate value.
+`context.reason`:: A concise description of the reason for the alert.
+`context.shortWindow`:: The window duration with the associated burn rate value.
+`context.sloId`:: The SLO unique identifier.
+`context.sloInstanceId`:: The SLO instance id.
+`context.sloName`:: The SLO name.
+`context.timestamp`:: A timestamp of when the alert was detected.
+`context.viewInAppUrl`:: The URL to the SLO details page to help with further investigation.
 
 [discrete]
 [[recovery-variables-slo]]

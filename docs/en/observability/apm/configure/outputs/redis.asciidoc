@@ -15,7 +15,7 @@ The Redis output inserts the events into a Redis list or a Redis channel.
 This output plugin is compatible with
 the {logstash-ref}/plugins-inputs-redis.html[Redis input plugin] for {ls}.
 
-To use this output, edit the {beatname_uc} configuration file to disable the {es}
+To use this output, edit the APM Server configuration file to disable the {es}
 output by commenting it out, and enable the Redis output by adding `output.redis`.
 
 Example configuration:
@@ -25,17 +25,15 @@ Example configuration:
 output.redis:
   hosts: ["localhost"]
   password: "my_password"
-  key: "{beatname_lc}"
+  key: "apm-server"
   db: 0
   timeout: 5
 ------------------------------------------------------------------------------
 
-ifdef::apm-server[]
 [float]
 === {kib} configuration
 
 include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
-endif::[]
 
 === Compatibility
 
@@ -44,7 +42,7 @@ but are not supported.
 
 === Configuration options
 
-You can specify the following `output.redis` options in the +{beatname_lc}.yml+ config file:
+You can specify the following `output.redis` options in the +apm-server.yml+ config file:
 
 ==== `enabled`
 
@@ -69,7 +67,7 @@ configured, the output uses the system certificate store.
 
 ==== `index`
 
-The index name added to the events metadata for use by {ls}. The default is "{beatname_lc}".
+The index name added to the events metadata for use by {ls}. The default is "apm-server".
 
 [[key-option-redis]]
 ==== `key`
@@ -95,7 +93,7 @@ dynamically.
 ==== `keys`
 
 An array of key selector rules. Each rule specifies the `key` to use for events
-that match the rule. During publishing, {beatname_uc} uses the first matching
+that match the rule. During publishing, APM Server uses the first matching
 rule in the array. Rules can contain conditionals, format string-based fields,
 and name mappings. If the `keys` setting is missing or no rule matches, the
 <<key-option-redis,`key`>> setting is used.
@@ -178,7 +176,7 @@ The Redis connection timeout in seconds. The default is 5 seconds.
 ==== `backoff.init`
 
 The number of seconds to wait before trying to reconnect to Redis after
-a network error. After waiting `backoff.init` seconds, {beatname_uc} tries to
+a network error. After waiting `backoff.init` seconds, APM Server tries to
 reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
 default is `1s`.
@@ -191,7 +189,7 @@ Redis after a network error. The default is `60s`.
 ==== `max_retries`
 
 ifdef::ignores_max_retries[]
-{beatname_uc} ignores the `max_retries` setting and retries indefinitely.
+APM Server ignores the `max_retries` setting and retries indefinitely.
 endif::[]
 
 ifndef::ignores_max_retries[]
