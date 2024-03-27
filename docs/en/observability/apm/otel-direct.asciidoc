@@ -1,4 +1,4 @@
-[[open-telemetry-direct]]
+[[apm-open-telemetry-direct]]
 === OpenTelemetry native support
 
 ++++
@@ -9,11 +9,11 @@ The {stack} natively supports the OpenTelemetry protocol (OTLP).
 This means trace data and metrics collected from your applications and infrastructure can
 be sent directly to the {stack}.
 
-* Send data to the {stack} from an <<connect-open-telemetry-collector,OpenTelemetry collector>>
-* Send data to the {stack} from an <<instrument-apps-otel,OpenTelemetry agent>>
+* Send data to the {stack} from an <<apm-connect-open-telemetry-collector,OpenTelemetry collector>>
+* Send data to the {stack} from an <<apm-instrument-apps-otel,OpenTelemetry agent>>
 
 [float]
-[[connect-open-telemetry-collector]]
+[[apm-connect-open-telemetry-collector]]
 ==== Send data from an OpenTelemetry collector
 
 Connect your OpenTelemetry collector instances to Elastic {observability} using the OTLP exporter:
@@ -64,7 +64,7 @@ To learn more about these exporters, see the OpenTelemetry Collector documentati
 https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter[OTLP/HTTP Exporter] or
 https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OTLP/gRPC exporter].
 <5> Hostname and port of the APM Server endpoint. For example, `elastic-apm-server:8200`.
-<6> Credential for Elastic APM <<secret-token,secret token authorization>> (`Authorization: "Bearer a_secret_token"`) or <<api-key,API key authorization>> (`Authorization: "ApiKey an_api_key"`).
+<6> Credential for Elastic APM <<apm-secret-token,secret token authorization>> (`Authorization: "Bearer a_secret_token"`) or <<apm-api-key,API key authorization>> (`Authorization: "ApiKey an_api_key"`).
 <7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SECRET_TOKEN`).
 <8>  preview:[] To send OpenTelemetry logs to {stack} version 8.0+, declare a `logs` pipeline.
 
@@ -76,7 +76,7 @@ but will bypass all of the validation and data processing that the APM Server pe
 In addition, your data will not be viewable in the {kib} {observability} apps if you use the `elasticsearch` exporter.
 
 [float]
-[[instrument-apps-otel]]
+[[apm-instrument-apps-otel]]
 ==== Send data from an OpenTelemetry agent
 
 To export traces and metrics to APM Server, instrument your services and applications
@@ -104,14 +104,14 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 |===
 
 | `OTEL_RESOURCE_ATTRIBUTES` | Fields that describe the service and the environment that the service runs in. See
-<<open-telemetry-resource-attributes,resource attributes>> for more information.
+<<apm-open-telemetry-resource-attributes,resource attributes>> for more information.
 
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
 
 | `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=Bearer an_apm_secret_token"` or `"Authorization=ApiKey an_api_key"`.
 
 For information on how to format an API key, see
-{observability-guide}/api-key.html[API keys].
+{observability-guide}/apm-api-key.html[API keys].
 
 Please note the required space between `Bearer` and `an_apm_secret_token`, and `ApiKey` and `an_api_key`.
 
@@ -121,11 +121,11 @@ Please note the required space between `Bearer` and `an_apm_secret_token`, and `
 
 |===
 
-You are now ready to collect traces and <<open-telemetry-collect-metrics,metrics>> before <<open-telemetry-verify-metrics,verifying metrics>>
-and <<open-telemetry-visualize,visualizing metrics>> in {kib}.
+You are now ready to collect traces and <<apm-open-telemetry-collect-metrics,metrics>> before <<apm-open-telemetry-verify-metrics,verifying metrics>>
+and <<apm-open-telemetry-visualize,visualizing metrics>> in {kib}.
 
 [float]
-[[open-telemetry-proxy-apm]]
+[[apm-open-telemetry-proxy-apm]]
 ==== Proxy requests to APM Server
 
 APM Server supports both the https://opentelemetry.io/docs/specs/otlp/#otlpgrpc[OTLP/gRPC] and https://opentelemetry.io/docs/specs/otlp/#otlphttp[OTLP/HTTP] protocol on the same port as Elastic APM agent requests. For ease of setup, we recommend using OTLP/HTTP when proxying or load balancing requests to the APM Server.
@@ -141,8 +141,8 @@ For more information on how APM Server services gRPC requests, see
 https://github.com/elastic/apm-server/blob/main/dev_docs/otel.md#muxing-grpc-and-http11[Muxing gRPC and HTTP/1.1].
 
 [float]
-[[open-telemetry-direct-next]]
+[[apm-open-telemetry-direct-next]]
 ==== Next steps
 
-* <<open-telemetry-collect-metrics>>
-* Learn about the <<open-telemetry-known-limitations,limitations of this integration>>
+* <<apm-open-telemetry-collect-metrics>>
+* Learn about the <<apm-open-telemetry-known-limitations,limitations of this integration>>

@@ -1,4 +1,4 @@
-[[logstash-output]]
+[[apm-logstash-output]]
 == Configure the {ls} output
 
 ++++
@@ -20,12 +20,12 @@ protocol, which runs over TCP.
 
 To send events to {ls}, you must:
 
-. <<ls-output-config,Enable the {ls} output in APM Server>>
-. <<ls-kib-config,Enable the {kib} endpoint in APM Server>>
-. <<ls-config-pipeline,Create a {ls} configuration pipeline in {ls}>>
+. <<apm-ls-output-config,Enable the {ls} output in APM Server>>
+. <<apm-ls-kib-config,Enable the {kib} endpoint in APM Server>>
+. <<apm-ls-config-pipeline,Create a {ls} configuration pipeline in {ls}>>
 
 [float]
-[[ls-output-config]]
+[[apm-ls-output-config]]
 === {ls} output configuration
 
 To enable the {ls} output in APM Server,
@@ -44,13 +44,13 @@ output.logstash:
 APM Server connections.
 
 [float]
-[[ls-kib-config]]
+[[apm-ls-kib-config]]
 === {kib} endpoint configuration
 
 include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
 
 [float]
-[[ls-config-pipeline]]
+[[apm-ls-config-pipeline]]
 === {ls} configuration pipeline
 
 Finally, you must create a {ls} configuration pipeline that listens for incoming
@@ -122,12 +122,12 @@ APM Server sends the following `@metadata` to {ls}:
 }
 ----
 <1> To change the default `apm-server` value, set the
-<<logstash-index,`index`>> option in the APM Server config file.
+<<apm-logstash-index,`index`>> option in the APM Server config file.
 <2> The current version of APM Server.
 
 In addition to `@metadata`, APM Server provides other potentially useful fields, like the
 `data_stream` field, which can be used to conditionally operate on
-{observability-guide}/data-model.html[event types], namespaces, or datasets.
+{observability-guide}/apm-data-model.html[event types], namespaces, or datasets.
 
 As an example, you might want to use {ls} to route all `metric` events to the same custom metrics data stream,
 rather than to service-specific data streams:
@@ -178,7 +178,7 @@ to false, the output is disabled.
 
 The default value is `false`.
 
-[[hosts]]
+[[apm-hosts]]
 ==== `hosts`
 
 The list of known {ls} servers to connect to. If load balancing is disabled, but
@@ -208,7 +208,7 @@ The number of workers per configured host publishing events to {ls}. This
 is best used with load balancing mode enabled. Example: If you have 2 hosts and
 3 workers, in total 6 workers are started (3 for each host).
 
-[[loadbalance]]
+[[apm-loadbalance]]
 ==== `loadbalance`
 
 If set to true and multiple {ls} hosts are configured, the output plugin
@@ -254,7 +254,7 @@ password can be embedded in the URL as shown in the example.
 
 When using a proxy, hostnames are resolved on the proxy server instead of on the
 client. You can change this behavior by setting the
-<<logstash-proxy-use-local-resolver,`proxy_use_local_resolver`>> option.
+<<apm-logstash-proxy-use-local-resolver,`proxy_use_local_resolver`>> option.
 
 ["source","yaml",subs="attributes"]
 ------------------------------------------------------------------------------
@@ -263,14 +263,14 @@ output.logstash:
   proxy_url: socks5://user:password@socks5-proxy:2233
 ------------------------------------------------------------------------------
 
-[[logstash-proxy-use-local-resolver]]
+[[apm-logstash-proxy-use-local-resolver]]
 ==== `proxy_use_local_resolver`
 
 The `proxy_use_local_resolver` option determines if {ls} hostnames are
 resolved locally when using a proxy. The default value is false, which means
 that when a proxy is used the name resolution occurs on the proxy server.
 
-[[logstash-index]]
+[[apm-logstash-index]]
 ==== `index`
 
 The index root name to write events to. The default is `apm-server`. For
@@ -283,7 +283,7 @@ can then be accessed in {ls}'s output section as `%{[@metadata][beat]}`.
 ==== `ssl`
 
 Configuration options for SSL parameters like the root CA for {ls} connections. See
-<<configuration-ssl>> for more information. To use SSL, you must also configure the
+<<apm-configuration-ssl>> for more information. To use SSL, you must also configure the
 {logstash-ref}/plugins-inputs-beats.html[{beats} input plugin for {ls}] to use SSL/TLS.
 
 ==== `timeout`

@@ -1,4 +1,4 @@
-[[getting-started-apm-server]]
+[[apm-getting-started-apm-server]]
 == Self manage APM Server
 
 ++++
@@ -21,12 +21,12 @@ If you're on this page, then you've chosen to self-manage the Elastic Stack,
 and you now must decide how to run and configure the APM Server.
 There are two options, and the components required are different for each:
 
-* **<<setup-apm-server-binary,APM Server binary>>**
-* **<<setup-fleet-managed-apm,Fleet-managed APM Server>>**
+* **<<apm-setup-apm-server-binary,APM Server binary>>**
+* **<<apm-setup-fleet-managed-apm,Fleet-managed APM Server>>**
 // * **<<setup-apm-server-ea,Standalone Elastic Agent-managed APM Server>>**
 
 [float]
-[[setup-apm-server-binary]]
+[[apm-setup-apm-server-binary]]
 === APM Server binary
 
 Install, configure, and run the APM Server binary wherever you need it.
@@ -58,7 +58,7 @@ image::./images/bin-ov.png[APM Server binary overview]
 **Configuration method**: YAML
 
 [float]
-[[setup-fleet-managed-apm]]
+[[apm-setup-fleet-managed-apm]]
 === Fleet-managed APM Server
 
 Fleet is a web-based UI in {kib} that is used to centrally manage {agent}s.
@@ -91,7 +91,7 @@ image::./images/fm-ov.png[APM Server fleet overview]
 **Configuration method**: {kib} UI
 
 // [float]
-// [[setup-apm-server-ea]]
+// [[apm-setup-apm-server-ea]]
 // === Standalone Elastic Agent-managed APM Server
 // // I really don't know how to sell this option
 // Instead of installing and configuring the APM Server binary, let {agent} orchestrate it for you.
@@ -168,7 +168,7 @@ image::images/apm-architecture-diy.png[Install Elastic APM yourself]
 // STEP 1
 // *******************************************************
 
-[[installing]]
+[[apm-installing]]
 ==== Step 1: Install
 
 NOTE: *Before you begin*: If you haven't installed the {stack}, do that now.
@@ -176,7 +176,7 @@ See {stack-ref}/installing-elastic-stack.html[Learn how to install the
 {stack} on your own hardware].
 
 To download and install APM Server, use the commands below that work with your system.
-If you use `apt` or `yum`, you can <<setup-repositories,install APM Server from our repositories>>
+If you use `apt` or `yum`, you can <<apm-setup-repositories,install APM Server from our repositories>>
 to update to the newest version more easily.
 
 ifeval::["{release-state}"!="unreleased"]
@@ -184,7 +184,7 @@ See our https://www.elastic.co/downloads/apm[download page]
 for other installation options, such as 32-bit images.
 endif::[]
 
-[[deb]]
+[[apm-deb]]
 *deb:*
 
 ifeval::["{release-state}"=="unreleased"]
@@ -203,7 +203,7 @@ sudo dpkg -i apm-server-{apm_server_version}-amd64.deb
 
 endif::[]
 
-[[rpm]]
+[[apm-rpm]]
 *RPM:*
 
 ifeval::["{release-state}"=="unreleased"]
@@ -222,7 +222,7 @@ sudo rpm -vi apm-server-{apm_server_version}-x86_64.rpm
 
 endif::[]
 
-[[linux]]
+[[apm-linux]]
 *Other Linux:*
 
 ifeval::["{release-state}"=="unreleased"]
@@ -240,7 +240,7 @@ tar xzvf apm-server-{apm_server_version}-linux-x86_64.tar.gz
 ------------------------------------------------
 endif::[]
 
-[[mac]]
+[[apm-mac]]
 *Mac:*
 
 ifeval::["{release-state}"=="unreleased"]
@@ -259,7 +259,7 @@ tar xzvf apm-server-{apm_server_version}-darwin-x86_64.tar.gz
 
 endif::[]
 
-[[installing-on-windows]]
+[[apm-installing-on-windows]]
 *Windows:*
 
 ifeval::["{release-state}"=="unreleased"]
@@ -294,10 +294,10 @@ For example: `PowerShell.exe -ExecutionPolicy UnRestricted -File .\install-servi
 
 endif::[]
 
-[[docker]]
+[[apm-docker]]
 *Docker:*
 
-See <<running-on-docker, Running on Docker>> for deploying Docker containers.
+See <<apm-running-on-docker, Running on Docker>> for deploying Docker containers.
 
 // *******************************************************
 // STEP 2
@@ -370,7 +370,7 @@ See {kibana-ref}/api.html[Kibana API] to learn more about how to use the Kibana 
 ===== Configure APM
 
 Configure APM by editing the `apm-server.yml` configuration file.
-The location of this file varies by platform--see the <<directory-layout>> for help locating it.
+The location of this file varies by platform--see the <<apm-directory-layout>> for help locating it.
 
 A minimal configuration file might look like this:
 
@@ -387,10 +387,10 @@ output.elasticsearch:
 <2> The {es} `host:port` to connect to.
 <3> This example uses basic authentication.
 The user provided here needs the privileges required to publish events to {es}.
-To create a dedicated user for this role, see <<privileges-to-publish-events>>.
+To create a dedicated user for this role, see <<apm-privileges-to-publish-events>>.
 
 All available configuration options are outlined in
-{observability-guide}/configuring-howto-apm-server.html[configuring APM Server].
+{observability-guide}/apm-configuring-howto-apm-server.html[configuring APM Server].
 
 // *******************************************************
 // STEP 3
@@ -411,9 +411,9 @@ To start APM Server, run:
 ./apm-server -e
 ----------------------------------
 
-NOTE: The `-e` <<global-flags,global flag>> enables logging to stderr and disables syslog/file output.
+NOTE: The `-e` <<apm-global-flags,global flag>> enables logging to stderr and disables syslog/file output.
 Remove this flag if you've enabled logging in the configuration file.
-For Linux systems, see <<running-with-systemd,APM Server status and logs>>.
+For Linux systems, see <<apm-running-with-systemd,APM Server status and logs>>.
 
 You should see APM Server start up.
 It will try to connect to {es} on localhost port `9200` and expose an API to agents on port `8200`.
@@ -425,13 +425,13 @@ You can change the defaults in `apm-server.yml` or by supplying a different addr
 ----------------------------------
 
 [float]
-[[running-deb-rpm]]
+[[apm-running-deb-rpm]]
 ===== Debian Package / RPM
 
 For Debian package and RPM installations, we recommend the `apm-server` process runs as a non-root user.
 Therefore, these installation methods create an `apm-server` user which you can use to start the process.
 In addition, APM Server will only start if the configuration file is
-<<config-file-ownership,owned by the user running the process>>.
+<<apm-config-file-ownership,owned by the user running the process>>.
 
 To start the APM Server in this case, run:
 
@@ -441,13 +441,13 @@ sudo -u apm-server apm-server [<argument...>]
 ----------------------------------
 
 By default, APM Server loads its configuration file from `/etc/apm-server/apm-server.yml`.
-See the <<directory-layout,deb & rpm default paths>> for a full directory layout.
+See the <<apm-directory-layout,deb & rpm default paths>> for a full directory layout.
 
 // *******************************************************
 // STEP 4
 // *******************************************************
 
-[[next-steps]]
+[[apm-next-steps]]
 ==== Step 4: Next steps
 
 // Use a tagged region to pull APM Agent information from the APM Overview
@@ -467,7 +467,7 @@ If you haven't already, you can now install APM Agents in your services!
 Once you have at least one {apm-agent} sending data to APM Server,
 you can start visualizing your data in the {kibana-ref}/xpack-apm.html[{apm-app}].
 
-If you're migrating from Jaeger, see <<jaeger-integration>>.
+If you're migrating from Jaeger, see <<apm-jaeger-integration>>.
 
 // Shared APM & YUM
 include::{observability-docs-root}/docs/en/observability/apm/repositories.asciidoc[]
