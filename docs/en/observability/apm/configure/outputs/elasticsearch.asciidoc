@@ -1,4 +1,4 @@
-[[elasticsearch-output]]
+[[apm-elasticsearch-output]]
 == Configure the {es} output
 
 ++++
@@ -59,7 +59,7 @@ output.elasticsearch:
   ssl.key: "/etc/pki/client/cert.key"
 ----
 
-See <<securing-communication-elasticsearch>> for details on each authentication method.
+See <<apm-securing-communication-elasticsearch>> for details on each authentication method.
 
 === Compatibility
 
@@ -79,7 +79,7 @@ to `false`, the output is disabled.
 The default value is `true`.
 
 
-[[hosts-option]]
+[[apm-hosts-option]]
 ==== `hosts`
 
 The list of {es} nodes to connect to. The events are distributed to
@@ -89,7 +89,7 @@ For example: `http://192.15.3.2`, `https://es.found.io:9230` or `192.24.3.2:9300
 If no port is specified, `9200` is used.
 
 NOTE: When a node is defined as an `IP:PORT`, the _scheme_ and _path_ are taken from the
-<<protocol-option,`protocol`>> and <<path-option,`path`>> config options.
+<<apm-protocol-option,`protocol`>> and <<apm-path-option,`path`>> config options.
 
 [source,yaml]
 ------------------------------------------------------------------------------
@@ -122,14 +122,14 @@ The default value is `false`.
 Instead of using a username and password, you can use API keys to secure communication
 with {es}. The value must be the ID of the API key and the API key joined by a colon: `id:api_key`.
 
-See <<beats-api-keys>> for more information.
+See <<apm-beats-api-keys>> for more information.
 
 ==== `username`
 
 The basic authentication username for connecting to {es}.
 
 This user needs the privileges required to publish events to {es}.
-To create a user like this, see <<privileges-to-publish-events>>.
+To create a user like this, see <<apm-privileges-to-publish-events>>.
 
 ==== `password`
 
@@ -139,15 +139,15 @@ The basic authentication password for connecting to {es}.
 
 Dictionary of HTTP parameters to pass within the URL with index operations.
 
-[[protocol-option]]
+[[apm-protocol-option]]
 ==== `protocol`
 
 The name of the protocol {es} is reachable on. The options are:
 `http` or `https`. The default is `http`. However, if you specify a URL for
-<<hosts-option,`hosts`>>, the value of `protocol` is overridden by whatever scheme you
+<<apm-hosts-option,`hosts`>>, the value of `protocol` is overridden by whatever scheme you
 specify in the URL.
 
-[[path-option]]
+[[apm-path-option]]
 ==== `path`
 
 An HTTP path prefix that is prepended to the HTTP API calls. This is useful for
@@ -178,7 +178,7 @@ https://golang.org/pkg/net/http/#ProxyFromEnvironment[Go documentation]
 for more information about the environment variables.
 
 ifndef::no_ilm[]
-[[ilm-es]]
+[[apm-ilm-es]]
 ==== `ilm`
 
 Configuration options for {ilm}.
@@ -187,7 +187,7 @@ See <<ilm>> for more information.
 endif::no_ilm[]
 
 ifndef::no-pipeline[]
-[[pipeline-option-es]]
+[[apm-pipeline-option-es]]
 ==== `pipeline`
 
 A format string value that specifies the ingest node pipeline to write events to.
@@ -199,7 +199,7 @@ output.elasticsearch:
   pipeline: my_pipeline_id
 ------------------------------------------------------------------------------
 
-For more information, see <<ingest-pipelines>>.
+For more information, see <<apm-ingest-pipelines>>.
 
 You can set the ingest node pipeline dynamically by using a format string to
 access any event field. For example, this configuration uses a custom field,
@@ -219,17 +219,17 @@ pipeline named `critical_pipeline`.
 TIP: To learn how to add custom fields to events, see the
 <<libbeat-configuration-fields,`fields`>> option.
 
-See the <<pipelines-option-es,`pipelines`>> setting for other ways to set the
+See the <<apm-pipelines-option-es,`pipelines`>> setting for other ways to set the
 ingest node pipeline dynamically.
 
-[[pipelines-option-es]]
+[[apm-pipelines-option-es]]
 ==== `pipelines`
 
 An array of pipeline selector rules. Each rule specifies the ingest node
 pipeline to use for events that match the rule. During publishing, APM Server
 uses the first matching rule in the array. Rules can contain conditionals,
 format string-based fields, and name mappings. If the `pipelines` setting is
-missing or no rule matches, the <<pipeline-option-es,`pipeline`>> setting is
+missing or no rule matches, the <<apm-pipeline-option-es,`pipeline`>> setting is
 used.
 
 Rule settings:
@@ -289,7 +289,7 @@ With this configuration, all events with `log_type: critical` are sent to
 `sev2_pipeline`, and all other events are sent to `sev3_pipeline`.
 
 For more information about ingest node pipelines, see
-<<ingest-pipelines>>.
+<<apm-ingest-pipelines>>.
 
 endif::[]
 
@@ -342,8 +342,8 @@ Configuration options for SSL parameters like the certificate authority to use
 for HTTPS-based connections. If the `ssl` section is missing, the host CAs are used for HTTPS connections to
 {es}.
 
-See the <<securing-communication-elasticsearch,secure communication with {es}>> guide
-or <<configuration-ssl,SSL configuration reference>> for more information.
+See the <<apm-securing-communication-elasticsearch,secure communication with {es}>> guide
+or <<apm-configuration-ssl,SSL configuration reference>> for more information.
 
 // Elasticsearch security
 include::{apm-server-dir}/https.asciidoc[]

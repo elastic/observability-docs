@@ -9,15 +9,15 @@ or form field data.
 Depending on the type of data, we offer several different ways to filter, manipulate,
 or obfuscate sensitive information during or before ingestion:
 
-* <<built-in-data-filters>>
-* <<custom-data-filters>>
+* <<apm-built-in-data-filters>>
+* <<apm-custom-data-filters>>
 
-In addition to utilizing filters, you should regularly review the <<sensitive-fields,sensitive fields>> table to ensure
+In addition to utilizing filters, you should regularly review the <<apm-sensitive-fields,sensitive fields>> table to ensure
 sensitive data is not being ingested. If it is, it's possible to remove or redact it.
-See <<data-security-delete>> for more information.
+See <<apm-data-security-delete>> for more information.
 
 [float]
-[[built-in-data-filters]]
+[[apm-built-in-data-filters]]
 ==== Built-in data filters
 
 // tag::data-filters[]
@@ -26,34 +26,34 @@ Built-in data filters allow you to filter or turn off ingestion of the following
 [options="header"]
 |====
 |Data type |Common sensitive data
-|<<filters-http-header>> |Passwords, credit card numbers, authorization, etc.
-|<<filters-http-body>> |Passwords, credit card numbers, etc.
-|<<filters-personal-data>> |Client IP address and user agent.
-|<<filters-real-user-data>> |URLs visited, click events, user browser errors, resources used, etc.
-|<<filters-database-statements>> |Sensitive user or business information
+|<<apm-filters-http-header>> |Passwords, credit card numbers, authorization, etc.
+|<<apm-filters-http-body>> |Passwords, credit card numbers, etc.
+|<<apm-filters-personal-data>> |Client IP address and user agent.
+|<<apm-filters-real-user-data>> |URLs visited, click events, user browser errors, resources used, etc.
+|<<apm-filters-database-statements>> |Sensitive user or business information
 |====
 // end::data-filters[]
 
 [float]
-[[custom-data-filters]]
+[[apm-custom-data-filters]]
 ==== Custom filters
 
 // tag::custom-filters[]
 Custom filters allow you to filter or redact other types of APM data on ingestion:
 
 |====
-|<<filters-ingest-pipeline,Ingest pipelines>> | Applied at ingestion time.
+|<<apm-filters-ingest-pipeline,Ingest pipelines>> | Applied at ingestion time.
 All agents and fields are supported. Data leaves the instrumented service.
 There are no performance overhead implications on the instrumented service.
 
-|<<filters-in-agent,{apm-agent} filters>> | Not supported by all agents.
+|<<apm-filters-in-agent,{apm-agent} filters>> | Not supported by all agents.
 Data is sanitized before leaving the instrumented service.
 Potential overhead implications on the instrumented service
 |====
 // end::custom-filters[]
 
 [float]
-[[sensitive-fields]]
+[[apm-sensitive-fields]]
 ==== Sensitive fields
 
 You should review the following fields regularly to ensure sensitive data is not being captured:
@@ -61,28 +61,28 @@ You should review the following fields regularly to ensure sensitive data is not
 [options="header"]
 |====
 | Field | Description | Remedy
-| `client.ip` | The client IP address, as forwarded by proxy. | <<filters-personal-data>>
-| `http.request.body.original` | The body of the monitored HTTP request. | <<filters-http-body>>
-| `http.request.headers` | The canonical headers of the monitored HTTP request. | <<filters-http-header>>
-| `http.request.socket.remote_address` | The address of the last proxy or end-user (if no proxy). | <<custom-filter>>
-| `http.response.headers` | The canonical headers of the monitored HTTP response. | <<filters-http-header>>
-| `process.args` | Process arguments. | <<filters-database-statements>>
-| `span.db.statement` | Database statement. | <<filters-database-statements>>
-| `stacktrace.vars` | A flat mapping of local variables captured in the stack frame | <<custom-filter>>
-| `url.query` | The query string of the request, e.g. `?pass=hunter2`. | <<custom-filter>>
-| `user.*` | Logged-in user information. | <<custom-filter>>
-| `user_agent.*` | Device and version making the network request. | <<filters-personal-data>>
+| `client.ip` | The client IP address, as forwarded by proxy. | <<apm-filters-personal-data>>
+| `http.request.body.original` | The body of the monitored HTTP request. | <<apm-filters-http-body>>
+| `http.request.headers` | The canonical headers of the monitored HTTP request. | <<apm-filters-http-header>>
+| `http.request.socket.remote_address` | The address of the last proxy or end-user (if no proxy). | <<apm-custom-filter>>
+| `http.response.headers` | The canonical headers of the monitored HTTP response. | <<apm-filters-http-header>>
+| `process.args` | Process arguments. | <<apm-filters-database-statements>>
+| `span.db.statement` | Database statement. | <<apm-filters-database-statements>>
+| `stacktrace.vars` | A flat mapping of local variables captured in the stack frame | <<apm-custom-filter>>
+| `url.query` | The query string of the request, e.g. `?pass=hunter2`. | <<apm-custom-filter>>
+| `user.*` | Logged-in user information. | <<apm-custom-filter>>
+| `user_agent.*` | Device and version making the network request. | <<apm-filters-personal-data>>
 |====
 
 // ****************************************************************
 
-[[filtering]]
+[[apm-filtering]]
 ==== Built-in data filters
 
 include::./apm-data-security.asciidoc[tag=data-filters]
 
 [discrete]
-[[filters-http-header]]
+[[apm-filters-http-header]]
 ==== HTTP headers
 
 By default, APM agents capture HTTP request and response headers (including cookies).
@@ -117,7 +117,7 @@ This setting also supports {kibana-ref}/agent-configuration.html[Central configu
 * Ruby: {apm-ruby-ref-v}/configuration.html#config-capture-headers[`capture_headers`]
 
 [discrete]
-[[filters-http-body]]
+[[apm-filters-http-body]]
 ==== HTTP bodies
 
 By default, the body of HTTP requests is not recorded.
@@ -136,7 +136,7 @@ which means the list of sanitized fields can be updated without needing to redep
 * Ruby: {apm-ruby-ref-v}/configuration.html#config-capture-body[`capture_body`]
 
 [discrete]
-[[filters-personal-data]]
+[[apm-filters-personal-data]]
 ==== Personal data
 
 By default, the APM Server captures some personal data associated with trace events:
@@ -144,14 +144,14 @@ By default, the APM Server captures some personal data associated with trace eve
 * `client.ip`: The client's IP address. Typically derived from the HTTP headers of incoming requests.
 `client.ip` is also used in conjunction with the {ref}/geoip-processor.html[`geoip` processor] to assign
 geographical information to trace events. To learn more about how `client.ip` is derived,
-see <<derive-client-ip>>.
+see <<apm-derive-client-ip>>.
 * `user_agent`: User agent data, including the client operating system, device name, vendor, and version.
 
 The capturing of this data can be turned off by setting
 **Capture personal data** to `false`.
 
 [discrete]
-[[filters-real-user-data]]
+[[apm-filters-real-user-data]]
 ==== Real user monitoring data
 
 Protecting user data is important.
@@ -170,7 +170,7 @@ Disabled instrumentations produce no spans or transactions.
 |====
 
 [discrete]
-[[filters-database-statements]]
+[[apm-filters-database-statements]]
 ==== Database statements
 
 For SQL databases, APM agents do not capture the parameters of prepared statements.
@@ -186,7 +186,7 @@ or to remove the statement entirely,
 you can set up an ingest node pipeline.
 
 [discrete]
-[[filters-agent-specific]]
+[[apm-filters-agent-specific]]
 ==== Agent-specific options
 
 Certain agents offer additional filtering and obfuscating options:
@@ -201,13 +201,13 @@ disabled by default with {apm-java-ref-v}/config-reporter.html#config-include-pr
 
 // ****************************************************************
 
-[[custom-filter]]
+[[apm-custom-filter]]
 ==== Custom filters
 
 include::./apm-data-security.asciidoc[tag=custom-filters]
 
 [discrete]
-[[filters-ingest-pipeline]]
+[[apm-filters-ingest-pipeline]]
 ==== Create an ingest pipeline filter
 
 Ingest node pipelines specify a series of processors that transform data in a specific way.
@@ -215,10 +215,10 @@ Transformation happens prior to indexing--inflicting no performance overhead on 
 Pipelines are a flexible and easy way to filter or obfuscate Elastic APM data.
 
 [discrete]
-[[filters-ingest-pipeline-tutorial]]
+[[apm-filters-ingest-pipeline-tutorial]]
 ===== Tutorial: redact sensitive information
 
-Say you decide to <<filters-http-body,capture HTTP request bodies>>
+Say you decide to <<apm-filters-http-body,capture HTTP request bodies>>
 but quickly notice that sensitive information is being collected in the
 `http.request.body.original` field:
 
@@ -485,10 +485,10 @@ Use the same naming convention explained previously to ensure your new pipeline 
 
 That's it! Passwords will now be redacted from your APM HTTP body data.
 
-To learn more about ingest pipelines, see <<custom-index-template>>.
+To learn more about ingest pipelines, see <<apm-custom-index-template>>.
 
 [discrete]
-[[filters-in-agent]]
+[[apm-filters-in-agent]]
 ==== APM agent filters
 
 Some APM agents offer a way to manipulate or drop APM events _before_ they are sent to the APM Server.
@@ -504,22 +504,22 @@ Please see the relevant agent's documentation for more information and examples:
 
 // ****************************************************************
 
-[[data-security-delete]]
+[[apm-data-security-delete]]
 ==== Delete sensitive data
 
 If you accidentally ingest sensitive data, follow these steps to remove or redact the offending data:
 
 . Stop collecting the sensitive data.
-Use the *remedy* column of the <<sensitive-fields,sensitive fields>> table to determine how to stop collecting
+Use the *remedy* column of the <<apm-sensitive-fields,sensitive fields>> table to determine how to stop collecting
 the offending data.
 
 . Delete or redact the ingested data. With data collection fixed, you can now delete or redact the offending data:
 +
-* <<redact-field-data>>
-* <<delete-doc-data>>
+* <<apm-redact-field-data>>
+* <<apm-delete-doc-data>>
 
 [float]
-[[redact-field-data]]
+[[apm-redact-field-data]]
 ===== Redact specific fields
 
 To redact sensitive data in a specific field, use the {ref}/docs-update-by-query.html[update by query API].
@@ -570,7 +570,7 @@ POST /logs-apm.error-default/_update_by_query
 See {ref}/docs-update-by-query.html[update by query API] for more information and examples.
 
 [float]
-[[delete-doc-data]]
+[[apm-delete-doc-data]]
 ===== Delete {es} documents
 
 WARNING: This will permanently delete your data.

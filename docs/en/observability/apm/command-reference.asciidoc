@@ -1,4 +1,4 @@
-:global-flags: Also see <<global-flags,Global flags>>.
+:global-flags: Also see <<apm-global-flags,Global flags>>.
 
 :deploy-command-short-desc: Deploys the specified function to your serverless environment
 
@@ -13,7 +13,7 @@ ifdef::serverless[]
 endif::serverless[]
 
 :help-command-short-desc: Shows help for any command
-:keystore-command-short-desc: Manages the <<keystore,secrets keystore>>
+:keystore-command-short-desc: Manages the <<apm-keystore,secrets keystore>>
 :modules-command-short-desc: Manages configured modules
 :package-command-short-desc: Packages the configuration and executable into a zip file
 :remove-command-short-desc: Removes the specified function from your serverless environment
@@ -25,7 +25,7 @@ endif::serverless[]
 
 // end::attributes[]
 
-[[command-line-options]]
+[[apm-command-line-options]]
 === APM Server command reference
 
 ++++
@@ -37,7 +37,7 @@ IMPORTANT: These commands only apply to the APM Server binary installation metho
 APM Server provides a command-line interface for starting APM Server and
 performing common tasks, like testing configuration files.
 
-The command-line also supports <<global-flags,global flags>>
+The command-line also supports <<apm-global-flags,global flags>>
 for controlling global behaviors.
 
 [TIP]
@@ -57,31 +57,31 @@ more information, see https://www.elastic.co/subscriptions and
 [options="header"]
 |=======================
 |Commands |
-|<<apikey-command,`apikey`>> |{apikey-command-short-desc}.
-|<<export-command,`export`>> |{export-command-short-desc}.
-|<<help-command,`help`>> |{help-command-short-desc}.
+|<<apm-apikey-command,`apikey`>> |{apikey-command-short-desc}.
+|<<apm-export-command,`export`>> |{export-command-short-desc}.
+|<<apm-help-command,`help`>> |{help-command-short-desc}.
 ifndef::serverless[]
-|<<keystore-command,`keystore`>> |{keystore-command-short-desc}.
+|<<apm-keystore-command,`keystore`>> |{keystore-command-short-desc}.
 endif::[]
 ifndef::serverless[]
-|<<run-command,`run`>> |{run-command-short-desc}.
+|<<apm-run-command,`run`>> |{run-command-short-desc}.
 endif::[]
-|<<test-command,`test`>> |{test-command-short-desc}.
-|<<version-command,`version`>> |{version-command-short-desc}.
+|<<apm-test-command,`test`>> |{test-command-short-desc}.
+|<<apm-version-command,`version`>> |{version-command-short-desc}.
 |=======================
 
-Also see <<global-flags,Global flags>>.
+Also see <<apm-global-flags,Global flags>>.
 
 [float]
-[[apikey-command]]
+[[apm-apikey-command]]
 ==== `apikey` command
 
 experimental::[]
 
-deprecated::[8.6.0, Users should create API Keys through {kib} or the {es} REST API. See <<api-key>>.]
+deprecated::[8.6.0, Users should create API Keys through {kib} or the {es} REST API. See <<apm-api-key>>.]
 
 Communication between APM agents and APM Server now supports sending an
-<<api-key,API Key in the Authorization header>>.
+<<apm-api-key,API Key in the Authorization header>>.
 APM Server provides an `apikey` command that can create, verify, invalidate,
 and show information about API Keys for agent/server communication.
 Most operations require the `manage_own_api_key` cluster privilege,
@@ -102,7 +102,7 @@ Create an API Key with the specified privilege(s). No required flags.
 +
 The user requesting to create an API Key needs to have APM privileges used by the APM Server.
 A superuser, by default, has these privileges. For other users,
-you can create them. See <<privileges-api-key,create an API key user>> for required privileges.
+you can create them. See <<apm-privileges-api-key,create an API key user>> for required privileges.
 
 *`info`*::
 Query API Key(s). `--id` or `--name` required.
@@ -168,10 +168,10 @@ apm-server apikey info --name example-001 --valid-only
 apm-server apikey invalidate --name example-001
 -----
 
-For more information, see <<api-key>>.
+For more information, see <<apm-api-key>>.
 
 [float]
-[[export-command]]
+[[apm-export-command]]
 ==== `export` command
 
 ifndef::serverless[]
@@ -199,35 +199,35 @@ apm-server export SUBCOMMAND [FLAGS]
 Exports the current configuration to stdout. If you use the `-c` flag, this
 command exports the configuration that's defined in the specified file.
 
-[[template-subcommand]]*`template`*::
+[[apm-template-subcommand]]*`template`*::
 Exports the index template to stdout. You can specify the `--es.version` and
 `--index` flags to further define what gets exported. Furthermore you can export
 the template to a file instead of `stdout` by defining a directory via `--dir`.
 
-[[ilm-policy-subcommand]]
+[[apm-ilm-policy-subcommand]]
 *`ilm-policy`*::
 Exports the {ilm} policy to stdout. You can specify the
 `--es.version` and a `--dir` to which the policy should be exported as a
 file rather than exporting to `stdout`.
 
 ifdef::serverless[]
-[[function-subcommand]]*`function` FUNCTION_NAME*::
+[[apm-function-subcommand]]*`function` FUNCTION_NAME*::
 Exports an {cloudformation-ref} template to stdout.
 endif::serverless[]
 
 *FLAGS*
 
 *`--es.version VERSION`*::
-When used with <<template-subcommand,`template`>>, exports an index
+When used with <<apm-template-subcommand,`template`>>, exports an index
 template that is compatible with the specified version.
-When used with <<ilm-policy-subcommand,`ilm-policy`>>, exports the {ilm-init} policy
+When used with <<apm-ilm-policy-subcommand,`ilm-policy`>>, exports the {ilm-init} policy
 if the specified ES version is enabled for {ilm-init}.
 
 *`-h, --help`*::
 Shows help for the `export` command.
 
 *`--index BASE_NAME`*::
-When used with <<template-subcommand,`template`>>, sets the base name to use for
+When used with <<apm-template-subcommand,`template`>>, sets the base name to use for
 the index template. If this flag is not specified, the default base name is
 +apm-server+.
 
@@ -257,7 +257,7 @@ apm-server export function cloudwatch
 endif::serverless[]
 
 [float]
-[[help-command]]
+[[apm-help-command]]
 ==== `help` command
 
 {help-command-short-desc}.
@@ -290,7 +290,7 @@ apm-server help export
 
 ifndef::serverless[]
 [float]
-[[keystore-command]]
+[[apm-keystore-command]]
 ==== `keystore` command
 
 {keystore-command-short-desc}.
@@ -343,13 +343,13 @@ apm-server keystore remove ES_PWD
 apm-server keystore list
 -----
 
-See <<keystore>> for more examples.
+See <<apm-keystore>> for more examples.
 
 endif::[]
 
 ifndef::serverless[]
 [float]
-[[run-command]]
+[[apm-run-command]]
 ==== `run` command
 
 {run-command-short-desc}.
@@ -408,7 +408,7 @@ apm-server -e
 endif::[]
 
 [float]
-[[test-command]]
+[[apm-test-command]]
 ==== `test` command
 
 {test-command-short-desc}.
@@ -443,7 +443,7 @@ apm-server test config
 -----
 
 [float]
-[[version-command]]
+[[apm-version-command]]
 ==== `version` command
 
 {version-command-short-desc}.
@@ -471,7 +471,7 @@ apm-server version
 
 
 [float]
-[[global-flags]]
+[[apm-global-flags]]
 === Global flags
 
 These global flags are available whenever you run APM Server.
@@ -511,22 +511,22 @@ If `systemd` or `container` is specified, APM Server will log to stdout and stde
 by default.
 
 *`--path.config`*::
-Sets the path for configuration files. See the <<directory-layout>> section for
+Sets the path for configuration files. See the <<apm-directory-layout>> section for
 details.
 
 *`--path.data`*::
-Sets the path for data files. See the <<directory-layout>> section for details.
+Sets the path for data files. See the <<apm-directory-layout>> section for details.
 
 *`--path.home`*::
-Sets the path for miscellaneous files. See the <<directory-layout>> section for
+Sets the path for miscellaneous files. See the <<apm-directory-layout>> section for
 details.
 
 *`--path.logs`*::
-Sets the path for log files. See the <<directory-layout>> section for details.
+Sets the path for log files. See the <<apm-directory-layout>> section for details.
 
 *`--strict.perms`*::
 Sets strict permission checking on configuration files. The default is `-strict.perms=true`.
-See <<config-file-ownership>> for more information.
+See <<apm-config-file-ownership>> for more information.
 
 *`-v, --v`*::
 Logs INFO-level messages.

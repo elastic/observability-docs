@@ -1,4 +1,4 @@
-[[configuration-anonymous]]
+[[apm-configuration-anonymous]]
 = Configure anonymous authentication
 
 ++++
@@ -24,35 +24,35 @@ include::./tab-widgets/anon-auth-widget.asciidoc[]
 
 
 IMPORTANT: All anonymous access configuration is ignored if
-<<secure-agent-communication,authenticated communication>> is disabled.
+<<apm-secure-agent-communication,authenticated communication>> is disabled.
 
 [float]
-[[config-auth-anon-rum]]
+[[apm-config-auth-anon-rum]]
 = Real User Monitoring (RUM)
 
-If an <<api-key,API key>> or <<secret-token,secret token>> is configured,
+If an <<apm-api-key,API key>> or <<apm-secret-token,secret token>> is configured,
 then anonymous authentication must be enabled to collect RUM data.
-For this reason, anonymous auth will be enabled automatically if <<rum-enable>>
-is set to `true`, and <<config-auth-anon-enabled>> is not explicitly defined.
+For this reason, anonymous auth will be enabled automatically if <<apm-rum-enable>>
+is set to `true`, and <<apm-config-auth-anon-enabled>> is not explicitly defined.
 
-See <<configuration-rum>> for additional RUM configuration options.
+See <<apm-configuration-rum>> for additional RUM configuration options.
 
 [float]
-[[config-auth-anon-mitigating]]
+[[apm-config-auth-anon-mitigating]]
 == Mitigating malicious requests
 
 There are a few configuration variables that can mitigate the impact of malicious requests to an
 unauthenticated APM Server endpoint.
 
-Use the <<config-auth-anon-allow-agent>> and <<config-auth-anon-allow-service>> configs to ensure that the
+Use the <<apm-config-auth-anon-allow-agent>> and <<apm-config-auth-anon-allow-service>> configs to ensure that the
 `agent.name` and `service.name` of each incoming request match a specified list.
 
 Additionally, the APM Server can rate-limit unauthenticated requests based on the client IP address
-(`client.ip`) of the request with <<config-auth-anon-event-limit>>.
+(`client.ip`) of the request with <<apm-config-auth-anon-event-limit>>.
 This allows you to specify the maximum number of requests allowed per unique IP address, per second.
 
 [float]
-[[config-auth-anon-client-ip]]
+[[apm-config-auth-anon-client-ip]]
 == Deriving an incoming request's `client.ip` address
 
 The remote IP address of an incoming request might be different
@@ -67,7 +67,7 @@ The supported headers are parsed in the following order:
 If none of these headers are present, the remote address for the incoming request is used.
 
 [float]
-[[config-auth-anon-client-ip-concerns]]
+[[apm-config-auth-anon-client-ip-concerns]]
 == Using a reverse proxy or load balancer
 
 HTTP headers are easily modified;
@@ -82,11 +82,11 @@ This prevents malicious users from cycling spoofed IP addresses to bypass the
 APM Server's rate limiting feature.
 
 [float]
-[[config-auth-anon]]
+[[apm-config-auth-anon]]
 = Configuration reference
 
 [float]
-[[config-auth-anon-enabled]]
+[[apm-config-auth-anon-enabled]]
 == Anonymous Agent access
 
 Enable or disable anonymous authentication.
@@ -98,7 +98,7 @@ Default: `false` (disabled). (bool)
 |====
 
 [float]
-[[config-auth-anon-allow-agent]]
+[[apm-config-auth-anon-allow-agent]]
 == Allowed anonymous agents
 A list of permitted {apm-agent} names for anonymous authentication.
 Names in this list must match the agent's `agent.name`.
@@ -110,7 +110,7 @@ Default: `[rum-js, js-base]` (only RUM agent events are accepted). (array)
 |====
 
 [float]
-[[config-auth-anon-allow-service]]
+[[apm-config-auth-anon-allow-service]]
 == Allowed services
 A list of permitted service names for anonymous authentication.
 Names in this list must match the agent's `service.name`.
@@ -123,10 +123,10 @@ Default: Not set (any service name is accepted). (array)
 |====
 
 [float]
-[[config-auth-anon-ip-limit]]
+[[apm-config-auth-anon-ip-limit]]
 == IP limit
 The number of unique IP addresses to track in an LRU cache.
-IP addresses in the cache will be rate limited according to the <<config-auth-anon-event-limit>> setting.
+IP addresses in the cache will be rate limited according to the <<apm-config-auth-anon-event-limit>> setting.
 Consider increasing this default if your application has many concurrent clients.
 Default: `1000`. (int)
 
@@ -136,7 +136,7 @@ Default: `1000`. (int)
 |====
 
 [float]
-[[config-auth-anon-event-limit]]
+[[apm-config-auth-anon-event-limit]]
 == Event limit
 The maximum number of events allowed per second, per agent IP address.
 Default: `300`. (int)
