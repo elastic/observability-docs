@@ -40,18 +40,13 @@ In that case, the rate will be calculated as follows:
 
 `(max_value_in_current_bucket - max_value_in_previous_bucket)/interval_in_seconds`, where:
 
-* `max_value_in_current_bucket` (now-1m → now): 1
-* `max_value_in_previous_bucket` (now-2m → now-1m): 0
+* `max_value_in_current_bucket` [now-1m → now]: 1
+* `max_value_in_previous_bucket` [now-2m → now-1m]: 0
 * `interval_in_seconds`: 60
 
 The rate calculation would be: `(1 - 0) / 60 = 0.0166666666667`
 
 If you want to alert when the rate of restarts is above 1 within a 1-minute window, you would set the threshold above `0.0166666666667`.
-
-// I think it might be confusing that we are representing the calculation in two different ways here,
-// especially since the first row in the table shows the calculation from the example.
-// At the very least, I think we need some kind of transition that introduces this table.
-// Maybe something like this (please feel free to suggest something better):
 
 The calculation you need to use depends on the interval that's selected:
 
@@ -72,7 +67,7 @@ The calculation you need to use depends on the interval that's selected:
 
 //I think the example needs some introduction. How about:
 
-The rule definition in this example creates an alert if the number of bytes received by a host on all network interfaces exceeds 10 bit/s:
+The rule definition in this example creates an alert if the rate of bytes received by a host on all network interfaces exceeds 10 bit/s:
 
 [role="screenshot"]
 image::images/alerts-rate-aggregation.png[Rule configuration that shows Aggregation A set to RATE host.network.ingress.bytes with a threshold of IS ABOVE 10 FOR THE LAST 1 minute]
