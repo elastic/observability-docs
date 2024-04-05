@@ -9,8 +9,10 @@
 [[elastic-synthetics-command]]
 = `@elastic/synthetics`
 
-The {synthetics-app} uses the `npx @elastic/synthetics` command to run and report synthetic tests.
-It can also be used locally to help develop your tests.
+The {synthetics-app} uses the
+https://www.npmjs.com/package/@elastic/synthetics[@elastic/synthetics] Node.js
+library to run synthetic browser tests and report the test results.
+The library also provides a CLI to help you scaffold, develop/run tests locally, and push tests to {kib}.
 
 [source,sh]
 ----
@@ -22,21 +24,17 @@ purely to interact with the {synthetics-app}.
 However, there are some you may find useful:
 
 `--match <string>`::
-Filters journey with the name or a matching tag.
+run tests with a name or tags that matches the glob pattern.
 
 `--tags Array<string>`::
-Filters journey with the given tag(s).
+run tests with the given tag(s) that matches the glob pattern.
 
-`--reporter <junit|default|json>`::
-One of `junit`, `default`, or `json`. Use the JUnit reporter to provide easily parsed output to CI
-servers like Jenkins.
-
-`--inline`::
-Instead of reading from a file, `cat` inline scripted journeys and pipe them through `stdin`.
-For example, `cat path/to/file.js | npx @elastic/synthetics --inline`.
+`--pattern <string>`::
+RegExp pattern to match journey files in the current working directory. Defaults
+to `/*.journey.(ts|js)$/` which matches files ending with `.journey.ts` or `.journey.js`.
 
 `--params <jsonstring>`::
-A JSON object that defines any variables your tests require.
+JSON object that defines any variables your tests require.
 Read more in <<synthetics-params-secrets>>.
 +
 Params passed will be merged with params defined in your
@@ -53,12 +51,26 @@ Options passed will be merged with Playwright options defined in your
 Options defined via the CLI take precedence.
 
 `--screenshots <on|off|only-on-failure>`::
-Control whether or not to capture screenshots.
+Control whether or not to capture screenshots at the end of each step.
 Options include `'on'`, `'off'`, or `'only-on-failure'`.
 +
 This can also be set in the configuration file using
 <<synthetics-configuration-monitor,`monitor.screenshot`>>.
 The value defined via the CLI will take precedence.
+
+`-c, --config <string>`::
+Path to the configuration file. By default, test runner looks for a
+`synthetics.config.(js|ts)` file in the current directory. Synthetics
+configuration provides options to configure how your tests are run and pushed to
+{kib}. Allowed options are described in the <<synthetics-config-file,configuration file>>.
+
+`--reporter <json|junit|buildkite-cli|default>`::
+One of `json`, `junit`, `buildkite-cli` or `default`. Use the JUnit or Buildkite
+reporter to provide easily parsed output to CI systems.
+
+`--inline`::
+Instead of reading from a file, `cat` inline scripted journeys and pipe them through `stdin`.
+For example, `cat path/to/file.js | npx @elastic/synthetics --inline`.
 
 `--no-throttling`::
 Does not apply throttling.
@@ -66,6 +78,12 @@ Does not apply throttling.
 Throttling can also be disabled in the configuration file using
 <<synthetics-configuration-monitor,`monitor.throttling`>>.
 The value defined via the CLI will take precedence.
+
+[NOTE]
+=====
+Network throttling for browser based monitors is disabled. 
+See this https://github.com/elastic/synthetics/blob/main/docs/throttling.md[documention] for more details.
+=====
 
 `--no-headless`::
 Runs with the browser in headful mode.
@@ -82,15 +100,15 @@ Shows help for the `npx @elastic/synthetics` command.
 
 [NOTE]
 =====
-The `--tags` and `--match` flags for filtering are only supported when you grep or
-run synthetic tests locally. Filtering is _not_ supported in any other subcommands
-like `init`, `push`, and `locations`.
+The `--pattern`, `--tags` and `--match` flags for filtering are only supported when you
+run synthetic tests locally or push them to Kibana. Filtering is _not_ supported in any other subcommands
+like `init` and `locations`.
 =====
 
 [NOTE]
 =====
 For debugging synthetic tests locally, you can set an environment variable,
-`DEBUG=synthetics`, to capture Synthetics agent logs when running `npx @elastic/synthetics`.
+`DEBUG=synthetics npx @elastic/synthetics`, to capture Synthetics agent logs. 
 =====
 
 [discrete]
@@ -100,8 +118,8 @@ For debugging synthetic tests locally, you can set an environment variable,
 Scaffold a new project using Elastic Synthetics.
 
 This will create a template Node.js project that includes the synthetics agent, required dependencies,
-a synthetics configuration file, and example journey files.
-These journeys can be edited and then pushed to {kib} to create monitors.
+a synthetics configuration file, and example browser and lightweight monitor files.
+These files can be edited and then pushed to {kib} to create monitors.
 
 [source,sh]
 ----
@@ -114,11 +132,14 @@ Read more about what's included in a template project in <<synthetics-get-starte
 [[elastic-synthetics-push-command]]
 = `@elastic/synthetics push`
 
-Create monitors in {kib} by using your local journeys.
+Create monitors in {kib} by using your local journeys. By default, running
+`push` command will use the `project` settings field from the `synthetics.config.ts`
+file which is set up using the `init` command. However, you can override these 
+settings using the CLI flags.
 
 [source,sh]
 ----
-npx @elastic/synthetics push --auth <api-key> --url <kibana-url> --id <id|name>
+SYNTHETICS_API_KEY=<api-key> npx @elastic/synthetics push --url <kibana-url> --id <id|name>
 ----
 
 [NOTE]
@@ -126,10 +147,14 @@ npx @elastic/synthetics push --auth <api-key> --url <kibana-url> --id <id|name>
 The `push` command includes interactive prompts to prevent you from accidentally deleting or duplicating monitors.
 You will see a prompt when:
 
-* You `push` a project that used to contain one or more monitors but no longer contains any monitors.
-Select `yes` to delete all monitors associated with the project ID being pushed.
+* You `push` a project that used to contain one or more monitors but no longer
+contains previously running monitors or any monitors.
+Select `yes` to delete the monitors associated with the project ID being pushed.
 * You `push` a project that's already been pushed using one project ID and then try to `push`
-it using a _different_ ID. Select `yes` to create duplicates of all monitors in the project.
+it using a _different_ ID. 
+Select `yes` to create duplicates of all monitors in the project.
+
+You can set `DEBUG=synthetics` environment variable to capture the deleted monitors.
 ====
 
 [NOTE]
@@ -138,12 +163,13 @@ If the journey contains external NPM packages other than the `@elastic/synthetic
 those packages will be bundled along with the journey code when the `push` command is invoked.
 However there are some limitations when using external packages:
 	
-* Bundled journeys after compression should not be more than 800 Kilobytes.
-* Native node modules will not work as expected due to platform inconsistency. 
+* Bundled journeys after compression should not be more than 1500 Kilobytes.
+* Native node modules will not work as expected due to platform inconsistency.
+* Uploading files in journey scripts(via locator.setInputFiles) is not supported.
 ====
 
 `--auth <string>`::
-API key used for {kibana-ref}/api-keys.html[{kib} authentication].
+API key used for {kibana-ref}/api-keys.html[{kib} authentication]. You can also set the API key via the `SYNTHETICS_API_KEY` environment variable.
 +
 If you are pushing to a <<private-locations,{private-location}>>, you must use an API key generated in 8.4 or higher.
 +
@@ -210,7 +236,63 @@ When the `--yes` option is passed to `push`:
 * If you `push` a project that used to contain one or more monitors but no longer contains any monitors,
 all monitors associated with the project ID being pushed will be deleted.
 * If you `push` a project that's already been pushed using one project ID and then try to `push`
-it using a _different_ ID, it will create duplicates of all monitors in the project.
+it using a _different_ ID, it will create duplicates of all monitors in the
+project.
+
+[discrete]
+[[tagging-and-filtering]]
+= Tagging and Filtering monitors
+
+Synthetics journeys can be tagged with one or more tags. Tags can be used to
+filter journeys when running tests locally or pushing them to {kib}.
+
+To add tags to a single journey, add the `tags` parameter to the `journey` function or
+use the `monitor.use` method.
+[source,js]
+----
+import {journey, monitor} from "@elastic/synthetics";
+
+journey({name: "example journey", tags: ["env:qa"] }, ({ page }) => {
+  monitor.use({
+    tags: ["env:qa"] 
+  })
+  // Add steps here
+});
+----
+
+For lightweight monitors, use the `tags` field in the yaml configuration file.
+[source,yaml]
+----
+name: example monitor
+tags:
+  - env:qa
+----
+
+To apply tags to all browser and lightweight monitors, configure using <<synthetics-configuration-monitor,`monitor.tags`>> field in the `synthetics.config.ts` file. 
+
+== Filtering monitors
+
+When running the `npx @elastic/synthetics push` command, you can filter the monitors that are pushed to {kib} using the following flags:
+
+`--tags Array<string>`::
+Push monitors with the given tag(s) that matches the glob pattern.
+
+`--match <string>`::
+Push monitors with a name or tags that matches the glob pattern.
+
+`--pattern <string>`::
+RegExp pattern to match the journey files in the current working directory.
+Defaults to `/*.journey.(ts|js)$/` for browser monitors and `/.(yml|yaml)$/` for
+lightweight monitors.
+
+Users can combine the above techniques and push the monitors to different Kibana
+clusters/space based on the tags by using multiple configuration files.
+
+[source, sh]
+----
+npx @elastic/synthetics push --config synthetics.qa.config.ts --tags env:qa
+npx @elastic/synthetics push --config synthetics.prod.config.ts --tags env:prod
+----
 
 [discrete]
 [[elastic-synthetics-locations-command]]
