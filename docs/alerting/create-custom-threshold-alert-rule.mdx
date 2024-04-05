@@ -8,7 +8,11 @@ tags: [ 'serverless', 'observability', 'how-to', 'alerting' ]
 
 <p><DocBadge template="technical preview" /></p>
 
-import Actions from '../transclusion/actions.mdx'
+import Connectors from './alerting-connectors.mdx'
+
+import Roles from '../partials/roles.mdx'
+
+<Roles role="Editor" goal="create a custom threshold rule" />
 
 Create a custom threshold rule to trigger an alert when an ((observability)) data type reaches or exceeds a given value.
 
@@ -114,4 +118,43 @@ If both groups match the conditions, alerts are triggered for both groups.
 
 When you select **Alert me if a group stops reporting data**, the rule is triggered if a group that previously reported metrics does not report them again over the expected time period.
 
-<Actions />
+## Add actions
+
+You can extend your rules with actions that interact with third-party systems, write to logs or indices, or send user notifications. You can add an action to a rule at any time. You can create rules without adding actions, and you can also define multiple actions for a single rule.
+
+To add actions to rules, you must first create a connector for that service (for example, an email or external incident management system), which you can then use for different rules, each with their own action frequency.
+
+<DocAccordion buttonContent="Connector types">
+Connectors provide a central place to store connection information for services and integrations with third party systems.
+The following connectors are available when defining actions for alerting rules:
+
+<Connectors />
+
+For more information on creating connectors, refer to <DocLink id="serverlessActionConnectors">Connectors</DocLink>.
+
+</DocAccordion>
+
+<DocAccordion buttonContent="Action frequency">
+After you select a connector, you must set the action frequency.
+You can choose to create a summary of alerts on each check interval or on a custom interval.
+Alternatively, you can set the action frequency such that you choose how often the action runs (for example,
+at each check interval, only when the alert status changes, or at a custom action interval).
+In this case, you must also select the specific threshold condition that affects when actions run: `Alert`, `No Data`, or `Recovered`.
+
+![Configure when a rule is triggered](../images/custom-threshold-run-when.png)
+
+You can also further refine the conditions under which actions run by specifying that actions only run when they match a KQL query or when an alert occurs within a specific time frame:
+
+- **If alert matches query**: Enter a KQL query that defines field-value pairs or query conditions that must be met for notifications to send. The query only searches alert documents in the indices specified for the rule.
+- **If alert is generated during timeframe**: Set timeframe details. Notifications are only sent if alerts are generated within the timeframe you define.
+
+![Configure a conditional alert](../images/logs-threshold-conditional-alert.png)
+
+</DocAccordion>
+
+<DocAccordion buttonContent="Action variables">
+Use the default notification message or customize it.
+You can add more context to the message by clicking the Add variable icon <DocIcon type="indexOpen" title="Add variable" /> and selecting from a list of available variables.
+
+![Action variables with default APM message](../images/alert-apm-action-variables.png)
+</DocAccordion>
