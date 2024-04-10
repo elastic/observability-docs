@@ -1,0 +1,273 @@
+---
+id: serverlessObservabilitySyntheticsCommandReference
+slug: /serverless/observability/synthetics-command-reference
+title: Use the Synthetics CLI
+# description: Description to be written
+tags: []
+---
+
+<p><DocBadge template="technical preview" /></p>
+
+<div id="synthetics-command-reference"></div>
+
+<div id="elastic-synthetics-command"></div>
+
+## `@elastic/synthetics`
+
+Elastic uses the `npx @elastic/synthetics` command to run and report synthetic tests in Observability projects.
+It can also be used locally to help develop your tests.
+
+```sh
+npx @elastic/synthetics [options] [files] [dir]
+```
+
+You will not need to use most command line flags.
+However, there are some you may find useful:
+
+<DocDefList>
+  <DocDefTerm>`--match <string>`</DocDefTerm>
+  <DocDefDescription>
+    Filters journey with the name or a matching tag.
+  </DocDefDescription>
+
+  <DocDefTerm>`--tags Array<string>`</DocDefTerm>
+  <DocDefDescription>
+    Filters journey with the given tag(s).
+  </DocDefDescription>
+
+  <DocDefTerm>`--reporter <junit|default|json>`</DocDefTerm>
+  <DocDefDescription>
+    One of `junit`, `default`, or `json`. Use the JUnit reporter to provide easily parsed output to CI
+    servers like Jenkins.
+  </DocDefDescription>
+
+  <DocDefTerm>`--inline`</DocDefTerm>
+  <DocDefDescription>
+    Instead of reading from a file, `cat` inline scripted journeys and pipe them through `stdin`.
+    For example, `cat path/to/file.js | npx @elastic/synthetics --inline`.
+  </DocDefDescription>
+
+  <DocDefTerm>`--params <jsonstring>`</DocDefTerm>
+  <DocDefDescription>
+    A JSON object that defines any variables your tests require.
+    Read more in <DocLink id="serverlessObservabilitySyntheticsParamsSecrets">Work with params and secrets</DocLink>.
+
+    Params passed will be merged with params defined in your
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="params">`synthetics.config.js` file</DocLink>.
+    Params defined via the CLI take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`--playwright-options <jsonstring>`</DocDefTerm>
+  <DocDefDescription>
+    JSON object to pass in custom Playwright options for the agent.
+    For more details on relevant Playwright options, refer to the
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="playwrightoptions">the configuration docs</DocLink>.
+
+    Options passed will be merged with Playwright options defined in your
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="playwrightoptions">`synthetics.config.js` file</DocLink>.
+    Options defined via the CLI take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`--screenshots <on|off|only-on-failure>`</DocDefTerm>
+  <DocDefDescription>
+    Control whether or not to capture screenshots.
+    Options include `'on'`, `'off'`, or `'only-on-failure'`.
+
+    This can also be set in the configuration file using
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.screenshot`</DocLink>.
+    The value defined via the CLI will take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`--no-throttling`</DocDefTerm>
+  <DocDefDescription>
+    Does not apply throttling.
+
+    Throttling can also be disabled in the configuration file using
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.throttling`</DocLink>.
+    The value defined via the CLI will take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`--no-headless`</DocDefTerm>
+  <DocDefDescription>
+    Runs with the browser in headful mode.
+
+    This is the same as setting [Playwright's `headless` option](https://playwright.dev/docs/api/class-testoptions#test-options-headless) to `false` by running `--playwright-options '{"headless": false}'`.
+
+    <DocCallOut title="Note">
+      Headful mode should only be used locally to see the browser and interact with DOM elements directly for testing purposes. Do not attempt to run in headful mode when running through Elastic's global managed testing infrastructure or ((private-location))s as this is not supported.
+    </DocCallOut>
+  </DocDefDescription>
+
+  <DocDefTerm>`-h, --help`</DocDefTerm>
+  <DocDefDescription>
+    Shows help for the `npx @elastic/synthetics` command.
+  </DocDefDescription>
+
+</DocDefList>
+
+<DocCallOut title="Note">
+  The `--tags` and `--match` flags for filtering are only supported when you grep or
+  run synthetic tests locally. Filtering is _not_ supported in any other subcommands
+  like `init`, `push`, and `locations`.
+</DocCallOut>
+
+<DocCallOut title="Note">
+  For debugging synthetic tests locally, you can set an environment variable,
+  `DEBUG=synthetics`, to capture Synthetics agent logs when running `npx @elastic/synthetics`.
+</DocCallOut>
+
+<div id="elastic-synthetics-init-command"></div>
+
+## `@elastic/synthetics init`
+
+Scaffold a new Synthetics project using Elastic Synthetics.
+
+This will create a template Node.js project that includes the synthetics agent, required dependencies,
+a synthetics configuration file, and example journey files.
+These journeys can be edited and then pushed to Elastic to create monitors.
+
+```sh
+npx @elastic/synthetics init <name-of-synthetics-project>
+```
+
+Read more about what's included in a template Synthetics project in <DocLink id="serverlessObservabilitySyntheticsGetStartedProject" section="create-a-synthetics-project">Create a Synthetics project</DocLink>.
+
+<div id="elastic-synthetics-push-command"></div>
+
+## `@elastic/synthetics push`
+
+Create monitors using your local journeys.
+
+```sh
+npx @elastic/synthetics push --auth <api-key> --url <observability-project-url> --id <id|name>
+```
+
+<DocCallOut title="Note">
+  The `push` command includes interactive prompts to prevent you from accidentally deleting or duplicating monitors.
+  You will see a prompt when:
+
+  * You `push` a Synthetics project that used to contain one or more monitors but no longer contains any monitors.
+      Select `yes` to delete all monitors associated with the Synthetics project ID being pushed.
+  * You `push` a Synthetics project that's already been pushed using one Synthetics project ID and then try to `push`
+      it using a _different_ ID. Select `yes` to create duplicates of all monitors in the Synthetics project.
+</DocCallOut>
+
+<DocCallOut title="Note">
+  If the journey contains external NPM packages other than the `@elastic/synthetics`,
+  those packages will be bundled along with the journey code when the `push` command is invoked.
+  However there are some limitations when using external packages:
+
+  * Bundled journeys after compression should not be more than 800 Kilobytes.
+  * Native node modules will not work as expected due to platform inconsistency.
+</DocCallOut>
+
+<DocDefList>
+  <DocDefTerm>`--auth <string>`</DocDefTerm>
+  <DocDefDescription>
+    API key used for authentication.
+
+    To create an API key, you must be logged in as a user with
+    <DocLink id="serverlessObservabilitySyntheticsFeatureRoles">Editor</DocLink> access.
+  </DocDefDescription>
+
+  <DocDefTerm>`--id <string>`</DocDefTerm>
+  <DocDefDescription>
+    A unique id associated with your Synthetics project.
+    It will be used for logically grouping monitors.
+
+    If you used <DocLink id="serverlessObservabilitySyntheticsCommandReference" section="elasticsynthetics-init">`init` to create a Synthetics project</DocLink>, this is the `<name-of-synthetics-project>` you specified.
+
+    This can also be set in the configuration file using
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="project">`project.id`</DocLink>.
+    The value defined via the CLI will take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`--url <string>`</DocDefTerm>
+  <DocDefDescription>
+    The URL for the Observability project to which you want to upload the monitors.
+
+    This can also be set in the configuration file using
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="project">`project.url`</DocLink>.
+    The value defined via the CLI will take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`--schedule <number>`</DocDefTerm>
+  <DocDefDescription>
+    The interval (in minutes) at which the monitor should run.
+
+    This can also be set in the configuration file using
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.schedule`</DocLink>.
+    The value defined via the CLI will take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>[`--locations Array<SyntheticsLocationsType>`](https://github.com/elastic/synthetics/blob/((synthetics_version))/src/locations/public-locations.ts#L28-L37)</DocDefTerm>
+  <DocDefDescription>
+    Where to deploy the monitor. Monitors can be deployed in multiple locations so that you can detect differences in availability and response times across those locations.
+
+    To list available locations, refer to <DocLink id="serverlessObservabilitySyntheticsCommandReference" section="elasticsynthetics-locations">`@elastic/synthetics locations`</DocLink>.
+
+    This can also be set in the configuration file using
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.locations` in the configuration file</DocLink>.
+    The value defined via the CLI will take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`--private-locations Array<string>`</DocDefTerm>
+  <DocDefDescription>
+    The <DocLink id="serverlessObservabilitySyntheticsPrivateLocation">((private-location))s</DocLink> to which the monitors will be deployed. These ((private-location))s refer to locations hosted and managed by you, whereas
+    `locations` are hosted by Elastic. You can specify a ((private-location)) using the location's name.
+
+    To list available ((private-location))s, refer to <DocLink id="serverlessObservabilitySyntheticsCommandReference" section="elasticsynthetics-locations">`@elastic/synthetics locations`</DocLink>.
+
+    This can also be set in the configuration file using
+    <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.privateLocations` in the configuration file</DocLink>.
+    The value defined via the CLI will take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`--yes`</DocDefTerm>
+  <DocDefDescription>
+    The `push` command includes interactive prompts to prevent you from accidentally deleting or duplicating monitors.
+    If running the CLI non-interactively, you can override these prompts using the `--yes` option.
+    When the `--yes` option is passed to `push`:
+
+    * If you `push` a Synthetics project that used to contain one or more monitors but no longer contains any monitors,
+        all monitors associated with the Synthetics project ID being pushed will be deleted.
+
+    * If you `push` a Synthetics project that's already been pushed using one Synthetics project ID and then try to `push`
+        it using a _different_ ID, it will create duplicates of all monitors in the Synthetics project.
+  </DocDefDescription>
+</DocDefList>
+
+
+<div id="elastic-synthetics-locations-command"></div>
+
+## `@elastic/synthetics locations`
+
+List all available locations for running synthetics monitors.
+
+```sh
+npx @elastic/synthetics locations --url <observability-project-host> --auth <api-key>
+```
+
+Run `npx @elastic/synthetics locations` with no flags to list all the available global locations managed by Elastic for running synthetics monitors.
+
+To list both locations on Elastic's global managed infrastructure and ((private-location))s, include:
+
+<DocDefList>
+  <DocDefTerm>`--url <string>`</DocDefTerm>
+  <DocDefDescription>
+    The URL for the Observability project from which to fetch all available public and ((private-location))s.
+  </DocDefDescription>
+
+  <DocDefTerm>`--auth <string>`</DocDefTerm>
+  <DocDefDescription>
+    API key used for authentication.
+  </DocDefDescription>
+</DocDefList>
+
+{/* <DocCallOut title="Note">
+  If an administrator has disabled Elastic managed locations for the role you are assigned
+  and you do _not_ include `--url` and `--auth`, all global locations managed by Elastic will be listed.
+  However, you will not be able to push to these locations with your API key and will see an error:
+  _You don't have permission to use Elastic managed global locations_. For more details, refer to the
+  <DocLink id="serverlessObservabilitySyntheticsTroubleshooting" section="you-do-not-have-permission-to-use-elastic-managed-locations">troubleshooting docs</DocLink>.
+</DocCallOut> */}

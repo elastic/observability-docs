@@ -1,0 +1,178 @@
+---
+id: serverlessObservabilitySyntheticsPrivateLocation
+slug: /serverless/observability/synthetics-private-location
+title: Monitor resources on private networks
+# description: Description to be written
+tags: []
+---
+
+<p><DocBadge template="technical preview" /></p>
+
+<div id="synthetics-private-location"></div>
+
+To monitor resources on private networks you can either:
+
+* Allow Elastic's global managed infrastructure to access your private endpoints.
+* Use ((agent)) to create a ((private-location)).
+
+((private-location))s via Elastic Agent require only outbound connections from your network,
+while allowing Elastic's global managed infrastructure to access a private endpoint requires
+inbound access, thus posing an additional risk that users must assess.
+
+<div id="monitor-via-access-control"></div>
+
+## Allow access to your private network
+
+To give Elastic's global managed infrastructure access to a private endpoint, use IP address filtering, HTTP authentication, or both.
+
+To grant access via IP, use [this list of egress IPs](https://manifest.synthetics.elastic-cloud.com/v1/ip-ranges.json).
+The addresses and locations on this list may change, so automating updates to
+filtering rules is recommended. IP filtering alone will allow all users of Elastic's global managed infrastructure access to your endpoints, if this
+is a concern consider adding additional protection via user/password authentication via a proxy like nginx.
+
+<div id="monitor-via-private-agent"></div>
+
+## Monitor via a private agent
+
+((private-location))s allow you to run monitors from your own premises.
+Before running a monitor on a ((private-location)), you'll need to:
+
+* <DocLink id="serverlessObservabilitySyntheticsPrivateLocation" section="set-up-agent">Set up ((agent))</DocLink>.
+* <DocLink id="serverlessObservabilitySyntheticsPrivateLocation" section="connect-to-your-observability-project">Connect ((fleet)) to your Observability project</DocLink> and enroll an ((agent)) in ((fleet)).
+* <DocLink id="serverlessObservabilitySyntheticsPrivateLocation" section="add-a-private-location">Add a ((private-location))</DocLink> in the Synthetics UI.
+
+<DocCallOut title="Important" color="warning">
+
+((private-location))s running through ((agent)) must have a direct connection to ((es)).
+Do not configure any ingest pipelines, or output via Logstash as this will prevent Synthetics from working properly and is not supported.
+
+</DocCallOut>
+
+<div id="synthetics-private-location-fleet-agent"></div>
+
+## Set up ((agent))
+
+Start by setting up ((agent)) and creating an agent policy**. For more information on agent policies and creating them, refer to [((agent)) policy](((fleet-guide))/agent-policy.html#create-a-policy).
+
+<DocCallOut title="Important" color="warning">
+
+A ((private-location)) should be set up against an agent policy that runs on a single ((agent)).
+The ((agent)) must be **enrolled in Fleet** (((private-location))s cannot be set up using **standalone** ((agents))).
+Do _not_ run the same agent policy on multiple agents being used for ((private-location))s, as you may
+end up with duplicate or missing tests. ((private-location))s do not currently load balance tests across
+multiple ((agents)). See <DocLink id="serverlessObservabilitySyntheticsPrivateLocation" section="scaling-private-locations">Scaling ((private-location))s</DocLink> for information on increasing the capacity
+within a ((private-location)).
+
+By default ((private-location))s are configured to allow two simultaneous browser tests and an unlimited number of lightweight checks.
+As a result, if more than two browser tests are assigned to a particular ((private-location)), there may be a delay to run them.
+
+</DocCallOut>
+
+<div id="synthetics-private-location-connect"></div>
+
+## Connect to your Observability project
+
+After setting up ((fleet)), you'll connect ((fleet)) to the your Observability project
+and enroll an ((agent)) in ((fleet)).
+
+<div id="synthetics-private-location-docker"></div>
+
+Elastic provides Docker images that you can use to run ((fleet)) and an ((agent)) more easily.
+For monitors running on ((private-location))s, you _must_ use the `elastic-agent-complete`
+Docker image to create a self-hosted ((agent)) node. The standard ((ecloud)) or self-hosted
+((agent)) will not work.
+
+<DocIf condition={ "((release-state))" === "unreleased" }>
+
+Version ((version)) has not yet been released.
+
+</DocIf>
+
+<DocIf condition={ "((release-state))" !== "unreleased" }>
+
+To pull the Docker image run:
+
+```sh
+docker pull docker.elastic.co/beats/elastic-agent-complete:((version))
+```
+
+</DocIf>
+
+Then enroll and run an ((agent)).
+You'll need an enrollment token and the URL of the ((fleet-server)).
+You can use the default enrollment token for your policy or create new policies
+and [enrollment tokens](((fleet-guide))/fleet-enrollment-tokens.html) as needed.
+
+For more information on running ((agent)) with Docker, refer to
+[Run ((agent)) in a container](((fleet-guide))/elastic-agent-container.html).
+
+<DocIf condition={ "((release-state))" === "unreleased" }>
+
+Version ((version)) has not yet been released.
+
+</DocIf>
+
+<DocIf condition={ "((release-state))" !== "unreleased" }>
+
+```sh
+docker run \
+  --env FLEET_ENROLL=1 \
+  --env FLEET_URL={fleet_server_host_url} \
+  --env FLEET_ENROLLMENT_TOKEN={enrollment_token} \
+  --cap-add=NET_RAW \
+  --cap-add=SETUID \
+  --rm docker.elastic.co/beats/elastic-agent-complete:((version))
+```
+
+</DocIf>
+
+<DocCallOut title="Important" color="warning">
+
+The `elastic-agent-complete` Docker image requires additional capabilities to operate correctly. Ensure
+`NET_RAW` and `SETUID` are enabled on the container.
+
+</DocCallOut>
+
+<DocCallOut title="Note">
+
+You may need to set other environment variables.
+Learn how in [((agent)) environment variables guide](((fleet-guide))/agent-environment-variables.html).
+
+</DocCallOut>
+
+<div id="synthetics-private-location-add"></div>
+
+## Add a ((private-location))
+
+When the ((agent)) is running you can add a new ((private-location)) in your Observability project's **Synthetics** section:
+
+1. Go to **Settings**.
+1. Go to the **((private-location))s** tab.
+1. Click **Add location**.
+1. Give your new location a unique _Location name_ and select the _Agent policy_ you created above.
+1. Click **Save**.
+
+<div id="synthetics-private-location-scaling"></div>
+
+## Scaling ((private-location))s
+
+By default ((private-location))s are configured to allow two simultaneous browser tests, and an unlimited number of lightweight checks.
+These limits can be set via the environment variables `SYNTHETICS_LIMIT_{TYPE}`, where `{TYPE}` is one of `BROWSER`, `HTTP`, `TCP`, and `ICMP`
+for the container running the ((agent)) docker image.
+
+It is critical to allocate enough memory and CPU capacity to handle configured limits.
+Start by allocating at least 2 GiB of memory and two cores per browser instance to ensure consistent
+performance and avoid out-of-memory errors. Then adjust as needed. Resource requirements will vary depending on workload.
+Much less memory is needed for lightweight monitors. Start by allocating at least 512MiB of memory and two cores for
+lightweight checks. Then increase allocated memory and CPU based on observed usage patterns.
+
+These limits are for simultaneous tests, not total tests. For example, if
+60 browser tests were scheduled to run once per hour and each took 1 minute to run, that would fully occupy one execution slot.
+However, it is a good practice to set up execution slots with extra capacity. A good starting point would be to over-allocate by
+a factor of 5. In the previous example that would mean allocating 5 slots.
+
+<div id="synthetics-private-location-next"></div>
+
+## Next steps
+
+Now you can add monitors to your ((private-location)) in <DocLink id="serverlessObservabilitySyntheticsGetStartedUi">the Synthetics UI</DocLink> or using the <DocLink id="serverlessObservabilitySyntheticsGetStartedProject">Elastic Synthetics library's `push` method</DocLink>.
