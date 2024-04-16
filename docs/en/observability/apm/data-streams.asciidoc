@@ -86,6 +86,34 @@ Logs are stored in the following data streams:
 // end::logs-data-streams[]
 
 [discrete]
+[[apm-data-stream-rerouting]]
+=== APM data stream rerouting
+
+APM supports rerouting APM data to user-defined APM data stream names other than the defaults.
+This can be achieved by using a {ref}/reroute-processor.html[`reroute` processor] in ingest pipelines to set the data stream dataset or namespace.
+The benefit of separating APM data streams is that custom retention and security policies can be used.
+
+For example, consider traces that would originally be indexed to `traces-apm-default`. To set the data stream namespace from the trace's `service.environment` and fallback to a static string `"default"`, create an ingest pipeline named `traces-apm@custom` which will be used automatically:
+
+[source, json]
+----
+[
+  {
+    "reroute": {
+      "namespace": [
+        "{{service.environment}}",
+        "default"
+      ]
+    }
+  }
+]
+----
+
+For more about other ingest pipelines called by default, e.g. `traces-apm@custom`, see {fleet-guide}/data-streams.html#data-streams-pipelines[integration data streams ingest pipelines].
+
+For more custom APM ingest pipeline guides, see <<ingest-pipelines,parse data using ingest pipelines>>.
+
+[discrete]
 [[apm-data-streams-next]]
 === What's next?
 
