@@ -1,0 +1,48 @@
+[[upload-a-new-integration]]
+= Upload an integration
+
+++++
+<titleabbrev>Upload an integration to Kibana</titleabbrev>
+++++
+
+{fleet} supports integration installation through direct upload as a means to support integration developers
+or users who have created custom integrations that they don't want to commit upstream back to the https://github.com/elastic/integrations[Elastic Integrations repository].
+
+Direct upload can also be useful in air-gapped environments,
+by providing a way to update integrations without needing to update a self-hosted package registry.
+
+[[upload-integration-local]]
+== Local development
+
+If you've followed the local development steps in <<build-a-new-integration>>, upload your integration to Kibana with the following command:
+
+[source,terminal]
+----
+elastic-package install --zip /path/to/my/custom-integration
+----
+
+For more information, see <<elastic-package-install>>.
+
+[[upload-integration-production]]
+== Production deployment
+
+To upload your integration to a production deployment, first zip the package:
+
+[source,terminal]
+----
+$ zip -r my-custom-integration.zip /path/to/my/custom-integration
+----
+
+You can now use the Kibana API to upload your integration:
+
+[source,terminal]
+----
+$ curl -XPOST \
+  -H 'content-type: application/zip' \
+  -H 'kbn-xsrf: true' \
+  http://your.kibana.host/api/fleet/epm/packages \
+  -u {username}:{password} \
+  --data-binary @my-custom-integration.zip
+----
+
+More information on this endpoint is available in the {fleet-guide}/fleet-apis.html[Fleet API Reference].
