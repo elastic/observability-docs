@@ -7,6 +7,7 @@ Ready to monitor, ingest, and visualize something? Let's get started.
 * <<build-spin-stack>>
 * <<build-create-package>>
 * <<add-a-data-stream>>
+* <<define-deployment-modes>>
 * <<edit-ingest-pipeline>>
 * <<add-a-mapping>>
 * <<create-dashboards>>
@@ -105,6 +106,7 @@ These assets are loaded into {es} when a user installs an integration using the 
 A data stream also defines a policy template.
 Policy templates include variables that allow users to configure the data stream using the {fleet} UI in {kib}.
 Then, the {agent} interprets the resulting policy to collect relevant information from the product or service being observed.
+Policy templates can also define an integration's supported <<deployment_modes>>.
 
 See {fleet-guide}/data-streams.html[data streams] for more information.
 ****
@@ -127,6 +129,92 @@ Next, manually adjust the data stream:
 * define used fields
 * define ingest pipeline definitions (if necessary)
 * update the {agent}'s stream configuration
+
+[[define-deployment-modes]]
+== Define deployment modes
+
+Some integrations can be deployed on fully managed agents.
+These integrations are known as agentless integrations.
+You can define the deployment mode of your integration with the <<deployment_modes>> and <<hide_in_deployment_modes>> properties.
+
+[discrete]
+[[deployment_modes]]
+=== `deployment_modes`
+
+Policy templates can indicate which deployment modes they support.
+Use the `deployment_modes` property in the policy template schema to define the supported deployment modes.
+Options are `default` and `agentless`.
+
+Example policy template declaration:
+
+[source,yaml]
+----
+format_version: 3.0.0
+name: aws
+title: AWS
+version: 2.13.1
+...
+policy_templates:
+  - name: billing
+    title: AWS Billing
+    description: Collect billing metrics with Elastic Agent
+    deployment_modes: <1>
+      default:
+        enabled: false <2>
+      agentless:
+        enabled: true <3>
+    data_streams:
+      - billing
+    ...
+----
+<1> Define the supported deployment modes
+<2> Disables agent deployment support
+<3> Enables agentless deployment support
+
+[discrete]
+[[hide_in_deployment_modes]]
+=== `hide_in_deployment_modes`
+
+Variables can be hidden in certain deployment modes.
+Use the `hide_in_deployment_modes` property to opt variables in or out of being displayed in default or agentless mode.
+This property works at any manifest level.
+
+Example variable declaration:
+
+[source,yaml]
+----
+streams:
+  - input: logfile
+    vars:
+      - name: paths
+        type: text
+        title: Paths
+        multi: true
+        required: true
+        show_user: true
+        default:
+          - /var/log/my-package/*.log
+      - name: agentless_only
+        type: text
+        title: Agentless only variable
+        multi: false
+        required: false
+        show_user: true
+        hide_in_deployment_modes: <1>
+          - default
+     - name: hidden_in_agentless
+        type: text
+        title: Hidden in agentless variable
+        multi: false
+        required: false
+        show_user: true
+        hide_in_deployment_modes: <2>
+          - agentless
+----
+<1> Disables visibility of the variable in agent deployment mode
+<2> Disables visibility of the variable in agentless deployment mode
+
+For more information on variable property definitions, see <<define-variable-properties>>.
 
 [[edit-ingest-pipeline]]
 == Edit ingest pipelines
@@ -571,6 +659,7 @@ To see how to use template functions, for example {{fields "data-stream-name"}},
 
 === Review artifacts
 
+[[define-variable-properties]]
 === Define variable properties
 
 The variable properties customize visualization of configuration options in the {kib} UI. Make sure they're defined in all manifest files.
@@ -585,6 +674,8 @@ vars:
     description: Paths to the nginx access log file. <4>
     type: text <5>
     multi: true <6>
+    hide_in_deployment_modes: <7>
+      - agentless
     default:
       - /var/log/nginx/access.log*
 ----
@@ -593,7 +684,8 @@ vars:
 <3> human readable variable name
 <4> variable description (may contain some details)
 <5> field type (according to the reference: text, password, bool, integer)
-<6> the field has multiple values.
+<6> the field has multiple values
+<7> hides the variable in agentless mode (see <<hide_in_deployment_modes>> for more information)
 
 // === Add sample events
 
