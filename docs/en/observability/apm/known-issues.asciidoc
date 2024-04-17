@@ -19,6 +19,116 @@ If applicable, exact error messages linked to this issue so users searching for 
 Link to fix
 ////
 
+[[broken-apm-anomaly-rule]]
+*Upgrading to v8.13 breaks APM anomaly rules* +
+_Elastic Stack versions: 8.13.0 & 8.13.1_ +
+_Fixed in Elastic Stack version 8.14.0_
+
+// The conditions in which this issue occurs
+This issue occurs when upgrading the Elastic Stack to version 8.13.0 or 8.13.1.
+This issue may go unnoticed unless you actively monitor your {kib} logs.
+The following log indicates the presence of this issue:
+[source,shell]
+----
+"params invalid: [anomalyDetectorTypes]: expected value of type [array] but got [undefined]"
+----
+
+This issue occurs because a non-optional parameter, `anomalyDetectorTypes` was added in 8.13.0 without
+the presence of an automation migration script. This breaks pre-existing rules as they do not have this parameter
+and will fail validation. This issue is fixed in v8.14.0.
+
+It is possible to fix this error without upgrading. Follow these steps:
+
+. Find broken rules
++
+====
+To identify rules in this exact state, you can use the {kibana-ref}/find-rules-api.html[find endpoint] and search for the APM anomaly rule type as well as this exact error message indicating that the rule is in the broken state. We will also use the `fields` parameter to specify only the fields required when making the update request later.
+
+* `search_fields=alertTypeId`
+* `search=apm.anomaly`
+* `filter=alert.attributes.executionStatus.error.message:"params invalid: [anomalyDetectorTypes]: expected value of type [array] but got [undefined]"`
+* `fields=[id, name, actions, tags, schedule, notify_when, throttle, params]`
+
+The encoded request might look something like this:
+
+[source,shell]
+----
+curl -u "$KIBANA_USER":"$KIBANA_PASSWORD" "$KIBANA_URL/api/alerting/rules/_find?search_fields=alertTypeId&search=apm.anomaly&filter=alert.attributes.executionStatus.error.message%3A%22params%20invalid%3A%20%5BanomalyDetectorTypes%5D%3A%20expected%20value%20of%20type%20%5Barray%5D%20but%20got%20%5Bundefined%5D%22&fields=id&fields=name&fields=actions&fields=tags&fields=schedule&fields=notify_when&fields=throttle&fields=params"
+----
+
+[%collapsible]
+.Example result:
+======
+[source,json]
+----
+{
+  "page": 1,
+  "total": 1,
+  "per_page": 10,
+  "data": [
+    {
+      "id": "d85e54de-f96a-49b5-99d4-63956f90a6eb",
+      "name": "APM Anomaly Jason Test FAILING [2]",
+      "tags": [
+        "test",
+        "jasonrhodes"
+      ],
+      "throttle": null,
+      "schedule": {
+        "interval": "1m"
+      },
+      "params": {
+        "windowSize": 30,
+        "windowUnit": "m",
+        "anomalySeverityType": "warning",
+        "environment": "ENVIRONMENT_ALL"
+      },
+      "notify_when": null,
+      "actions": []
+    }
+  ]
+}
+----
+======
+====
+
+. Prepare the update JSON doc(s)
++
+====
+For each broken rule found, create a JSON rule document with what was returned from the API in the previous step. You will need to make two changes to each document:
+
+. Remove the `id` key but keep the value connected to this document (e.g. rename the file to `{id}.json`). **The `id` cannot be sent as part of the request body for the PUT request, but you will need it for the URL path.**
+. Add the `"anomalyDetectorTypes"` to the `"params"` block, using the default value as seen below to mimic the pre-8.13 behavior:
++
+[source,json]
+----
+{
+  "params": {
+    // ... other existing params should stay here,
+    // with the required one added to this object
+    "anomalyDetectorTypes": [
+      "txLatency",
+      "txThroughput",
+      "txFailureRate"
+    ]
+  }
+}
+----
+====
+
+. Update each rule using the `PUT /api/alerting/rule/{id}` API
++
+====
+For each rule, submit a PUT request to the {kibana-ref}/update-rule-api.html[update rule endpoint] using that rule's ID and its stored update document from the previous step. For example, assuming the first broken rule's ID is `046c0d4f`:
+
+[source,shell]
+----
+curl -u "$KIBANA_USER":"$KIBANA_PASSWORD" -XPUT "$KIBANA_URL/api/alerting/rule/046c0d4f" -H 'Content-Type: application/json' -d @046c0d4f.json
+----
+
+Once the PUT request executes successfully, the rule will no longer be broken.
+====
+
 [[apm-empty-metricset-values]]
 *Upgrading APM Server to 8.11+ might break event intake from older APM Java agents* +
 _APM Server versions: >=8.11.0_ +
