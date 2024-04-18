@@ -37,7 +37,25 @@ This issue occurs because a non-optional parameter, `anomalyDetectorTypes` was a
 the presence of an automation migration script. This breaks pre-existing rules as they do not have this parameter
 and will fail validation. This issue is fixed in v8.14.0.
 
-It is possible to fix this error without upgrading. Follow these steps:
+There are three ways to fix this error:
+
+* Upgrade to version 8.14.0 when it's released
+* Fix broken anomaly rules in the APM UI (no upgrade required)
+* Fix broken anomaly rules with Kibana APIs (no upgrade required)
+
+**Fix broken anomaly rules in the APM UI**
+
+. From any APM page in Kibana, select **Alerts and rules** -> **Manage rules**.
+. Filter your rules by setting **Type** to **APM Anomaly**.
+. For each anomaly rule in the list, select the pencil icon to edit the rule.
+. Add one or more **DETECTOR TYPES** to the rule.
++
+The detector type determines when the anomaly rule triggers. For example, a latency anomaly rule will
+trigger when the latency of the service being monitored is abnormal.
+Supported detector types are `latency`, `throughput`, and `failed transaction rate`.
+. Click **Save**.
+
+**Fix broken anomaly rules with Kibana APIs**
 
 . Find broken rules
 +
@@ -123,7 +141,7 @@ For each rule, submit a PUT request to the {kibana-ref}/update-rule-api.html[upd
 
 [source,shell]
 ----
-curl -u "$KIBANA_USER":"$KIBANA_PASSWORD" -XPUT "$KIBANA_URL/api/alerting/rule/046c0d4f" -H 'Content-Type: application/json' -d @046c0d4f.json
+curl -u "$KIBANA_USER":"$KIBANA_PASSWORD" -XPUT "$KIBANA_URL/api/alerting/rule/046c0d4f" -H 'Content-Type: application/json' -H 'kbn-xsrf: rule-update' -d @046c0d4f.json
 ----
 
 Once the PUT request executes successfully, the rule will no longer be broken.
