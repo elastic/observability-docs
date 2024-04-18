@@ -14,8 +14,9 @@ tags: []
 
 ## `@elastic/synthetics`
 
-Elastic uses the `npx @elastic/synthetics` command to run and report synthetic tests in Observability projects.
-It can also be used locally to help develop your tests.
+Elastic uses the [@elastic/synthetics](https://www.npmjs.com/package/@elastic/synthetics[@elastic/synthetics)
+library to run synthetic browser tests and report the test results.
+The library also provides a CLI to help you scaffold, develop/run tests locally, and push tests to Elastic.
 
 ```sh
 npx @elastic/synthetics [options] [files] [dir]
@@ -27,29 +28,23 @@ However, there are some you may find useful:
 <DocDefList>
   <DocDefTerm>`--match <string>`</DocDefTerm>
   <DocDefDescription>
-    Filters journey with the name or a matching tag.
+    Run tests with a name or tags that match the given glob pattern.
   </DocDefDescription>
 
   <DocDefTerm>`--tags Array<string>`</DocDefTerm>
   <DocDefDescription>
-    Filters journey with the given tag(s).
+    Run tests with the given tags that match the given glob pattern.
   </DocDefDescription>
 
-  <DocDefTerm>`--reporter <junit|default|json>`</DocDefTerm>
+  <DocDefTerm>`--pattern <string>`</DocDefTerm>
   <DocDefDescription>
-    One of `junit`, `default`, or `json`. Use the JUnit reporter to provide easily parsed output to CI
-    servers like Jenkins.
-  </DocDefDescription>
-
-  <DocDefTerm>`--inline`</DocDefTerm>
-  <DocDefDescription>
-    Instead of reading from a file, `cat` inline scripted journeys and pipe them through `stdin`.
-    For example, `cat path/to/file.js | npx @elastic/synthetics --inline`.
+    RegExp pattern to match journey files in the current working directory. Defaults
+    to `/*.journey.(ts|js)$/`, which matches files ending with `.journey.ts` or `.journey.js`.
   </DocDefDescription>
 
   <DocDefTerm>`--params <jsonstring>`</DocDefTerm>
   <DocDefDescription>
-    A JSON object that defines any variables your tests require.
+    JSON object that defines any variables your tests require.
     Read more in <DocLink id="serverlessObservabilitySyntheticsParamsSecrets">Work with params and secrets</DocLink>.
 
     Params passed will be merged with params defined in your
@@ -70,12 +65,32 @@ However, there are some you may find useful:
 
   <DocDefTerm>`--screenshots <on|off|only-on-failure>`</DocDefTerm>
   <DocDefDescription>
-    Control whether or not to capture screenshots.
+    Control whether or not to capture screenshots at the end of each step.
     Options include `'on'`, `'off'`, or `'only-on-failure'`.
 
     This can also be set in the configuration file using
     <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.screenshot`</DocLink>.
     The value defined via the CLI will take precedence.
+  </DocDefDescription>
+
+  <DocDefTerm>`-c, --config <string>`</DocDefTerm>
+  <DocDefDescription>
+    Path to the configuration file. By default, test runner looks for a
+    `synthetics.config.(js|ts)` file in the current directory. Synthetics
+    configuration provides options to configure how your tests are run and pushed to
+    Elastic. Allowed options are described in the <DocLink id="serverlessObservabilitySyntheticsConfiguration" text="configuration file"/>
+  </DocDefDescription>
+
+  <DocDefTerm>`--reporter <json|junit|buildkite-cli|default>`</DocDefTerm>
+  <DocDefDescription>
+    One of `json`, `junit`, `buildkite-cli`, or `default`. Use the JUnit or Buildkite
+    reporter to provide easily parsed output to CI systems.
+  </DocDefDescription>
+
+  <DocDefTerm>`--inline`</DocDefTerm>
+  <DocDefDescription>
+    Instead of reading from a file, `cat` inline scripted journeys and pipe them through `stdin`.
+    For example, `cat path/to/file.js | npx @elastic/synthetics --inline`.
   </DocDefDescription>
 
   <DocDefTerm>`--no-throttling`</DocDefTerm>
@@ -85,6 +100,11 @@ However, there are some you may find useful:
     Throttling can also be disabled in the configuration file using
     <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.throttling`</DocLink>.
     The value defined via the CLI will take precedence.
+
+    <DocCallOut title="Note">
+      Network throttling for browser based monitors is disabled.
+      See this [documention](https://github.com/elastic/synthetics/blob/main/docs/throttling.md) for more details.
+    </DocCallOut>
   </DocDefDescription>
 
   <DocDefTerm>`--no-headless`</DocDefTerm>
@@ -106,14 +126,14 @@ However, there are some you may find useful:
 </DocDefList>
 
 <DocCallOut title="Note">
-  The `--tags` and `--match` flags for filtering are only supported when you grep or
-  run synthetic tests locally. Filtering is _not_ supported in any other subcommands
-  like `init`, `push`, and `locations`.
+  The `--pattern`, `--tags`, and `--match` flags for filtering are only supported when you
+  run synthetic tests locally or push them to Elastic. Filtering is _not_ supported in any other subcommands
+  like `init` and `locations`.
 </DocCallOut>
 
 <DocCallOut title="Note">
   For debugging synthetic tests locally, you can set an environment variable,
-  `DEBUG=synthetics`, to capture Synthetics agent logs when running `npx @elastic/synthetics`.
+  `DEBUG=synthetics npx @elastic/synthetics`, to capture Synthetics agent logs.
 </DocCallOut>
 
 <div id="elastic-synthetics-init-command"></div>
@@ -123,8 +143,8 @@ However, there are some you may find useful:
 Scaffold a new Synthetics project using Elastic Synthetics.
 
 This will create a template Node.js project that includes the synthetics agent, required dependencies,
-a synthetics configuration file, and example journey files.
-These journeys can be edited and then pushed to Elastic to create monitors.
+a synthetics configuration file, and example browser and lightweight monitor files.
+These files can be edited and then pushed to Elastic to create monitors.
 
 ```sh
 npx @elastic/synthetics init <name-of-synthetics-project>
@@ -136,20 +156,26 @@ Read more about what's included in a template Synthetics project in <DocLink id=
 
 ## `@elastic/synthetics push`
 
-Create monitors using your local journeys.
+Create monitors in by using your local journeys. By default, running
+`push` command will use the `project` settings field from the `synthetics.config.ts`
+file, which is set up using the `init` command. However, you can override these
+settings using the CLI flags.
 
 ```sh
-npx @elastic/synthetics push --auth <api-key> --url <observability-project-url> --id <id|name>
+SYNTHETICS_API_KEY=<api-key> npx @elastic/synthetics push --url <kibana-url> --id <id|name>
 ```
 
 <DocCallOut title="Note">
   The `push` command includes interactive prompts to prevent you from accidentally deleting or duplicating monitors.
   You will see a prompt when:
 
-  * You `push` a Synthetics project that used to contain one or more monitors but no longer contains any monitors.
-      Select `yes` to delete all monitors associated with the Synthetics project ID being pushed.
+  * You `push` a project that used to contain one or more monitors but either no longer
+    contains previously running monitors or has any monitors.
+    Select `yes` to delete the monitors associated with the project ID being pushed.
   * You `push` a Synthetics project that's already been pushed using one Synthetics project ID and then try to `push`
-      it using a _different_ ID. Select `yes` to create duplicates of all monitors in the Synthetics project.
+    it using a _different_ ID.
+    Select `yes` to create duplicates of all monitors in the project.
+    You can set `DEBUG=synthetics` environment variable to capture the deleted monitors.
 </DocCallOut>
 
 <DocCallOut title="Note">
@@ -157,14 +183,15 @@ npx @elastic/synthetics push --auth <api-key> --url <observability-project-url> 
   those packages will be bundled along with the journey code when the `push` command is invoked.
   However there are some limitations when using external packages:
 
-  * Bundled journeys after compression should not be more than 800 Kilobytes.
+  * Bundled journeys after compression should not be more than 1500 Kilobytes.
   * Native node modules will not work as expected due to platform inconsistency.
+  * Uploading files in journey scripts(via locator.setInputFiles) is not supported.
 </DocCallOut>
 
 <DocDefList>
   <DocDefTerm>`--auth <string>`</DocDefTerm>
   <DocDefDescription>
-    API key used for authentication.
+    API key used for authentication. You can also set the API key via the `SYNTHETICS_API_KEY` environment variable.
 
     To create an API key, you must be logged in as a user with
     <DocLink id="serverlessObservabilitySyntheticsFeatureRoles">Editor</DocLink> access.
@@ -237,6 +264,63 @@ npx @elastic/synthetics push --auth <api-key> --url <observability-project-url> 
   </DocDefDescription>
 </DocDefList>
 
+
+## Tag monitors
+
+Synthetics journeys can be tagged with one or more tags.  Use tags to
+filter journeys when running tests locally or pushing them to Elastic.
+
+To add tags to a single journey, add the `tags` parameter to the `journey` function or
+use the `monitor.use` method.
+
+```js
+import {journey, monitor} from "@elastic/synthetics";
+journey({name: "example journey", tags: ["env:qa"] }, ({ page }) => {
+  monitor.use({
+    tags: ["env:qa"]
+  })
+  // Add steps here
+});
+```
+
+For lightweight monitors, use the `tags` field in the yaml configuration file.
+```yaml
+name: example monitor
+tags:
+  - env:qa
+```
+
+To apply tags to all browser and lightweight monitors, configure using the `monitor.tags` field in the `synthetics.config.ts` file.
+
+## Filter monitors
+
+When running the `npx @elastic/synthetics push` command, you can filter the monitors that are pushed to Elastic using the following flags:
+
+<DocDefList>
+  <DocDefTerm>`--tags Array<string>`</DocDefTerm>
+  <DocDefDescription>
+    Push monitors with the given tags that match the glob pattern.
+  </DocDefDescription>
+
+  <DocDefTerm>`--match <string>`</DocDefTerm>
+  <DocDefDescription>
+    Push monitors with a name or tags that match the glob pattern.
+  </DocDefDescription>
+
+  <DocDefTerm>`--pattern <string>`</DocDefTerm>
+  <DocDefDescription>
+    RegExp pattern to match the journey files in the current working directory.
+    Defaults to `/*.journey.(ts|js)$/` for browser monitors and `/.(yml|yaml)$/` for
+    lightweight monitors.
+  </DocDefDescription>
+</DocDefList>
+
+You can combine these techniques and push the monitors to different projects based on the tags by using multiple configuration files.
+
+```sh
+npx @elastic/synthetics push --config synthetics.qa.config.ts --tags env:qa
+npx @elastic/synthetics push --config synthetics.prod.config.ts --tags env:prod
+```
 
 <div id="elastic-synthetics-locations-command"></div>
 
