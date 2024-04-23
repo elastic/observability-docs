@@ -5,18 +5,21 @@
 ++++
 
 ****
-**New to Elastic?** Follow the steps in our {estc-welcome}/getting-started-observability.html[getting started guide] instead
-of the steps described here. Return to this tutorial after you've learned the
-basics.
+**New to Elastic?** Follow the steps in our {estc-welcome}/getting-started-observability.html[getting started guide] instead of the steps described here.
+Return to this tutorial after you've learned the basics.
 ****
 
-With the https://docs.elastic.co/integrations/nginx[NGINX Elastic integration], in tandem with the {agent}, you can collect valuable metrics and logs from your NGINX instances, visualize your data, and monitor your NGINX instances.
+With the https://docs.elastic.co/integrations/nginx[NGINX Elastic integration] and the {agent}, you can collect valuable metrics and logs from your NGINX instances. Once this data is in {kib}, built-in dashboards and tools like Logs Explorer allow you to visualize and monitor your NGINX data from one place. This data provides valuable insight into your NGINX instances. For example, you might find something like:
+
+* A spike in error logs for a certain resource may mean you have a deleted resource that is still needed.
+* Access logs can show when a service's peak times are, and, from this, when it might be best to perform things like maintenance.
+* A sudden spike in client requests may point to something malicious, like a DDoS attack.
 
 [discrete]
 [[monitor-nginx-what-youll-learn]]
 == What you'll learn
 
-This guide walks you through using Elastic {observability} to monitory your NGINX instances, including:
+This guide walks you through using Elastic {observability} to monitor your NGINX instances, including:
 
 * Collecting logs and metrics from NGINX instances using an {agent} and the NGINX integration.
 * Centralizing the data in the {stack}.
@@ -26,16 +29,23 @@ This guide walks you through using Elastic {observability} to monitory your NGIN
 [[monitor-nginx-data-types]]
 == Data types
 
-The NGINX integration lets you collect both logs and metrics.
+The NGINX integration collects both logs and metrics.
 
-* *Logs:* Collect logs to keep a record of events that happen in your NGINX instances like when client requests and errors occur.
-* *Metrics:* Collect metrics for insight into the state of your NGINX instances. This includes information like the total number of active client connections by status, the total number of client requests, and more.
+[horizontal]
+*Logs*:: Collect logs to keep a record of events that happen in your NGINX instances like when client requests and errors occur.
++
+*Access logs* provide information about each request processed by the NGINX server. Use these logs for troubleshooting, monitoring performance, and analyzing user behavior.
++
+*Error logs* provide diagnostic information about errors that occur when the NGINX server is handling requests. Use these logs to understand why errors occur, assess error impact, and debug issues.
+*Metrics*:: Collect metrics for insight into the state of your NGINX instances.
+This includes information like the total number of active client connections by status, the total number of client requests, and more.
+Use these metrics to monitor server load, detect bottlenecks, understand client behavior, and plan for capacity.
 
 [discrete]
 [[monitor-nginx-prereqs]]
 == Before you begin
 
-Before you can monitor NGINX, you need:
+Before you can monitor NGINX, you need the following:
 
 * {es} for storing and searching your observability data
 * {kib} for visualizing and managing it.
@@ -47,10 +57,10 @@ Before you can monitor NGINX, you need:
 
 Follow these steps to add the NGINX integration to your deployment:
 
-. Select Add integrations from your deployment’s homepage.
-. Enter "NGINX" in the search bar, and select the *Nginx* integration.
+. Select *Add integrations* from your deployment's homepage.
+. Enter "nginx" in the search bar, and select the *Nginx* integration.
 . Select *Add Nginx* at the top of the integration page.
-. Select *Add integration only (skip agent installation)* at the bottom of the Add integration page.
+. Select *Add integration only (skip agent installation)* at the bottom of the page.
 
 [discrete]
 [[monitor-nginx-configure-integration]]
@@ -58,13 +68,13 @@ Follow these steps to add the NGINX integration to your deployment:
 
 The NGINX integration can fetch different logs and metrics from your NGINX instances.
 From the *Add Nginx integration* page, configure which logs and metrics you want the integration to collect.
-Refer to the following sections for more on your configuration options.
+Refer to the following sections for more information on configuring the integration.
 
 [discrete]
 [[monitor-nginx-collect-logs]]
 === Collect logs
 
-The NGINX integration lets you collect access logs and error logs.
+The NGINX integration can collect access logs and error logs.
 
 * *Access logs:* Turn this option on to collect logs about client requests.
 * *Error logs:* Turn this option on to collect logs about issues NGINX encounters with varying severity levels.
@@ -79,7 +89,7 @@ Configure the following for both access logs and error logs:
 [[monitor-nginx-collect-metrics]]
 === Collect metrics
 
-The NGINX integration lets you collect `stub_status` metrics from your instances.
+The NGINX integration collects `stub_status` metrics from your instances.
 If you haven't, make sure your NGINX instance is https://docs.nginx.com/nginx-amplify/nginx-amplify-agent/configuring-metric-collection/[configured for metric collection].
 Configure the following to collect metrics:
 
@@ -95,7 +105,7 @@ After you've configured your integration, you need to add an {agent} to your hos
 You have two options for adding the {agent}, **enroll in {fleet}** or **run standalone**.
 
 [horizontal]
-**Fleet**:: Enrolling in fleet lets you automatically deploy updates and centrally manage the agent.
+**Fleet**:: Enrolling in {fleet} lets you automatically deploy updates and centrally manage the agent.
 **Standalone**:: Standalone agents need to be manually updated on the host where the agent is installed.
 
 [discrete]
@@ -115,7 +125,7 @@ Follow the instructions from the *Add agent* screen to install the {agent} on yo
 Before installing and running the standalone {agent}, you need to create an API key.
 To create an {cloud} API key:
 
-. From the {kib} menu and go to *Stack Management* -> *API keys*.
+. From the {kib} menu, go to *Stack Management* → *API keys*.
 . Select *Create API key*.
 . Give the key a name. For example, `nginx API key`.
 . Leave the other default options and select *Create API key*.
@@ -168,7 +178,7 @@ elastic-agent status
 == Step 4: Explore your logs and metrics
 
 Use {kib} to view the metric and log data collected by {agent}.
-Refer to the following sections for more on viewing your data.
+Refer to the following sections for more information on viewing your data.
 
 * <<monitor-nginx-explore-metrics>>.
 * <<monitor-nginx-explore-logs>>.
@@ -197,7 +207,7 @@ After your Nginx logs are ingested, view and explore your logs using <<monitor-n
 
 [discrete]
 [[monitor-nginx-logs-explorer]]
-==== Logs explorer
+==== Logs Explorer
 
 With Logs Explorer, you can quickly search and filter your log data, get information about the structure of log fields, and display your findings in a visualization.
 To view nginx logs, open Kibana and go to *{observability}* → *Logs Explorer*.
