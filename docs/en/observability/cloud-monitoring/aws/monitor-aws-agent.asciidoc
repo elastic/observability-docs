@@ -80,9 +80,6 @@ queue. Create a standard SQS queue that uses the default settings.
 =====
 Make sure you create the SQS queue in the same region as the S3 bucket.
 =====
-+
-[role="screenshot"]
-image::agent-tut-creating-a-queue.png[Screenshot of the queue creation window]
 
 . Edit the queue you created and use a JSON object to define an advanced access
 policy. The access policy allows S3 ObjectCreated events to be sent to the
@@ -133,14 +130,8 @@ the VPC flow logs and enable event notification:
 
 . For the event type, select **All object create events** to send a notification
 for every object creation event.
-+
-[role="screenshot"]
-image::agent-tut-configure-event-notification.png[Screenshot of the event notification creation window]
 
 . For the destination, select the SQS queue you just created.
-+
-[role="screenshot"]
-image::agent-tut-configure-notification-output.png[Screenshot of event notification destination settings]
 
 [discrete]
 [[aws-elastic-agent-add-aws-integration]]
@@ -154,9 +145,6 @@ After you get that working, you'll learn how to add S3 access logs.
 To add the integration:
 
 . Go to the {kib} home page and click **Add integrations**.
-+
-[role="screenshot"]
-image::images/kibana-home.png[Screenshot of the {kib} home page]
 
 . In the query bar, search for **AWS** and select the AWS integration to see
 more details about it.
@@ -170,13 +158,9 @@ in a workflow designed for new deployments. Follow the steps, then return to
 this tutorial when you're ready to configure the integration.
 
 . Specify the AWS credentials required to connect to AWS and read log files.
-Here we show how to use an AWS access key ID and secret, but there are a few
+In this tutorial, we use an AWS access key ID and secret, but there are a few
 other ways to provide AWS credentials. To learn more, refer to the
 {integrations-docs}/aws[AWS integration] documentation.
-+
-[role="screenshot"]
-image::images/agent-tut-aws-credentials.png[Screenshot of the VPC flow configuration with credentials specified]
-+
 The account you specify must have at least the following privileges:
 +
 [source,yml]
@@ -203,9 +187,6 @@ The account you specify must have at least the following privileges:
 
 . Change defaults and in the **Queue URL** field, specify
 the URL of the SQS queue you created earlier.
-+
-[role="screenshot"]
-image::images/agent-tut-config-vpc-logs.png[Screenshot of the VPC flow configuration with the Queue URL specified]
 
 . Click **Save and continue**. This step takes a minute or two to complete. When
 it's done, you'll have an agent policy that contains the AWS configuration you
@@ -295,9 +276,6 @@ you want it deployed.
 Make sure you create the S3 bucket and SQS queue (next step) in the same region
 as the bucket containing VPC flow logs.
 =====
-+
-[role="screenshot"]
-image::agent-tut-create-s3-bucket.png[Screenshot of the S3 bucket creation window]
 
 . Follow the steps you learned earlier to create an SQS queue and edit the access
 policy (use the ARNs of the new S3 bucket and queue). Make a note of the queue
@@ -309,9 +287,6 @@ objects are created (follow the steps you learned earlier).
 . Go back to the old S3 bucket (the one that contains VPC flow logs), and under
 **Properties**, edit the **Server access logging** properties. Enable server
 access logging, and select the new bucket you created as the target bucket.
-+
-[role="screenshot"]
-image::agent-tut-enable-server-access-logging.png[Screenshot of server access logging properties]
 
 Now you're ready to edit the agent policy and configure S3 access log
 collection.
@@ -342,12 +317,8 @@ collecting data.
 
 Now that logs are streaming into {es}, you can visualize them in {kib}. To see
 the raw logs, open the main menu in {kib}, then click **Logs**. Notice that you
-can filter on a specific data stream. This example uses
-`data_stream.dataset : "aws.s3access"` to show S3 access logs:
-
-[role="screenshot"]
-image::images/agent-tut-s3access-logs.png[Screenshot of Logs app showing S3 access logs]
-
+can filter on a specific data stream. For example, set
+`data_stream.dataset : "aws.s3access"` to show S3 access logs.
 
 The AWS integration also comes with pre-built dashboards that you can use to
 visualize the data. In {kib}, open the main menu and click **Dashboard**. Search
@@ -406,15 +377,9 @@ your agent is using.
 
 . Edit the AWS integration policy and turn on the **Collect billing metrics**
 selector. You can accept the defaults.
-+
-[role="screenshot"]
-image::images/agent-tut-collect-billing-metrics.png[Screenshot of settings to collect billing metrics]
 
 . Also turn on the **Collect EC2 metrics** selector. Optionally change the
 defaults, then save and deploy your changes.
-+
-[role="screenshot"]
-image::images/agent-tut-collect-ec2-metrics.png[Screenshot of settings to collect EC2 metrics]
 
 It takes a few minutes for {agent} to update its configuration and start
 collecting data.
