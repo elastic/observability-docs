@@ -46,9 +46,100 @@ NOTE: By default, CloudTrail exports data to either a new or an existing S3 buck
 
 . Review the attributes and log events you have just defined and click *Create trail*.
 
+=== Overview
+
+.image
+image::https://github.com/zmoog/public-notes/assets/25941/3ec46867-0ac2-4dae-ae82-2294d23fb0ba[image]
+
+To export CloudTrail logs to CloudWatch, you must set up a *trail*.
+
+Creating a trail in CloudTrail is a three-step process.
+
+[arabic]
+. Choose trail attributes
+. Log events
+. Review & create
+
+=== 1. Choose trail attributes
+
+==== General details
+
+There are a few *general details* options:
+
+* Trail name
+* Storage location
+
+CloudTrail exports data to an S3 bucket. It isn’t possible to opt-out
+from S3.
+
+===== Encryption options
+
+When exporting data from CloudTrail to S3, it is recommended to enable
+"`Log file SSE-KMS encryption`". You can pick your preferred option
+using an existing or creating a new AWS KMS key.
+
+==== CloudWatch Logs
+
+CloudTrail offers the option to send events to CloudWatch as logs. We
+must enable this option to forward these events to Firehose.
+
+Enable CloudWatch logs and confirm the log group name.
+
+You must also create or select an existing IAM Role to enable CloudTrail
+to put log events into a CloudWatch stream.
+
+.CleanShot 2024-04-18 at 11 31 40
+image::https://github.com/zmoog/public-notes/assets/25941/c0e9bafc-3541-4061-970c-002332d5f311[CleanShot 2024-04-18 at 11 31 40]
+
+=== 2. Log events
+
+In this second step, you can select the event types you want to send to
+Elastic.
+
+.CleanShot 2024-04-18 at 11 38 05
+image::https://github.com/zmoog/public-notes/assets/25941/c5f063d5-35f7-4843-af1e-39360efeaeac[CleanShot 2024-04-18 at 11 38 05]
+
+=== 3. Review & create
+
+In this third and final step, you can review your previous choices and
+confirm to create a trail.
+
+=== Verify
+
+To verify everything is working as expected, open the log group you
+created during step 1 on CloudWatch and ensure there are events from the
+CloudTrail trail we just created.
+
+.CleanShot 2024-04-18 at 11 44 29
+image::https://github.com/zmoog/public-notes/assets/25941/cd5531f1-8dce-4860-ab2c-f9fdc4171828[CleanShot 2024-04-18 at 11 44 29]
+
+
 [discrete]
 [[firehose-cloudtrail-step-three]]
 == Step 3: Set up a Firehose delivery stream
+
+
+.image
+image::https://github.com/zmoog/public-notes/assets/25941/3c3f1b0f-692e-42db-b7e3-e96a65dce13e[image]
+
+We now have a CloudWatch log group with events coming from CloudTrail.
+
+The guide
+https://www.elastic.co/guide/en/kinesis/current/aws-firehose-setup-guide.html
+is a great source to set up a fire hose delivery stream to send data to
+Elastic Cloud.
+
+Essential steps
+
+* Collect ES endpoint and API key from your deployment on EC.
+
+delivery stream setup - Elastic endpoint URL - API key - content
+encoding: gzip - retry duration: 60 (default) - Backup settings: failed
+data only to an s3 bucket
+
+now we have a firehose delivery with - source: direct put - destination:
+elastic - parameters: - es_datastream_name: logs-aws.cloudtrail-default
+
 
 
 [discrete]
@@ -56,3 +147,147 @@ NOTE: By default, CloudTrail exports data to either a new or an existing S3 buck
 == Step 4: Set up a subscription filter to route Cloudtrail events to a delivery stream
 
 
+
+.image
+image::https://github.com/zmoog/public-notes/assets/25941/957d1d8d-9c5e-4c14-a310-6d871a907e7f[image]
+
+The Firehose delivery stream is ready to send logs to our Elastic Cloud
+deployment.
+
+Next steps:
+
+* Visit the log group with the CloudTrail events
+* Create a subscription filter for Amazon Data Firehose
+
+=== Visit the log group with the CloudTrail events
+
+Please open the log group where the CloudTrail service is sending the
+events. We must forward these events to an Elastic stack using the
+Firehose delivery stream.
+
+CloudWatch log group offers a
+https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Subscriptions.html[subscription filter]. This mechanism allows users to pick log events from the log group and forward them to other services like Amazon Kinesis stream, an Amazon Data Firehose stream, or AWS Lambda.
+
+=== Create a subscription filter for Amazon Data Firehose
+
+* Choose destination
+* Grant permission
+* Configure log format and filters
+
+.CleanShot 2024-04-19 at 16 02 23
+image::https://github.com/zmoog/public-notes/assets/25941/cea1b3c6-ecca-446d-b86a-9eb913d81c94[CleanShot 2024-04-19 at 16 02 23]
+
+==== Choose destination
+
+Please select the delivery stream we create in the previous step.
+
+==== Grant permission
+
+Grant the CloudWatch service to send log events to the delivery stream
+in Firehose.
+
+This step is made of multiple parts:
+
+[arabic]
+. Create a new role with a trust policy that allows CloudWatch to assume
+the role.
+. Assign a policy to the role that permits ” putting records ” into a
+Firehose delivery stream.
+
+===== Create a new role
+
+Create a new role and use the following JSON as the trust policy:
+
+[source,json]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "logs.eu-north-1.amazonaws.com"
+            },
+            "Action": "sts:AssumeRole",
+            "Condition": {
+                "StringLike": {
+                    "aws:SourceArn": "arn:aws:logs:eu-north-1:<YOUR ACCOUNT ID>:*"
+                }
+            }
+        }
+    ]
+}
+----
+
+===== Assign a policy to the role
+
+Create and assign a new IAM policy to the role using the following JSON:
+
+[source,json]
+----
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": "firehose:PutRecord",
+            "Resource": "arn:aws:firehose:eu-north-1:<YOUR ACCOUNT ID>:deliverystream/mbranca-dev-cloudtrail-logs"
+        }
+    ]
+}
+----
+
+When the new role is ready, you can select it in the subscription
+filter.
+
+==== Configure log format and filters
+
+Select the "`Amazon CloudTrail`" in the Log format option.
+
+=== Verify
+
+Check if there are destination error logs.
+
+On the AWS console, visit your Firehose delivery stream and check for
+entries in the "`Destination error logs`":
+
+If everything runs smoothly, this list will be empty. If there’s an
+error, you can check the details. Here is a delivery stream that fails
+to send records to the Elastic stack due to bad authentication settings:
+
+.CleanShot 2024-04-19 at 16 54 43
+image::https://github.com/zmoog/public-notes/assets/25941/fbd97f6e-e25a-4707-9b5a-9a3d43165e80[CleanShot 2024-04-19 at 16 54 43]
+
+The Firehose delivery stream reports:
+
+[arabic]
+. The number of failed deliveries.
+. The failure detail.
+
+
+[discrete]
+[[firehose-cloudtrail-step-five]]
+== Step 5: Verify
+
+With the new subscription filter running, CloudWatch starts routing new
+CloudTrail log events to the Firehose delivery stream.
+
+.image
+image::https://github.com/zmoog/public-notes/assets/25941/532c9823-f9df-4fd8-b6ce-bcfb1f9e16c9[image]
+
+Now it is time to open Kibana and look for CloudTrail logs.
+
+=== Using Discover
+
+.CleanShot 2024-04-19 at 16 36 33
+image::https://github.com/zmoog/public-notes/assets/25941/4da91498-5cd3-4e60-9f61-28169128b93b[CleanShot 2024-04-19 at 16 36 33]
+
+=== Using Logs Explorer
+
+.CleanShot 2024-04-19 at 16 50 54
+image::https://github.com/zmoog/public-notes/assets/25941/9c1a6d5d-db0a-4a50-97b4-8111ec2bfedf[CleanShot 2024-04-19 at 16 50 54]
+
+=== Using the CloudTrail dashboard
+
+.CleanShot 2024-04-19 at 16 47 23
+image::https://github.com/zmoog/public-notes/assets/25941/4df94819-a6cd-4738-b965-06b31e6a21b4[CleanShot 2024-04-19 at 16 47 23]
