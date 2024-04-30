@@ -53,3 +53,53 @@ those will intercept the data and transform it before it is indexed.
 +
 Integrations can and should ship with custom dashboards and visualizations that are installed with the integration.
 Use these for a tailored view of your {observability} data.
+
+[[integration-definitions]]
+== Definitions
+
+[discrete]
+=== Package
+
+An Elastic Package, or simply package for short, contains the dashboards, visualisations, and configurations to monitor the logs and metrics of a particular technology or group of related services, such as “MySQL”, or “System”.
+
+The package consists of:
+
+* Name
+* Zero or more dashboards and visualisations and Canvas workpads
+* Zero or more ML job definitions
+* Zero or more data stream index templates
+
+The package is versioned.
+
+[discrete]
+=== Integration
+
+An integration is a specific type of a package defining data streams used to observe a product using logs, metrics, and traces.
+
+[discrete]
+=== Data stream
+
+A data stream is logical sub-division of an Integration package, dealing with a specific type of observable aspect of the service or product being observed. For example, the `mysql` package defines a data stream for collecting metrics and another data stream for collecting server logs.
+
+A data stream defines all the assets needed to create an Elasticsearch data stream, for example: index templates and ingest pipelines. These assets are loaded into Elasticsearch when a user installs a package via the Fleet UI in Kibana.
+
+A data stream also defines a policy template. Policy templates include variables that allow users to configure the data stream via the Fleet UI in Kibana. The resulting policy is interpreted by the Elastic Agent to collect relevant information from the product or service being observed.
+
+Data streams are defined inside the `data_stream` folder located under the package's root directory. Each data stream is defined in it's own sub-folder.
+
+The data stream consists of:
+
+* Field definitions (`fields.yml` files)
+* Zero or more ingest pipelines
+* An Elastic Agent policy template
+
+[discrete]
+=== Development Extensions: `_dev` directories
+
+The _dev directory is part of the link:https://github.com/elastic/package-spec[package-spec], containing development resources. These development resources cover any types of files/folders needed only at development time. This includes resources needed for testing but also includes any templates that might be used for generating documentation. In the future it could include other files/folders needed just at development time. It can be defined on the following levels:
+
+. The package-level `_dev` folder contains files needed to setup the testing environment for that package. This environment setup is specified via folders/files in the `_dev/deploy` folder. For example, the `apache` package link:https://github.com/elastic/integrations/tree/main/packages/apache/_dev/deploy[specifies] how to spin up an Apache Docker container for testing.
+. The data stream-level `_dev` folder contains test configuration files for various types of tests. For example, see the link:https://github.com/elastic/integrations/tree/main/packages/apache/data_stream/error/_dev/test[`_dev/test folder`] under the `apache/error` data stream.
+The integrations have also link:https://github.com/elastic/elastic-package/blob/main/docs/howto/asset_testing.md[asset] and link:https://github.com/elastic/elastic-package/blob/main/docs/howto/static_testing.md[static] tests. They don't require config files, but configs can be used to mark them as optional.
+
+
