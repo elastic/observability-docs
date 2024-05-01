@@ -93,7 +93,7 @@ docker pull docker.elastic.co/beats/elastic-agent-complete:{version}
 endif::[]
 
 Then enroll and run an {agent}.
-You'll need an enrollment token and the URL of the {fleet-server}. 
+You'll need an enrollment token and the URL of the {fleet-server}.
 You can use the default enrollment token for your policy or create new policies
 and {fleet-guide}/fleet-enrollment-tokens.html[enrollment tokens] as needed.
 
@@ -144,20 +144,22 @@ When the {agent} is running you can add a new {private-location} in {kib}:
 . Click **{private-location}s**.
 . Click **Add location**.
 . Give your new location a unique _Location name_ and select the _Agent policy_ you created above.
-. Click **Save**. 
+. Click **Save**.
+
+IMPORTANT: It is not currently possible to use custom CAs for synthetics browser tests in private locations without following a workaround. To learn more about the workaround, refer to the following GitHub issue: https://github.com/elastic/synthetics/issues/717[elastic/synthetics#717].
 
 [discrete]
 [[synthetics-private-location-scaling]]
 = Scaling {private-location}s
 
-By default {private-location}s are configured to allow two simultaneous browser tests, and an unlimited number of lightweight checks. 
-These limits can be set via the environment variables `SYNTHETICS_LIMIT_{TYPE}`, where `{TYPE}` is one of `BROWSER`, `HTTP`, `TCP`, and `ICMP` 
-for the container running the {agent} docker image. 
+By default {private-location}s are configured to allow two simultaneous browser tests, and an unlimited number of lightweight checks.
+These limits can be set via the environment variables `SYNTHETICS_LIMIT_{TYPE}`, where `{TYPE}` is one of `BROWSER`, `HTTP`, `TCP`, and `ICMP`
+for the container running the {agent} docker image.
 
-It is critical to allocate enough memory and CPU capacity to handle configured limits. 
+It is critical to allocate enough memory and CPU capacity to handle configured limits.
 Start by allocating at least 2 GiB of memory and two cores per browser instance to ensure consistent
-performance and avoid out-of-memory errors. Then adjust as needed. Resource requirements will vary depending on workload. 
-Much less memory is needed for lightweight monitors. Start by allocating at least 512MiB of memory and two cores for 
+performance and avoid out-of-memory errors. Then adjust as needed. Resource requirements will vary depending on workload.
+Much less memory is needed for lightweight monitors. Start by allocating at least 512MiB of memory and two cores for
 lightweight checks. Then increase allocated memory and CPU based on observed usage patterns.
 
 These limits are for simultaneous tests, not total tests. For example, if
