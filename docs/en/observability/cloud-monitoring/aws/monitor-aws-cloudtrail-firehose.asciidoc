@@ -5,7 +5,12 @@
 <titleabbrev>Monitor CloudTrail logs</titleabbrev>
 ++++
 
-In this section, you'll learn how to monitor and analyze the CloudTrail logs you sent to Elastic with Amazon Data Firehose. 
+In this section, you'll learn how to monitor and analyze the CloudTrail logs you sent to Elastic with Amazon Data Firehose. You will go through the following steps:
+
+- Install AWS integration in {kib}
+- Export Cloudtrail events to CloudWatch
+- Set up a Firehose delivery stream
+- Set up a subscription filter to route Cloudtrail events to a delivery stream
 
 [discrete]
 [[firehose-cloudtrail-prerequisites]]
@@ -34,62 +39,51 @@ NOTE: Firehose integration is currently in beta. Make sure to enable *Display be
 [[firehose-cloudtrail-step-two]]
 == Step 2: Export Cloudtrail events to CloudWatch
 
+.image
+image::https://github.com/zmoog/public-notes/assets/25941/3ec46867-0ac2-4dae-ae82-2294d23fb0ba[image]
+
+image::firehose-cloudtrail-cloudwatch.png[Cloudtrail to CloudWatch]
+
+To export CloudTrail logs to CloudWatch, you must set up a *trail*, which is a three-step process:
+
+- Choose trail attributes
+- Log events
+- Review and create
+
 . Go to the https://console.aws.amazon.com/[AWS console] and navigate to CloudTrail.  
 
-. Click *Create trail* and configure the general details on the *Choose trail attributes* panel.
+. Click *Create trail* and configure the general details on the *Choose trail attributes* panel, like for example:
 +
-NOTE: By default, CloudTrail exports data to either a new or an existing S3 bucket. It is not possible to opt ot from S3, but you can ptionally enable CloudWatch logs.
+* Trail name
+* Storage location
++
+By default, CloudTrail exports data to an S3 bucket. It isn’t possible to opt-out from S3.
+
+. Specify the encryption options
++
+When exporting data from CloudTrail to S3, it is recommended to enable
+*Log file SSE-KMS encryption*`"*. You can use an existing AWS KMS key, or create a new one.
 
 . Enable *CloudWatch Logs* and confirm the *Log group name*.
++
+CloudTrail offers the option to send events to CloudWatch as logs. You
+must enable this option to forward the events to Firehose.
++
+You also need to create an IAM Role, or select an existing one, to enable CloudTrail to put log events into a CloudWatch stream.
+
+.CleanShot 2024-04-18 at 11 31 40
+image::https://github.com/zmoog/public-notes/assets/25941/c0e9bafc-3541-4061-970c-002332d5f311[CleanShot 2024-04-18 at 11 31 40]
 
 . From the *Choose log events* panel, select the event types you want to send to Elastic.
 
 . Review the attributes and log events you have just defined and click *Create trail*.
 
-=== Overview
 
-.image
-image::https://github.com/zmoog/public-notes/assets/25941/3ec46867-0ac2-4dae-ae82-2294d23fb0ba[image]
 
-To export CloudTrail logs to CloudWatch, you must set up a *trail*.
 
-Creating a trail in CloudTrail is a three-step process.
 
-[arabic]
-. Choose trail attributes
-. Log events
-. Review & create
 
-=== 1. Choose trail attributes
 
-==== General details
-
-There are a few *general details* options:
-
-* Trail name
-* Storage location
-
-CloudTrail exports data to an S3 bucket. It isn’t possible to opt-out
-from S3.
-
-===== Encryption options
-
-When exporting data from CloudTrail to S3, it is recommended to enable
-"`Log file SSE-KMS encryption`". You can pick your preferred option
-using an existing or creating a new AWS KMS key.
-
-==== CloudWatch Logs
-
-CloudTrail offers the option to send events to CloudWatch as logs. We
-must enable this option to forward these events to Firehose.
-
-Enable CloudWatch logs and confirm the log group name.
-
-You must also create or select an existing IAM Role to enable CloudTrail
-to put log events into a CloudWatch stream.
-
-.CleanShot 2024-04-18 at 11 31 40
-image::https://github.com/zmoog/public-notes/assets/25941/c0e9bafc-3541-4061-970c-002332d5f311[CleanShot 2024-04-18 at 11 31 40]
 
 === 2. Log events
 
