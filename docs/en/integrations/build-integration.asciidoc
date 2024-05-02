@@ -196,7 +196,7 @@ Each document is a collection of fields, each having its own data type. When map
 To learn more, see {ref}/mapping.html[mapping].
 ****
 
-Mappings are defined in the `fields` directory and are used to create component templates for the integration.
+Mappings are defined in the `fields` directory and are used to create component templates for the integration. Note that the names of these files are conventions, deviations are allowed.
 Like ingest pipelines, mappings only apply to the parent data stream.
 The Apache integration has four different field definitions:
 
@@ -227,7 +227,7 @@ For example, in the Apache integration (more specifically, for the access datase
 * event.dataset: apache.access
 
 === ecs.yml
-This file specifies every ECS field used by the integration that is not defined in the files `agent.yml` or `base-fields.yml` files.
+This file specifies every Elastic Common Schema (ECS) field used by the integration that is not defined in the files `agent.yml` or `base-fields.yml` files.
 To avoid redefining every ECS field in every integration, we can specify an existing field as external. For example:
 
 [source,yaml]
@@ -238,14 +238,47 @@ To avoid redefining every ECS field in every integration, we can specify an exis
   name: destination.domain
 ----
 
-The `external: ecs` definition instructs the `elastic-package` binary to refer to an external ECS reference to resolve these fields. By default it looks at the ECS https://raw.githubusercontent.com/elastic/ecs/v8.5.1/generated/ecs/ecs_nested.yml[reference] file on Github, following the Git reference in the `_dev/build/build.yml` file located at the root of the package directory.
-By changing the reference to the ECS reference file in `_dev/build/build.yml` from `Git@..` to `file:///file/path/ecs_nested.yml`, it is possible to look for this file locally.
-// Can we also use "external" references in the other files like agent.yml?
+The `external: ecs` definition instructs the `elastic-package` command line tool to refer to an external ECS reference to resolve specific fields. By default it looks at the https://raw.githubusercontent.com/elastic/ecs/v8.6.0/generated/ecs/ecs_nested.yml[ECS reference] file hosted on Github. This external reference file is determined by a Git reference found in the `_dev/build/build.yml` file, located starting from the root of the package directory.
+The `build.yml` file should look like the following:
++
+[source,yaml]
+----
+dependencies:
+  ecs:
+    reference: git@v8.6.0
+----
+
+In addition to this approach, we support three more methods to import the ECS, described below.
+
+. Dynamic mapping import
+Adding `import_mappings: true` to the ECS section in `_dev/build/build.yml` introduces a https://github.com/elastic/elastic-package/blob/f439b96a74c27c5adfc3e7810ad584204bfaf85d/internal/builder/_static/ecs_mappings.yaml[dynamic mapping] with most of the ECS definitions. Using this method means ECS fields don't need to be defined in your integration, it is dynamically integrated into the package at build time.
+Adjusting the aformentioned `build.yml` file for this method:
++
+[source,yaml]
+----
+dependencies:
+  ecs:
+    reference: git@v8.6.0
+    import_mappings: true
+----
+
+. Fleet pre-installed template (from version 8.13.0)
+Starting with version 8.13.0, Fleet automatically pre-installs the `ecs@mappings` component template containing the ECS definitions into all integrations. This template is similar to the dynamic mapping method, apart from the fact that it does so on ingestion instead of including the mappings into the package.
+
+. Local ECS reference file (air-gapped setup)
+By changing the Git reference to the path of the downloaded https://raw.githubusercontent.com/elastic/ecs/v8.6.0/generated/ecs/ecs_nested.yml[ECS reference] file in `_dev/build/build.yml`, it is possible for the `elastic-package` command line tool to look for this file locally. Note that the path should be the full path.
+Doing this, our `build.yml` file looks like:
++
+----
+dependencies:
+  ecs:
+    reference: file:///home/user/integrations/packages/nginx/ecs_nested.yml
+----
 
 === fields.yml
 In this file, we define the fields that do not exist in ECS but which we need in our integration.
 The example below specifies properties for field `apache.access.ssl.protocol` in the Apache integration.
-
++
 [source,yaml]
 ----
 - name: apache.access
