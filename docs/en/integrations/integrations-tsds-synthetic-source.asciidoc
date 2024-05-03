@@ -1,40 +1,37 @@
-[[integrations-tsdb-synthetic-source]]
+[[integrations-tsds-synthetic-source]]
 = Working with new indexing features
 
-These pages include details for incorporating new indexing features into your integrations, such as TSDB, `doc-value-only` fields, and synthetic source.
+These pages include details for incorporating new indexing features into your integrations, such as time series data stream (TSDS), `doc-value-only` fields, and synthetic source.
 
-* <<developer-tsdb-guidelines>>
+* <<developer-tsds-guidelines>>
 * <<testing-new-indexing-features>>
 
-[[developer-tsdb-guidelines]]
-== TSDB guidelines
+[[developer-tsds-guidelines]]
+== TSDS guidelines
 
-Important related resources:
-
-* Meta link:https://github.com/elastic/integrations/issues/5233[issue] with all migrated packages
-* TSDB link:https://github.com/elastic/TSDB-migration-test-kit[test] migration kit
+This page describes how to enable TSDS functionality in your integration packages. Full details about TSDS can be found in {ref}/tsds.html[Time series data stream] in the {es} documentation. 
 
 In this document you can find:
 
-* <<integrations-dev-tsdb-background>>
-* <<integrations-dev-tsdb-migrating>>
-* <<integrations-dev-tsdb-testing>>
-* <<integrations-dev-tsdb-best-practices>>
-* <<integrations-dev-tsdb-troubleshooting>>
+* <<integrations-dev-tsds-background>>
+* <<integrations-dev-tsds-migrating>>
+* <<integrations-dev-tsds-testing>>
+* <<integrations-dev-tsds-best-practices>>
+* <<integrations-dev-tsds-troubleshooting>>
 
 [discrete]
-[[integrations-dev-tsdb-background]]
+[[integrations-dev-tsds-background]]
 === Background
 
-A time series is a sequence of observations for a specific entity. TSDB enables the column-oriented functionality in elasticsearch by co-locating the data and optimizing the storage and aggregations to take advantage of such co-allocation.
+A time series is a sequence of observations for a specific entity. TSDS enables the column-oriented functionality in elasticsearch by co-locating the data and optimizing the storage and aggregations to take advantage of such co-allocation.
 
-Integrations are one of the biggest sources of input data to Elasticsearch. Enabling TSDB on integration packages can be achieved by minimal changes made in the `fields.yml` and `manifest.yml` files of a package.
+Integrations are one of the biggest sources of input data to Elasticsearch. Enabling TSDS on integration packages can be achieved by minimal changes made in the `fields.yml` and `manifest.yml` files of a package.
 
 [discrete]
-[[integrations-dev-tsdb-migrating]]
-=== Steps for migrating an existing package
+[[integrations-dev-tsds-migrating]]
+=== Steps for enabling TSDS for a metrics dataset
 
-IMPORTANT: Datastreams having type `logs` are excluded from TSDB migration.
+IMPORTANT: Datastreams having type `logs` are excluded from TSDS migration.
 
 [discrete]
 === Step 1: Set the dimension fields
@@ -54,7 +51,7 @@ To set a field as a dimension simply add `dimension: true` to its mapping:
 ==== 
 A field having type {ref}/flattened.html[flattened] cannot be selected as a dimension field. If the field that you are choosing as a dimension is too long or is of type flattened, consider hashing the value of this field and using the result as a dimension. {ref}/fingerprint-processor.html[Fingerprint processor] can be used for this purpose.
 
-You can find an example in link:https://github.com/elastic/integrations/blob/8a57d6ba96d391afc33da20c80ec51280d22f009/packages/oracle/data_stream/performance/elasticsearch/ingest_pipeline/default.yml#LL127C4-L131C29[Oracle Integration TSDB Enablement Example]
+You can find an example in link:https://github.com/elastic/integrations/blob/8a57d6ba96d391afc33da20c80ec51280d22f009/packages/oracle/data_stream/performance/elasticsearch/ingest_pipeline/default.yml#LL127C4-L131C29[Oracle Integration TSDS Enablement Example]
 ====
 
 Important considerations:
@@ -163,14 +160,14 @@ elasticsearch:
 ----
 
 [discrete]
-[[integrations-dev-tsdb-testing]]
+[[integrations-dev-tsds-testing]]
 === Testing
 
-* If the number of dimensions is insufficient, we will have loss of data. Consider testing this using the link:https://github.com/elastic/TSDB-migration-test-kit[TSDB migration test kit].
+* If the number of dimensions is insufficient, we will have loss of data. Consider testing this using the link:https://github.com/elastic/TSDB-migration-test-kit[TSDS migration test kit].
 * Verify the dashboard is rendering the data properly. If certain visualisation do not work, consider migrating to {kibana-ref}/lens.html[Lens]. Remember that certain aggregation functions are not supported when a field has metric type `counter`, for example, `avg()`. Replace such aggregation functions with a supported aggregation type such as `max()` or `min()`.
 
 [discrete]
-[[integrations-dev-tsdb-best-practices]]
+[[integrations-dev-tsds-best-practices]]
 === Best practices
 
 * Use {kibana-ref}/lens.html[Lens] as the preferred visualisation type.
@@ -181,11 +178,16 @@ elasticsearch:
 
 * In the field mapping files above each dimension field, add in-line comments stating the reason for selecting the field as a dimension field.
 
-* As part of TSDB migration testing, you may discover other errors which may be unrelated to TSDB migration. Keep the pull request for TSDB migration free from such changes. This helps in obtaining quick PR approval.
+* As part of TSDS migration testing, you may discover other errors which may be unrelated to TSDS migration. Keep the pull request for TSDS migration free from such changes. This helps in obtaining quick PR approval.
 
 [discrete]
-[[integrations-dev-tsdb-troubleshooting]]
+[[integrations-dev-tsds-troubleshooting]]
 === Troubleshooting
+
+[discrete]
+==== Dropped documents
+
+In the event that after enabling TSDS you notice that metrics data is being dropped from an index, the link:https://github.com/elastic/TSDB-migration-test-kit[TSDS test migration kit] can be used as a helpful debugging tool.
 
 [discrete]
 ==== Conflicting field type
@@ -237,7 +239,7 @@ See the following instructions for testing new indexing features:
 
 * <<integrations-dev-synthetic-source>>
 * <<integrations-dev-doc-value-only-fields>>
-* <<integrations-dev-test-tsdb>>
+* <<integrations-dev-test-tsds>>
 
 [[integrations-dev-synthetic-source]]
 === Testing synthetic source
@@ -356,20 +358,20 @@ PUT /_component_template/merics-nginx.substatus@custom
 
 . If a data stream already exists, rollover the data stream to get the new mappings: `POST metrics-nginx.substatus-default/_rollover`
 
-[[integrations-dev-test-tsdb]]
-=== Time-series indexing (TSDB) (not GA)
+[[integrations-dev-test-tsds]]
+=== Time-series indexing (TSDS)
 
 * For background, refer to link:https://github.com/elastic/elasticsearch/issues/74660[#74660]
 * For integrations support, refer to link:https://github.com/elastic/package-spec/issues/311[#311]
 
-Usage of TSDB indexing requires the following:
+Usage of TSDS indexing requires the following:
 
 * Mapping parameters must be added for `time_series_dimension` and `time_series_metric` on appropriate fields. This is already supported by the package ecosystem and Fleet, so packages can already define these options.
 * The `mode: time_series` and `routing_path` index settings must be added, this can be done by editing the custom component template.
 
 Note that the `routing_path` setting should correspond to fields with `time_series_dimension` specified. In the future, ES may automate this setting.
 
-. Install the kubernetes package (already has TSDB mappings set up)
+. Install the kubernetes package (already has TSDS mappings set up)
 . Run this dev tools command:
 +
 [source,console]
