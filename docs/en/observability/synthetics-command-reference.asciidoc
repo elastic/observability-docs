@@ -27,11 +27,11 @@ However, there are some you may find useful:
 run tests with a name or tags that match the given glob pattern.
 
 `--tags Array<string>`::
-run tests with the given tag(s) that match the given glob pattern.
+run tests with the given tags that match the given glob pattern.
 
 `--pattern <string>`::
 RegExp pattern to match journey files in the current working directory. Defaults
-to `/*.journey.(ts|js)$/` which matches files ending with `.journey.ts` or `.journey.js`.
+to `/*.journey.(ts|js)$/`, which matches files ending with `.journey.ts` or `.journey.js`.
 
 `--params <jsonstring>`::
 JSON object that defines any variables your tests require.
@@ -65,7 +65,7 @@ configuration provides options to configure how your tests are run and pushed to
 {kib}. Allowed options are described in the <<synthetics-config-file,configuration file>>.
 
 `--reporter <json|junit|buildkite-cli|default>`::
-One of `json`, `junit`, `buildkite-cli` or `default`. Use the JUnit or Buildkite
+One of `json`, `junit`, `buildkite-cli`, or `default`. Use the JUnit or Buildkite
 reporter to provide easily parsed output to CI systems.
 
 `--inline`::
@@ -81,7 +81,7 @@ The value defined via the CLI will take precedence.
 
 [NOTE]
 =====
-Network throttling for browser based monitors is disabled. 
+Network throttling for browser based monitors is disabled.
 See this https://github.com/elastic/synthetics/blob/main/docs/throttling.md[documention] for more details.
 =====
 
@@ -100,7 +100,7 @@ Shows help for the `npx @elastic/synthetics` command.
 
 [NOTE]
 =====
-The `--pattern`, `--tags` and `--match` flags for filtering are only supported when you
+The `--pattern`, `--tags`, and `--match` flags for filtering are only supported when you
 run synthetic tests locally or push them to Kibana. Filtering is _not_ supported in any other subcommands
 like `init` and `locations`.
 =====
@@ -108,7 +108,7 @@ like `init` and `locations`.
 [NOTE]
 =====
 For debugging synthetic tests locally, you can set an environment variable,
-`DEBUG=synthetics npx @elastic/synthetics`, to capture Synthetics agent logs. 
+`DEBUG=synthetics npx @elastic/synthetics`, to capture Synthetics agent logs.
 =====
 
 [discrete]
@@ -134,7 +134,7 @@ Read more about what's included in a template project in <<synthetics-get-starte
 
 Create monitors in {kib} by using your local journeys. By default, running
 `push` command will use the `project` settings field from the `synthetics.config.ts`
-file which is set up using the `init` command. However, you can override these 
+file, which is set up using the `init` command. However, you can override these
 settings using the CLI flags.
 
 [source,sh]
@@ -147,11 +147,11 @@ SYNTHETICS_API_KEY=<api-key> npx @elastic/synthetics push --url <kibana-url> --i
 The `push` command includes interactive prompts to prevent you from accidentally deleting or duplicating monitors.
 You will see a prompt when:
 
-* You `push` a project that used to contain one or more monitors but no longer
-contains previously running monitors or any monitors.
+* You `push` a project that used to contain one or more monitors but either no longer
+  contains previously running monitors or has any monitors.
 Select `yes` to delete the monitors associated with the project ID being pushed.
 * You `push` a project that's already been pushed using one project ID and then try to `push`
-it using a _different_ ID. 
+  it using a _different_ ID.
 Select `yes` to create duplicates of all monitors in the project.
 
 You can set `DEBUG=synthetics` environment variable to capture the deleted monitors.
@@ -162,7 +162,7 @@ You can set `DEBUG=synthetics` environment variable to capture the deleted monit
 If the journey contains external NPM packages other than the `@elastic/synthetics`,
 those packages will be bundled along with the journey code when the `push` command is invoked.
 However there are some limitations when using external packages:
-	
+
 * Bundled journeys after compression should not be more than 1500 Kilobytes.
 * Native node modules will not work as expected due to platform inconsistency.
 * Uploading files in journey scripts(via locator.setInputFiles) is not supported.
@@ -219,7 +219,7 @@ This can also be set in the configuration file using
 The value defined via the CLI will take precedence.
 
 `--private-locations Array<string>`::
-The <<synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas 
+The <<synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas
 `locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
 +
 To list available {private-location}s, refer to <<elastic-synthetics-locations-command>>.
@@ -243,7 +243,7 @@ project.
 [[tagging-and-filtering]]
 = Tagging and Filtering monitors
 
-Synthetics journeys can be tagged with one or more tags. Tags can be used to
+Synthetics journeys can be tagged with one or more tags. Use tags to
 filter journeys when running tests locally or pushing them to {kib}.
 
 To add tags to a single journey, add the `tags` parameter to the `journey` function or
@@ -254,7 +254,7 @@ import {journey, monitor} from "@elastic/synthetics";
 
 journey({name: "example journey", tags: ["env:qa"] }, ({ page }) => {
   monitor.use({
-    tags: ["env:qa"] 
+    tags: ["env:qa"]
   })
   // Add steps here
 });
@@ -268,24 +268,24 @@ tags:
   - env:qa
 ----
 
-To apply tags to all browser and lightweight monitors, configure using <<synthetics-configuration-monitor,`monitor.tags`>> field in the `synthetics.config.ts` file. 
+To apply tags to all browser and lightweight monitors, configure using <<synthetics-configuration-monitor,`monitor.tags`>> field in the `synthetics.config.ts` file.
 
 == Filtering monitors
 
 When running the `npx @elastic/synthetics push` command, you can filter the monitors that are pushed to {kib} using the following flags:
 
 `--tags Array<string>`::
-Push monitors with the given tag(s) that matches the glob pattern.
+Push monitors with the given tags that match the glob pattern.
 
 `--match <string>`::
-Push monitors with a name or tags that matches the glob pattern.
+Push monitors with a name or tags that match the glob pattern.
 
 `--pattern <string>`::
 RegExp pattern to match the journey files in the current working directory.
-Defaults to `/*.journey.(ts|js)$/` for browser monitors and `/.(yml|yaml)$/` for
+Defaults to `/*.journey.(ts|js)$/`, for browser monitors and `/.(yml|yaml)$/` for
 lightweight monitors.
 
-Users can combine the above techniques and push the monitors to different Kibana
+You can combine these techniques and push the monitors to different Kibana
 clusters/space based on the tags by using multiple configuration files.
 
 [source, sh]
