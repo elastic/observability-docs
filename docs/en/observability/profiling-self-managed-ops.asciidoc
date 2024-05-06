@@ -187,13 +187,12 @@ This ensures that the load is evenly distributed across all replicas.
 
 [discrete]
 [[profiling-self-managed-upgrade]]
-== Upgrades
+== Upgrade a self-hosted stack
 
 Upgrading a self-hosted stack involves upgrading the backend applications and the agent.
-We recommend to upgrade the backend first, followed by the agent. In this scenario, if the backend has problems,
-rolling back to the previous version is the safest option and does not require the agent to be downgraded.
+We recommend upgrading the backend first, followed by the agent. This way, if you encounter problems with the backend, you can roll back to the previous version without needing to downgrade the agent.
 
-NOTE: It is usually best to have the same version of the agent and the backend deployed together.
+NOTE: We recommend having the same version of the agent and the backend deployed.
 
 We strive to maintain backward compatibility between minor versions.
 We may introduce changes to the data format that require the agent and backend to be at the same version.
@@ -201,7 +200,7 @@ When a breaking change in the protocol is introduced, the profiling agents that 
 The agent logs will report an error message indicating that the backend is not compatible with the agent (or vice versa).
 
 The upgrade process steps vary depending on the installation method used.
-You may have a mixture of installation methods, e.g. the backend is deployed on ECE and the agents are deployed on Kubernetes.
+You may have a combination of installation methods. For example, you might deploy the backend on ECE and the agents on Kubernetes.
 In that case, refer to the specific sections (backend/agent) in each method.
 
 IMPORTANT: Depending on your infrastructure setup, upgrading the backend may also update the endpoint exposed by the collector.
@@ -214,34 +213,34 @@ In that case, amend the configuration of the agent accordingly, to have it conne
 When using ECE, the upgrade process of the backend is part of the installation of a new ECE release.
 You don't need to perform any action to upgrade the backend applications, as they will be upgraded automatically.
 
-For the agent deployment, you can upgrade the Fleet integration installed on the Elastic Agent, if that's how you're deploying the agent.
+For the agent deployment, you can upgrade the Fleet integration installed on the Elastic Agent if that's how you're deploying the agent.
 
 [discrete]
 [[profiling-self-managed-upgrade-k8s]]
 === ECK or generic Kubernetes
 
-Perform a helm upgrade of the backend charts by using the `helm upgrade` command.
+Perform a helm upgrade of the backend charts using the `helm upgrade` command.
 You may reuse existing values or provide the full values YAML file on each upgrade.
 
 For the agent deployment, upgrading through the Helm chart is also the simplest option.
 
 IMPORTANT: starting with version 8.15 the agent Helm chart has been renamed from `pf-host-agent` to `profiling-agent`.
 
-If you are **upgrading to 8.15 from 8.14 or lower**, please follow these additional instructions to upgrade:
+When **upgrading to 8.15 from 8.14 or lower**, follow these additional instructions:
 
-. Fetch the currently applied Helm values
+. Fetch the currently applied Helm values:
 
         helm -n universal-profiling get values pf-host-agent -oyaml > profiling-agent-values.yaml
 
-. Update the repo to find the new chart
+. Update the repo to find the new chart:
 
         helm repo update
 
-. Uninstall the old chart
+. Uninstall the old chart:
 
         helm -n uninstall pf-host-agent
 
-. Install the new chart by following the instructions displayed in the Universal Profiling "Add Data" page, or with the following command
+. Install the new chart by following the instructions displayed in the Universal Profiling "Add Data" page or with the following command:
 
         helm install -n universal-profiling universal-profiling-agent elastic/profiling-agent -f profiling-agent-values.yaml
 
