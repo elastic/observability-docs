@@ -573,12 +573,9 @@ Alternatively set `release` to `beta` or higher in your package's `manifest.yml`
 +
 The `elastic-package stack` provides an enrolled instance of the {agent}. Use that one instead of a local application
 if you can run the service (you're integrating with) in the Docker network and you don't need to rebuild the Elastic-Agent
-or it's subprocesses (e.g. {filebeat} or {metricbeat}). The service Docker image can be used for [system
-testing](https://github.com/elastic/elastic-package/blob/main/docs/howto/system_testing.md). If you prefer to use a local
-instance of the {agent}, proceed with steps 4 and 5:
+or it's subprocesses (e.g. {filebeat} or {metricbeat}). The service Docker image can be used for <<system-testing,system testing]. If you prefer to use a local instance of the {agent}, proceed with steps 4 and 5:
 
 . (Optional) Download the https://www.elastic.co/downloads/elastic-agent[{agent}].
-
 // lint ignore fleet ingest-manager
 . (Optional) Enroll the {agent} and start it:
 +
@@ -623,6 +620,33 @@ export ELASTIC_PACKAGE_ELASTICSEARCH_USERNAME=elastic
 export ELASTIC_PACKAGE_ELASTICSEARCH_PASSWORD=changeme
 export ELASTIC_PACKAGE_KIBANA_HOST=http://127.0.0.1:5601
 ----
+
+=== Review test coverage
+
+The `elastic-package` tool can calculate test coverage for packages and export coverage reports in the link:https://cobertura.github.io/cobertura/[Cobertura] format.
+Coverage reports contain information about present or missing pipelines, and system and static tests, so they help in identifying untested integrations. For pipeline tests, it features detailed source-code coverage reports
+highlighting the ingest processors that are covered during testing.
+
+The CI job runner collects coverage data and stores them together with build artifacts. The Cobertura plugin (*Coverage Report* tab) uses this data to visualize test coverage grouped by package, data stream, and test type.
+
+// DK: This link doesn't work for me so I've commented it out. If anyone knows what the link should be, please re-add.
+//See link:https://fleet-ci.elastic.co/job/Ingest-manager/job/integrations/job/main/cobertura/[test coverage report for the *main* branch].
+
+=== Cobertura format vs. package domain language
+
+As the Cobertura report format refers to packages, classes, methods, and such, unfortunately it doesn't map easily onto the packages domain. We have decided to make a few assumptions for the Cobertura classification:
+
+* **Package**: `integration``
+* **File**: `data stream``
+* **Class**: test type (`pipeline tests`, `system tests`, etc.)
+* **Method**: "OK" if there are any tests present.
+
+For pipeline tests, which include actual source-code coverage, the mapping is different:
+
+* **Package**: `integration.data_stream`
+* **File**: Path to ingest pipeline file
+* **Class**: Ingest pipeline name
+* **Method**: Ingest processor
 
 [[finishing-touches]]
 == Finishing touches
