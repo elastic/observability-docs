@@ -13,10 +13,10 @@ Ready to monitor, ingest, and visualize something? Let's get started.
 * <<create-dashboards>>
 * <<testing-and-validation>>
 * <<finishing-touches>>
+* <<tips-for-building>>
 
-// Quick start isn't ready yet
-// TIP: Familiar with the {stack} and just want a quick way to get started?
-// See <<quick-start>>.
+TIP: Familiar with the {stack} and just want a quick way to get started?
+See <<quick-start>>.
 
 [[build-overview]]
 == Overview and prerequisites
@@ -310,7 +310,7 @@ They can also be imported with an `external` declaration, as seen in the example
 +
 . Dynamic mappings imports (<8.13.0 & >=8.13.0)
 Integrations supporting the Elastic stack below version 8.13.0 can still dynamically import ECS field mappings by defining `import_mappings: true` in the ECS section of the `_dev/build/build.yml` file in the root of the package directory.
-This introduces a https://github.com/elastic/elastic-package/blob/f439b96a74c27c5adfc3e7810ad584204bfaf85d/internal/builder/_static/ecs_mappings.yaml[dynamic mapping] with most of the ECS definitions. 
+This introduces a https://github.com/elastic/elastic-package/blob/f439b96a74c27c5adfc3e7810ad584204bfaf85d/internal/builder/_static/ecs_mappings.yaml[dynamic mapping] with most of the ECS definitions.
 Using this method means that, just like the previous approach, ECS fields don't need to be defined in your integration, they are dynamically integrated into the package at build time.
 Explicitly defined ECS fields can be used and will also overwrite this mechanism.
 
@@ -330,7 +330,7 @@ This can be done in two ways:
 - Using an `external: ecs` reference to import the definition of a specific field.
 - Literally defining the ECS field.
 
-The `external: ecs` definition instructs the `elastic-package` command line tool to refer to an external ECS reference to resolve specific fields. By default it looks at the https://raw.githubusercontent.com/elastic/ecs/v8.6.0/generated/ecs/ecs_nested.yml[ECS reference] file hosted on Github. 
+The `external: ecs` definition instructs the `elastic-package` command line tool to refer to an external ECS reference to resolve specific fields. By default it looks at the https://raw.githubusercontent.com/elastic/ecs/v8.6.0/generated/ecs/ecs_nested.yml[ECS reference] file hosted on Github.
 This external reference file is determined by a Git reference found in the `_dev/build/build.yml` file, in the root of the package directory.
 The `build.yml` file set up for external references:
 +
@@ -831,4 +831,154 @@ vars:
 
 // === Add sample events
 
-// text
+[[tips-for-building]]
+== Tips for building integrations
+
+The section offers a set of tips for developers to improve integrations that they're working on. It combines hints, guidelines,
+recommendations and tricks. Please consider this section as a live document that may evolve in the future, depending
+on the business or technical requirements for the entire platform (Elastic Package Registry, Elastic Agent and Kibana).
+
+=== elastic-package
+
+https://github.com/elastic/elastic-package[elastic-package] is a command line tool, written in Go, used for developing Elastic packages. It can help you lint,
+format, test and build your packages. This is the official builder tool to develop Integrations. See the
+https://github.com/elastic/elastic-package#getting-started[Getting started] section to ramp up quickly and review its features.
+
+If you need the revision of elastic-package in the correct version (the same one as the CI uses), which is defined in `go.mod`, use the following command
+(in the Integrations repository):
+
+[,bash]
+----
+$ go build github.com/elastic/elastic-package
+$ ./elastic-package help
+----
+
+=== New integrations
+
+==== Manifest files
+
+. Set the initial version to `0.1.0`.
++
+Tagging the integration with a lower version, like `0.0.1`, means that it's at very early stage and most likely
+it doesn't work at all. It might be partially developed.
+
+. Select one or two categories for the integration.
++
+The list of available categories is present in the Package Registry source: https://github.com/elastic/package-registry/blob/1dd3e7c4956f7e34809bb87acae50b2a63cd7ad0/packages/package.go#L29-L55
+
+. Make sure that the version condition for Kibana is set to `+^7.10.0+` and not `>=7.10.0`. Otherwise the package is also in 8.0.0 but we do not know today if it will actually be compatible with >= 8.0.0.
++
+[,yaml]
+----
+conditions:
+  kibana.version: '^7.10.0'
+----
+
+. Set the proper package owner (either Github team or personal account)
++
+Good candidates for a team: `elastic/integrations`, `elastic/security-service-integrations`
++
+Update the `.github/CODEOWNERS` file accordingly.
+
+=== All integrations
+
+==== Development
+
+. When you're developing integrations and you'd like to propagate your changes to the package registry, first rebuild the package:
++
+[,bash]
+----
+$ cd packages/apache
+$ elastic-package build
+----
++
+Then, rebuild and redeploy the Package Registry:
++
+_It's important to execute the following command in the Integrations repository._
++
+[,bash]
+----
+$ elastic-package stack up -v -d --services package-registry
+----
++
+Explanation: it's much faster to rebuild and restart the container with the Package Registry, than work with
+mounted volumes.
+
+==== Code reviewers
+
+. Ping "Team:Integrations".
++
+Use the team label to notify relevant team members about the incoming pull request.
+
+===== Manifest files
+
+. Descriptions of configuration options should be as short as possible.
++
+Remember to keep only the meaningful information about the configuration option.
++
+Good candidates: references to the product configuration, accepted string values, explanation.
++
+Bad candidates: _Collect metrics from A, B, C, D,... X, Y, Z datasets._
+
+. Descriptions should be human readable.
++
+Try to rephrase sentences like: _Collect foo_Bar3 metrics_, into _Collect Foo Bar metrics_.
+
+. Description should be easy to understand.
++
+Simplify sentences, don't provide information about the input if not required.
++
+Bad candidate: _Collect application logs (log input)_
++
+Good candidates: _Collect application logs_, _Collect standard logs for the application_
+
+. Letter casing is important for screenshot descriptions.
++
+These descriptions are visualized in the Kibana UI. It would be better experience to have them clean and consistent.
++
+Bad candidate: _filebeat running on ec2 machine_
++
+Good candidates: _Filebeat running on AWS EC2 machine_
+
+. If package relies on some feature or a field, available only in a specific stack or beats version, `kibana.version` condition should be adjusted accordingly in the package's `manifest.yml`:
++
+[,yaml]
+----
+conditions:
+   kibana.version: '^8.7.0'
+----
++
+NOTE: The package version with such condition as above will be only available in Kibana version >=8.7.0
++
+NOTE: Changing dashboards and visualizations using an unreleased version of Kibana might be unsafe since the Kibana Team might make changes to the Kibana code and potentially the data models. There is no guarantee that your changes won't be broken by the time new Kibana version is released.
+
+===== CI
+
+. Run `elastic-package check` and `elastic-package test` locally.
++
+If you want to verify if your integration works as intended, you can execute the same steps as CI:
++
+[,bash]
+----
+$ cd packages/apache
+$ elastic-package check -v
+$ elastic-package test -v
+----
++
+Keep in mind that the `elastic-package test` command requires a live cluster running and exported environment variables.
+The environment variables can be set with `eval "$(elastic-package stack shellinit)"`.
+
+===== Fields
+
+. Remove empty fields files.
++
+If you notice that fields file (e.g. `package-fields.yml`) doesn't contain any field definitions or it defines root only,
+feel free to remove it.
++
+Bad candidate:
++
+[,yaml]
+----
+- name: mypackage.mydataset
+  type: group
+----
