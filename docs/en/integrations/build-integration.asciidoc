@@ -13,10 +13,10 @@ Ready to monitor, ingest, and visualize something? Let's get started.
 * <<create-dashboards>>
 * <<testing-and-validation>>
 * <<finishing-touches>>
+* <<tips-for-building>>
 
-// Quick start isn't ready yet
-// TIP: Familiar with the {stack} and just want a quick way to get started?
-// See <<quick-start>>.
+TIP: Familiar with the {stack} and just want a quick way to get started?
+See <<quick-start>>.
 
 [[build-overview]]
 == Overview and prerequisites
@@ -242,7 +242,7 @@ Learn more in the {ref}/ingest.html[ingest pipeline reference].
 ****
 
 Ingest pipelines are defined in the `elasticsearch/ingest_pipeline` directory.
-They only apply to the parent data stream within which they live.
+They only apply to the parent data stream within which they live. For our example, this would be the `apache.access` dataset.
 
 For example, the https://github.com/elastic/integrations/tree/main/packages/apache[Apache integration]:
 
@@ -294,10 +294,78 @@ Each document is a collection of fields, each having its own data type. When map
 To learn more, see {ref}/mapping.html[mapping].
 ****
 
-Mappings are defined in the `fields` directory.
-Like ingest pipelines, mappings only apply to the parent data stream.
-The Apache integration has four different field definitions:
+In the integration, the `fields` directory serves as the blueprint used to create component templates for the integration. The content from all files in this directory will be unified when the integration is built, so the mappings need to be unique per data stream dataset.
 
+Like ingest pipelines, mappings only apply to the data stream dataset, for our example the `apache.access` dataset.
++
+NOTE: The names of these files are conventions, any file name with a `.yml` extension will work.
+
+Integrations have had significant enhancements in how ECS fields are defined. Below is a guide on which approach to use, based on the version of Elastic your integration will support.
++
+. ECS mappings component template (>=8.13.0)
+Integrations *only* supporting version 8.13.0 and up, can use the https://github.com/elastic/elasticsearch/blob/c2a3ec42632b0339387121efdef13f52c6c66848/x-pack/plugin/core/template-resources/src/main/resources/ecs%40mappings.json[ecs@mappings] component template installed by Fleet.
+This makes explicitly declaring ECS fields unnecessary; the `ecs@mappings` component template in Elasticsearch will automatically detect and configure them.
+However, should ECS fields be explicitly defined, they will overwrite the dynamic mapping provided by the `ecs@mappings` component template.
+They can also be imported with an `external` declaration, as seen in the example below.
++
+. Dynamic mappings imports (<8.13.0 & >=8.13.0)
+Integrations supporting the Elastic stack below version 8.13.0 can still dynamically import ECS field mappings by defining `import_mappings: true` in the ECS section of the `_dev/build/build.yml` file in the root of the package directory.
+This introduces a https://github.com/elastic/elastic-package/blob/f439b96a74c27c5adfc3e7810ad584204bfaf85d/internal/builder/_static/ecs_mappings.yaml[dynamic mapping] with most of the ECS definitions.
+Using this method means that, just like the previous approach, ECS fields don't need to be defined in your integration, they are dynamically integrated into the package at build time.
+Explicitly defined ECS fields can be used and will also overwrite this mechanism.
+
+An example of the aformentioned `build.yml` file for this method:
++
+[source,yaml]
+----
+dependencies:
+  ecs:
+    reference: git@v8.6.0
+    import_mappings: true
+----
++
+. Explicit ECS mappings
+As mentioned in the previous two approaches, ECS mappings can still be set explicitly and will overwrite the dynamic mappings.
+This can be done in two ways:
+- Using an `external: ecs` reference to import the definition of a specific field.
+- Literally defining the ECS field.
+
+The `external: ecs` definition instructs the `elastic-package` command line tool to refer to an external ECS reference to resolve specific fields. By default it looks at the https://raw.githubusercontent.com/elastic/ecs/v8.6.0/generated/ecs/ecs_nested.yml[ECS reference] file hosted on Github.
+This external reference file is determined by a Git reference found in the `_dev/build/build.yml` file, in the root of the package directory.
+The `build.yml` file set up for external references:
++
+[source,yaml]
+----
+dependencies:
+  ecs:
+    reference: git@v8.6.0
+----
+
+Literal definition a ECS field:
+[source,yaml]
+----
+- name: cloud.acount.id
+  level: extended
+  type: keyword
+  ignore_above: 1024
+  description: 'The cloud account or organ....'
+  example: 43434343
+----
+
+. Local ECS reference file (air-gapped setup)
+By changing the Git reference in in `_dev/build/build.yml` to the path of the downloaded https://raw.githubusercontent.com/elastic/ecs/v8.6.0/generated/ecs/ecs_nested.yml[ECS reference] file, it is possible for the `elastic-package` command line tool to look for this file locally. Note that the path should be the full path to the reference file.
+Doing this, our `build.yml` file looks like:
++
+----
+dependencies:
+  ecs:
+    reference: file:///home/user/integrations/packages/apache/ecs_nested.yml
+----
+
+The `access` data stream dataset of the Apache integration has four different field definitions:
++
+NOTE: The `apache` integration below has not yet been updated to use the dynamic ECS field definition and uses `external` references to define ECS fields in `ecs.yml`.
++
 [source,text]
 ----
 apache
@@ -306,22 +374,62 @@ apache
 │   │   └───elasticsearch/ingest_pipeline
 │   │   │      default.yml
 │   │   └───fields
-│   │          agent.yml <1>
-│   │          base-fields.yml <2>
-│   │          ecs.yml <3>
-│   │          fields.yml <4>
+│   │          agent.yml
+│   │          base-fields.yml
+│   │          ecs.yml
+│   │          fields.yml
 │   └───error
+│   │   └───elasticsearch/ingest_pipeline
+│   │   │      default.yml
+│   │   └───fields
+│   │          agent.yml
+│   │          base-fields.yml
+│   │          ecs.yml
+│   │          fields.yml
 │   └───status
 ----
-<1> `agent.yml` fields the Elastic agent uses
-<2> `base-fields.yml` never changes and is required for all integrations
-<3> Defines the relevant ECS fields
-<4> Custom Apache access log fields
 
+=== agent.yml
+The `agent.yml` file defines fields used by default processors.
+Examples: `cloud.account.id`, `container.id`, `input.type`
 
-// Need more on mapping
+=== base-fields.yml
+In this file, the `data_stream` subfields `type`, `dataset` and `namespace` are defined as type `constant_keyword`, the values for these fields are added by the integration.
+The `event.module` and `event.dataset` fields are defined with a fixed value specific for this integration:
+- `event.module: apache`
+- `event.dataset: apache.access`
+Field `@timestamp` is defined here as type `date`.
+
+=== ecs.yml
+This file specifies every Elastic Common Schema (ECS) field used by the integration that is not defined in the files `agent.yml` or `base-fields.yml` files. It uses `external: ecs` references.
+For example:
++
+[source,yaml]
+----
+- external: ecs
+  name: client.ip
+- external: ecs
+  name: destination.domain
+----
+
+=== fields.yml
+Here we define fields that we need in our integration and are not found in the ECS.
+The example below defines field `apache.access.ssl.protocol` in the Apache integration.
++
+[source,yaml]
+----
+- name: apache.access
+  type: group
+  fields:
+    - name: ssl.protocol
+      type: keyword
+      description: |
+        SSL protocol version.
+----
 
 // Maybe something on ECS too??
+
+Learn more about fields in the https://www.elastic.co/guide/en/integrations-developer/current/general-guidelines.html#_document_all_fields[general guidelines].
 
 [[create-dashboards]]
 == Create and export dashboards
@@ -573,12 +681,9 @@ Alternatively set `release` to `beta` or higher in your package's `manifest.yml`
 +
 The `elastic-package stack` provides an enrolled instance of the {agent}. Use that one instead of a local application
 if you can run the service (you're integrating with) in the Docker network and you don't need to rebuild the Elastic-Agent
-or it's subprocesses (e.g. {filebeat} or {metricbeat}). The service Docker image can be used for [system
-testing](https://github.com/elastic/elastic-package/blob/main/docs/howto/system_testing.md). If you prefer to use a local
-instance of the {agent}, proceed with steps 4 and 5:
+or it's subprocesses (e.g. {filebeat} or {metricbeat}). The service Docker image can be used for <<system-testing,system testing]. If you prefer to use a local instance of the {agent}, proceed with steps 4 and 5:
 
 . (Optional) Download the https://www.elastic.co/downloads/elastic-agent[{agent}].
-
 // lint ignore fleet ingest-manager
 . (Optional) Enroll the {agent} and start it:
 +
@@ -623,6 +728,33 @@ export ELASTIC_PACKAGE_ELASTICSEARCH_USERNAME=elastic
 export ELASTIC_PACKAGE_ELASTICSEARCH_PASSWORD=changeme
 export ELASTIC_PACKAGE_KIBANA_HOST=http://127.0.0.1:5601
 ----
+
+=== Review test coverage
+
+The `elastic-package` tool can calculate test coverage for packages and export coverage reports in the link:https://cobertura.github.io/cobertura/[Cobertura] format.
+Coverage reports contain information about present or missing pipelines, and system and static tests, so they help in identifying untested integrations. For pipeline tests, it features detailed source-code coverage reports
+highlighting the ingest processors that are covered during testing.
+
+The CI job runner collects coverage data and stores them together with build artifacts. The Cobertura plugin (*Coverage Report* tab) uses this data to visualize test coverage grouped by package, data stream, and test type.
+
+// DK: This link doesn't work for me so I've commented it out. If anyone knows what the link should be, please re-add.
+//See link:https://fleet-ci.elastic.co/job/Ingest-manager/job/integrations/job/main/cobertura/[test coverage report for the *main* branch].
+
+=== Cobertura format vs. package domain language
+
+As the Cobertura report format refers to packages, classes, methods, and such, unfortunately it doesn't map easily onto the packages domain. We have decided to make a few assumptions for the Cobertura classification:
+
+* **Package**: `integration``
+* **File**: `data stream``
+* **Class**: test type (`pipeline tests`, `system tests`, etc.)
+* **Method**: "OK" if there are any tests present.
+
+For pipeline tests, which include actual source-code coverage, the mapping is different:
+
+* **Package**: `integration.data_stream`
+* **File**: Path to ingest pipeline file
+* **Class**: Ingest pipeline name
+* **Method**: Ingest processor
 
 [[finishing-touches]]
 == Finishing touches
@@ -681,13 +813,13 @@ vars:
     required: true <1>
     show_user: true <2>
     title: Access log paths <3>
-    description: Paths to the nginx access log file. <4>
+    description: Paths to the apache access log file. <4>
     type: text <5>
     multi: true <6>
     hide_in_deployment_modes: <7>
       - agentless
     default:
-      - /var/log/nginx/access.log*
+      - /var/log/httpd/access.log*
 ----
 <1> option is required
 <2> don't hide the configuration option (collapsed menu)
@@ -699,4 +831,154 @@ vars:
 
 // === Add sample events
 
-// text
+[[tips-for-building]]
+== Tips for building integrations
+
+The section offers a set of tips for developers to improve integrations that they're working on. It combines hints, guidelines,
+recommendations and tricks. Please consider this section as a live document that may evolve in the future, depending
+on the business or technical requirements for the entire platform (Elastic Package Registry, Elastic Agent and Kibana).
+
+=== elastic-package
+
+https://github.com/elastic/elastic-package[elastic-package] is a command line tool, written in Go, used for developing Elastic packages. It can help you lint,
+format, test and build your packages. This is the official builder tool to develop Integrations. See the
+https://github.com/elastic/elastic-package#getting-started[Getting started] section to ramp up quickly and review its features.
+
+If you need the revision of elastic-package in the correct version (the same one as the CI uses), which is defined in `go.mod`, use the following command
+(in the Integrations repository):
+
+[,bash]
+----
+$ go build github.com/elastic/elastic-package
+$ ./elastic-package help
+----
+
+=== New integrations
+
+==== Manifest files
+
+. Set the initial version to `0.1.0`.
++
+Tagging the integration with a lower version, like `0.0.1`, means that it's at very early stage and most likely
+it doesn't work at all. It might be partially developed.
+
+. Select one or two categories for the integration.
++
+The list of available categories is present in the Package Registry source: https://github.com/elastic/package-registry/blob/1dd3e7c4956f7e34809bb87acae50b2a63cd7ad0/packages/package.go#L29-L55
+
+. Make sure that the version condition for Kibana is set to `+^7.10.0+` and not `>=7.10.0`. Otherwise the package is also in 8.0.0 but we do not know today if it will actually be compatible with >= 8.0.0.
++
+[,yaml]
+----
+conditions:
+  kibana.version: '^7.10.0'
+----
+
+. Set the proper package owner (either Github team or personal account)
++
+Good candidates for a team: `elastic/integrations`, `elastic/security-service-integrations`
++
+Update the `.github/CODEOWNERS` file accordingly.
+
+=== All integrations
+
+==== Development
+
+. When you're developing integrations and you'd like to propagate your changes to the package registry, first rebuild the package:
++
+[,bash]
+----
+$ cd packages/apache
+$ elastic-package build
+----
++
+Then, rebuild and redeploy the Package Registry:
++
+_It's important to execute the following command in the Integrations repository._
++
+[,bash]
+----
+$ elastic-package stack up -v -d --services package-registry
+----
++
+Explanation: it's much faster to rebuild and restart the container with the Package Registry, than work with
+mounted volumes.
+
+==== Code reviewers
+
+. Ping "Team:Integrations".
++
+Use the team label to notify relevant team members about the incoming pull request.
+
+===== Manifest files
+
+. Descriptions of configuration options should be as short as possible.
++
+Remember to keep only the meaningful information about the configuration option.
++
+Good candidates: references to the product configuration, accepted string values, explanation.
++
+Bad candidates: _Collect metrics from A, B, C, D,... X, Y, Z datasets._
+
+. Descriptions should be human readable.
++
+Try to rephrase sentences like: _Collect foo_Bar3 metrics_, into _Collect Foo Bar metrics_.
+
+. Description should be easy to understand.
++
+Simplify sentences, don't provide information about the input if not required.
++
+Bad candidate: _Collect application logs (log input)_
++
+Good candidates: _Collect application logs_, _Collect standard logs for the application_
+
+. Letter casing is important for screenshot descriptions.
++
+These descriptions are visualized in the Kibana UI. It would be better experience to have them clean and consistent.
++
+Bad candidate: _filebeat running on ec2 machine_
++
+Good candidates: _Filebeat running on AWS EC2 machine_
+
+. If package relies on some feature or a field, available only in a specific stack or beats version, `kibana.version` condition should be adjusted accordingly in the package's `manifest.yml`:
++
+[,yaml]
+----
+conditions:
+   kibana.version: '^8.7.0'
+----
++
+NOTE: The package version with such condition as above will be only available in Kibana version >=8.7.0
++
+NOTE: Changing dashboards and visualizations using an unreleased version of Kibana might be unsafe since the Kibana Team might make changes to the Kibana code and potentially the data models. There is no guarantee that your changes won't be broken by the time new Kibana version is released.
+
+===== CI
+
+. Run `elastic-package check` and `elastic-package test` locally.
++
+If you want to verify if your integration works as intended, you can execute the same steps as CI:
++
+[,bash]
+----
+$ cd packages/apache
+$ elastic-package check -v
+$ elastic-package test -v
+----
++
+Keep in mind that the `elastic-package test` command requires a live cluster running and exported environment variables.
+The environment variables can be set with `eval "$(elastic-package stack shellinit)"`.
+
+===== Fields
+
+. Remove empty fields files.
++
+If you notice that fields file (e.g. `package-fields.yml`) doesn't contain any field definitions or it defines root only,
+feel free to remove it.
++
+Bad candidate:
++
+[,yaml]
+----
+- name: mypackage.mydataset
+  type: group
+----
