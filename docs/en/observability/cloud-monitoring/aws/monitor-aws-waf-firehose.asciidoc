@@ -16,7 +16,7 @@ You will go through the following steps:
 - Visualize your WAF logs in {kib}
 
 [discrete]
-[[firehose-cloudtrail-prerequisites]]
+[[firehose-waf-prerequisites]]
 == Before you begin
 
 We assume that you already have:
@@ -30,29 +30,13 @@ IMPORTANT: Make sure the deployment is on AWS, because the Amazon Data Firehose 
 [[firehose-waf-step-one]]
 == Step 1: Install AWS integration in {kib}
 
-. In {kib}, navigate to *Management* > *Integrations* and browse the catalog to find the Amazon Data Firehose integration.
+. In {kib}, navigate to *Management* > *Integrations* and browse the catalog to find the AWS integration.
 
-. Navigate to the *Settings* tab and click *Install Amazon Data Firehose assets*.
-
-[discrete]
-[[firehose-waf-resource-step-two]]
-== Step 2: Select a WAF-compatible resource
-
-You can create and attach a web ACL to several AWS resources:
-
-- CloudFront distribution
-- Application Load Balancers
-- Amazon API Gateway REST APIs
-- Amazon App Runner services
-- AWS AppSync GraphQL APIs
-- Amazon Cognito user pools
-- AWS Verified Access Instances
-
-If you don't have an existing resource for testing, you can create a simple CloudFront distribution.
+. Navigate to the *Settings* tab and click *Install AWS assets*.
 
 [discrete]
-[[firehose-waf-step-three]]
-== Step 3: Create a delivery stream in Amazon Data Firehose
+[[firehose-waf-step-two]]
+== Step 2: Create a delivery stream in Amazon Data Firehose
 
 . Go to the https://console.aws.amazon.com/[AWS console] and navigate to Amazon Data Firehose.  
 
@@ -63,8 +47,8 @@ If you don't have an existing resource for testing, you can create a simple Clou
 NOTE: For advanced use cases, source records can be transformed by invoking a custom Lambda function. When using Elastic integrations, this should not be required.
 
 [discrete]
-[[firehose-waf-step-four]]
-== Step 4: Specify the destination settings for your Firehose stream
+[[firehose-waf-step-three]]
+== Step 3: Specify the destination settings for your Firehose stream
 
 . From the *Destination settings* panel, specify the following settings:
 +
@@ -75,10 +59,12 @@ NOTE: For advanced use cases, source records can be transformed by invoking a cu
 * *Content encoding*: For a better network efficiency, leave content encoding set to GZIP. 
 +
 * *Retry duration*: Determines how long Firehose continues retrying the request in the event of an error. A duration of 60-300s should be suitable for most use cases.
++
+* *es_datastream_name*: Your Firehose name must start with the prefix `aws-waf-logs-` or it will not show up later.
 
 [discrete]
-[[firehose-waf-step-five]]
-== Step 5: Create a web ACL
+[[firehose-waf-step-four]]
+== Step 4: Create a web ACL
 
 To create a new web ACL, follow these steps:
 
@@ -86,11 +72,17 @@ To create a new web ACL, follow these steps:
 
 . Describe web ACL by entering the resource type, region, and name. 
 
-. Associate it to an AWS resource.
-
-. Add rules and rule group.
+. Associate it to an AWS resource. If you don't have an existing resource, you can create and attach a web ACL to several AWS resources:
 +
-Add a 1-2 rules in the "Free rule groups" list from the AWS managed rule groups. Keep all other settings to their default values.
+- CloudFront distribution
+- Application Load Balancers
+- Amazon API Gateway REST APIs
+- Amazon App Runner services
+- AWS AppSync GraphQL APIs
+- Amazon Cognito user pools
+- AWS Verified Access Instances
+
+. Add a 1 or 2 rules to the *Free rule groups* list from the AWS managed rule groups. Keep all other settings to their default values.
 
 . Set the rule priority by keeping default values.
 
@@ -99,8 +91,8 @@ Add a 1-2 rules in the "Free rule groups" list from the AWS managed rule groups.
 . Review and create the web ACL.
 
 [discrete]
-[[firehose-waf-step-six]]
-== Step 6: Set up logging
+[[firehose-waf-step-five]]
+== Step 5: Set up logging
 
 . Go to the web ACL you created in the previous step.
 
