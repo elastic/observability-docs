@@ -1,0 +1,86 @@
+[[monitor-aws-firewall-firehose]]
+= Monitor AWS Network Firewall logs
+
+++++
+<titleabbrev>Monitor Network Firewall logs</titleabbrev>
+++++
+
+In this section, you'll learn how to send AWS Network Firewall events from AWS to your Elastic stack using Amazon Data Firehose.
+
+You will go through the following steps:
+
+- Select a AWS Network Firewall-compatible resource 
+- Create a delivery stream in Amazon Data Firehose
+- Set up logging to forward the logs to the Elastic stack using a Firehose stream
+- Visualize your logs in {kib}
+
+[discrete]
+[[firehose-firewall-prerequisites]]
+== Before you begin
+
+We assume that you already have:
+
+- An AWS account with permissions to pull the necessary data from AWS.
+- A deployment using our hosted {ess} on {ess-trial}[{ecloud}]. The deployment includes an {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data. AWS Data Firehose works with Elastic Stack version 7.17 or greater, running on Elastic Cloud only.
+
+IMPORTANT: AWS PrivateLink is not supported. Make sure the deployment is on AWS, because the Amazon Data Firehose delivery stream connects specifically to an endpoint that needs to be on AWS.
+
+[discrete]
+[[firehose-firewall-step-one]]
+== Step 1: Install AWS integration in {kib}
+
+. In {kib}, navigate to *Management* > *Integrations* and browse the catalog to find the AWS integration.
+
+. Navigate to the *Settings* tab and click *Install AWS assets*.
+
+[discrete]
+[[firehose-firewall-step-two]]
+== Step 2: Select a resource
+
+You can either use an existing AWS Network Firewall, or create a new one.
+
+To create a new AWS Network Firewall, follow these steps:
+
+. Open the VPC service in the AWS console.
++
+The best option to create a VPC for a quick test is to use the wizard in the AWS console.
+
+. Create a VPC and other networking resources.
++
+Leave the default settings and choose a name for your VPC resources.
++
+[role="screenshot"]
+image::firehose-firewall-vpc-resources.png[Firewall VPC resources]
+
+. Create an AWS Network Firewall
+
+. Set up the firewall policy by creating a rule group.
+
+. Deploy an EC2 to generate network traffic.
++
+Launch an EC2, select the VPC you have just created, and enable *Auto-assign public IP*.
+
+. Set up logging.
++
+Open the *Logging* section to edit your firewall settings. If you want to quickly check your Network Firewall logs before setting up Firehose, you can enable logging on CloudWatch, and then inspect the log events:
++
+[role="screenshot"]
+image::firehose-firewall-logging.png[Firewall setup logging]
+
+. Visit CloudWatch and open your log group. If everything is working correctly, you will get the list of log events:
++
+[role="screenshot"]
+image::firehose-cloudwatch-log-events.png[CloudWatch Log events]
+
+[discrete]
+[[firehose-firewall-step-three]]
+== Step 3: Create a delivery stream in Amazon Data Firehose
+
+. Go to the https://console.aws.amazon.com/[AWS console] and navigate to Amazon Data Firehose.  
+
+. Click *Create Firehose stream* and choose the source and destination of your Firehose stream. Unless you are streaming data from Kinesis Data Streams, set source to `Direct PUT` and destination to `Elastic`. 
+
+. Provide a meaningful *Firehose stream name* that will allow you to identify this delivery stream later. Your Firehose name must start with the prefix `aws-waf-logs-` or it will not show up later.
+
+NOTE: For advanced use cases, source records can be transformed by invoking a custom Lambda function. When using Elastic integrations, this should not be required.
+
