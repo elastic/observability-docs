@@ -1,0 +1,63 @@
+[[monitor-aws-cloudwatch-firehose]]
+= Monitor any log from CloudWatch
+
+++++
+<titleabbrev>Monitor any log from CloudWatch</titleabbrev>
+++++
+
+In this section, you'll learn how to export log events from CloudWatch logs to an Elastic cluster.
+
+You will go through the following steps:
+
+- Select a resource 
+- Create a delivery stream in Amazon Data Firehose
+- Set up logging to forward the logs to the Elastic stack using a Firehose stream
+- Visualize your logs in {kib}
+
+[discrete]
+[[firehose-cloudwatch-prerequisites]]
+== Before you begin
+
+We assume that you already have:
+
+- An AWS account with permissions to pull the necessary data from AWS.
+- A deployment using our hosted {ess} on {ess-trial}[{ecloud}]. The deployment includes an {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data. AWS Data Firehose works with Elastic Stack version 7.17 or greater, running on Elastic Cloud only.
+
+IMPORTANT: AWS PrivateLink is not supported. Make sure the deployment is on AWS, because the Amazon Data Firehose delivery stream connects specifically to an endpoint that needs to be on AWS.
+
+[discrete]
+[[firehose-cloudwatch-step-one]]
+== Step 1: Install AWS integration in {kib}
+
+. In {kib}, navigate to *Management* > *Integrations* and browse the catalog to find the AWS integration.
+
+. Navigate to the *Settings* tab and click *Install AWS assets*.
+
+[discrete]
+[[firehose-cloudwatch-step-two]]
+== Step 2: Select a resource
+
+In this tutorial, we will collect application logs from an AWS Lambda-based app and forward them to Elastic.
+
+AWS Lambda functions log directly to CloudWatch out of the box.
+
+[discrete]
+[[firehose-cloudwatch-step-three]]
+== Step 3: Create a delivery stream in Amazon Data Firehose
+
+. Go to the https://console.aws.amazon.com/[AWS console] and navigate to Amazon Data Firehose.  
+
+. Click *Create Firehose stream* and choose the source and destination of your Firehose stream. Unless you are streaming data from Kinesis Data Streams, set source to `Direct PUT` and destination to `Elastic`. 
+
+. Provide a meaningful *Firehose stream name* that will allow you to identify this delivery stream later. Your Firehose name must start with the prefix `aws-waf-logs-` or it will not show up later.
+
+NOTE: For advanced use cases, source records can be transformed by invoking a custom Lambda function. When using Elastic integrations, this should not be required.
+
+[discrete]
+[[firehose-cloudwatch-step-four]]
+== Step 4: Set up logging
+
+
+[discrete]
+[[firehose-cloudwatch-step-five]]
+== Step 5: Visualize your logs in {kib}
