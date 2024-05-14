@@ -1,0 +1,53 @@
+name: Delete Unused Directories
+
+on:
+  pull_request:
+    types: [opened]
+    branches:
+      - "!main"
+
+jobs:
+  delete_serverless_dir:
+    runs-on: ubuntu-latest
+    if: ${{ github.event.pull_request.head.ref =~ '[7,8].*' }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: map dirs
+        run: |
+          val=$(node .github/backport-mapping.js "${{ github.event.pull_request.head.ref }}")
+
+          # Use jq to extract the values as arrays
+          labels_to_remove=$(jq -r '.remove | split(",")[]' <<< "$val")
+          labels_to_add=$(jq -r '.add | split(",")[]' <<< "$val")
+
+          # Print the arrays
+          echo "The following labels will be removed: ${labels_to_remove[@]}"
+          echo "The following labels will be added: ${labels_to_add[@]}"
+
+          # Save the arrays for a later step
+          echo "labels_to_remove=$labels_to_remove" >> "$GITHUB_ENV"
+          echo "labels_to_add=$labels_to_add" >> "$GITHUB_ENV"
+          # echo "::set-output name=label::${old_labels[random_index]}"
+
+      - name: Check if serverless directory exists
+        id: check_serverless_dir
+        run: |
+          if [ -d "serverless" ]; then
+            echo "::set-output name=dir_exists::true"
+          else
+            echo "::set-output name=dir_exists::false"
+          fi
+
+      - name: Delete serverless directory if exists
+        if: steps.check_serverless_dir.outputs.dir_exists == 'true'
+        run: rm -rf serverless
+
+      - name: Commit and push changes
+        if: steps.check_serverless_dir.outputs.dir_exists == 'true'
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: "Delete serverless directory"
+          commit_user_name: "GitHub Actions"
+          commit_user_email: "actions@github.com"

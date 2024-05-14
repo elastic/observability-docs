@@ -1,0 +1,78 @@
+name: Add backport labels
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  remove_and_add_labels:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Get existing labels
+        id: get_labels
+        uses: actions/github-script@v7
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: labels } = await github.issues.listLabelsOnIssue({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number
+            });
+            const labelNames = labels.map(label => label.name);
+            console.log(labelNames.join(','));
+
+            echo "labelNames=$labelNames" >> "$GITHUB_ENV"
+
+      - name: Map to backport labels
+        id: map_backport_labels
+        run: |
+          # Run node script to map existing labels to backport labels
+          val=$(node .github/label-mapping.js "$labelNames")
+
+          # Use jq to extract the values as arrays
+          labels_to_remove=$(jq -r '.remove | split(",")[]' <<< "$val")
+          labels_to_add=$(jq -r '.add | split(",")[]' <<< "$val")
+
+          # Print the arrays
+          echo "The following labels will be removed: ${labels_to_remove[@]}"
+          echo "The following labels will be added: ${labels_to_add[@]}"
+
+          # Save the arrays for a later step
+          echo "labels_to_remove=$labels_to_remove" >> "$GITHUB_ENV"
+          echo "labels_to_add=$labels_to_add" >> "$GITHUB_ENV"
+          # echo "::set-output name=label::${old_labels[random_index]}"
+
+      - name: Remove deployment labels
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            ${{ labels_to_remove }}.foreach((label) => {
+              await github.issues.removeLabel({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                name: label
+              });
+            })
+
+      - name: Add backport labels
+        uses: actions/github-script@v5
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const { data: pr } = await github.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number
+            });
+            await github.issues.addLabels({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              labels: ${{ labels_to_add }}
+            });
