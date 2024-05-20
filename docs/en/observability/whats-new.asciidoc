@@ -3,24 +3,101 @@
 
 Here are the highlights of what's new and improved in {minor-version}.
 
-// Other versions:
-// {observability-guide-all}/8.12/whats-new.html[8.12] |
-// {observability-guide-all}/8.11/whats-new.html[8.11] |
-// {observability-guide-all}/8.10/whats-new.html[8.10] |
-// {observability-guide-all}/8.9/whats-new.html[8.9] |
-// {observability-guide-all}/8.8/whats-new.html[8.8] |
-// {observability-guide-all}/8.7/whats-new.html[8.7] |
-// {observability-guide-all}/8.6/whats-new.html[8.6] |
-// {observability-guide-all}/8.5/whats-new.html[8.5] |
-// {observability-guide-all}/8.4/whats-new.html[8.4] |
-// {observability-guide-all}/8.3/whats-new.html[8.3] |
-// {observability-guide-all}/8.2/whats-new.html[8.2] |
-// {observability-guide-all}/8.1/whats-new.html[8.1] |
-// {observability-guide-all}/8.0/whats-new.html[8.0] |
-// {observability-guide-all}/7.17/whats-new.html[7.17]
+Other versions:
+{observability-guide-all}/8.13/whats-new.html[8.13] |
+{observability-guide-all}/8.12/whats-new.html[8.12] |
+{observability-guide-all}/8.11/whats-new.html[8.11] |
+{observability-guide-all}/8.10/whats-new.html[8.10] |
+{observability-guide-all}/8.9/whats-new.html[8.9] |
+{observability-guide-all}/8.8/whats-new.html[8.8] |
+{observability-guide-all}/8.7/whats-new.html[8.7] |
+{observability-guide-all}/8.6/whats-new.html[8.6] |
+{observability-guide-all}/8.5/whats-new.html[8.5] |
+{observability-guide-all}/8.4/whats-new.html[8.4] |
+{observability-guide-all}/8.3/whats-new.html[8.3] |
+{observability-guide-all}/8.2/whats-new.html[8.2] |
+{observability-guide-all}/8.1/whats-new.html[8.1] |
+{observability-guide-all}/8.0/whats-new.html[8.0] |
+{observability-guide-all}/7.17/whats-new.html[7.17]
 
 // tag::whats-new[]
 
-// What's new content goes in here. Don't uncomment or remove the tags surrounding this content :)
+Elastic Observability 8.14 announces the general availability (GA) of key Service Level Objective (SLO) management capabilities, additional enhancements to the Elastic AI Assistant for Observability, alerting improvements, and Universal Profiling for .NET.
 
+[float]
+== New SLO management capabilities
+
+[float]
+=== Federated SLOs over cross-cluster search (CCS)
+
+Administrators can now set up SLOs in local clusters and view them in a single "read" cluster using cross-cluster search. This improves performance in the read cluster, saves money by allowing transforms to be done closer to where the data lives, and provides an efficient way for our multi-cluster customers to centralize their SLO views.
+
+[role="screenshot"]
+image::images/wn-federated-1.png[What's new in 8.14: Screenshot of SLO overview page]
+
+[role="screenshot"]
+image::images/wn-federated-2.png[What's new in 8.14: Screenshot of Timeslice metric remote]
+
+[float]
+===  Grouped SLOs embeddable
+The SLO Overview chart can now show a group of SLOs. Multiple SLOs can be shown in a dashboard, grouped by SLO status, tag, or SLI type.
+
+[role="screenshot"]
+image::images/wn-grouped-1.png[What's new in 8.14: Screenshot of SLO configuration]
+
+[role="screenshot"]
+image::images/wn-grouped-2.png[What's new in 8.14: Screenshot of a visualization that identifies healthy and violated SLOs]
+
+[float]
+=== SLO burn rate alert dependency notification
+
+When an SLO is starting to burn through its error budget, but it is because of another  service that it is dependent on, you want to make sure that the notifications are sent for the dependent service but not for everyone else. SLO burn rate alerts can be noisy for end-to-end services that have service dependencies that are at the root cause. Now in 8.14, you can set up the SLO burn rate alerts to suspend the notification of burn rate alerts if there is a dependent service that is the root cause.
+
+[role="screenshot"]
+image::images/wn-slo-burn-rate.png[What's new in 8.14: Screenshot of the edit rule prompt]
+
+[float]
+=== New Synthetics availability SLI
+
+Introducing a new SLI dedicated to Synthetics availability. This will make it easier to convert your Elastic Synthetic monitors to availability SLOs with the same options that were used to set up the monitor. Synthetics is a great data source for availability monitoring.
+
+[role="screenshot"]
+image::images/wn-new-synthetics.png[What's new in 8.14: Screenshot of the Edit SLO page]
+
+[float]
+== Elastic AI Assistant for Observability enhancements
+
+[float]
+=== AI Assistant context-based starter prompts
+
+We added starter prompts to help new users with their onboarding on the AI Assistant. Default prompts can be overridden by contextual ones set by the current application. Starter prompts provide hints to the user on how to use the AI Assistant like "Are there any open alerts?" These prompts can be application- or data-specific.
+
+[role="screenshot"]
+image::images/wn-ai-assistant.png[What's new in 8.14: Screenshot of context-based starter prompts]
+
+[float]
+=== AI Assistant interactions via API calls
+
+The Elastic AI Assistant for Observability can now be accessed through an experimental API. The API allows users to interact with the AI Assistant programmatically. Users of the API can define instructions to control the AI Assistant’s behavior and actions that can be executed client-side.
+
+[float]
+=== AWS Bedrock Anthropic Claude 3 model support
+
+The updated AWS Bedrock connector is now updated to support Anthropic Claude 3. Previously, it was only able to support Claude 2.1.
+
+[float]
+== Universal Profiling for .NET
+Universal Profiling for .NET will now be supported alongside all major languages like PHP, Python, Java (or any JVM language), Go, Rust, C/C++, Node.js/V8, Ruby, Perl, and Zig.
+
+This is the first of its kind in the industry (outside of Microsoft) with the ability to continuously profile .NET-on-Linux versions 6, 7, and 8 (current) without instrumentation, requiring no user configuration and working seamlessly and transparently, using an eBPF-based solution. The .NET profiler exhibits the same performance characteristics as our other language runtime profilers: low CPU overhead and memory usage.
+
+[role="screenshot"]
+image::images/wn-universal-profiling.png[What's new in 8.14: Screenshot of universal profiling]
+
+[float]
+== Try it out
+
+Read about these capabilities and more in the {estc-welcome-current}[release notes].
+
+Existing Elastic Cloud customers can access many of these features directly from the https://cloud.elastic.co/[Elastic Cloud console]. Not taking advantage of Elastic on cloud? https://www.elastic.co/cloud/cloud-trial-overview[Start a free trial].
 // end::whats-new[]
