@@ -5,13 +5,13 @@
 <titleabbrev>Monitor any log from CloudWatch</titleabbrev>
 ++++
 
-In this section, you'll learn how to export log events from CloudWatch logs to an Elastic cluster.
+In this section, you'll learn how to export log events from CloudWatch logs to an Elastic cluster using Amazon Data Firehose.
 
 You will go through the following steps:
 
-- Select a resource 
+- Select a CloudWatch log group to monitor 
 - Create a delivery stream in Amazon Data Firehose
-- Set up logging to forward the logs to the Elastic stack using a Firehose stream
+- Set up a subscription filter to forward the logs using the Firehose stream
 - Visualize your logs in {kib}
 
 [discrete]
@@ -35,7 +35,7 @@ IMPORTANT: AWS PrivateLink is not supported. Make sure the deployment is on AWS,
 
 [discrete]
 [[firehose-cloudwatch-step-two]]
-== Step 2: Select a resource
+== Step 2: Select a CloudWatch log group to monitor 
 
 In this tutorial, we will collect application logs from an AWS Lambda-based app and forward them to Elastic.
 
@@ -47,7 +47,7 @@ Otherwise, let's create a lambda function.
 [[firehose-cloudwatch-step-two-overview]]
 === Overview
 
-In this tutorial, we will write a simple AWS Lambda-based app, collect the application logs, and forward them to Elastic. 
+In this tutorial, we will write a simple AWS Lambda-based app, collect its application logs, and forward them to Elastic. 
 
 Like many other services and platforms in AWS, Lambda functions natively log directly to CloudWatch out of the box. Lambda functions are a great tool for experimenting on AWS.
 
@@ -59,7 +59,7 @@ Like many other services and platforms in AWS, Lambda functions natively log dir
 2. Click on **Create function** and select the option to create a function from scratch.
 3. Select a **Function name**
 4. As a **Runtime**, select a recent version of Python (for example, Python 3.11).
-5. Select your **Architecture** of choice (for example, x86_64 is fine)
+5. Select your **Architecture** of choice between `arm64` and `x86_64`.
 6. Confirm and create the Lambda function
 
 When AWS completes the creation of the function, visit the **Code source** section and paste the following Python code as function source code:
@@ -73,7 +73,10 @@ def lambda_handler(event, context):
     print("Received event: " + json.dumps(event))
 ----
 
-Important: Click on **Deploy** to deploy the updated source code.
+[IMPORTANT]
+=====
+Click on **Deploy** to deploy the changes to the source code.
+=====
 
 [discrete]
 [[firehose-cloudwatch-step-two-genereate-sample-logs]]
@@ -85,7 +88,7 @@ On the function page,
 
 - Select **Test**
 - Select the option to create a new test event
-- Name the event (for example, "Test") and **Save** the changes.
+- Name the test event and **Save** the changes.
 - Click on the **Test** button to execute the function.
 
 Visit the function's log group. Usually, the AWS console offers a handy link to jump straight to the log group it created for this function's logs.
@@ -135,12 +138,12 @@ The Firehose stream is ready to send logs to our Elastic Cloud deployment.
 
 Next steps:
 
-- Visit the log group with the Lambda function log events
+- Open the log group with the Lambda function log events
 - Create a subscription filter for Amazon Data Firehose 
 
 [discrete]
 [[firehose-cloudwatch-step-four-log-group]]
-=== Visit the log group with the Lambda function log events
+=== Open the log group with the Lambda function log events
 
 Please open the log group where the Lambda service is sending the events. We must forward these events to an Elastic stack using the Firehose delivery stream.
 
@@ -166,10 +169,10 @@ Please select the Firehose stream we create in the previous step.
 
 Grant the CloudWatch service to send log events to the stream in Firehose.
 
-This step is made of multiple parts:
+This step consists of two parts::
 
-1. Create a new role with a trust policy that allows CloudWatch to assume the role.
-2. Assign a policy to the role that permits " putting records " into a Firehose delivery stream.
+1. Create a new role with a trust policy that allows CloudWatch service to assume the role.
+2. Assign a policy to the role that permits "putting records" into a Firehose  stream.
 
 [discrete]
 [[firehose-cloudwatch-step-four-subscription-filter-permission-role]]
@@ -202,7 +205,7 @@ Create a new IAM role and use the following JSON as the trust policy:
 [[firehose-cloudwatch-step-four-subscription-filter-permission-policy]]
 ===== Assign a policy to the IAM role
 
-Create and assign a new IAM policy to the IAM role using the following JSON:
+Using the the following JSON, create a new IAM policy and assign it to the role:
 
 [source,json]
 ----
@@ -230,13 +233,13 @@ Select the "Other" in the **Log format** option.
 [[firehose-cloudwatch-step-four-subscription-filter-log-format-more]]
 ===== More on log format and filters
 
-TBA
+You can use the *Subscription filter pattern* in the subscription filter to forward only the log events that match the pattern. You can test filter patterns using *Test pattern* in the AWS console.
 
 [discrete]
 [[firehose-cloudwatch-step-four-subscription-additional-logs]]
 ==== Generate additional logs
 
-Visit the AWS Lambda page again, select the function we created, and execute it a few more times to generate log events.
+Open the AWS Lambda page again, select the function we created, and execute it a few times to generate new log events.
 
 [discrete]
 [[firehose-cloudwatch-step-verify]]
@@ -244,7 +247,7 @@ Visit the AWS Lambda page again, select the function we created, and execute it 
 
 Check if there are destination error logs.
 
-On the AWS console, visit your Firehose stream and check for entries in the "Destination error logs":
+On the AWS console, visit your Firehose stream and check for entries in the "Destination error logs" section.
 
 If everything is running smoothly, this list will be empty. If there's an error, you can check the details. Here is a delivery stream that fails to send records to the Elastic stack due to bad authentication settings:
 
@@ -259,5 +262,9 @@ The Firehose delivery stream reports:
 [discrete]
 [[firehose-cloudwatch-step-five]]
 == Step 5: Visualize your logs in {kib}
+
+With the logs streaming to the Elastic stack, you can now visualize them in {kib}.
+
+In {kib}, navigate to the *Discover* page and select the index pattern that matches the Firehose stream name. Here is a sample of logs from the Lambda function we forwarded to the `logs-aws.generic-default` data stream:
 
 image::firehose-cloudwatch-verify-discover.png[Sample logs in Discover]
