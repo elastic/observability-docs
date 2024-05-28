@@ -1,0 +1,42 @@
+{/* Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/java.mdx */}
+
+Manually set up and configure the agent with the `-javaagent` JVM option. No application code change is required, but this requires an
+application restart. See below for more information on this setup method.
+
+**1. Download the ((apm-agent))**
+
+The first step in getting started with the Elastic APM Java agent is to retrieve a copy of the agent JAR.
+Java agent releases are published to [Maven central](https://repo.maven.apache.org/maven2/). In order to get a copy you can either:
+
+* download the [latest agent](https://oss.sonatype.org/service/local/artifact/maven/redirect?r=releases&g=co.elastic.apm&a=elastic-apm-agent&v=LATEST)
+or a [previous release](https://mvnrepository.com/artifact/co.elastic.apm/elastic-apm-agent) from Maven central.
+* download with `curl`:
+
+  ```bash
+  curl -o 'elastic-apm-agent.jar' -L 'https://oss.sonatype.org/service/local/artifact/maven/redirect?r=releases&g=co.elastic.apm&a=elastic-apm-agent&v=LATEST'
+  ```
+
+**2. Add `-javaagent` flag**
+
+When starting your application, add the JVM flag: `-javaagent:/path/to/elastic-apm-agent-<version>.jar`.
+
+**3. Configure**
+
+Different application servers have different ways of setting the `-javaagent` flag and system properties.
+Start your application (for example a Spring Boot application or other embedded servers) and add the `-javaagent` JVM flag.
+Use the `-D` prefix to configure the agent using system properties:
+
+```bash
+java -javaagent:/path/to/elastic-apm-agent-<version>.jar -Delastic.apm.service_name=my-cool-service -Delastic.apm.application_packages=org.example,org.another.example -Delastic.apm.server_url=http://127.0.0.1:8200 -jar my-application.jar
+```
+
+Refer to [Manual setup with `-javaagent` flag](((apm-java-ref))/setup-javaagent.html) to learn more.
+
+**Alternate setup methods**
+
+* **Automatic setup with `apm-agent-attach-cli.jar`**
+  Automatically set up the agent without needing to alter the configuration of your JVM or application server. This method requires no changes to application code
+  or JVM options, and allows attaching to a running JVM. Refer to the [Java agent documentation](((apm-java-ref))/setup-attach-cli.html) for more information on this setup method.
+* **Programmatic API setup to self-attach**
+  Set up the agent with a one-line code change and an extra `apm-agent-attach` dependency. This method requires no changes to JVM options, and
+  the agent artifact is embedded within the packaged application binary. Refer to the [Java agent documentation](((apm-java-ref))/setup-attach-api.html) for more information on this setup method.
