@@ -5,9 +5,9 @@
 <titleabbrev>Monitor any log from CloudWatch</titleabbrev>
 ++++
 
-In this section, you'll learn how to export log events from CloudWatch logs to an Elastic cluster using Amazon Data Firehose.
+In this section, you'll learn how to export log events from CloudWatch logs to an Elastic cluster by using Amazon Data Firehose.
 
-You will go through the following steps:
+You'll go through the following steps:
 
 - Select a CloudWatch log group to monitor 
 - Create a delivery stream in Amazon Data Firehose
@@ -27,7 +27,7 @@ IMPORTANT: AWS PrivateLink is not supported. Make sure the deployment is on AWS,
 
 [discrete]
 [[firehose-cloudwatch-step-one]]
-== Step 1: Install AWS integration in {kib}
+== Step 1: Install AWS integration
 
 . In {kib}, navigate to *Management* > *Integrations* and browse the catalog to find the AWS integration.
 
@@ -37,9 +37,9 @@ IMPORTANT: AWS PrivateLink is not supported. Make sure the deployment is on AWS,
 [[firehose-cloudwatch-step-two]]
 == Step 2: Select a CloudWatch log group to monitor 
 
-In this tutorial, we will collect application logs from an AWS Lambda-based app and forward them to Elastic.
+In this tutorial, you collect application logs from an AWS Lambda-based app and forward them to Elastic.
 
-If you already have a Lambda function, or any other service or application that logs on a CloudWatch log group, you can skip this section. Take note of the log group from which you want to collect log events and move to the next section.
+If you already have a Lambda function, or any other service or application that sends logs to a CloudWatch log group, you can skip this section. Take note of the log group from which you want to collect log events and move to the next section.
 
 Otherwise, let's create a lambda function.
 
@@ -47,7 +47,7 @@ Otherwise, let's create a lambda function.
 [[firehose-cloudwatch-step-two-overview]]
 === Overview
 
-In this tutorial, we will write a simple AWS Lambda-based app, collect its application logs, and forward them to Elastic. 
+In this tutorial, you write a simple AWS Lambda-based app, collect its application logs, and forward them to Elastic. 
 
 Like many other services and platforms in AWS, Lambda functions natively log directly to CloudWatch out of the box. Lambda functions are a great tool for experimenting on AWS.
 
@@ -56,13 +56,13 @@ Like many other services and platforms in AWS, Lambda functions natively log dir
 === Create a Lambda function
 
 1. Visit the AWS web console and open the AWS Lambda page.
-2. Click on **Create function** and select the option to create a function from scratch.
+2. Click **Create function** and select the option to create a function from scratch.
 3. Select a **Function name**
 4. As a **Runtime**, select a recent version of Python (for example, Python 3.11).
 5. Select your **Architecture** of choice between `arm64` and `x86_64`.
-6. Confirm and create the Lambda function
+6. Confirm and create the Lambda function.
 
-When AWS completes the creation of the function, visit the **Code source** section and paste the following Python code as function source code:
+When AWS finishes creating the function, visit the **Code source** section and paste the following Python code as function source code:
 
 [source,python]
 ----
@@ -75,21 +75,21 @@ def lambda_handler(event, context):
 
 [IMPORTANT]
 =====
-Click on **Deploy** to deploy the changes to the source code.
+Click **Deploy** to deploy the changes to the source code.
 =====
 
 [discrete]
 [[firehose-cloudwatch-step-two-genereate-sample-logs]]
 === Generate some sample logs
 
-With the function ready to go, we can invoke it a few times to generate sample logs.
+With the function ready to go, you can invoke it a few times to generate sample logs.
 
 On the function page,
 
-- Select **Test**
-- Select the option to create a new test event
-- Name the test event and **Save** the changes.
-- Click on the **Test** button to execute the function.
+. Select **Test**.
+. Select the option to create a new test event.
+. Name the test event and **Save** the changes.
+. Click the **Test** button to execute the function.
 
 Visit the function's log group. Usually, the AWS console offers a handy link to jump straight to the log group it created for this function's logs.
 
@@ -145,7 +145,7 @@ Next steps:
 [[firehose-cloudwatch-step-four-log-group]]
 === Open the log group with the Lambda function log events
 
-Please open the log group where the Lambda service is sending the events. We must forward these events to an Elastic stack using the Firehose delivery stream.
+Open the log group where the Lambda service is sending the events. You can forward these events to an Elastic stack through the Firehose delivery stream.
 
 The CloudWatch log group offers a https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Subscriptions.html[subscription filter]. The subscription filter allows users to pick log events from the log group and forward them to other services, such as an Amazon Kinesis stream, an Amazon Data Firehose stream, or AWS Lambda.
 
@@ -161,18 +161,17 @@ The CloudWatch log group offers a https://docs.aws.amazon.com/AmazonCloudWatch/l
 [[firehose-cloudwatch-step-four-subscription-filter-destination]]
 ==== Choose destination
 
-Please select the Firehose stream we create in the previous step.
+Select the Firehose stream you created in the previous step.
 
 [discrete]
 [[firehose-cloudwatch-step-four-subscription-filter-permission]]
 ==== Grant permission
 
-Grant the CloudWatch service to send log events to the stream in Firehose.
+Grant the CloudWatch service permission to send log events to the stream in Firehose:
 
-This step consists of two parts::
 
-1. Create a new role with a trust policy that allows CloudWatch service to assume the role.
-2. Assign a policy to the role that permits "putting records" into a Firehose  stream.
+. Create a new role with a trust policy that allows CloudWatch service to assume the role.
+. Assign a policy to the role that permits "putting records" into a Firehose  stream.
 
 [discrete]
 [[firehose-cloudwatch-step-four-subscription-filter-permission-role]]
@@ -239,7 +238,7 @@ You can use the *Subscription filter pattern* in the subscription filter to forw
 [[firehose-cloudwatch-step-four-subscription-additional-logs]]
 ==== Generate additional logs
 
-Open the AWS Lambda page again, select the function we created, and execute it a few times to generate new log events.
+Open the AWS Lambda page again, select the function you created, and execute it a few times to generate new log events.
 
 [discrete]
 [[firehose-cloudwatch-step-verify]]
@@ -247,7 +246,7 @@ Open the AWS Lambda page again, select the function we created, and execute it a
 
 Check if there are destination error logs.
 
-On the AWS console, visit your Firehose stream and check for entries in the "Destination error logs" section.
+On the AWS console, visit your Firehose stream and check for entries in the *Destination error logs* section.
 
 If everything is running smoothly, this list will be empty. If there's an error, you can check the details. Here is a delivery stream that fails to send records to the Elastic stack due to bad authentication settings:
 
@@ -255,8 +254,8 @@ image::firehose-cloudwatch-destination-errors.png[Firehose destination errors]
 
 The Firehose delivery stream reports:
 
-1. The number of failed deliveries. 
-2. The failure detail. 
+* The number of failed deliveries. 
+* The failure detail. 
 
 
 [discrete]
@@ -265,6 +264,6 @@ The Firehose delivery stream reports:
 
 With the logs streaming to the Elastic stack, you can now visualize them in {kib}.
 
-In {kib}, navigate to the *Discover* page and select the index pattern that matches the Firehose stream name. Here is a sample of logs from the Lambda function we forwarded to the `logs-aws.generic-default` data stream:
+In {kib}, navigate to the *Discover* page and select the index pattern that matches the Firehose stream name. Here is a sample of logs from the Lambda function you forwarded to the `logs-aws.generic-default` data stream:
 
 image::firehose-cloudwatch-verify-discover.png[Sample logs in Discover]
