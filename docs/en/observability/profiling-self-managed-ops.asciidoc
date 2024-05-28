@@ -12,6 +12,7 @@ This page outlines operating the backend when running Universal Profiling on a s
 * <<profiling-self-managed-ops-monitoring, Monitoring your collector and symbolizer>>
 * <<profiling-scaling-backend-resources, Scaling your resources>>
 * <<profiling-self-managed-upgrade, Upgrading backend binaries>>
+* <<profiling-self-managed-kubernetes-tips, Kubernetes tips>>
 
 [discrete]
 [[profiling-self-managed-ops-sizing-guidance]]
@@ -262,3 +263,85 @@ Download the corresponding binary version and replace the existing one, using th
 Replace the old binary and restart the services.
 
 You will find the links to the new binaries in the "Add Data" page, under the "Binary" tab.
+
+[discrete]
+[[profiling-self-managed-kubernetes-tips]]
+== Kubernetes tips
+
+When deploying the Universal Profiling backend on Kubernetes, there are some best practices to follow.
+
+[discrete]
+=== Ingress configuration
+
+If you are using an ingress controller, the connection routing to the collector Service should be configured to use the gRPC protocol.
+
+We provide an `Ingress` resource as part of the Helm chart, and because the ingress can be any implementation,
+you should provide to the chart values the configuration of the ingress, adding the class name and the
+necessary annotations using the `ingress.annotations` field.
+
+For example, when using an NGINX ingress controller,
+set the annotation `nginx.ingress.kubernetes.io/backend-protocol: "GRPC"`, as shown in the following example:
+
+[source,yaml]
+----
+ingress:
+  create: true
+  ingressClassName: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+----
+
+For symbolizer, the connection routing should be configured to use the HTTP protocol.
+There is usually no need to customize annotations for this type of service, but the chart provides similar configuration options.
+
+[discrete]
+=== Output TLS configuration
+
+You can secure the communication between the Universal Profiling backend and the Elasticsearch cluster by enabling TLS
+in the `output.elasticsearch` section of the collector and symbolizer configuration files.
+
+To do so, Kubernetes secrets containing the TLS key pairs should be provisioned in the namespace where the backend is installed.
+In case of self-signed certificates, the CA bundle used to validate Elasticsearch's certificates should also be part of the secret.
+
+Create two secrets, one for the collector and one for the symbolizer, with the names `pf-symbolizer-tls-certificate` and `pf-collector-tls-certificate`.
+The secrets should contain the following keys:
+
+- `tls.key`: the certificate private key
+- `tls.cert`: the certificate public key
+- `ca.cert` (optional): the certificate CA bundle
+
+Follow these steps to enable TLS connection from collector/symbolizer to Elasticsearch:
+
+1. Create secrets with the TLS key pairs (omit the `ca.cert` field if you are not using a self-signed CA):
+
+        kubectl create secret generic pf-collector-tls-certificate --from-file=tls.key=/path/to/key.pem \
+        --from-file=tls.cert=/path/to/cert.pem --from-file=ca.cert=/path/to/ca.crt
+
+        kubectl create secret generic pf-symbolizer-tls-certificate --from-file=tls.key=/path/to/key.pem \
+        --from-file=tls.cert=/path/to/cert.pem --from-file=ca.cert=/path/to/ca.crt
+
+2. Update the collector and symbolizer Helm values files to enable the use of TLS configuration:
++
+[source, yaml, highlight=3..4]
+----
+output:
+  elasticsearch:
+    ssl:
+      enabled: true
+----
+
+3. Upgrade the charts using the `helm upgrade` command, providing the updated values file.
+
+[discrete]
+=== Horizontal scaling
+
+When scaling the Universal Profiling backend on Kubernetes, you can increase the number of replicas for the collector, or
+enable Horizontal Pod Autoscaling V2.
+
+To enable HPAv2 for the collector or symbolizer, you can set the `autoscalingV2` dictionary in each Helm values file.
+
+At the moment, **it is not recommended to enable an autoscaler for symbolizer**.
+Due to a current limitation on how symbolizer replicas can synchronize their workloads, it is best
+to only use a single replica for the symbolizer.
+Scale the symbolizer vertically first.
+Only in case of high latency in symbolizing native frames (10+ minutes) you can evaluate adding more replicas.
