@@ -1,0 +1,48 @@
+<DocIf condition={ props.intro_text === true }>
+1. Follow the [Filebeat quick start](((filebeat-ref))/filebeat-installation-configuration.html) to learn how to
+    install ((filebeat)) and connect to Elastic.
+</DocIf>
+<DocIf condition={ props.ecs_logs === true }>
+1. Add the following configuration to your `filebeat.yaml` file to start collecting log data.
+
+```yaml
+filebeat.inputs:
+- type: filestream  [^1]
+  paths: /path/to/logs.json
+  parsers:
+    - ndjson:
+        overwrite_keys: true  [^2]
+        add_error_key: true  [^3]
+        expand_keys: true  [^4]
+  fields:
+    service.name: your_service_name  [^5]
+    service.version: your_service_version  [^5]
+    service.environment: your_service_environment  [^5]
+
+processors:  [^6]
+  - add_host_metadata: ~
+  - add_cloud_metadata: ~
+  - add_docker_metadata: ~
+  - add_kubernetes_metadata: ~
+```
+[^1]: Use the filestream input to read lines from active log files.
+[^2]: Values from the decoded JSON object overwrite the fields that ((filebeat)) normally adds (type, source, offset, etc.) in case of conflicts.
+[^3]: ((filebeat)) adds an "error.message" and "error.type: json" key in case of JSON unmarshalling errors.
+[^4]: ((filebeat)) will recursively de-dot keys in the decoded JSON, and expand them into a hierarchical object structure.
+[^5]: The `service.name` (required), `service.version` (optional) and `service.environment` (optional) of the service you're collecting logs from, used for <DocLink id="serverlessObservabilityCorrelateApplicationLogs" section="log-correlation">Log correlation</DocLink>.
+[^6]: Processors enhance your data. See [processors](((filebeat-ref))/filtering-and-enhancing-data.html) to learn more.
+</DocIf>
+
+<DocIf condition={ props.plaintext === true }>
+2. Configure `filebeat.yaml` file to start collecting log data.
+
+3. Add the following configuration to your `filebeat.yaml` file to start collecting log data.
+
+```yaml
+filebeat.inputs:
+- type: filestream  [^1]
+  paths: /path/to/logs.log  [^2]
+```
+[^1]: Reads lines from an active log file.
+[^2]: A list of glob-based paths that will be crawled and fetched.
+</DocIf>

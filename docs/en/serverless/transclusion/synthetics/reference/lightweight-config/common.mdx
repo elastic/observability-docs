@@ -1,0 +1,325 @@
+
+<DocTable columns={[
+  {
+    "title": "Option (type)",
+    "width": "25%"
+  },
+  {
+    "title": "Description  ",
+    "width": "75%"
+  }
+]}>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-type">**`type`**</span><br />(`"http"`, `"icmp"`, or `"tcp"`)
+    </DocCell>
+    <DocCell>
+      **Required**. The type of monitor to run. One of:
+
+      * `http`: Connects via HTTP and optionally verifies that the host returns the expected response.
+      * `icmp`: Uses an ICMP (v4 and v6) Echo Request to ping the configured hosts. Requires special permissions or root access.
+      * `tcp`: Connects via TCP and optionally verifies the endpoint by sending and/or receiving a custom payload.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-id">**`id`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="string">string</DocLink>)
+    </DocCell>
+    <DocCell>
+      **Required**. A unique identifier for this configuration. This should not change with edits to the monitor configuration regardless of changes to any config fields.
+
+      **Examples**:
+
+      ```yaml
+      id: uploader-service
+      ```
+
+      ```yaml
+      id: http://example.net
+      ```
+
+      <DocCallOut title="Note">
+        When querying against indexed monitor data this is the field you will be aggregating with. It appears in the exported fields as `monitor.id`.
+
+        If you do not set an `id` explicitly, the monitor's config will be hashed and a generated value will be used. This value will change with any options change to this monitor making aggregations over time between changes impossible. For this reason, it's recommended that you set this manually.
+      </DocCallOut>
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-name">**`name`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="string">string</DocLink>)
+    </DocCell>
+    <DocCell>
+      Human readable name for this monitor.
+
+      **Examples**:
+
+      ```yaml
+      name: Uploader service
+      ```
+
+      ```yaml
+      name: Example website
+      ```
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-service_name">**`service.name`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="string">string</DocLink>)
+    </DocCell>
+    <DocCell>
+      APM service name for this monitor. Corresponds to the `service.name` ECS field. Set this when monitoring an app that is also using APM to enable integrations between Synthetics and APM data in your Observability project.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-enabled">**`enabled`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="boolean">boolean</DocLink>)
+    </DocCell>
+    <DocCell>
+      Whether the monitor is enabled.
+
+      **Default**: `true`
+
+      **Example**:
+
+      ```yaml
+      enabled: false
+      ```
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-schedule">**`schedule`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="duration">duration</DocLink>)
+    </DocCell>
+    <DocCell>
+      **Required**. The task schedule.
+
+      <DocCallOut title="Note">
+        Schedules with less than 1 minute resolution will be saved to the nearest minute. For example, `@every 5s` will be changed to `@every 60s` when the monitor is pushed using the CLI.
+      </DocCallOut>
+
+      **Example**:
+      Run the task every 5 minutes from the time the monitor was started.
+
+      ```yaml
+      schedule: @every 5m
+      ```
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-timeout">**`timeout`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="duration">duration</DocLink>)
+    </DocCell>
+    <DocCell>
+      The total running time for each ping test. This is the total time allowed for testing the connection and exchanging data.
+
+      **Default**: `16s`
+
+      **Example**:
+
+      ```yaml
+      timeout: 2m
+      ```
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-tags">**`tags`**</span><br />
+      (list of <DocLink id="serverlessObservabilitySyntheticsLightweight" section="string">string</DocLink>s)
+    </DocCell>
+    <DocCell>
+      A list of tags that will be sent with the monitor event.
+
+      **Examples**:
+
+      ```yaml
+      tags:
+        - tag one
+        - tag two
+      ```
+
+      ```yaml
+      tags: ["tag one", "tag two"]
+      ```
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-mode">**`mode`**</span><br />
+      (`"any"` \| `"all"`)
+    </DocCell>
+    <DocCell>
+      One of two modes in which to run the monitor:
+
+      * `any`: The monitor pings only one IP address for a hostname.
+      * `all`: The monitor pings all resolvable IPs for a hostname.
+
+      **Default**: `any`
+
+      **Example**:
+      If you're using a DNS-load balancer and want to ping every IP address for the specified hostname, you should use `all`.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-ipv4">**`ipv4`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="boolean">boolean</DocLink>)
+    </DocCell>
+    <DocCell>
+      Whether to ping using the ipv4 protocol if hostnames are configured.
+
+      **Default**: `true`
+
+      **Example**:
+
+      ```yaml
+      ipv4: false
+      ```
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-ipv6">**`ipv6`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="boolean">boolean</DocLink>)
+    </DocCell>
+    <DocCell>
+      Whether to ping using the ipv6 protocol if hostnames are configured.
+
+      **Default**: `true`
+
+      **Example**:
+
+      ```yaml
+      ipv6: false
+      ```
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-alert">**`alert`**</span>
+    </DocCell>
+    <DocCell>
+      Enable or disable alerts on this monitor. Read more about alerts in <DocLink id="serverlessObservabilitySyntheticsSettings" section="alerting">Alerting</DocLink>.
+
+      <DocDefList>
+        <DocDefTerm>**`status.enabled`** (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="boolean">boolean</DocLink>)</DocDefTerm>
+        <DocDefDescription>
+          Enable monitor status alerts on this monitor.
+
+          **Default**: `true`
+
+          **Example**:
+
+          ```yaml
+          alert.status.enabled: true
+          ```
+        </DocDefDescription>
+        <DocDefTerm>**`tls.enabled`** (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="boolean">boolean</DocLink>)</DocDefTerm>
+        <DocDefDescription>
+          Enable TLS certificate alerts on this monitor.
+
+          **Default**: `true`
+
+          **Example**:
+
+          ```yaml
+          alert.tls.enabled: true
+          ```
+        </DocDefDescription>
+      </DocDefList>
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-retest_on_failure">**`retest_on_failure`**</span><br />
+      (<DocLink id="serverlessObservabilitySyntheticsLightweight" section="boolean">boolean</DocLink>)
+    </DocCell>
+    <DocCell>
+      Enable or disable retesting when a monitor fails. Default is `true`.
+
+      By default, monitors are automatically retested if the monitor goes from "up" to "down". If the result of the retest is also "down", an error will be created, and if configured, an alert sent. Then the monitor will resume running according to the defined schedule. Using `retestOnFailure` can reduce noise related to transient problems.
+
+      **Example**:
+
+      ```yaml
+      retest_on_failure: false
+      ```
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-locations">**`locations`**</span><br />
+      (list of [`SyntheticsLocationsType`](https://github.com/elastic/synthetics/blob/((synthetics_version))/src/locations/public-locations.ts#L28-L37))
+    </DocCell>
+    <DocCell>
+      Where to deploy the monitor. You can deploy monitors in multiple locations to detect differences in availability and response times across those locations.
+
+      To list available locations you can:
+
+      * Run the <DocLink id="serverlessObservabilitySyntheticsCommandReference" section="elasticsynthetics-locations">`elastic-synthetics locations` command</DocLink>.
+      * Go to **Synthetics** → **Management** and click **Create monitor**. Locations will be listed in _Locations_.
+
+      **Examples**:
+
+      ```yaml
+      locations: ["japan", "india"]
+      ```
+
+      ```yaml
+      locations:
+        - japan
+        - india
+      ```
+
+      <DocCallOut title="Note">
+        This can also be set using
+        <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.locations` in the Synthetics project configuration file</DocLink>
+        or via the CLI using the <DocLink id="serverlessObservabilitySyntheticsCommandReference" section="elasticsynthetics-push">`--location` flag on `push`</DocLink>.
+
+        The value defined via the CLI takes precedence over the value defined in the lightweight monitor configuration,
+        and the value defined in the lightweight monitor configuration takes precedence over the value defined in Synthetics project configuration file.
+      </DocCallOut>
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>
+       <span id="monitor-private_locations">**`private_locations`**</span><br />
+      (list of <DocLink id="serverlessObservabilitySyntheticsLightweight" section="string">string</DocLink>s)
+    </DocCell>
+    <DocCell>
+      The <DocLink id="serverlessObservabilitySyntheticsPrivateLocation">((private-location))s</DocLink> to which the monitors will be deployed. These ((private-location))s refer to locations hosted and managed by you, whereas  `locations` are hosted by Elastic. You can specify a ((private-location)) using the location's name.
+
+      To list available ((private-location))s you can:
+
+      * Run the <DocLink id="serverlessObservabilitySyntheticsCommandReference" section="elasticsynthetics-locations">`elastic-synthetics locations` command</DocLink> and specify the URL of the Observability project. This will fetch all available private locations associated with the deployment.
+      * Go to **Synthetics** → **Management** and click **Create monitor**. ((private-location))s will be listed in _Locations_.
+
+      **Examples**:
+
+      ```yaml
+      private_locations: ["Private Location 1", "Private Location 2"]
+      ```
+
+      ```yaml
+      private_locations:
+        - Private Location 1
+        - Private Location 2
+      ```
+
+      <DocCallOut title="Note">
+        This can also be set using
+        <DocLink id="serverlessObservabilitySyntheticsConfiguration" section="monitor">`monitor.privateLocations` in the Synthetics project configuration file</DocLink>
+        or via the CLI using the <DocLink id="serverlessObservabilitySyntheticsCommandReference" section="elasticsynthetics-push">`--privateLocations` flag on `push`</DocLink>.
+
+        The value defined via the CLI takes precedence over the value defined in the lightweight monitor configuration,
+        and the value defined in the lightweight monitor configuration takes precedence over the value defined in Synthetics project configuration file.
+      </DocCallOut>
+    </DocCell>
+  </DocRow>
+</DocTable>
