@@ -1,0 +1,424 @@
+[[monitor-azure-openai]]
+== Monitor Microsoft Azure OpenAI
+
+****
+**New to Elastic?** Follow the steps in our {estc-welcome}/getting-started-observability.html[getting started guide] instead
+of the steps described here. Return to this tutorial after you've learned the
+basics.
+****
+
+This tutorial shows how to use the Elastic Azure OpenAI integration, the Azure portal, and {agent} to collect and monitor Azure OpenAI logs and metrics with Elastic {observability}.
+It also shows how to collect Azure OpenAI application performance monitoring (APM) logs and metrics and monitor them with Elastic {observability}.
+
+[discrete]
+[[azure-openai-what-you-learn]]
+=== What you'll learn
+
+You'll learn how to:
+
+* Collect Azure OpenAI audit and request-response logs and view them in {kib}.
+* Collect Azure resource metrics and view them in {kib}.
+* Collect Azure OpenAI APM logs and metrics with OpenTelemetry and view them in {kib}.
+
+[discrete]
+[[azure-openai-set-up-logs]]
+=== Set up Azure to collect logs
+
+The Elastic Azure OpenAI integration captures audit logs and request and response logs.
+
+Audit logs provide a range of information related to the use and management of Azure OpenAI services.
+Request and response logs provide information about each request made to the service and the corresponding response provided by the service.
+
+For more on the fields ingested from audit and request and response logs, refer to the {integrations-docs}/azure_openai#settings[Azure OpenAI integration] documentation.
+
+Before {agent} can collect your logs and send them to {kib}, complete the following steps in your Azure instance:
+
+. Create an event hub to receive logs exported from the Azure service and make them available to the {agent}.
+. Configure diagnostic settings to send your logs to the event hub.
+. Create a storage account container where the {agent} can store consumer group information.
+
+[discrete]
+[[azure-openai-event-hub]]
+==== Create an event hub
+
+https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-about[Azure Event Hubs]
+is a data streaming platform and event ingestion service that you use to store
+in-flight Azure logs before sending them to {es}. For this tutorial, you create
+a single event hub because you are collecting logs from one service.
+
+To create an Azure event hub:
+
+. Go to the Azure portal.
+. Search for and select **Event Hubs**.
+. Click **Create** and create a new Event Hubs namespace. You'll need to create a new resource group, or choose an existing one.
+. Enter the required settings for the namespace and click **Review + create**.
+. Click **Create** to deploy the resource.
+. In the new namespace, click **+ Event Hub** and enter a name for the event hub.
+. Click **Review + create**, and then click **Create** to deploy the resource.
+. Make a note of the namespace and event hub name because you'll use them to configure your integration settings in <<azure-openai-configure-integration>>.
+
+[discrete]
+[[azure-openai-diagnostic-settings]]
+==== Configure diagnostic settings
+
+Every Azure service that creates logs has diagnostic settings that allow you to
+export logs and metrics to an external destination. In this step, configure
+the Azure OpenAI service to export activity logs to the event hub you created
+in the previous step.
+
+To configure diagnostic settings to export logs:
+
+. Go to the https://portal.azure.com/[Azure portal] and open your OpenAI resource.
+. In the navigation pane, select **Diagnostic settings** → **Add diagnostic setting**.
+. Enter a name for the diagnostic setting.
+. In the list of log categories, select the logs you want to export— the Elastic integration can capture **Audit logs** and **Request and Response Logs**.
+. Under Destination details, select **Stream to an event hub** and select the namespace and event hub you created in <<azure-openai-event-hub>>.
+. Save the diagnostic settings.
+
+[discrete]
+[[azure-openai-storage-account-container]]
+==== Create a storage account container
+
+The {agent} stores the consumer group information (state, position, or offset) in a storage account container.
+Making this information available to all {agent}s allows them to share the logs processing and resume from the last processed logs after a restart.
+The {agent} can use one storage account container for all integrations.
+The agent uses the integration name and the event hub name to identify the blob to store the consumer group information uniquely.
+
+To create the storage account:
+
+. Go to the https://portal.azure.com/[Azure portal] and select **Storage accounts**.
+. Select **Create storage account**.
+. Under **Advanced**, make sure these settings are as follows:
+* **Hierarchical namespace**: disabled
+* **Minimum TLS version**: Version 1.2
+* **Access tier**: Hot
+. Under **Data protections**, make sure these settings are as follows:
+* **Enable soft delete for blobs**: disabled
+* **Enable soft delete for containers**: disabled
+. Click **Review + create**, and then click **Create**.
+. Make note of the the storage account name and the storage account access keys because you'll use them later to authenticate your Elastic application's requests to this storage account in <<azure-openai-configure-integration>>.
+
+[discrete]
+[[azure-openai-set-up-metrics]]
+=== Set up Azure to collect metrics
+
+The Azure OpenAI integration metric data stream collects the cognitive service metrics specific to the Azure OpenAI service.
+Before {agent} can collect your metrics and send them to {kib}, it needs an app registration to access Azure on your behalf and collect data using the Azure APIs.
+
+Complete the following steps in your Azure instance to register a new Azure app:
+
+. Create the app registration.
+. Add credentials to the app.
+. Add role assignment to your app.
+
+[discrete]
+[[azure-openai-create-app]]
+==== Create an app registration
+
+To register your app:
+
+. Go to the https://portal.azure.com/[Azure portal].
+. Search for and select **Microsoft Entra ID**.
+. Under **Manage**, select **App registrations** → **New registration**.
+. Enter a display name for your app (for example, `elastic-agent`).
+. Specify who can use the app.
+. A Redirect URI is unnecessary for {agent} use.
+. Click **Register**.
+. Make note of the **Application (client) ID** because you'll use it to specify the **Client ID** in the integration settings in <<azure-openai-configure-integration>>.
+
+[discrete]
+[[azure-openai-app-credentials]]
+==== Create credentials and add them to your app
+
+Credentials allow your app to access Azure APIs and authenticate itself, so you won't need to do anything at runtime.
+The Elastic Azure OpenAI integration uses client secrets to authenticate.
+
+To add credentials:
+
+. From the https://portal.azure.com/[Azure portal], and select the app you created in the previous section.
+. Select **Certificates & secrets** → **Client secrets** → **New client secret**.
+. Add a description (for example, "{agent} client secrets").
+. Select an expiration or specify a custom lifetime.
+. Select **Add**.
+. Make note of the **Value** in the **Client secrets** table because you'll use it to specify the **Client Secret** in <<azure-openai-configure-integration>>.
++
+WARNING: The secret value is never displayed again after you leave this page. Record the value in a safe place.
+
+[discrete]
+[[azure-openai-app-role-assignment]]
+==== Add role assignment to your app
+
+. From the https://portal.azure.com/[Azure portal], search for and select **Subscriptions**.
+. Select the subscription to assign the app.
+. Select **Access control (IAM)**.
+. Select **Add** → **Add role assignment**.
+. In the **Role** tab, search for and select **Monitoring Reader**.
+. Click **Next** to move to the **Members** tab.
+. Select **Assign access to** → **User, group, or service principal,** and select **Select members**.
+. Search for and select your app name (for example, "elastic-agent").
+. Click **Select**.
+. Click **Review + assign**.
+. Mkae note of the **Subscription ID** and **Tenant ID** from your Microsoft Entra because you'll use these to specify settings in the integration.
+
+[discrete]
+[[azure-openai-configure-integration]]
+=== Configure the Elastic Azure OpenAI integration
+
+. Go to the {kib} home page and click **Add integrations**.
+. In the query bar, search for **Azure OpenAI** and select the Azure OpenAI integration to see more details about it.
+. Click **Add Azure OpenAI**.
+. Under Integration settings, configure the integration name and optionally add a description.
++
+TIP: If you don't see options for configuring the integration, you're probably in a workflow designed for new deployments.
+Follow the steps, then return to this tutorial when you're ready to configure the integration.
+
+[discrete]
+[[azure-openai-configure-integration-logs]]
+==== Configure logs collection
+
+To collect Azure OpenAI logs, turn on **Collect Azure OpenAI logs from Event Hub**, and specify values for the following required fields:
+
+--
+[horizontal]
+**Event hub**:: The name of the event hub you created earlier.
+
+**Connection String**:: The connection string primary key of the event hub namespace.
+To learn how to get the connection string, refer to https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-get-connection-string[Get an Event Hubs connection string] in the Azure documentation.
++
+TIP: Instead of copying the connection string from the RootManageSharedAccessKey policy, you should create a new shared access policy (with permission to listen) and copy the connection string from the new policy.
+
+**Storage account**:: The name of a blob storage account that you set up in <<azure-openai-storage-account-container>>.
+You can use the same storage account container for all integrations.
+
+**Storage account key**:: A valid access key defined for the storage account you created in <<azure-openai-storage-account-container>>.
+--
+
+[discrete]
+[[azure-openai-configure-integration-metrics]]
+==== Configure metrics collection
+
+To collect Azure OpenAI metrics:
+
+. Turn on **Collect Azure OpenAI metrics**.
+. Specify the following values for the following required fields:
++
+--
+[horizontal]
+**Client ID**:: The Application (client) ID that you copied earlier when you created the service principal.
+
+**Client secret**:: The secret value that you copied earlier.
+
+**Tenant ID**:: The tenant ID listed on the main Azure Active Directory Page.
+
+**Subscription ID**:: The subscription ID listed on the main Subscriptions page.
+--
+. After you've finished configuring your integration, click **Save and continue**.
+. You'll see a notification that your integration was added. Select **Add {agent} to your hosts**.
+
+[discrete]
+[[azure-openai-install-agent]]
+=== Install {agent}
+
+IMPORTANT: To get support for the latest API changes from Azure, we recommend
+that using the latest in-service version of {agent} compatible with your
+{stack}. Otherwise your integrations may not function as expected.
+
+You can install {agent} on any host that can access the Azure account and forward
+events to {es}.
+
+. In the popup, click **Add {agent} to your hosts** to open the **Add agent**
+flyout.
++
+--
+TIP: If you accidentally closed the popup, go to **{fleet} -> Agents**, then
+click **Add agent** to access the installation instructions.
+
+--
++
+The **Add agent** flyout has two options: **Enroll in {fleet}** and **Run standalone**.
+The default is to enroll the agents in {fleet}, as this reduces the amount of work on the person managing the hosts by providing a centralized management tool in {kib}.
+
+. The enrollment token you need should already be selected.
++
+NOTE: The enrollment token is specific to the {agent} policy that you just
+created. When you run the command to enroll the agent in {fleet}, you will pass
+in the enrollment token.
+
+. To download, install, and enroll the {agent}, select your host operating
+system and copy the installation command shown in the instructions.
+
+. Run the command on the host where you want to install {agent}.
+
+It takes a few minutes for {agent} to enroll in {fleet}, download the
+configuration specified in the policy, and start collecting data. You can wait
+to confirm incoming data, or close the window.
+
+
+[discrete]
+[[azure-openai-view-data]]
+=== View logs and metrics in {kib}
+
+The Elastic Azure OpenAI integration comes with the following built-in dashboards to visualize your log and metric data
+To view the integration dashboards:
+
+. Open the {kib} menu and go to *Management* → *Integrations* → *Installed integrations*.
+. Select the *Azure OpenAI* card
+. Select the *Assets* tab.
+. Select the `[Azure OpenAI] Overview` dashboard.
+
+[discrete]
+[[azure-openai-apm-traces]]
+=== Collect APM data with OpenTelemetry
+
+Use the Elastic APM integration, OpenTelemetry, and the Azure OpenAI API to monitor your Azure OpenAI applications.
+
+To collect collect APM data for your Azure OpenAI applications:
+
+. From the {kib} homepage, click **Add integrations**.
+. Select the **APM** integration.
+. Make note of the configuration values from the following configuration settings:
+** `OTEL_EXPORTER_OTLP_ENDPOINT`
+** `OTEL_EXPORTER_OTLP_HEADERS`
+
+With the configuration values from the APM integration and your Azure OpenAI API key, set the following environment values using these export commands on the command line:
+
+[source,bash]
+----
+export AZURE_OPEN_AI_KEY=<your-azure-openAI-key>
+export OTEL_EXPORTER_OTLP_AUTH_HEADER=<your-OTEL_EXPORTER_OTLP_AUTH-token>
+export OTEL_EXPORTER_OTLP_ENDPOINT=<your-OTEL_EXPORTER_OTLP_ENDPOINT>
+----
+
+Install the following Python libraries:
+
+[source,bash]
+----
+pip3 install opentelemetry-api
+pip3 install opentelemetry-sdk
+pip3 install opentelemetry-exporter-otlp
+pip3 install opentelemetry-instrumentation
+pip3 install opentelemetry-instrumentation-requests
+pip3 install openai
+pip3 install flask
+----
+
+The following is the code for an example application. You would use your own code. This code calls Azure OpenAI APIs with the following message: “Why is Elastic an amazing observability tool?”
+
+[source,python]
+----
+
+import openai
+from flask import Flask
+import monitor  # Import the module
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+import urllib
+import os
+from opentelemetry import trace
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
+# OpenTelemetry setup up code here, feel free to replace the “your-service-name” attribute here.
+resource = Resource(attributes={
+    SERVICE_NAME: "your-service-name"
+})
+provider = TracerProvider(resource=resource)
+processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT'),
+        headers="Authorization=Bearer%20"+os.getenv('OTEL_EXPORTER_OTLP_AUTH_HEADER')))
+provider.add_span_processor(processor)
+trace.set_tracer_provider(provider)
+tracer = trace.get_tracer(__name__)
+RequestsInstrumentor().instrument()
+
+
+
+# Initialize Flask app and instrument it
+
+app = Flask(__name__)
+# Set OpenAI API key
+openai.api_key = os.getenv('OPEN_AI_KEY')
+
+
+@app.route("/completion")
+@tracer.start_as_current_span("do_work")
+def completion():
+    response = openai.Completion.create(
+        model="text-davinci-003",
+        prompt="Why is Elastic an amazing observability tool?",
+        max_tokens=20,
+        temperature=0
+    )
+    return response.choices[0].text.strip()
+
+if __name__ == "__main__":
+    app.run()
+----
+
+Inside the `monitor.py` code, use monkey patching, a technique in Python where you dynamically modify the behavior of a class or module at runtime by modifying its attributes or methods, to modify the behavior of the “Completion” call so take the response metrics and add them to the OpenTelemetry spans:
+
+[source,python]
+----
+def count_completion_requests_and_tokens(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        counters['completion_count'] += 1
+        response = func(*args, **kwargs)
+        token_count = response.usage.total_tokens
+        prompt_tokens = response.usage.prompt_tokens
+        completion_tokens = response.usage.completion_tokens
+        cost = calculate_cost(response)
+        strResponse = json.dumps(response)
+        # Set OpenTelemetry attributes
+        span = trace.get_current_span()
+        if span:
+            span.set_attribute("completion_count", counters['completion_count'])
+            span.set_attribute("token_count", token_count)
+            span.set_attribute("prompt_tokens", prompt_tokens)
+            span.set_attribute("completion_tokens", completion_tokens)
+            span.set_attribute("model", response.model)
+            span.set_attribute("cost", cost)
+            span.set_attribute("response", strResponse)
+        return response
+    return wrapper
+# Monkey-patch the openai.Completion.create function
+openai.Completion.create = count_completion_requests_and_tokens(openai.Completion.create)
+----
+
+Implementing the following function allows you to calculate the cost of a single request to the OpenAI APIs.
+
+[source,python]
+----
+def calculate_cost(response):
+    if response.model in ['gpt-4', 'gpt-4-0314']:
+        cost = (response.usage.prompt_tokens * 0.03 + response.usage.completion_tokens * 0.06) / 1000
+    elif response.model in ['gpt-4-32k', 'gpt-4-32k-0314']:
+        cost = (response.usage.prompt_tokens * 0.06 + response.usage.completion_tokens * 0.12) / 1000
+    elif 'gpt-3.5-turbo' in response.model:
+        cost = response.usage.total_tokens * 0.002 / 1000
+    elif 'davinci' in response.model:
+        cost = response.usage.total_tokens * 0.02 / 1000
+    elif 'curie' in response.model:
+        cost = response.usage.total_tokens * 0.002 / 1000
+    elif 'babbage' in response.model:
+        cost = response.usage.total_tokens * 0.0005 / 1000
+    elif 'ada' in response.model:
+        cost = response.usage.total_tokens * 0.0004 / 1000
+    else:
+        cost = 0
+    return cost
+----
+
+[discrete]
+[[azure-openai-view-apm-data]]
+==== View APM data from OpenTelemetry in {kib}
+
+After capturing your data, explore it using Discover in {kib}.
+
+
+
+[discrete]
+[[azure-openai-alerts]]
+=== What's next?
+
+//alerts, slos, ML jobs
