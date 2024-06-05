@@ -37,45 +37,36 @@ IMPORTANT: AWS PrivateLink is not supported. Make sure the deployment is on AWS,
 [[firehose-firewall-step-two]]
 == Step 2: Select a resource
 
-[role="screenshot"]
 image::firehose-networkfirewall-firewall.png[AWS Network Firewall]
 
 You can either use an existing AWS Network Firewall, or create a new one for testing purposes.
 
-Creating a Network Firewall is not trivial and is beyond the scope of this guide. For more information, see the AWS documentation on the https://docs.aws.amazon.com/network-firewall/latest/developerguide/getting-started.html[Getting started with AWS Network Firewall] guide.
+Creating a Network Firewall is not trivial and is beyond the scope of this guide. For more information, check the AWS documentation on the https://docs.aws.amazon.com/network-firewall/latest/developerguide/getting-started.html[Getting started with AWS Network Firewall] guide.
 
 [discrete]
 [[firehose-firewall-step-three]]
 == Step 3: Create a stream in Amazon Data Firehose
 
-[role="screenshot"]
 image::firehose-networkfirewall-stream.png[Firehose stream]
 
 . Go to the https://console.aws.amazon.com/[AWS console] and navigate to Amazon Data Firehose.  
 
-. Click *Create Firehose stream* and choose the source and destination of your Firehose stream. Unless you are streaming data from Kinesis Data Streams, set source to `Direct PUT` and destination to `Elastic`. 
+. Click *Create Firehose stream* and choose the source and destination of your Firehose stream. Set source to `Direct PUT` and destination to `Elastic`. 
 
-. Provide a meaningful *Firehose stream name* that will allow you to identify this delivery stream later. 
+. Collect {es} endpoint and API key from your deployment on Elastic Cloud.
++
+- Elastic endpoint URL: Enter the Elasticsearch endpoint URL of your Elasticsearch cluster. To find the Elasticsearch endpoint, go to the Elastic Cloud console and select *Connection details*.
++
+- API key: Enter the encoded Elastic API key. To create an API key, go to the Elastic Cloud console, select *Connection details* and click *Create and manage API keys*. If you are using an API key with *Restrict privileges*, make sure to review the Indices privileges to provide at least "auto_configure" and "write" permissions for the indices you will be using with this delivery stream.
 
-NOTE: For advanced use cases, source records can be transformed by invoking a custom Lambda function. When using Elastic integrations, this should not be required.
-
-Set the **Parameters** in the **Destination settings** section.
-
-[discrete]
-[[firehose-firewall-step-three-desination-settings-parameters]]
-=== Parameters
-
-Use the following parameters:
-
-[cols="1,1",options="header"]
-|===
-|Name
-|Value
-
-| `es_datastream_name`
-| `logs-aws.firewall_logs-default`
-
-|===
+. Set up the delivery stream by specifying the following data:
++
+- Elastic endpoint URL
+- API key
+- Content encoding: gzip
+- Retry duration: 60 (default) 
+- Parameter *es_datastream_name* = `logs-aws.firewall_logs-default`
+- Backup settings: failed data only to s3 bucket
 
 The Firehose stream is ready to send logs to our Elastic Cloud deployment.
 
@@ -83,7 +74,6 @@ The Firehose stream is ready to send logs to our Elastic Cloud deployment.
 [[firehose-firewall-step-four]]
 == Step 4: Enable logging
 
-[role="screenshot"]
 image::firehose-networkfirewall-logging.png[AWS Network Firewall logging]
 
 The AWS Network Firewall logs have built-in logging support. It can send logs to Amazon S3, Amazon CloudWatch, and Amazon Kinesis Data Firehose.
@@ -104,17 +94,15 @@ To enable logging to Amazon Data Firehose:
 
 At this point, the Network Firewall will start sending logs to the Firehose stream.
 
-
 [discrete]
 [[firehose-firewall-step-five]]
 == Step 5: Visualize your Network Firewall logs in {kib}
 
-With the new logging settings in place, the Network Firewall starts sending log events to the Firehose stream.
-
 image::firehose-networkfirewall-data-stream.png[Firehose monitor Network Firewall logs]
 
-Navigate to {kib} and choose among the following monitoring options:
+With the new logging settings in place, the Network Firewall starts sending log events to the Firehose stream.
 
-- *Visualize your logs with Discover*
-+
+Navigate to {kib} and choose *Visualize your logs with Discover*.
+
+[role="screenshot"]
 image::firehose-networkfirewall-discover.png[Visualize Network Firewall logs with Discover]
