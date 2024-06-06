@@ -1,0 +1,251 @@
+[[monitor-nginx]]
+= Monitor nginx: Observe the logs and metrics of your nginx instances
+++++
+<titleabbrev>Monitor nginx</titleabbrev>
+++++
+
+****
+**New to Elastic?** Follow the steps in our {estc-welcome}/getting-started-observability.html[getting started guide] instead of the steps described here.
+Return to this tutorial after you've learned the basics.
+****
+
+Use the {integrations-docs}/nginx[nginx Elastic integration] and the {agent} to collect valuable metrics and logs from your nginx instances. Then, use built-in dashboards and tools like Logs Explorer in {kib} to visualize and monitor your nginx data from one place. This data provides valuable insight into your nginx instances—for example:
+
+* A spike in error logs for a certain resource may mean you have a deleted resource that is still needed.
+* Access logs can show when a service's peak times are, and, from this, when it might be best to perform things like maintenance.
+* A sudden spike in client requests may point to something malicious, like a DDoS attack.
+
+[discrete]
+[[monitor-nginx-what-youll-learn]]
+== What you'll learn
+
+This guide walks you through using Elastic {observability} to monitor your nginx instances, including:
+
+* Collecting logs and metrics from nginx instances using an {agent} and the nginx integration.
+* Centralizing the data in the {stack}.
+* Exploring the data in real time using tailored dashboards and {observability} UIs.
+
+[discrete]
+[[monitor-nginx-data-types]]
+== Data types
+
+The nginx integration collects both logs and metrics.
+
+[horizontal]
+*Logs*:: Collect logs to keep a record of events that happen in your nginx instances like when client requests and errors occur.
++
+*Access logs* provide information about each request processed by the nginx server. Use these logs for troubleshooting, monitoring performance, and analyzing user behavior.
++
+*Error logs* provide diagnostic information about errors that occur when the nginx server is handling requests. Use these logs to understand why errors occur, assess error impact, and debug issues.
+*Metrics*:: Collect metrics for insight into the state of your nginx instances.
+This includes information like the total number of active client connections by status, the total number of client requests, and more.
+Use these metrics to monitor server load, detect bottlenecks, understand client behavior, and plan for capacity.
+
+[discrete]
+[[monitor-nginx-prereqs]]
+== Before you begin
+
+Before you can monitor nginx, you need the following:
+
+* {es} for storing and searching your observability data
+* {kib} for visualizing and managing it.
+* If you want to collect metrics, make sure your nginx instance is https://docs.nginx.com/nginx-amplify/nginx-amplify-agent/configuring-metric-collection/[configured for metric collection].
+
+[discrete]
+[[monitor-nginx-add-integration]]
+== Step 1: Add the nginx integration
+
+Follow these steps to add the nginx integration to your deployment:
+
+. Select *Add integrations* from your deployment's homepage.
+. Enter "nginx" in the search bar, and select the *Nginx* integration.
+. Select *Add Nginx* at the top of the integration page.
+. Select *Add integration only (skip agent installation)* at the bottom of the page.
+
+[discrete]
+[[monitor-nginx-configure-integration]]
+== Step 2: Configure the nginx integration
+
+The nginx integration can fetch different logs and metrics from your nginx instances.
+From the *Add Nginx integration* page, configure which logs and metrics you want the integration to collect.
+Refer to the following sections for more information on configuring the integration.
+
+[discrete]
+[[monitor-nginx-collect-logs]]
+=== Collect logs
+
+The nginx integration can collect access logs and error logs.
+
+* *Access logs:* Turn this option on to collect logs about client requests.
+* *Error logs:* Turn this option on to collect logs about issues nginx encounters with varying severity levels.
+
+Configure the following for both access logs and error logs:
+
+[horizontal]
+**Paths**:: The location of your logs.
+**Preserve original event**:: Turn on to add a raw copy of the original event to the `event.original` field.
+
+[discrete]
+[[monitor-nginx-collect-metrics]]
+=== Collect metrics
+
+The nginx integration collects `stub_status` metrics from your instances.
+Make sure your nginx instance is https://docs.nginx.com/nginx-amplify/nginx-amplify-agent/configuring-metric-collection/[configured for metric collection].
+Configure the following to collect metrics:
+
+[horizontal]
+**Hosts**:: The address of the server that Elastic will connect to for collecting metrics.
+**Period**:: How frequently to poll for metrics. The default is every 10 seconds.
+
+[discrete]
+[[monitor-nginx-add-agent]]
+== Step 3: Add {agent}
+
+After you've configured your integration, you need to add an {agent} to your host to collect data and send it to the {stack}.
+You have two options for adding the {agent}, **enroll in {fleet}** or **run standalone**.
+
+[horizontal]
+<<monitor-nginx-enroll-in-fleet, **Fleet**>>:: Enrolling in {fleet} lets you automatically deploy updates and centrally manage the agent.
+<<monitor-nginx-run-standalone,**Standalone**>>:: Standalone agents need to be manually updated on the host where the agent is installed.
+
+For more on
+
+[discrete]
+[[monitor-nginx-enroll-in-fleet]]
+=== Enroll in {fleet}
+
+Follow the instructions from the *Add agent* screen to install the {agent} on your host:
+
+. Under *Enroll in Fleet?*, make sure *Enroll in Fleet* is selected.
+. Under *Install {agent} on your host*, copy the command for your system and run it on your host. You can reuse the command on multiple hosts.
+. After the agent starts on your host, you'll see confirmation that the agent was enrolled in {fleet}.
+
+[discrete]
+[[monitor-nginx-run-standalone]]
+=== Run standalone {agent}
+
+Before installing and running the standalone {agent}, you need to create an API key.
+To create an {ecloud} API key:
+
+. From the {kib} menu, go to *Stack Management* → *API keys*.
+. Select *Create API key*.
+. Give the key a name. For example, `nginx API key`.
+. Leave the other default options and select *Create API key*.
+. In the *Create API key* confirmation dialog, change the dropdown menu setting from `Encoded` to `Beats`.
+This sets the API key format for communication between {agent} (which is based on {beats}) and {es}.
+. Copy the generated API key and store it in a safe place.
+
+After creating your API key, follow the instructions from the *Add agent* screen to install the {agent} on your host:
+
+. Under *Enroll in Fleet?*, select *Run standalone*.
+. Under *Configure the agent*, select *Download Policy*. Save the `elastic-agent.yml` file to a directory on the host where you'll install nginx for monitoring.
+. Open the policy file and notice that it contains all of the input, output, and other settings for the nginx and System integrations.
++
+Replace:
++
+[source,yaml]
+----
+    username: '${ES_USERNAME}'
+    password: '${ES_PASSWORD}'
+----
++
+with:
++
+[source,yaml]
+----
+    api_key: '<your-api-key>'
+----
++
+Where `your-api-key` is the key you created previously in this section.
++
+If you already have a standalone agent installed on a host with an existing {agent} policy, add the settings from the **Configure the agent** step to your existing `elastic-agent.yml` file.
+. Under **Install {agent} on your host**, select the tab for your host operating system and run the commands on your host.
+. If you're prompted with `Elastic Agent will be installed at {installation location} and will run as a service. Do you want to continue?` answer `Yes`.
++
+If you're prompted with `Do you want to enroll this Agent into Fleet?` answer `no`.
+. Run the `status` command to confirm that {agent} is running.
++
+[source,yaml]
+----
+elastic-agent status
+
+┌─ fleet
+│  └─ status: (STOPPED) Not enrolled into Fleet
+└─ elastic-agent
+   └─ status: (HEALTHY) Running
+----
+
+[discrete]
+[[monitor-nginx-explore-logs-and-metrics]]
+== Step 4: Explore your logs and metrics
+
+Use {kib} to view the metric and log data collected by {agent}.
+Refer to the following sections for more information on viewing your data:
+
+* <<monitor-nginx-explore-metrics>>
+* <<monitor-nginx-explore-logs>>
+
+[discrete]
+[[monitor-nginx-explore-metrics]]
+=== View metrics
+
+The nginx integration has a built-in dashboard that shows the full picture of your nginx metrics in one place.
+To open the nginx dashboard:
+
+. Open the {kib} menu and go to *Management* → *Integrations* → *Installed integrations*.
+. Select the *Nginx* card and open the *Assets* tab.
+. Select either the `[Metrics Nginx] Overview` dashboard.
+
+The *Metrics Nginx overview* shows visual representations of total requests, processed requests, heartbeat/up, active connections, reading/writing/waiting rates, request rate, accepts and handled rates, and drops rate.
+
+[role="screenshot"]
+image::images/nginx-metrics-dashboard.png[nginx metrics dashboard, 75%]
+
+[discrete]
+[[monitor-nginx-explore-logs]]
+=== View logs
+
+After your nginx logs are ingested, view and explore your logs using <<monitor-nginx-logs-explorer>> or the <<monitor-nginx-logs-dashboard>>.
+
+[discrete]
+[[monitor-nginx-logs-explorer]]
+==== Logs Explorer
+
+With Logs Explorer, you can quickly search and filter your log data, get information about the structure of log fields, and display your findings in a visualization.
+To view nginx logs, open Kibana and go to *{observability}* → *Logs Explorer*.
+
+Filter your results to see logs from the nginx integration from the data selector:
+
+. Under *Integrations*, select *Nginx*.
++
+[role="screenshot"]
+image::images/nginx-data-selector.png[nginx integration in the data selector, 50%]
+. Select either *access* logs or *error* logs to view the logs you're looking for.
+
+The *Documents* table now shows your nginx logs:
+
+[role="screenshot"]
+image::images/nginx-logs-explorer.png[Logs Explorer showing nginx error logs]
+
+[discrete]
+[[monitor-nginx-logs-dashboard]]
+==== nginx logs dashboards
+
+The nginx integration has built-in dashboards that show the full picture of your nginx logs in one place.
+To open the nginx dashboards:
+
+. Open the {kib} menu and go to *Management* → *Integrations* → *Installed integrations*.
+. Select the *Nginx* card and open the *Assets* tab.
+. Select either the `[Logs Nginx] Overview` dashboard or the `[Logs Nginx] Access and error logs` dashboard.
+
+The *Nginx logs overview* dashboard shows visual representations of geographical log details, response codes over time, errors over time, the top pages sending logs, data volume, a breakdown of which operating systems are sending logs, and a breakdown of which browsers are sending logs.
+
+[role="screenshot"]
+image::images/nginx-logs-overview-dashboard.png[nginx logs overview dashboard, 75%]
+
+The *Nginx access and error logs* dashboard shows your access logs over time, and lists your access and error logs.
+
+[role="screenshot"]
+image::images/nginx-logs-access-error-dashboard.png[nginx access and error logs dashboard, 75%]
+
+include::monitor-nginx-ml.asciidoc[]
