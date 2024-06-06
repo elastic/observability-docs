@@ -7,7 +7,7 @@ of the steps described here. Return to this tutorial after you've learned the
 basics.
 ****
 
-This tutorial shows how to use the Elastic Azure OpenAI integration, the Azure portal, and {agent} to collect and monitor Azure OpenAI logs and metrics with Elastic {observability}.
+This tutorial shows you how to use the Elastic Azure OpenAI integration, the Azure portal, and {agent} to collect and monitor Azure OpenAI logs and metrics with Elastic {observability}.
 It also shows how to collect Azure OpenAI application performance monitoring (APM) logs and metrics and monitor them with Elastic {observability}.
 
 [discrete]
@@ -22,7 +22,7 @@ You'll learn how to:
 
 [discrete]
 [[azure-openai-set-up-logs]]
-=== Set up Azure to collect logs
+=== Step 1: Set up Azure to collect logs
 
 The Elastic Azure OpenAI integration captures audit logs and request and response logs.
 
@@ -31,7 +31,7 @@ Request and response logs provide information about each request made to the ser
 
 For more on the fields ingested from audit and request and response logs, refer to the {integrations-docs}/azure_openai#settings[Azure OpenAI integration] documentation.
 
-Before {agent} can collect your logs and send them to {kib}, complete the following steps in your Azure instance:
+Before {agent} can collect your logs and send them to {kib}, complete the following steps in the https://portal.azure.com/[Azure portal]:
 
 . Create an event hub to receive logs exported from the Azure service and make them available to the {agent}.
 . Configure diagnostic settings to send your logs to the event hub.
@@ -48,7 +48,7 @@ a single event hub because you are collecting logs from one service.
 
 To create an Azure event hub:
 
-. Go to the Azure portal.
+. Go to the https://portal.azure.com/[Azure portal].
 . Search for and select **Event Hubs**.
 . Click **Create** and create a new Event Hubs namespace. You'll need to create a new resource group, or choose an existing one.
 . Enter the required settings for the namespace and click **Review + create**.
@@ -100,7 +100,7 @@ To create the storage account:
 
 [discrete]
 [[azure-openai-set-up-metrics]]
-=== Set up Azure to collect metrics
+=== Step 2: Set up Azure to collect metrics
 
 The Azure OpenAI integration metric data stream collects the cognitive service metrics specific to the Azure OpenAI service.
 Before {agent} can collect your metrics and send them to {kib}, it needs an app registration to access Azure on your behalf and collect data using the Azure APIs.
@@ -162,7 +162,7 @@ WARNING: The secret value is never displayed again after you leave this page. Re
 
 [discrete]
 [[azure-openai-configure-integration]]
-=== Configure the Elastic Azure OpenAI integration
+=== Step 4: Configure the Elastic Azure OpenAI integration
 
 . Go to the {kib} home page and click **Add integrations**.
 . In the query bar, search for **Azure OpenAI** and select the Azure OpenAI integration to see more details about it.
@@ -217,7 +217,7 @@ To collect Azure OpenAI metrics:
 
 [discrete]
 [[azure-openai-install-agent]]
-=== Install {agent}
+=== Step 5: Install {agent}
 
 IMPORTANT: To get support for the latest API changes from Azure, we recommend
 that using the latest in-service version of {agent} compatible with your
@@ -256,169 +256,86 @@ to confirm incoming data, or close the window.
 
 [discrete]
 [[azure-openai-view-data]]
-=== View logs and metrics in {kib}
+=== Step 6: View logs and metrics in {kib}
 
-The Elastic Azure OpenAI integration comes with the following built-in dashboards to visualize your log and metric data
+Now that your log and metric data is streaming to {es}, you can view them in {kib}.
+You have some options when viewing your data:
+
+* <<azure-openai-discover>>: Use Discover to find and filter your log and metric data based on specific fields.
+* <<azure-openai-logs-explorer>>:
+* <<azure-openai-overview-dashboard>>: Use the built-in overview dashboard for insight into your Azure OpenAI service like total requests and token usage.
+
+[discrete]
+[[azure-openai-overview-dashboard]]
+==== View logs and metrics with the overview dashboard
+
+The Elastic Azure OpenAI integration comes with a built-in overview dashboard to visualize your log and metric data
 To view the integration dashboards:
 
-. Open the {kib} menu and go to *Management* → *Integrations* → *Installed integrations*.
-. Select the *Azure OpenAI* card
-. Select the *Assets* tab.
+. From the {kib} menu, open **Dashboards** under **Analytics**.
+. Search for *Azure OpenAI*.
 . Select the `[Azure OpenAI] Overview` dashboard.
 
-[discrete]
-[[azure-openai-apm-traces]]
-=== Collect APM data with OpenTelemetry
+From here, you'll find visualizations of important metrics for your Azure OpenAI service, like the request rate, error rate, token usage, and chat completion latency.
 
-Use the Elastic APM integration, OpenTelemetry, and the Azure OpenAI API to monitor your Azure OpenAI applications.
-
-To collect collect APM data for your Azure OpenAI applications:
-
-. From the {kib} homepage, click **Add integrations**.
-. Select the **APM** integration.
-. Make note of the configuration values from the following configuration settings:
-** `OTEL_EXPORTER_OTLP_ENDPOINT`
-** `OTEL_EXPORTER_OTLP_HEADERS`
-
-With the configuration values from the APM integration and your Azure OpenAI API key, set the following environment values using these export commands on the command line:
-
-[source,bash]
-----
-export AZURE_OPEN_AI_KEY=<your-azure-openAI-key>
-export OTEL_EXPORTER_OTLP_AUTH_HEADER=<your-OTEL_EXPORTER_OTLP_AUTH-token>
-export OTEL_EXPORTER_OTLP_ENDPOINT=<your-OTEL_EXPORTER_OTLP_ENDPOINT>
-----
-
-Install the following Python libraries:
-
-[source,bash]
-----
-pip3 install opentelemetry-api
-pip3 install opentelemetry-sdk
-pip3 install opentelemetry-exporter-otlp
-pip3 install opentelemetry-instrumentation
-pip3 install opentelemetry-instrumentation-requests
-pip3 install openai
-pip3 install flask
-----
-
-The following is the code for an example application. You would use your own code. This code calls Azure OpenAI APIs with the following message: “Why is Elastic an amazing observability tool?”
-
-[source,python]
-----
-
-import openai
-from flask import Flask
-import monitor  # Import the module
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-import urllib
-import os
-from opentelemetry import trace
-from opentelemetry.sdk.resources import SERVICE_NAME, Resource
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.instrumentation.requests import RequestsInstrumentor
-
-# OpenTelemetry setup up code here, feel free to replace the “your-service-name” attribute here.
-resource = Resource(attributes={
-    SERVICE_NAME: "your-service-name"
-})
-provider = TracerProvider(resource=resource)
-processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT'),
-        headers="Authorization=Bearer%20"+os.getenv('OTEL_EXPORTER_OTLP_AUTH_HEADER')))
-provider.add_span_processor(processor)
-trace.set_tracer_provider(provider)
-tracer = trace.get_tracer(__name__)
-RequestsInstrumentor().instrument()
-
-
-
-# Initialize Flask app and instrument it
-
-app = Flask(__name__)
-# Set OpenAI API key
-openai.api_key = os.getenv('OPEN_AI_KEY')
-
-
-@app.route("/completion")
-@tracer.start_as_current_span("do_work")
-def completion():
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt="Why is Elastic an amazing observability tool?",
-        max_tokens=20,
-        temperature=0
-    )
-    return response.choices[0].text.strip()
-
-if __name__ == "__main__":
-    app.run()
-----
-
-Inside the `monitor.py` code, use monkey patching, a technique in Python where you dynamically modify the behavior of a class or module at runtime by modifying its attributes or methods, to modify the behavior of the “Completion” call so take the response metrics and add them to the OpenTelemetry spans:
-
-[source,python]
-----
-def count_completion_requests_and_tokens(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        counters['completion_count'] += 1
-        response = func(*args, **kwargs)
-        token_count = response.usage.total_tokens
-        prompt_tokens = response.usage.prompt_tokens
-        completion_tokens = response.usage.completion_tokens
-        cost = calculate_cost(response)
-        strResponse = json.dumps(response)
-        # Set OpenTelemetry attributes
-        span = trace.get_current_span()
-        if span:
-            span.set_attribute("completion_count", counters['completion_count'])
-            span.set_attribute("token_count", token_count)
-            span.set_attribute("prompt_tokens", prompt_tokens)
-            span.set_attribute("completion_tokens", completion_tokens)
-            span.set_attribute("model", response.model)
-            span.set_attribute("cost", cost)
-            span.set_attribute("response", strResponse)
-        return response
-    return wrapper
-# Monkey-patch the openai.Completion.create function
-openai.Completion.create = count_completion_requests_and_tokens(openai.Completion.create)
-----
-
-Implementing the following function allows you to calculate the cost of a single request to the OpenAI APIs.
-
-[source,python]
-----
-def calculate_cost(response):
-    if response.model in ['gpt-4', 'gpt-4-0314']:
-        cost = (response.usage.prompt_tokens * 0.03 + response.usage.completion_tokens * 0.06) / 1000
-    elif response.model in ['gpt-4-32k', 'gpt-4-32k-0314']:
-        cost = (response.usage.prompt_tokens * 0.06 + response.usage.completion_tokens * 0.12) / 1000
-    elif 'gpt-3.5-turbo' in response.model:
-        cost = response.usage.total_tokens * 0.002 / 1000
-    elif 'davinci' in response.model:
-        cost = response.usage.total_tokens * 0.02 / 1000
-    elif 'curie' in response.model:
-        cost = response.usage.total_tokens * 0.002 / 1000
-    elif 'babbage' in response.model:
-        cost = response.usage.total_tokens * 0.0005 / 1000
-    elif 'ada' in response.model:
-        cost = response.usage.total_tokens * 0.0004 / 1000
-    else:
-        cost = 0
-    return cost
-----
+//Screenshot
 
 [discrete]
-[[azure-openai-view-apm-data]]
-==== View APM data from OpenTelemetry in {kib}
+[[azure-openai-discover]]
+==== View logs and metrics with Discover
 
-After capturing your data, explore it using Discover in {kib}.
+Go to **Discover** from the the {kib} menu under **Analytics**.
+From the data view drop-down, select either `logs-*` or `metrics-*` to view specific data.
+You can also create data views if, for example, you wanted to view both `logs-*` and `metrics-*` simultaneously.
 
+[role="screenshot"]
+image:images/discover-data-view-menu.png[screenshot of the Discover data view dropdown, 50%]
 
+From here, filter your data and dive deeper into individual logs to find information and troubleshoot issues.
+For a list of Azure OpenAI fields you may want to filter by, refer to the {integrations-docs}/azure_openai#settings[Azure OpenAI integration] docs.
+
+For more on using Discover and creating data views, refer to the {kibana-ref}/discover.html[Discover] documentation.
+
+[role="screenshot"]
+image::images/azure-openai-discover.png[screenshot of the discover main page]
+
+[discrete]
+[[azure-openai-logs-explorer]]
+==== View logs with Logs Explorer
+
+To view Azure OpenAI logs, open {kib} and go to *{observability} → Logs Explorer*.
+With **Logs Explorer**, you can quickly search and filter your log data, get information about the structure of log fields, and display your findings in a visualization.
+
+[role="screenshot"]
+image::images/log-explorer.png[screenshot of the logs explorer main page]
+
+From **Logs Explorer**, you can select the Azure OpenAI integration from the data selector to view your Kubernetes data.
+
+[role="screenshot"]
+image:images/azure-open-ai-data-selector.png[screenshot of the logs explorer data selector, 50%]
+
+From here, filter your log data and dive deeper into individual logs to find information and troubleshoot issues.
+For a list of Azure OpenAI fields you may want to filter by, refer to the {integrations-docs}/azure_openai#settings[Azure OpenAI integration] documentation.
+
+For more on Logs Explorer, refer to:
+
+* <<explore-logs>> for an over view of Logs Explorer.
+* <<logs-filter-logs-explorer>> for more on filtering logs in Logs Explorer.
 
 [discrete]
 [[azure-openai-alerts]]
 === What's next?
 
-//alerts, slos, ML jobs
+Now that you've ingested your Azure OpenAI logs and metrics and know how to find and visualize it, you'll want to make sure you're getting the most out of your data.
+Elastic has some useful tools to help you do just that:
+
+**Alerts**: Create threshold rules to notify you when your metrics or logs reach or exceed a specified value:
+Refer to <<metrics-threshold-alert>> and <<logs-threshold-alert>> for more on setting up alerts.
+
+**SLOs**: Set measurable targets for your Azure OpenAI service performance based on your metrics.
+Once defined, you can monitor your SLOs with dashboards and alerts and track their progress against your targets over time.
+Refer to <<slo>> for more on setting up and tracking SLOs.
+
+**Machine learning (ML) jobs**: Set up ML jobs to find anomalous events and patterns in your Azure OpenAI data.
+Refer to {ml-docs}/ml-ad-finding-anomalies.html[Finding anomalies] for more on setting up ML jobs.
+
