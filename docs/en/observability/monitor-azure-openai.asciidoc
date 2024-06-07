@@ -3,8 +3,7 @@
 
 ****
 **New to Elastic?** Follow the steps in our {estc-welcome}/getting-started-observability.html[getting started guide] instead
-of the steps described here. Return to this tutorial after you've learned the
-basics.
+of the steps described here. Return to this tutorial after you've learned the basics.
 ****
 
 This tutorial shows you how to use the Elastic Azure OpenAI integration, the Azure portal, and {agent} to collect and monitor Azure OpenAI logs and metrics with Elastic {observability}.
@@ -15,8 +14,10 @@ This tutorial shows you how to use the Elastic Azure OpenAI integration, the Azu
 
 You'll learn how to:
 
-* Collect Azure OpenAI audit and request-response logs and view them in {kib}.
-* Collect Azure resource metrics and view them in {kib}.
+* Set up your Azure instance to allow the Azure OpenAI integration to collect logs and metrics.
+* Configure the Azure OpenAI integration to collect logs and metrics.
+* Install {agent} on your host.
+* View your logs and metrics in {kib} using built-in dashboards and Discover.
 
 [discrete]
 [[azure-openai-set-up-logs]]
@@ -24,8 +25,8 @@ You'll learn how to:
 
 The Elastic Azure OpenAI integration captures audit logs and request and response logs.
 
-Audit logs provide a range of information related to the use and management of Azure OpenAI services.
-Request and response logs provide information about each request made to the service and the corresponding response provided by the service.
+* Audit logs provide a range of information related to the use and management of Azure OpenAI services.
+* Request and response logs provide information about each request made to the service and the corresponding response provided by the service.
 
 For more on the fields ingested from audit and request and response logs, refer to the {integrations-docs}/azure_openai#settings[Azure OpenAI integration] documentation.
 
@@ -59,9 +60,8 @@ To create an Azure event hub:
 [[azure-openai-diagnostic-settings]]
 ==== Configure diagnostic settings
 
-Every Azure service that creates logs has diagnostic settings that allow you to
-export logs and metrics to an external destination. In this step, configure
-the Azure OpenAI service to export activity logs to the event hub you created
+Every Azure service that creates logs has diagnostic settings that allow you to export logs and metrics to an external destination.
+In this step, you'll configure the Azure OpenAI service to export audit and request and response logs to the event hub you created
 in the previous step.
 
 To configure diagnostic settings to export logs:
@@ -69,7 +69,7 @@ To configure diagnostic settings to export logs:
 . Go to the https://portal.azure.com/[Azure portal] and open your OpenAI resource.
 . In the navigation pane, select **Diagnostic settings** → **Add diagnostic setting**.
 . Enter a name for the diagnostic setting.
-. In the list of log categories, select the logs you want to export— the Elastic integration can capture **Audit logs** and **Request and Response Logs**.
+. In the list of log categories, select **Audit logs** and **Request and Response Logs**.
 . Under Destination details, select **Stream to an event hub** and select the namespace and event hub you created in <<azure-openai-event-hub>>.
 . Save the diagnostic settings.
 
@@ -78,7 +78,7 @@ To configure diagnostic settings to export logs:
 ==== Create a storage account container
 
 The {agent} stores the consumer group information (state, position, or offset) in a storage account container.
-Making this information available to all {agent}s allows them to share the logs processing and resume from the last processed logs after a restart.
+Making this information available to {agent}s allows them to share the logs processing and resume from the last processed logs after a restart.
 The {agent} can use one storage account container for all integrations.
 The agent uses the integration name and the event hub name to identify the blob to store the consumer group information uniquely.
 
@@ -94,7 +94,7 @@ To create the storage account:
 * **Enable soft delete for blobs**: disabled
 * **Enable soft delete for containers**: disabled
 . Click **Review + create**, and then click **Create**.
-. Make note of the the storage account name and the storage account access keys because you'll use them later to authenticate your Elastic application's requests to this storage account in <<azure-openai-configure-integration>>.
+. Make note of the storage account name and the storage account access keys because you'll use them later to authenticate your Elastic application's requests to this storage account in <<azure-openai-configure-integration>>.
 
 [discrete]
 [[azure-openai-set-up-metrics]]
@@ -120,7 +120,7 @@ To register your app:
 . Under **Manage**, select **App registrations** → **New registration**.
 . Enter a display name for your app (for example, `elastic-agent`).
 . Specify who can use the app.
-. A Redirect URI is unnecessary for {agent} use.
+. The {agent} doesn't use A redirect URI, so you can leave this field blank.
 . Click **Register**.
 . Make note of the **Application (client) ID** because you'll use it to specify the **Client ID** in the integration settings in <<azure-openai-configure-integration>>.
 
@@ -131,39 +131,41 @@ To register your app:
 Credentials allow your app to access Azure APIs and authenticate itself, so you won't need to do anything at runtime.
 The Elastic Azure OpenAI integration uses client secrets to authenticate.
 
-To add credentials:
+To create and add client secrets:
 
-. From the https://portal.azure.com/[Azure portal], and select the app you created in the previous section.
+. From the https://portal.azure.com/[Azure portal], select the app you created in the previous section.
 . Select **Certificates & secrets** → **Client secrets** → **New client secret**.
 . Add a description (for example, "{agent} client secrets").
 . Select an expiration or specify a custom lifetime.
 . Select **Add**.
 . Make note of the **Value** in the **Client secrets** table because you'll use it to specify the **Client Secret** in <<azure-openai-configure-integration>>.
 +
-WARNING: The secret value is never displayed again after you leave this page. Record the value in a safe place.
+WARNING: The secret value is not viewable after you leave this page. Record the value in a safe place.
 
 [discrete]
 [[azure-openai-app-role-assignment]]
 ==== Add role assignment to your app
+
+To add a role assignment to your app:
 
 . From the https://portal.azure.com/[Azure portal], search for and select **Subscriptions**.
 . Select the subscription to assign the app.
 . Select **Access control (IAM)**.
 . Select **Add** → **Add role assignment**.
 . In the **Role** tab, search for and select **Monitoring Reader**.
-. Click **Next** to move to the **Members** tab.
-. Select **Assign access to** → **User, group, or service principal,** and select **Select members**.
+. Click **Next** to open the **Members** tab.
+. Select **Assign access to** → **User, group, or service principal**, and select **Select members**.
 . Search for and select your app name (for example, "elastic-agent").
 . Click **Select**.
 . Click **Review + assign**.
-. Mkae note of the **Subscription ID** and **Tenant ID** from your Microsoft Entra because you'll use these to specify settings in the integration.
+. Make note of the **Subscription ID** and **Tenant ID** from your Microsoft Entra because you'll use these to specify settings in the integration.
 
 [discrete]
 [[azure-openai-configure-integration]]
-=== Step 4: Configure the Elastic Azure OpenAI integration
+=== Step 4: Configure the Azure OpenAI integration
 
 . Go to the {kib} home page and click **Add integrations**.
-. In the query bar, search for **Azure OpenAI** and select the Azure OpenAI integration to see more details about it.
+. In the query bar, search for **Azure OpenAI** and select the Azure OpenAI integration card.
 . Click **Add Azure OpenAI**.
 . Under Integration settings, configure the integration name and optionally add a description.
 +
@@ -195,11 +197,8 @@ You can use the same storage account container for all integrations.
 [[azure-openai-configure-integration-metrics]]
 ==== Configure metrics collection
 
-To collect Azure OpenAI metrics:
+To collect Azure OpenAI metrics, turn on **Collect Azure OpenAI metrics** and specify values for the following required fields:
 
-. Turn on **Collect Azure OpenAI metrics**.
-. Specify the following values for the following required fields:
-+
 --
 [horizontal]
 **Client ID**:: The Application (client) ID that you copied earlier when you created the service principal.
@@ -210,8 +209,9 @@ To collect Azure OpenAI metrics:
 
 **Subscription ID**:: The subscription ID listed on the main Subscriptions page.
 --
-. After you've finished configuring your integration, click **Save and continue**.
-. You'll see a notification that your integration was added. Select **Add {agent} to your hosts**.
+
+After you've finished configuring your integration, click **Save and continue**.
+You'll see a notification that your integration was added. Select **Add {agent} to your hosts**.
 
 [discrete]
 [[azure-openai-install-agent]]
@@ -228,23 +228,20 @@ events to {es}.
 flyout.
 +
 --
-TIP: If you accidentally closed the popup, go to **{fleet} -> Agents**, then
+TIP: If you accidentally closed the popup, go to **{fleet}** → **Agents**, then
 click **Add agent** to access the installation instructions.
 
 --
 +
 The **Add agent** flyout has two options: **Enroll in {fleet}** and **Run standalone**.
 The default is to enroll the agents in {fleet}, as this reduces the amount of work on the person managing the hosts by providing a centralized management tool in {kib}.
-
 . The enrollment token you need should already be selected.
 +
 NOTE: The enrollment token is specific to the {agent} policy that you just
 created. When you run the command to enroll the agent in {fleet}, you will pass
 in the enrollment token.
-
 . To download, install, and enroll the {agent}, select your host operating
 system and copy the installation command shown in the instructions.
-
 . Run the command on the host where you want to install {agent}.
 
 It takes a few minutes for {agent} to enroll in {fleet}, download the
@@ -257,32 +254,34 @@ to confirm incoming data, or close the window.
 === Step 6: View logs and metrics in {kib}
 
 Now that your log and metric data is streaming to {es}, you can view them in {kib}.
-You have some options when viewing your data:
+You have the following options for viewing your data:
 
-* <<azure-openai-discover>>: Use Discover to find and filter your log and metric data based on specific fields.
-* <<azure-openai-logs-explorer>>:
 * <<azure-openai-overview-dashboard>>: Use the built-in overview dashboard for insight into your Azure OpenAI service like total requests and token usage.
+* <<azure-openai-discover>>: Use Discover to find and filter your log and metric data based on specific fields.
+* <<azure-openai-logs-explorer>>: Use Logs Explorer for an in-depth view into your logs.
 
 [discrete]
 [[azure-openai-overview-dashboard]]
 ==== View logs and metrics with the overview dashboard
 
-The Elastic Azure OpenAI integration comes with a built-in overview dashboard to visualize your log and metric data
+The Elastic Azure OpenAI integration comes with a built-in overview dashboard to visualize your log and metric data.
 To view the integration dashboards:
 
-. From the {kib} menu, open **Dashboards** under **Analytics**.
-. Search for *Azure OpenAI*.
+. From the {kib} menu under **Analytics**, select **Dashboards**.
+. Search for **Azure OpenAI**.
 . Select the `[Azure OpenAI] Overview` dashboard.
 
-From here, you'll find visualizations of important metrics for your Azure OpenAI service, like the request rate, error rate, token usage, and chat completion latency.
+From here, you'll find visualizations of important metrics for your Azure OpenAI service, like the request rate, error rate, token usage, and chat completion latency. To zoom in on your data, click and drag across the bars in a visualization.
 
 //Screenshot
+
+For more on dashboards and visualization, refer to {kib-ref}/dashboard.html[Dashboards and visualizations].
 
 [discrete]
 [[azure-openai-discover]]
 ==== View logs and metrics with Discover
 
-Go to **Discover** from the the {kib} menu under **Analytics**.
+Go to **Discover** from the {kib} menu under **Analytics**.
 From the data view drop-down, select either `logs-*` or `metrics-*` to view specific data.
 You can also create data views if, for example, you wanted to view both `logs-*` and `metrics-*` simultaneously.
 
@@ -317,23 +316,21 @@ For a list of Azure OpenAI fields you may want to filter by, refer to the {integ
 
 For more on Logs Explorer, refer to:
 
-* <<explore-logs>> for an over view of Logs Explorer.
+* <<explore-logs>> for an overview of Logs Explorer.
 * <<logs-filter-logs-explorer>> for more on filtering logs in Logs Explorer.
 
 [discrete]
 [[azure-openai-alerts]]
 === What's next?
 
-Now that you've ingested your Azure OpenAI logs and metrics and know how to find and visualize it, you'll want to make sure you're getting the most out of your data.
-Elastic has some useful tools to help you do just that:
+Now that you know how to find and visualize your Azure OpenAI logs and metrics, you'll want to make sure you're getting the most out of your data.
+Elastic has some useful tools to help you do that:
 
-**Alerts**: Create threshold rules to notify you when your metrics or logs reach or exceed a specified value:
+* **Alerts**: Create threshold rules to notify you when your metrics or logs reach or exceed a specified value:
 Refer to <<metrics-threshold-alert>> and <<logs-threshold-alert>> for more on setting up alerts.
-
-**SLOs**: Set measurable targets for your Azure OpenAI service performance based on your metrics.
+* **SLOs**: Set measurable targets for your Azure OpenAI service performance based on your metrics.
 Once defined, you can monitor your SLOs with dashboards and alerts and track their progress against your targets over time.
 Refer to <<slo>> for more on setting up and tracking SLOs.
-
-**Machine learning (ML) jobs**: Set up ML jobs to find anomalous events and patterns in your Azure OpenAI data.
+* **Machine learning (ML) jobs**: Set up ML jobs to find anomalous events and patterns in your Azure OpenAI data.
 Refer to {ml-docs}/ml-ad-finding-anomalies.html[Finding anomalies] for more on setting up ML jobs.
 
