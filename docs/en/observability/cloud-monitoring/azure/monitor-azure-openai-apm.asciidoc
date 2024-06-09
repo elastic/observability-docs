@@ -1,0 +1,167 @@
+[discrete]
+[[azure-openai-apm]]
+=== Step 7: Monitor Microsoft Azure OpenAI APM with OpenTelemetry
+
+The Azure OpenAI API provides useful information to help monitor and understand your code.
+To ingest this information into Elastic {observability}, use OpenTelemetry.
+
+For this tutorial, we'll be using an https://github.com/davidgeorgehope/ChatGPTMonitoringWithOtel[example application] and Python OpenTelemetry libraries.
+
+To start collecting APM data for your Azure OpenAI applications, you need to collect some information on your {cloud} instance:
+
+. From the {kib} homepage, click **Add integrations**.
+. Select the **APM** integration.
+. Make note of the configuration values from the following configuration settings:
+* `OTEL_EXPORTER_OTLP_ENDPOINT`
+* `OTEL_EXPORTER_OTLP_HEADERS`
+
+With the configuration values from the APM integration and your https://learn.microsoft.com/en-us/azure/ai-services/openai/quickstart?tabs=command-line%2Cpython-new&pivots=programming-language-python#retrieve-key-and-endpoint[Azure OpenAI API key], set the following environment values using these export commands on the command line:
+
+[source,bash]
+----
+export AZURE_OPENAI_API_KEY=<your-azure-openAI-key>
+export OTEL_EXPORTER_OTLP_AUTH_HEADER=<your-OTEL_EXPORTER_OTLP_AUTH-token>
+export OTEL_EXPORTER_OTLP_ENDPOINT=<your-OTEL_EXPORTER_OTLP_ENDPOINT>
+----
+
+Install the necessary Python libraries using the following commands:
+
+[source,bash]
+----
+pip3 install opentelemetry-api
+pip3 install opentelemetry-sdk
+pip3 install opentelemetry-exporter-otlp
+pip3 install opentelemetry-instrumentation
+pip3 install opentelemetry-instrumentation-requests
+pip3 install openai
+pip3 install flask
+----
+
+The following code is from the https://github.com/davidgeorgehope/ChatGPTMonitoringWithOtel/blob/main/counter.py[Example application]. In a real example, you would use your code. This code calls Azure OpenAI APIs with the following message: “Why is Elastic an amazing observability tool?”
+
+[source,python]
+----
+
+import openai
+from flask import Flask
+import monitor  # Import the module
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+import urllib
+import os
+from opentelemetry import trace
+from opentelemetry.sdk.resources import SERVICE_NAME, Resource
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.instrumentation.requests import RequestsInstrumentor
+
+# OpenTelemetry setup up code here, feel free to replace the “your-service-name” attribute here.
+resource = Resource(attributes={
+    SERVICE_NAME: "your-service-name"
+})
+provider = TracerProvider(resource=resource)
+processor = BatchSpanProcessor(OTLPSpanExporter(endpoint=os.getenv('OTEL_EXPORTER_OTLP_ENDPOINT'),
+        headers="Authorization=Bearer%20"+os.getenv('OTEL_EXPORTER_OTLP_AUTH_HEADER')))
+provider.add_span_processor(processor)
+trace.set_tracer_provider(provider)
+tracer = trace.get_tracer(__name__)
+RequestsInstrumentor().instrument()
+
+
+
+# Initialize Flask app and instrument it
+
+app = Flask(__name__)
+
+# Set Azure OpenAI credentials
+openai.api_key = os.getenv('AZURE_OPENAI_API_KEY')
+
+
+@app.route("/completion")
+@tracer.start_as_current_span("do_work")
+def completion():
+    response = openai.Completion.create(
+        model="text-davinci-003",
+        prompt="Why is Elastic an amazing observability tool?",
+        max_tokens=20,
+        temperature=0
+    )
+    return response.choices[0].text.strip()
+
+if __name__ == "__main__":
+    app.run()
+----
+
+The https://github.com/davidgeorgehope/ChatGPTMonitoringWithOtel/blob/main/monitor.py[`monitor.py` code] in the example application instruments the application and can be used to instrument your own applications.
+The `monitor.py` code also uses monkey patching, a technique in Python where you dynamically modify the behavior of a class or module at runtime by modifying its attributes or methods, to modify the behavior of the `Completion` call so we can take the response metrics and add them to the OpenTelemetry spans:
+
+[source,python]
+----
+def count_completion_requests_and_tokens(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        counters['completion_count'] += 1
+        response = func(*args, **kwargs)
+        token_count = response.usage.total_tokens
+        prompt_tokens = response.usage.prompt_tokens
+        completion_tokens = response.usage.completion_tokens
+        cost = calculate_cost(response)
+        strResponse = json.dumps(response)
+        # Set OpenTelemetry attributes
+        span = trace.get_current_span()
+        if span:
+            span.set_attribute("completion_count", counters['completion_count'])
+            span.set_attribute("token_count", token_count)
+            span.set_attribute("prompt_tokens", prompt_tokens)
+            span.set_attribute("completion_tokens", completion_tokens)
+            span.set_attribute("model", response.model)
+            span.set_attribute("cost", cost)
+            span.set_attribute("response", strResponse)
+        return response
+    return wrapper
+# Monkey-patch the openai.Completion.create function
+openai.Completion.create = count_completion_requests_and_tokens(openai.Completion.create)
+----
+
+Adding this data to our span lets us send it to our OTLP endpoint, so you can search for the data in {observability} and build dashboards and visualizations.
+
+Implementing the following function allows you to calculate the cost of a single request to the OpenAI APIs.
+
+[source,python]
+----
+def calculate_cost(response):
+    if response.model in ['gpt-4', 'gpt-4-0314']:
+        cost = (response.usage.prompt_tokens * 0.03 + response.usage.completion_tokens * 0.06) / 1000
+    elif response.model in ['gpt-4-32k', 'gpt-4-32k-0314']:
+        cost = (response.usage.prompt_tokens * 0.06 + response.usage.completion_tokens * 0.12) / 1000
+    elif 'gpt-3.5-turbo' in response.model:
+        cost = response.usage.total_tokens * 0.002 / 1000
+    elif 'davinci' in response.model:
+        cost = response.usage.total_tokens * 0.02 / 1000
+    elif 'curie' in response.model:
+        cost = response.usage.total_tokens * 0.002 / 1000
+    elif 'babbage' in response.model:
+        cost = response.usage.total_tokens * 0.0005 / 1000
+    elif 'ada' in response.model:
+        cost = response.usage.total_tokens * 0.0004 / 1000
+    else:
+        cost = 0
+    return cost
+----
+
+[discrete]
+[[azure-openai-view-apm-data]]
+==== View APM data from OpenTelemetry in {kib}
+
+After capturing your data, see all of your data in Discover in {kib}.
+Go to **Discover** from the {kib} menu under **Analytics**.
+You can then filter by fields sent using OpenTelemetry:
+
+[role="screenshot"]
+image::images/azure-openai-apm-discover.png[screenshot of the discover main page]
+
+Then, you can use these fields to build dashboards.
+
+[role="screenshot"]
+image::images/azure-openai-apm-dashboard.png[screenshot of the Azure OpenAI APM dashboard]
+
+Refer to the https://github.com/davidgeorgehope/ChatGPTMonitoringWithOtel/blob/main/chatGPTDashboard.ndjson[dashboard file] in the example application and the {kib-ref}/dashboards.html documentation for more information.
