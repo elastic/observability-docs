@@ -42,40 +42,32 @@ image::firehose-cloudwatch-log-group.png[CloudWatch log group]
 
 In this tutorial, you are going to collect application logs from an AWS Lambda-based app and forward them to Elastic. 
 
-[discrete]
-[[create-lambda-function]]
-=== Create a Lambda function
+**Create a Lambda function**
 
 NOTE: You can skip this section if you already have a Lambda function, or any other service or application that sends logs to a CloudWatch log group. Take note of the log group from which you want to collect log events and move to the next section. 
 
 Like many other services and platforms in AWS, Lambda functions natively log directly to CloudWatch out of the box. 
 
-1. Go to the https://console.aws.amazon.com/[AWS console] and open the AWS Lambda page.
-2. Click **Create function** and select the option to create a function from scratch.
-3. Select a **Function name**.
-4. As a **Runtime**, select a recent version of Python. For example, Python 3.11.
-5. Select your **Architecture** of choice between `arm64` and `x86_64`.
-6. Confirm and create the Lambda function.
-
+. Go to the https://console.aws.amazon.com/[AWS console] and open the AWS Lambda page.
+. Click **Create function** and select the option to create a function from scratch.
+. Select a **Function name**.
+. As a **Runtime**, select a recent version of Python. For example, Python 3.11.
+. Select your **Architecture** of choice between `arm64` and `x86_64`.
+. Confirm and create the Lambda function.
++
 When AWS finishes creating the function, go to the **Code source** section and paste the following Python code as function source code:
-
++
 [source,python]
 ----
 import json
-
 
 def lambda_handler(event, context):
     print("Received event: " + json.dumps(event))
 ----
 
-[IMPORTANT]
-=====
-Click **Deploy** to deploy the changes to the source code.
-=====
+. Click **Deploy** to deploy the changes to the source code.
 
-[discrete]
-[[firehose-cloudwatch-step-two-genereate-sample-logs]]
-=== Generate some sample logs
+**Generate some sample logs**
 
 With the function ready to go, you can invoke it a few times to generate sample logs.
 On the function page, follow these steps:
@@ -86,7 +78,7 @@ On the function page, follow these steps:
 . Click the **Test** button to execute the function.
 
 Visit the function's log group. Usually, the AWS console offers a handy link to jump straight to the log group it created for this function's logs.
-You should get something similar:
+You should get something similar to the following:
 
 image::firehose-cloudwatch-sample-logs.png[CloudWatch log group with sample logs]
 
@@ -119,9 +111,7 @@ image::firehose-cloudwatch-subscription-filter.png[CloudWatch subscription filte
 
 To send log events from CloudWatch to Firehose, open the log group where the Lambda service is logging and create a subscription filter.
 
-[discrete]
-[[firehose-cloudwatch-step-four-subscription-filter]]
-=== Create a subscription filter for Amazon Data Firehose 
+**Create a subscription filter for Amazon Data Firehose** 
 
 The https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/Subscriptions.html[subscription filter] allows you to pick log events from the log group and forward them to other services, such as an Amazon Kinesis stream, an Amazon Data Firehose stream, or AWS Lambda.
 
@@ -138,7 +128,7 @@ From here, follow these steps:
 .. Assign a policy to the role that permits "putting records" into a Firehose  stream.
 
 . Create a new IAM role and use the following JSON as the trust policy:
-
++
 [source,json]
 ----
 {
@@ -161,7 +151,7 @@ From here, follow these steps:
 ----
 
 . Assign a policy to the IAM role by using the following JSON file:
-
++
 [source,json]
 ----
 {
@@ -188,9 +178,7 @@ If you want to forward all log events, you can empty the filter pattern. You can
 +
 Open the AWS Lambda page again, select the function you created, and execute it a few times to generate new log events.
 
-[discrete]
-[[firehose-cloudwatch-step-verify]]
-=== Check if there are destination error logs.
+**Check if there are destination error logs**
 
 On the https://console.aws.amazon.com/[AWS console], navigate to your Firehose stream and check for entries in the *Destination error logs* section.
 
