@@ -149,7 +149,7 @@ After every answer the LLM provides, let us know if the answer was helpful.
 Your feedback helps us improve the AI Assistant!
 </DocCallOut>
 
-### AI Assistant chat
+### Chat with the assistant
 
 Click **AI Assistant** in the upper-right corner where available to start the chat:
 
@@ -159,7 +159,7 @@ This opens the AI Assistant flyout, where you can ask the assistant questions ab
 
 ![Observability AI assistant chat](../images/ai-assistant-chat.png)
 
-### AI Assistant functions
+### Suggest functions
 
 <DocCallOut template="beta" />
 
@@ -219,7 +219,7 @@ Additional functions are available when your cluster has APM data:
     </DocRow>
 </DocTable>
 
-### AI Assistant contextual prompts
+### Use contextual prompts
 
 AI Assistant contextual prompts throughout ((observability)) provide the following information:
 
@@ -240,12 +240,67 @@ You can continue a conversation from a contextual prompt by clicking **Start cha
 
 ![Observability AI assistant example](../images/ai-assistant-logs.png)
 
+### Add the AI Assistant connector to alerting workflows
+
+You can use the Observability AI Assistant connector to add AI-generated insights and custom actions to your alerting workflows.
+To do this:
+
+1. <DocLink id="serverlessObservabilityCreateRules" text="Create (or edit) an alerting rule" /> and specify the conditions that must be met for the alert to fire.
+1. Under **Actions**, select the **Observability AI Assistant** connector type.
+1. In the **Connector** list, select the AI connector you created when you set up the assistant.
+1. In the **Message** field, specify the message to send to the assistant:
+
+![Add an Observability AI assistant action while creating a rule in the Observability UI](../images/obs-ai-assistant-action-high-cpu.png)
+
+You can ask the assistant to generate a report of the alert that fired,
+recall any information or potential resolutions of past occurrences stored in the knowledge base,
+provide troubleshooting guidance and resolution steps,
+and also include other active alerts that may be related.
+As a last step, you can ask the assistant to trigger an action,
+such as sending the report (or any other message) to a Slack webhook.
+
+<DocCallOut title="NOTE">
+    Currently you can only send messages to Slack, email, Jira, PagerDuty, or a webhook.
+    Additional actions will be added in the future.
+</DocCallOut>
+
+When the alert fires, contextual details about the event—such as when the alert fired,
+the service or host impacted, and the threshold breached—are sent to the AI Assistant,
+along with the message provided during configuration.
+The AI Assistant runs the tasks requested in the message and creates a conversation you can use to chat with the assistant:
+
+![AI Assistant conversation created in response to an alert](../images/obs-ai-assistant-output.png)
+
+<DocCallOut color="warning" title="Important">
+    Conversations created by the AI Assistant are public and accessible to every user with permissions to use the assistant.
+</DocCallOut>
+
+It might take a minute or two for the AI Assistant to process the message and create the conversation.
+
+Note that overly broad prompts may result in the request exceeding token limits.
+For more information, refer to <DocLink id="serverlessObservabilityAiAssistant" section="token-limits" />
+Also, attempting to analyze several alerts in a single connector execution may cause you to exceed the function call limit.
+If this happens, modify the message specified in the connector configuration to avoid exceeding limits.
+
+When asked to send a message to another connector, such as Slack,
+the AI Assistant attempts to include a link to the generated conversation.
+
+![Message sent by Slack by the AI Assistant includes a link to the conversation](../images/obs-ai-assistant-slack-message.png)
+
+The Observability AI Assistant connector is called when the alert fires and when it recovers.
+
+To learn more about alerting, actions, and connectors, refer to <DocLink id="serverlessObservabilityAlerting" />.
+
 ## Known issues
+
+<div id="token-limits"></div>
 
 ### Token limits
 
 Most LLMs have a set number of tokens they can manage in single a conversation.
 When you reach the token limit, the LLM will throw an error, and Elastic will display a "Token limit reached" error.
 The exact number of tokens that the LLM can support depends on the LLM provider and model you're using.
+If you are using an OpenAI connector, you can monitor token usage in **OpenAI Token Usage** dashboard.
+For more information, refer to the [OpenAI Connector documentation](((kibana-ref))/openai-action-type.html#openai-connector-token-dashboard).
 
 <span id="hello-world"></span>
