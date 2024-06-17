@@ -67,6 +67,7 @@ Pull requests should be tagged with the target version of the Elastic Stack alon
 ### Elastic Observability Serverless docs
 
 Serverless docs are not versioned, and should never be backported. All changes should be made to the `main` branch.
+If you're backporting Serverless and Stateful content in the same PR, an automation will run that deletes the `docs/en/serverless` dir from your PR.
 
 ### Integrations Developer Guide
 
