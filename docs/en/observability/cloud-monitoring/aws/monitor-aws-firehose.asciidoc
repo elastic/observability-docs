@@ -5,7 +5,7 @@
 <titleabbrev>Monitor {aws} with Amazon Data Firehose</titleabbrev>
 ++++
 
-Amazon Data Firehose is a popular service that allows you to send your VPC flow logs data to Elastic in minutes without a single line of code and without building or managing your own data ingestion and delivery infrastructure. Amazon Data Firehose Helps you answer questions like what percentage of your traffic is getting dropped, and how much traffic is getting generated for specific sources and destinations.
+Amazon Data Firehose is a popular service that allows you to send your service logs to Elastic in minutes without a single line of code and without building or managing your own data ingestion and delivery infrastructure.
 
 [discrete]
 [[aws-elastic-firehose-what-you-learn]]
@@ -22,8 +22,8 @@ In this tutorial, you'll learn how to:
 [[aws-elastic-firehose-before-you-begin]]
 === Before you begin
 
-Create a deployment using our hosted {ess} on {ess-trial}[{ecloud}].
-The deployment includes an {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data. You also need an AWS account with permissions to pull the necessary data from AWS.
+Create a deployment in AWS regions (including gov cloud) using our hosted {ess} on {ess-trial}[{ecloud}].
+The deployment includes an {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data.
 
 [discrete]
 [[firehose-step-one]]
@@ -33,9 +33,7 @@ The deployment includes an {es} cluster for storing and searching your data, and
 
 . Navigate to the *Settings* tab and click *Install AWS assets*. Confirm by clicking *Install AWS* in the popup.
 
-. Install AWS Firehose integration assets in Kibana. 
-
-NOTE: Firehose integration is currently in beta. Make sure to enable *Display beta integrations*.
+. Install Amazon Data Firehose integration assets in Kibana.
 
 [discrete]
 [[firehose-step-two]]
@@ -74,12 +72,14 @@ NOTE: For advanced use cases, source records can be transformed by invoking a cu
 [[firehose-step-four]]
 === Step 4: Send data to the Firehose delivery stream
 
-You can configure a variety of log sources to send data to Firehose delivery streams. Refer to the https://docs.aws.amazon.com/firehose/latest/dev/basic-write.html[AWS documentation] for more information.
-Several services support writing data directly to delivery streams, including Cloudwatch logs. Alternatively, you can also use https://aws.amazon.com/dms/[AWS Database Migration Service (DMS)] to create streaming data pipelines to Firehose.
-For example, a typical workflow for sending VPC Flow Logs to Firehose would be the following:
+You can configure a variety of log sources to send data to Firehose streams directly for example VPC flow logs.
+Some services don't support publishing logs directly to Firehose but they do support publishing logs to CloudWatch logs, such as CloudTrail and Lambda.
+Refer to the https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/AWS-logs-and-resource-policy.html[AWS documentation] for more information.
 
-- Publish VPC Flow Logs to a Cloudwatch log group. Refer to the AWS documentation https://docs.aws.amazon.com/vpc/latest/userguide/flow-logs-cwl.html[about publishing flow logs].
-- Create a subscription filter in the CloudWatch log group to the Firehose delivery stream. Refer to the AWS documentation https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#FirehoseExample[about using subscription filters].
+For example, a typical workflow for sending CloudTrail logs to Firehose would be the following:
+
+- Publish CloudTrail logs to a Cloudwatch log group. Refer to the AWS documentation https://docs.aws.amazon.com/awscloudtrail/latest/userguide/monitor-cloudtrail-log-files-with-cloudwatch-logs.html[about publishing CloudTrail logs].
+- Create a subscription filter in the CloudWatch log group to the Firehose stream. Refer to the AWS documentation https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/SubscriptionFilters.html#FirehoseExample[about using subscription filters].
 
 
 For more information on Amazon Data Firehose, you can also check the https://docs.elastic.co/integrations/awsfirehose[Amazon Data Firehose Integrations documentation]. 
