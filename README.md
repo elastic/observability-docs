@@ -67,6 +67,7 @@ Pull requests should be tagged with the target version of the Elastic Stack alon
 ### Elastic Observability Serverless docs
 
 Serverless docs are not versioned, and should never be backported. All changes should be made to the `main` branch.
+If you're backporting Serverless and Stateful content in the same PR, an automation will run that deletes the `docs/en/serverless` dir from your PR.
 
 ### Integrations Developer Guide
 
@@ -75,3 +76,16 @@ The Integrations Developer Guide is not versioned, and should never be backporte
 ## Reviews
 
 All documentation pull requests automatically add the **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** team as a reviewer.
+
+## License
+
+Shield: [![CC BY-NC-ND 4.0][cc-by-nc-nd-shield]][cc-by-nc-nd]
+
+This work is licensed under a
+[Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International License][cc-by-nc-nd].
+
+[![CC BY-NC-ND 4.0][cc-by-nc-nd-image]][cc-by-nc-nd]
+
+[cc-by-nc-nd]: http://creativecommons.org/licenses/by-nc-nd/4.0/
+[cc-by-nc-nd-image]: https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png
+[cc-by-nc-nd-shield]: https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg

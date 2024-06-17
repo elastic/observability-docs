@@ -1,5 +1,4 @@
 ---
-id: serverlessObservabilityAnalyzeHosts
 slug: /serverless/observability/analyze-hosts
 title: Analyze and compare hosts
 description: Get a metrics-driven view of your hosts backed by an easy-to-use interface called Lens.
@@ -30,21 +29,22 @@ To access the **Hosts** page, in your ((observability)) project, go to
 
 ![Screenshot of the Hosts page](../images/hosts.png)
 
-To learn more about the metrics shown on this page, refer to the <DocLink id="serverlessObservabilityMetricsReference" /> documentation.
+To learn more about the metrics shown on this page, refer to the <DocLink slug="/serverless/observability/metrics-reference" /> documentation.
 
 <DocCallOut title="Don't see any metrics?">
 
 If you haven't added data yet, click **Add data** to search for and install an Elastic integration.
 
 Need help getting started? Follow the steps in
-<DocLink id="serverlessObservabilityGetStartedWithMetrics">Get started with system metrics</DocLink>.
+<DocLink slug="/serverless/observability/get-started-with-metrics">Get started with system metrics</DocLink>.
 
 </DocCallOut>
 
 The **Hosts** page provides several ways to view host metrics:
 
 * Overview tiles show the number of hosts returned by your search plus
-    averages of key metrics, including CPU usage, memory usage, and throughput.
+    averages of key metrics, including CPU usage, normalized load, and memory usage.
+    Max disk usage is also shown.
 
 * The Host limit controls the maximum number of hosts shown on the page. The
     default is 50, which means the page shows data for the top 50 hosts based on the
@@ -55,9 +55,8 @@ The **Hosts** page provides several ways to view host metrics:
     for any hosts with active alerts. You may need to page through the list
     or change the number of rows displayed on each page to see all of your hosts.
 
-* Each host name is an active link to a <DocLink id="serverlessObservabilityAnalyzeHosts" section="view-host-details" text="host details" /> page,
-    which includes metrics, host metadata, alerts, processes, logs, and anomalies.
-    You can optionally open the host details in an overlay.
+* Each host name is an active link to a <DocLink slug="/serverless/observability/analyze-hosts" section="view-host-details" text="host details" /> page,
+    where you can explore enhanced metrics and other observability data related to the selected host.
 
 * Table columns are sortable, but note that the sorting behavior is applied to
     the already returned data set.
@@ -66,7 +65,7 @@ The **Hosts** page provides several ways to view host metrics:
     and alerts for all hosts returned by your search.
 
 <DocCallOut title="Tip">
-    For more information about creating and viewing alerts, refer to <DocLink id="serverlessObservabilityAlerting" />.
+    For more information about creating and viewing alerts, refer to <DocLink slug="/serverless/observability/alerting" />.
 </DocCallOut>
 
 <div id="analyze-hosts-filter-view"></div>
@@ -109,13 +108,14 @@ page:
 
 ## View metrics
 
-On the **Metrics** tab of the **Hosts** page, view metrics trending over time, including normalized load,
-CPU usage, memory usage, network inbound, network outbound, disk read IOPS, and
-disk write IOPS. Place your cursor over a line to view metrics at a specific
-point in time.
+On the **Metrics** tab, view metrics trending over time, including CPU usage,
+normalized load, memory usage, disk usage, and other metrics related to disk IOPs and throughput.
+Place your cursor over a line to view metrics at a specific
+point in time. From within each visualization, you can choose to open the visualization in Lens.
 
-To see metrics for a specific host, refer to <DocLink id="serverlessObservabilityAnalyzeHosts" section="view-host-details" text="View host details"/>.
+To see metrics for a specific host, refer to <DocLink slug="/serverless/observability/analyze-hosts" section="view-host-details" text="View host details"/>.
 
+{/*  TODO: Uncomment this section if/when the inspect option feature is added back in.
 <div id="inspect-metrics"></div>
 
 ### Inspect and download metrics
@@ -134,7 +134,7 @@ file.
 
 Click **View: Data** and notice that you can change the view to **Requests** to explore the request
 used to fetch the data and the response returned from ((es)). On the **Request** tab, click links
-to further inspect and analyze the request in the Dev Console or Search Profiler.
+to further inspect and analyze the request in the Dev Console or Search Profiler. */}
 
 <div id="analyze-hosts-open-in-lens"></div>
 
@@ -163,7 +163,7 @@ the current query.
 
 ![Screenshot showing Logs view](../images/hosts-logs.png)
 
-To see logs for a specific host, refer to <DocLink id="serverlessObservabilityAnalyzeHosts" section="view-host-details" text="View host details" />.
+To see logs for a specific host, refer to <DocLink slug="/serverless/observability/analyze-hosts" section="view-host-details" text="View host details" />.
 
 <div id="analyze-hosts-view-alerts"></div>
 
@@ -181,7 +181,7 @@ From the **Actions** menu, you can choose to:
 
 ![Screenshot showing Alerts view](../images/hosts-view-alerts.png)
 
-To see alerts for a specific host, refer to <DocLink id="serverlessObservabilityAnalyzeHosts" section="view-host-details" text="View host details" />.
+To see alerts for a specific host, refer to <DocLink slug="/serverless/observability/analyze-hosts" section="view-host-details" text="View host details" />.
 
 
 <DocCallOut title="Why are alerts missing from the Hosts page?">
@@ -191,7 +191,7 @@ To see alerts for a specific host, refer to <DocLink id="serverlessObservability
     * For Metric threshold or Custom threshold rules, select `host.name` in the **Group alerts by** field.
     * For Inventory rules, select **Host** for the node type under **Conditions**.
 
-    To learn more about creating and managing rules, refer to <DocLink id="serverlessObservabilityAlerting" />.
+    To learn more about creating and managing rules, refer to <DocLink slug="/serverless/observability/alerting" />.
 </DocCallOut>
 
 <div id="view-host-details"></div>
@@ -212,8 +212,7 @@ The host details overlay contains the following tabs:
 <HostDetails />
 
 <DocCallOut title="Note">
-These metrics are also available when viewing hosts on the **Inventory**
-page.
+The metrics shown on the **Hosts** page are also available when viewing hosts on the **Inventory** page.
 </DocCallOut>
 
 <div id="analyze-hosts-why-dashed-lines"></div>
@@ -222,9 +221,9 @@ page.
 
 There are a few reasons why you may see dashed lines in your charts.
 
-* <DocLink id="serverlessObservabilityAnalyzeHosts" section="the-chart-interval-is-too-short">The chart interval is too short</DocLink>
-* <DocLink id="serverlessObservabilityAnalyzeHosts" section="data-is-missing">Data is missing</DocLink>
-* <DocLink id="serverlessObservabilityAnalyzeHosts" section="the-chart-interval-is-too-short-and-data-is-missing">The chart interval is too short and data is missing</DocLink>
+* <DocLink slug="/serverless/observability/analyze-hosts" section="the-chart-interval-is-too-short">The chart interval is too short</DocLink>
+* <DocLink slug="/serverless/observability/analyze-hosts" section="data-is-missing">Data is missing</DocLink>
+* <DocLink slug="/serverless/observability/analyze-hosts" section="the-chart-interval-is-too-short-and-data-is-missing">The chart interval is too short and data is missing</DocLink>
 
 <div id="dashed-interval"></div>
 
