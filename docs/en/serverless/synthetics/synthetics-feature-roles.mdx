@@ -1,0 +1,45 @@
+---
+slug: /serverless/observability/synthetics-feature-roles
+title: Grant users access to secured resources
+# description: Description to be written
+tags: []
+---
+
+<p><DocBadge template="technical preview" /></p>
+
+<div id="synthetics-feature-roles"></div>
+
+You can use role-based access control to grant users access to secured
+resources. The roles that you set up depend on your organization's security
+requirements and the minimum privileges required to use specific features.
+
+<DocTable
+  columns={[
+    { title: "Role", width: "20%" },
+    { title: "Synthetics functionality", width: "80%" }
+  ]}
+>
+<DocRow>
+  <DocCell>Viewer</DocCell>
+  <DocCell>
+    * View and create visualizations that access Synthetics data.
+  </DocCell>
+</DocRow>
+<DocRow>
+  <DocCell>Editor</DocCell>
+  <DocCell>
+    * Create, modify, and delete monitors.
+    * View and create visualizations that access Synthetics data.
+  </DocCell>
+</DocRow>
+<DocRow>
+  <DocCell>Admin</DocCell>
+  <DocCell>
+    * Full access to project management, properties, and security privileges.
+    * Create, modify, and delete monitors.
+    * View and create visualizations that access Synthetics data.
+  </DocCell>
+</DocRow>
+</DocTable>
+
+Read more about user roles in <DocLink slug="/serverless/general/assign-user-roles" />.

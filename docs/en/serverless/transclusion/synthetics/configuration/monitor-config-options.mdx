@@ -1,0 +1,79 @@
+
+
+<DocDefList>
+  <DocDefTerm>`id` (`string`)</DocDefTerm>
+  <DocDefDescription>
+    A unique identifier for this monitor.
+  </DocDefDescription>
+
+  <DocDefTerm>`name` (`string`)</DocDefTerm>
+  <DocDefDescription>
+    A human readable name for the monitor.
+  </DocDefDescription>
+
+  <DocDefTerm>`tags` (`Array<string>`)</DocDefTerm>
+  <DocDefDescription>
+    A list of tags that will be sent with the monitor event. Tags are displayed in the Synthetics UI and allow you to search monitors by tag.
+  </DocDefDescription>
+
+  <DocDefTerm>`schedule` (`number`)</DocDefTerm>
+  <DocDefDescription>
+    The interval (in minutes) at which the monitor should run.
+  </DocDefDescription>
+
+  <DocDefTerm>`enabled` (`boolean`)</DocDefTerm>
+  <DocDefDescription>
+    Enable or disable the monitor from running without deleting and recreating it.
+  </DocDefDescription>
+
+  <DocDefTerm>`locations` ([`Array<SyntheticsLocationsType>`](https://github.com/elastic/synthetics/blob/((synthetics_version))/src/locations/public-locations.ts#L28-L37))</DocDefTerm>
+  <DocDefDescription>
+    Where to deploy the monitor. Monitors can be deployed in multiple locations so that you can detect differences in availability and response times across those locations.
+
+    To list available locations you can:
+
+    * Run the <DocLink slug="/serverless/observability/synthetics-command-reference" section="elasticsynthetics-locations">`elastic-synthetics locations` command</DocLink>.
+    * Go to **Synthetics** → **Management** and click **Create monitor**.
+      Locations will be listed in _Locations_.
+  </DocDefDescription>
+
+  <DocDefTerm>`privateLocations` (`Array<string>`)</DocDefTerm>
+  <DocDefDescription>
+    The <DocLink slug="/serverless/observability/synthetics-private-location">((private-location))s</DocLink> to which the monitors will be deployed. These ((private-location))s refer to locations hosted and managed by you, whereas
+    `locations` are hosted by Elastic. You can specify a ((private-location)) using the location's name.
+
+    To list available ((private-location))s you can:
+
+    * Run the <DocLink slug="/serverless/observability/synthetics-command-reference" section="elasticsynthetics-locations">`elastic-synthetics locations` command</DocLink>
+        with the URL for the Observability project from which to fetch available locations.
+    * Go to **Synthetics** → **Management** and click **Create monitor**.
+        ((private-location))s will be listed in _Locations_.
+  </DocDefDescription>
+
+  <DocDefTerm>`throttling` (`boolean` | [`ThrottlingOptions`](https://github.com/elastic/synthetics/blob/((synthetics_version))/src/common_types.ts#L194-L198))</DocDefTerm>
+  <DocDefDescription>
+    Control the monitor's download speeds, upload speeds, and latency to simulate your application's behavior on slower or laggier networks. Set to `false` to disable throttling altogether.
+  </DocDefDescription>
+
+  <DocDefTerm>`screenshot` ([`ScreenshotOptions`](https://github.com/elastic/synthetics/blob/((synthetics_version))/src/common_types.ts#L192))</DocDefTerm>
+  <DocDefDescription>
+    Control whether or not to capture screenshots. Options include `'on'`, `'off'`, or `'only-on-failure'`.
+  </DocDefDescription>
+
+  <DocDefTerm>`alert.status.enabled` (`boolean`)</DocDefTerm>
+  <DocDefDescription>
+    Enable or disable monitor status alerts. Read more about alerts in <DocLink slug="/serverless/observability/synthetics-settings" section="alerting">Alerting</DocLink>.
+  </DocDefDescription>
+
+  <DocDefTerm>`retestOnFailure` (`boolean`)</DocDefTerm>
+  <DocDefDescription>
+    Enable or disable retesting when a monitor fails. Default is `true`.
+
+    By default, monitors are automatically retested if the monitor goes from "up" to "down".
+    If the result of the retest is also "down", an error will be created, and if configured, an alert sent.
+    Then the monitor will resume running according to the defined schedule.
+
+    Using `retestOnFailure` can reduce noise related to transient problems.
+  </DocDefDescription>
+
+</DocDefList>

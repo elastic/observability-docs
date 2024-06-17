@@ -1,0 +1,86 @@
+---
+slug: /serverless/observability/send-cases-to-an-external-system
+title: Send cases to an external system
+description: Connectors allow you track Elastic Observability cases in external systems.
+tags: [ 'serverless', 'observability', 'how-to' ]
+---
+
+<p><DocBadge template="technical preview" /></p>
+
+import Roles from '../partials/roles.mdx'
+
+<Roles role="Editor" goal="create and edit connectors" />
+
+If you are using an external incident management system, you can integrate Elastic Observability
+cases with this system using connectors. These third-party systems are supported:
+
+* ((ibm-r))
+* ((jira)) (including ((jira)) Service Desk)
+* ((sn-itsm))
+* ((sn-sir))
+* ((swimlane))
+* ((webhook-cm))
+
+You need to create a connector to send cases, which stores the information required to interact
+with an external system. For each case, you can send the title, description, and comment when
+you choose to push the case — for the **Webhook - Case Management** connector, you can also
+send the status and severity fields.
+
+<DocCallOut title="Important" color="warning">
+{/* TODO: Verify user roles needed to create connectors... */}
+To add, modify, or delete a connector, you must have the Admin user role for the project
+(or a more permissive role).
+</DocCallOut>
+
+After creating a connector, you can set your cases to
+automatically close when they are sent to an external system.
+
+## Create a connector
+
+1. In your ((observability)) project, go to **Cases** → **Settings**.
+1. From the **Incident management system** list, select **Add new connector**.
+1. Select the system to send cases to: **((sn))**, **((jira))**, **((ibm-r))**, **((swimlane))**,
+    or **((webhook-cm))**.
+
+    ![Add a connector to send cases to an external source](../images/cases-add-connector.png)
+
+1. Enter your required settings. For connector configuration details, refer to:
+   -  [((ibm-r)) connector](((kibana-ref))/resilient-action-type.html)
+   -  [((jira)) connector](((kibana-ref))/jira-action-type.html)
+   -  [((sn-itsm)) connector](((kibana-ref))/servicenow-action-type.html)
+   -  [((sn-sir)) connector](((kibana-ref))/servicenow-sir-action-type.html)
+   -  [((swimlane)) connector](((kibana-ref))/swimlane-action-type.html)
+   -  [((webhook-cm)) connector](((kibana-ref))/cases-webhook-action-type.html)
+
+   {/* Should we be linking out to kibana docs for this info? */}
+
+1. Click **Save**.
+
+## Edit a connector
+
+You can create additional connectors, update existing connectors, and change the connector used to send cases to external systems.
+
+<DocCallOut title="Tip">
+You can also configure which connector is used for each case individually. Refer to <DocLink slug="/serverless/observability/create-a-new-case"/>.
+</DocCallOut>
+
+To change the default connector used to send cases to external systems:
+
+1. Go to **Cases** → **Settings**.
+1. Select the required connector from the **Incident management system** list.
+
+To update an existing connector:
+
+1. Click **Update \<connector name>**.
+1. Update the connector fields as required.
+
+## Sending and closing cases
+
+To send a case to an external system, click the **Push as \<connector name> incident**  <DocIcon type="importAction" title="push" /> button from the individual case page.
+This information is not sent automatically — if you make further changes to the shared case fields, you should push the case again.
+
+If you close cases in your external incident management system, the cases will remain open in Elastic Observability until you close them
+manually (the information is only sent in one direction).
+
+To close cases when they are sent to an external system, select
+**Automatically close cases when pushing new incident to external system** from **Cases** → **Settings**.

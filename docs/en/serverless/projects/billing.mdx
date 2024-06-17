@@ -1,0 +1,24 @@
+---
+slug: /serverless/observability/observability-billing
+title: Observability billing dimensions
+description: Learn about how Observability usage affects pricing.
+tags: [ 'serverless', 'observability', 'overview' ]
+---
+
+<p><DocBadge template="technical preview" /></p>
+
+Elastic Observability severless projects provide you with all the capabilities of Elastic Observability to monitor critical applications.
+Projects are provided using a Software as a Service (SaaS) model, and pricing is entirely consumption-based.
+
+Your monthly bill is based on the capabilities you use.
+When you use Elastic Observability, your bill is calculated based on data volume, which has these components:
+
+* **Ingest** &mdash; Measured by the number of GB of log/event/info data that you send to your Observability project over the course of a month.
+* **Storage/Retention** &mdash; This is known as Search AI Lake.
+* In addition to the core ingest and retention dimensions, there is an optional charge to execute synthetic monitors on our testing infrastructure.
+Browser (journey) based tests are charged on a per-test-run basis,
+and Ping (lightweight) tests have an all-you-can-use model per location used.
+
+For more information, refer to <DocLink slug="/serverless/general/serverless-billing" />.
+
+For detailed Observability serverless project rates, check the [Observability Serverless pricing page](https://www.elastic.co/pricing/serverless-observability).
