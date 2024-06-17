@@ -37,3 +37,16 @@ To build the docs:
 The above command assumes that [elastic/docs](https://github.com/elastic/docs), [elastic/ingest-docs](https://github.com/elastic/ingest-docs), and [elastic/apm-server](https://github.com/elastic/apm-server) are checked out into the same parent directory.
 
 If you prefer to use aliases, you can load the [elastic/docs/doc_build_aliases.sh file](https://github.com/elastic/docs/blob/master/doc_build_aliases.sh), which has the resources defined for you.
+
+## License
+
+Shield: [![CC BY-NC-ND 4.0][cc-by-nc-nd-shield]][cc-by-nc-nd]
+
+This work is licensed under a
+[Creative Commons Attribution-NonCommercial-NoDerivs 4.0 International License][cc-by-nc-nd].
+
+[![CC BY-NC-ND 4.0][cc-by-nc-nd-image]][cc-by-nc-nd]
+
+[cc-by-nc-nd]: http://creativecommons.org/licenses/by-nc-nd/4.0/
+[cc-by-nc-nd-image]: https://licensebuttons.net/l/by-nc-nd/4.0/88x31.png
+[cc-by-nc-nd-shield]: https://img.shields.io/badge/License-CC%20BY--NC--ND%204.0-lightgrey.svg
