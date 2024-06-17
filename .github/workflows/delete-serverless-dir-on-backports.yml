@@ -1,0 +1,36 @@
+name: Delete serverless directory in backports
+
+on:
+  pull_request:
+    branches:
+      - '7.*'
+      - '8.*'
+
+jobs:
+  check-and-delete-serverless:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Check for existence of docs/en/serverless directory
+      id: check_serverless
+      run: |
+        if [ -d "docs/en/serverless" ]; then
+          echo "SERVERLESS_EXISTS=true" >> $GITHUB_ENV
+        else
+          echo "SERVERLESS_EXISTS=false" >> $GITHUB_ENV
+        fi
+
+    - name: Delete docs/en/serverless directory if it exists
+      if: env.SERVERLESS_EXISTS == 'true'
+      run: |
+        rm -rf docs/en/serverless
+        git config pull.rebase true
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m "Delete docs/en/serverless directory"
+        git pull origin ${{ github.head_ref }}
+        git push origin HEAD:${{ github.head_ref }}
