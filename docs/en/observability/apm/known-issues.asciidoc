@@ -258,3 +258,33 @@ Mappings update for metrics-apm.service_destination.10m-default failed due to Re
 
 // Link to fix
 A fix was released in 8.12.2: https://github.com/elastic/apm-server/pull/12219[elastic/apm-server#12219].
+
+
+*Performance regression: APM issues too many small bulk requests for Elasticsearch output* +
+_APM Server versions: >=8.13.0, \<= 8.14.2_ +
+
+// Describe the conditions in which this issue occurs
+If you're on APM server version >=8.13.0, \<= 8.14.2_, using Elasticsearch output,
+do not specify any `output.elasticsearch.flush_bytes`,
+and do not disable compression explicitly by setting `output.elasticsearch.compression_level` to `0`,
+// Describe the behavior of the issue
+APM server will issue smaller bulk requests of 24KB size,
+and more bulk requests will need to be made to maintain the original throughput.
+This causes Elasticsearch to experience higher load,
+and APM server may exhibit Elasticsearch backpressure symptoms.
+
+// Describe why it happens
+This happens because a performance regression was introduced, such that the default value of bulk indexer flush bytes
+was reduced from 1MB to 24KB.
+
+It is possible to workaround the issue by configuring Elasticsearch output in APM.
+
+* For APM Server binary
+** In `apm-server.yml`, set `output.elasticsearch.flush_bytes: 1mib`
+* For Fleet-managed APM
+** In Fleet, open the Settings tab.
+** Under Outputs, find the Elasticsearch output that receives from APM, select the edit icon.
+** In the Edit output flyout, in the Advanced YAML configuration field, add line `flush_bytes: 1mib`.
+
+// Link to fix
+A fix will be released in 8.15.0: https://github.com/elastic/apm-server/pull/13576[elastic/apm-server#13576].
