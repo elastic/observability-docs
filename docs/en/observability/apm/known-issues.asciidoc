@@ -284,14 +284,16 @@ Affected APM servers will emit the following log:
 flush_bytes config value is too small (0) and might be ignored by the indexer, increasing value to 24576
 ----
 
-It is possible to workaround the issue by configuring Elasticsearch output in APM.
+To workaround the issue, modify the Elasticsearch output configuration in APM.
 
 * For APM Server binary
 ** In `apm-server.yml`, set `output.elasticsearch.flush_bytes: 1mib`
-* For Fleet-managed APM
+* For Fleet-managed APM (non-Elastic Cloud)
 ** In Fleet, open the Settings tab.
-** Under Outputs, find the Elasticsearch output that receives from APM, select the edit icon.
-** In the Edit output flyout, in the Advanced YAML configuration field, add line `flush_bytes: 1mib`.
+** Under Outputs, identify the Elasticsearch output that receives from APM, select the edit icon.
+** In the Edit output flyout, in "Advanced YAML configuration" field, add line `flush_bytes: 1mib`.
+* For Elastic Cloud
+** It is not possible to edit the Fleet "Elastic Cloud internal output".
 
 // Link to fix
 A fix will be released in 8.15.0: https://github.com/elastic/apm-server/pull/13576[elastic/apm-server#13576].
