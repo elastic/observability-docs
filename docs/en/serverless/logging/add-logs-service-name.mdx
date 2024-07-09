@@ -1,0 +1,71 @@
+---
+slug: /serverless/observability/add-logs-service-name
+title: Add `service.name` field to logs
+description: Learn how to add a service name field to your logs.
+tags: [ 'serverless', 'observability', 'overview' ]
+---
+
+Adding the `service.name` field to your logs associates them with the services that generate them.
+You can use this field to manage a specific service's logs even with distributed services located on multiple hosts.
+You also need to add this field to associate you logs with a service in the service inventory.
+
+To add the `service.name` field to your logs, do one of the following:
+
+- Add the `service.name` field using the `add_fields` processor through an integration, ((agent)) configuration, or ((filebeat)) configuration.
+- Map an existing field from your data stream to the `service.name` field.
+
+## Use the `add_fields` processor to add `service.name`
+For log data without a service name, use the [`add_fields` processor](((fleet-guide))/add_fields-processor.html) to add the `service.name` field.
+You can add the processor in the following places:
+
+- Advanced options of an integrations settings
+- The ((agent)) or ((filebeat)) configuration.
+
+For example, adding the following to the **inputs** in the standalone ((agent)) or ((filebeat)) configuration adds `yourservicename` as the `service.name` field:
+
+```console
+processors:
+    - add_fields:
+        target: service
+        fields:
+            name: yourservicename
+```
+
+Adding the following to an integration adds the `add_fields` processor:
+
+<DocImage size="l" url="../images/add-field-processor.png" alt="Add the add_fields processor to an integration" />
+
+For more on defining processors, refer to [Define processors](((fleet-guide))/elastic-agent-processor-configuration.html).
+
+## Map an existing field to the `service.name` field
+
+For logs that already have the field to use as the service name, map that field to the `service.name` field using an [alias field type](((ref))/field-alias.html).
+Follow these steps to update your mapping:
+
+1. Locate the field you want to map to the `service.name` field. For this example, we'll use `my_service`.
+1. Update your index mapping to map `my_service` to `service.name` using the following command, making sure to update `your_data_stream` to the data stream for which you're updating the mapping:
+
+        ```Console
+        PUT your_data_stream/_mapping
+        {
+        "properties": {
+            "service": {
+            "properties": {
+                "name": {
+                "type": "alias",
+                "path": "my_service"
+                }
+            }
+            }
+        }
+        }
+        ```
+
+1. Verify that the index mapping is showing the `service.name` field with the following command:
+
+        ```console
+        GET /your_data_stream/_mapping
+        ```
+
+
+### Additional ways to process data
