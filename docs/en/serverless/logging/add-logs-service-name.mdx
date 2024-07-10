@@ -6,32 +6,29 @@ tags: [ 'serverless', 'observability', 'overview' ]
 ---
 
 Adding the `service.name` field to your logs associates them with the services that generate them.
-You can use this field to manage a specific service's logs even when services are distributed and located on multiple hosts.
-Adding a service name also associates you logs with a service in the service inventory[need a link here].
+You can use this field to view and manage logs for distributed services located on multiple hosts.
+Adding a service name also associates your logs with a service in the service inventory[need a link here].
 
-Add a service name to your logs in the following ways:
+To add a service name to your logs either:
 
-- Add the `service.name` field using the `add_fields` processor through an integration, ((agent)) configuration, or ((filebeat)) configuration.
+- Use the `add_fields` processor through an integration, ((agent)) configuration, or ((filebeat)) configuration.
 - Map an existing field from your data stream to the `service.name` field.
 
 ## Use the add fields processor to add a service name
 For log data without a service name, use the [`add_fields` processor](((fleet-guide))/add_fields-processor.html) to add the `service.name` field.
-You can add the processor in the following places:
+You can add the processor in an integration's settings or in the ((agent)) or ((filebeat)) configuration.
 
-- Advanced options of an integrations settings
-- The ((agent)) or ((filebeat)) configuration.
-
-For example, adding the following to the **inputs** in the standalone ((agent)) or ((filebeat)) configuration would add `yourservicename` as the `service.name` field:
+For example, adding the `add_fields` processor to the inputs section of a standalone ((agent)) or ((filebeat)) configuration would add `your_service_name` as the `service.name` field:
 
 ```console
 processors:
     - add_fields:
         target: service
         fields:
-            name: yourservicename
+            name: your_service_name
 ```
 
-For integrations, you can add the `add_fields` processor as shown in the following example:
+Adding the `add_fields` processor to an integration settings would add `your_service_name` as the `service.name` field:
 
 <DocImage size="2" url="../images/add-field-processor.png" alt="Add the add_fields processor to an integration" />
 
@@ -39,23 +36,25 @@ For more on defining processors, refer to [define processors](((fleet-guide))/el
 
 ## Map an existing field to the service name field
 
-For logs that already have the field to use as the service name, map that field to the `service.name` field using an [alias field type](((ref))/field-alias.html).
+For logs that already have the field to use as the service name, map that field to the `service.name` field using the alias field type.
 Follow these steps to update your mapping:
 
-1. Locate the field you want to map to the `service.name` field. For this example, we'll use `my_service`.
-1. Update your index mapping to map `my_service` to `service.name` using the following command, making sure to update `your_data_stream` to the data stream for which you're updating the mapping:
+1. Find the field you want to map to the `service.name` field. For this example, we'll use `my_service`.
+1. Update your index mapping to map `my_service` to `service.name` by adding an alias:
 
         ```Console
-        PUT your_data_stream/_mapping
+        PUT your_index/_mapping
         {
         "properties": {
-            "service": {
-            "properties": {
-                "name": {
-                "type": "alias",
-                "path": "my_service"
-                }
-            }
+            "@timestamp": {
+              "type": "date"
+            },
+            "your_service_field": {
+              "type": "keyword"
+            },
+            "service.name": {
+              "type": "alias",
+              "path": "your_service_field"
             }
         }
         }
@@ -64,5 +63,7 @@ Follow these steps to update your mapping:
 1. Verify that the index mapping is showing the `service.name` field with the following command:
 
         ```console
-        GET /your_data_stream/_mapping
+        GET your_index/_search
         ```
+
+For more on using an alias, refer to [alias field type](((ref))/field-alias.html).
