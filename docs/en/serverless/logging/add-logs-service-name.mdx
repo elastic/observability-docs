@@ -9,7 +9,7 @@ Adding the `service.name` field to your logs associates them with the services t
 You can use this field to view and manage logs for distributed services located on multiple hosts.
 Adding a service name also associates your logs with a service in the <DocLink slug="/serverless/observability/apm-services">service inventory</DocLink>.
 
-To add a service name to your logs either:
+To add a service name to your logs, either:
 
 - Use the `add_fields` processor through an integration, ((agent)) configuration, or ((filebeat)) configuration.
 - Map an existing field from your data stream to the `service.name` field.
@@ -36,34 +36,22 @@ For more on defining processors, refer to [define processors](((fleet-guide))/el
 
 ## Map an existing field to the service name field
 
-For logs that already have the field to use as the service name, map that field to the `service.name` field using the alias field type.
+For logs that already have the field to use as the service name, map that field to the `service.name` field using the [alias field type](((ref))/field-alias.html).
 Follow these steps to update your mapping:
 
-1. Find the field you want to map to the `service.name` field. For this example, we'll use `my_service`.
-1. Update your index mapping to map `my_service` to `service.name` by adding an alias:
+1. Go to **Management** → **Index Management** → **Index Templates**.
+1. Search for the index template you want to update.
+1. From the **Actions** menu for that template, select **edit**.
+1. Got to **Mappings**, and select **Add field**.
+1. Under **Field type**, select **Alias** and add `service.name` to the **Field name**.
+1. Under **Field path**, select the existing field you want to map to the service name.
+1. Select **Add field**.
 
-        ```Console
-        PUT your_index/_mapping
-        {
-        "properties": {
-            "@timestamp": {
-              "type": "date"
-            },
-            "your_service_field": {
-              "type": "keyword"
-            },
-            "service.name": {
-              "type": "alias",
-              "path": "your_service_field"
-            }
-        }
-        }
-        ```
+For more ways to add a field to your mapping, refer to [add a field to an existing mapping](((ref))/explicit-mapping.html#add-field-mapping.html).
 
-1. Verify that the index mapping is showing the `service.name` field with the following command:
+## Additional ways to process data
 
-        ```console
-        GET your_index/_search
-        ```
+The ((stack)) provides additional ways to process your data:
 
-For more on using an alias, refer to [alias field type](((ref))/field-alias.html).
+- **[Ingest pipelines](((ref))/ingest.html):** convert data to ECS, normalize field data, or enrich incoming data.
+- **[Logstash](((logstash-ref))/introduction.html):** enrich your data using input, output, and filter plugins.
