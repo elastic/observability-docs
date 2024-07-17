@@ -4,5 +4,60 @@ title: Elastic Entity Model
 description: Learn about the model that empowers entity-centric Elastic solution features and workflows.
 tags: [ 'serverless', 'observability', 'overview' ]
 ---
+{/* TODO: Edit and apply Elastic style guidelines. */}
 
-{/* TODO: Add the description from the following document when it's available: https://docs.google.com/document/d/1biUzhVh1f4gu4yXIv7gLb0Y23UhjqY6TIGLMsMrErVc/edit */}
+<p><DocBadge template="technical preview" /></p>
+
+The Elastic Entity Model is a data model (and related entity indices),
+an Entity Discovery Framework ([transforms](((ref))/transforms.html) and [Ingest Pipelines](((ref))/ingest.html) that read from signal indices and write data to entity indices),
+and a set of management APIs that empower entity-centric Elastic solution features and workflows.
+
+In the context of Elastic Observability,
+an Entity can be defined as “an object of interest that can be associated with produced telemetry and can be identified as unique.”
+Note that this definition is intentionally closely aligned to the work of the [OpenTelemetry Entities SIG](https://github.com/open-telemetry/oteps/blob/main/text/entities/0256-entities-data-model.md#data-model).
+Examples of entities include (but are not limited to) services, hosts, and containers.
+
+The concept of an Entity is important as a means to unify observability signals based on the underlying entity that the signals describe.
+
+## Enabling Elastic Entity Model
+
+During Technical Preview,
+the Elastic Entity Model will be enabled when a user enables the entity-centric service inventory Technical Preview feature as described in <DocLink slug="/serverless/observability/new-experience-services" />.
+
+The user enabling the technical preview feature must have the following security privileges:
+
+{/* TODO: Reformat the following list to make it easier to scan. */}
+
+- One of the following [cluster privileges](((ref))/security-privileges.html#privileges-list-cluster) (for API key creation)
+    - `manage_security`, `manage_api_key`, `manage_own_api_key`
+- All of the following privileges (for managing elasticsearch resources)
+    - [Indices privileges](((ref))/security-privileges.html#privileges-list-indices)
+        - names: [`entities*`], privileges: [`create_index`, `index`, `create_doc`, `auto_configure`, `read`]
+        - names: [`logs-*`, `filebeat*`, `metrics-*`, `metricbeat*`, `traces-*`, `entities*`], privileges: [`read`, `view_index_metadata`],
+    - [Cluster privileges](((ref))/security-privileges.html#privileges-list-cluster)
+        - `manage_transform`, `monitor_transform`, `manage_ingest_pipelines`, `monitor`
+    - [Application privileges](((ref))/security-privileges.html#application-privileges)
+        - application: `kibana-.kibana`, privileges: [`saved_object:entity-definition/*`, `saved_object:entity-discovery-api-key/*`], resources: [*]
+
+## Disabling Elastic Entity Model
+
+The Elastic Entity Model will become disabled when a user* performs the following steps: perform the following steps:
+
+- Using the Dev Console, issue the command `DELETE kbn:/internal/entities/managed/enablement`
+
+The user disabling the Elastic Entity Model must have the following security privileges:
+
+{/* TODO: Reformat the following list to make it easier to scan. */}
+
+- One of the following cluster privileges (for invalidating the API key)
+    - `manage_security`, `manage_api_key`
+- All of the following privileges (for deleting elasticsearch resources)
+    - Cluster privileges
+        - `manage_transform`, `manage_ingest_pipelines`
+    - Application privileges
+        - application: `kibana-.kibana`, privileges: [`saved_object:entity-definition/delete`, `saved_object:entity-discovery-api-key/delete`], resources: [*]
+
+<DocCallOut title="Notes">
+    - The Elastic Entity Model currently supports the <DocLink slug="/serverless/observability/new-experience-services">new service inventory experience</DocLink> limited to service-based entities (as identified by `service.name`) located in data identified by `logs-*` and `trace-*` index patterns
+    - During Technical Preview, the Entity Definition Framework components are not enabled by default
+</DocCallOut>
