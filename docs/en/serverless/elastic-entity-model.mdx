@@ -4,60 +4,43 @@ title: Elastic Entity Model
 description: Learn about the model that empowers entity-centric Elastic solution features and workflows.
 tags: [ 'serverless', 'observability', 'overview' ]
 ---
-{/* TODO: Edit and apply Elastic style guidelines. */}
+
+import Roles from './partials/roles.mdx'
 
 <p><DocBadge template="technical preview" /></p>
 
-The Elastic Entity Model is a data model (and related entity indices),
-an Entity Discovery Framework ([transforms](((ref))/transforms.html) and [Ingest Pipelines](((ref))/ingest.html) that read from signal indices and write data to entity indices),
-and a set of management APIs that empower entity-centric Elastic solution features and workflows.
+The Elastic Entity Model consists of:
+
+- a data model and related entity indices
+- an Entity Discovery Framework, which consists of [transforms](((ref))/transforms.html) and [Ingest pipelines](((ref))/ingest.html) that read from signal indices and write data to entity indices
+- a set of management APIs that empower entity-centric Elastic solution features and workflows
 
 In the context of Elastic Observability,
-an Entity can be defined as “an object of interest that can be associated with produced telemetry and can be identified as unique.”
+an _entity_ is an object of interest that can be associated with produced telemetry and identified as unique.
 Note that this definition is intentionally closely aligned to the work of the [OpenTelemetry Entities SIG](https://github.com/open-telemetry/oteps/blob/main/text/entities/0256-entities-data-model.md#data-model).
 Examples of entities include (but are not limited to) services, hosts, and containers.
 
-The concept of an Entity is important as a means to unify observability signals based on the underlying entity that the signals describe.
+The concept of an entity is important as a means to unify observability signals based on the underlying entity that the signals describe.
 
-## Enabling Elastic Entity Model
+## Enable or disable the Elastic Entity Model
+
+<Roles role="Admin" goal="enable or disable the Elastic Entity Model" />
+
+{/* QUESTION: Is this correct? Is an Admin-level role required to do this? */}
 
 During Technical Preview,
-the Elastic Entity Model will be enabled when a user enables the entity-centric service inventory Technical Preview feature as described in <DocLink slug="/serverless/observability/new-experience-services" />.
+the Elastic Entity Model is enabled when a you opt into using the entity-centric service inventory described in <DocLink slug="/serverless/observability/new-experience-services" />.
 
-The user enabling the technical preview feature must have the following security privileges:
+{/* QUESTION: What if the user who opts in doesn't have sufficient privileges? Can they still opt in and ask someone else to enable EEM?
+If so, is there a command the admin can run, or do they also need to opt-in? */}
 
-{/* TODO: Reformat the following list to make it easier to scan. */}
+**To disable the Elastic Entity Model:**
 
-- One of the following [cluster privileges](((ref))/security-privileges.html#privileges-list-cluster) (for API key creation)
-    - `manage_security`, `manage_api_key`, `manage_own_api_key`
-- All of the following privileges (for managing elasticsearch resources)
-    - [Indices privileges](((ref))/security-privileges.html#privileges-list-indices)
-        - names: [`entities*`], privileges: [`create_index`, `index`, `create_doc`, `auto_configure`, `read`]
-        - names: [`logs-*`, `filebeat*`, `metrics-*`, `metricbeat*`, `traces-*`, `entities*`], privileges: [`read`, `view_index_metadata`],
-    - [Cluster privileges](((ref))/security-privileges.html#privileges-list-cluster)
-        - `manage_transform`, `monitor_transform`, `manage_ingest_pipelines`, `monitor`
-    - [Application privileges](((ref))/security-privileges.html#application-privileges)
-        - application: `kibana-.kibana`, privileges: [`saved_object:entity-definition/*`, `saved_object:entity-discovery-api-key/*`], resources: [*]
-
-## Disabling Elastic Entity Model
-
-The Elastic Entity Model will become disabled when a user* performs the following steps: perform the following steps:
-
-- Using the Dev Console, issue the command `DELETE kbn:/internal/entities/managed/enablement`
-
-The user disabling the Elastic Entity Model must have the following security privileges:
-
-{/* TODO: Reformat the following list to make it easier to scan. */}
-
-- One of the following cluster privileges (for invalidating the API key)
-    - `manage_security`, `manage_api_key`
-- All of the following privileges (for deleting elasticsearch resources)
-    - Cluster privileges
-        - `manage_transform`, `manage_ingest_pipelines`
-    - Application privileges
-        - application: `kibana-.kibana`, privileges: [`saved_object:entity-definition/delete`, `saved_object:entity-discovery-api-key/delete`], resources: [*]
+- From the Dev Console, run the command: `DELETE kbn:/internal/entities/managed/enablement`
 
 <DocCallOut title="Notes">
     - The Elastic Entity Model currently supports the <DocLink slug="/serverless/observability/new-experience-services">new service inventory experience</DocLink> limited to service-based entities (as identified by `service.name`) located in data identified by `logs-*` and `trace-*` index patterns
-    - During Technical Preview, the Entity Definition Framework components are not enabled by default
+    - During Technical Preview, Entity Definition Framework components are not enabled by default
 </DocCallOut>
+
+{/* QUESTION: Should this say "Entity Definition Framework" or "Entity Discovery Framework"? */}
