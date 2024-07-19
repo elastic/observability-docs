@@ -1,0 +1,46 @@
+name: Release notes drafter
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [ closed ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  update_release_draft:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Fetch PRs from another repository
+        id: fetch_prs
+        uses: ./.github/actions/fetch-prs
+        with:
+          target-repo: 'elastic/kibana'
+
+      - name: Run release notes drafter
+        id: drafter
+        uses: release-drafter/release-drafter@v5
+        with:
+          config-name: release-drafter.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update release notes
+        run: echo "${{ steps.fetch_prs.outputs.release-notes }}" >> release-notes.asciidoc
+
+      - name: Create release
+        uses: actions/create-release@v1
+        with:
+          tag_name: ${{ github.event.release.tag_name }}
+          release_name: ${{ github.event.release.tag_name }}
+          body_path: release-notes.asciidoc
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
