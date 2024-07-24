@@ -1,0 +1,95 @@
+---
+slug: /serverless/observability/quickstarts/otel-logs-metrics
+title: Use OpenTelemetry to collect logs and metrics
+description: Learn how to use the Elastic OpenTelemetry Collector to collect logs and metrics.
+tags: [ 'serverless', 'observability', 'how-to' ]
+---
+
+<p><DocBadge template="technical preview" /></p>
+
+<DocCallOut title="Before you begin">
+   This quickstart has the following requirements and limitations:
+
+   - The **Admin** role or higher is required to onboard system logs and metrics. To learn more, refer to <DocLink slug="/serverless/general/assign-user-roles" />.
+   - Root privileges on the host are required to run the OpenTelemetry collector used in this quickstart.
+   - The collectors only work on Kubernetes, Linux, and MacOS systems.
+   - See the <DocLink slug="/serverless/observability/quickstarts/otel-logs-metrics" section="limitations">Limitations section</DocLink> for known limitations when using Elastic distribution of the OpenTelemetry collector.
+</DocCallOut>
+
+In this quickstart guide, you'll learn how to collect logs and metrics using the Elastic OpenTelemetry Collector,
+then navigate to Logs Explorer and Discover to further analyze and explore your observability data.
+
+## Overview
+
+The Elastic OpenTelemetry Collector is made up of the following components:
+
+- Receivers collect telemetry from your host.
+- Processors take the data collected by receivers and modify or transform it before sending it to the exporters.
+- Exporters send data to the backends or destinations.
+
+The following sections explain the collector components for the different platforms.
+
+### MacOS and Linux
+{/* add diagrams and describe OTel components*/}
+
+### Kubernetes
+{/* add diagrams and describe components*/}
+
+
+## Collect logs and metrics using the quickstart
+
+1. <DocLink slug="/serverless/observability/create-an-observability-project">Create a new ((observability)) project</DocLink>, or open an existing one.
+1. In your ((observability)) project, go to **Add Data**.
+1. Select **Collect and analyze logs**, and then select **Elastic OpenTelemetry Collector**.
+1. Select the appropriate platform, and copy the command that's shown.
+1. Open a terminal on your host, and run the command to download and configure the OpenTelemetry collector (or download the manifest for Kubernetes).
+1. Copy the command under Step 2, and run it in your terminal to start the OpenTelemetry collector.
+
+Logs are collected from setup onward, so you won't see logs that occurred before starting the collector.
+The default log path is `/var/log/*`. To update the path, modify the `otel.yml`.
+
+Under **Visualize your data**, you'll see links to **Logs Explorer** to view your logs and **Hosts** to view your host metrics.
+
+## Manually configure the collector
+Collecting logs and host metrics with the Elastic OpenTelemetry Collector without using the quickstart requires some additional configuration.
+When you download the ((agent)) package, you'll find a sample OpenTelemetry configuration file, `otel.yml`, in the package base directory.
+Update the `otel.yml` file to include the necessary receivers, processors, and exporters.
+
+### Kubernetes
+{/* might need some input here, not sure how/if a user would need to create a whole manifest or if we would want to recommend that. */}
+
+### MacOS and Linux
+To manually collect logs and metrics on a MacOS or Linux system using OpenTelemetry:
+
+1. Download and install the standalone ((agent)) for your platform. {/* link to the download page */}
+1. From the ((agent)) base directory, go to the `otel_samples` directory. The `platformlogs_hostmetrics.yml` file contains the receivers, processors, and exporters needed to collect logs and host metrics.
+1. Copy the contents of the `platformlogs_hostmetrics.yml`.
+1. From the ((agent)) base directory, open the `otel.yml` file and replace its contents with the contents of `platformlogs_hostmetrics.yml`.
+1. Update the following in the OpenTelemetry configuration: {/* not sure if we want to actually set env vars for these or just replace them in the config */}
+    - `${env:STORAGE_DIR}`: Replace this value with the storage directory.{/* not sure what's being stored here. */}
+    - `${env:ELASTIC_ENDPOINT}`: From the Observability project help menu, select **Connection details** and copy the ((es)) endpoint. Set `elasticsearch.endpoint` to this value in the `otel.yml` file.
+    - ${env:ELASTIC_API_KEY}: From the Observability project help menu, select **Connection details** and select the **API key** tab. Give your API key a name, select **Create API key**, and copy the new API key. Set `elasticsearch.api_key` to this value in the `otel.yml` file.
+1. Run the OpenTelemetry collector with the following command:
+   ```console
+   ./elastic-agent otel --config otel.yml
+   ```
+
+Logs are collected from setup onward, so you won't see logs that occurred before starting the collector.
+The default log path is `/var/log/*`. To update the path, modify the `otel.yml`.
+
+<div id="limitations"></div>
+
+## Limitations
+
+The Elastic OpenTelemetry Collector currently has the following limitations:
+
+- `host.network.*` metrics are not present from OpenTelemetry side.
+- `process.state` is not present in the OpenTelemetry host metric. It's set to a dummy value of **Unknown** in the **State** comlumn of the host processes table.
+- The Elasticsearch exporter handles the metadata fields, but **Host OS version** and**Operating system** may show as "N/A" and **Host IP** may show different values.
+- The CPU scraper needs to be enabled to collect the `systm.load.cores` metric, which affects the **Normalized Load** column in the **Hosts** table and the **Normalized Load** visualization on the host detailed view.
+
+## Get value out of your data
+
+Use Elastic ((observability)) to gain deeper insight into your data through **Logs Explorer** and the **Hosts** page.
+
+{/* Probably want to add more here about what you can do with the data, similar to autodetect logs quickstart with next steps */}
