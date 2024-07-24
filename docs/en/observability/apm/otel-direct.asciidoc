@@ -115,6 +115,14 @@ For information on how to format an API key, see
 
 Please note the required space between `Bearer` and `an_apm_secret_token`, and `ApiKey` and `an_api_key`.
 
+Some language implementations of the OpenTelemetry agent, namely Python, requires the content of the header to be URL encoded. For the `Bearer` token that would mean just substituting the space between `Bearer` an the token with `%20`, e.g. ``"Authorization=Bearer%20an_apm_secret_token"`, for an API Key you can use the following snippet to handle that:
+
+[source,python]
+----
+from urllib.parse import quote
+quote("ApiKey an_api_key")
+----
+
 | `OTEL_METRICS_EXPORTER` | Metrics exporter to use. See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection[exporter selection] for more information.
 
 | `OTEL_LOGS_EXPORTER` | Logs exporter to use. See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection[exporter selection] for more information.
