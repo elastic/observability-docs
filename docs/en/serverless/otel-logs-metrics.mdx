@@ -19,22 +19,53 @@ tags: [ 'serverless', 'observability', 'how-to' ]
 In this quickstart guide, you'll learn how to collect logs and metrics using the Elastic Distribution of the OpenTelemetry Collector,
 then navigate to Logs Explorer and Discover to further analyze and explore your observability data.
 
-## Overview
+## Collector components
 
 The Elastic Distribution of the OpenTelemetry Collector is made up of the following components:
 
-- Receivers collect telemetry from your host.
-- Processors take the data collected by receivers and modify or transform it before sending it to the exporters.
-- Exporters send data to the backends or destinations.
+- - <DocLink slug="/serverless/observability/quickstarts/otel-logs-metrics" section="receivers">Receivers</DocLink>: collect telemetry from your host.
+- - <DocLink slug="/serverless/observability/quickstarts/otel-logs-metrics" section="processors">Processors</DocLink>: take the data collected by receivers and modify or transform it before sending it to the exporters.
+- - <DocLink slug="/serverless/observability/quickstarts/otel-logs-metrics" section="exporters">Exporters</DocLink>: send data to the backends or destinations.
 
-The following sections explain the collector components for the different platforms.
+The Elastic Distribution of the OpenTelemetry Collector supports the following components.
 
-### MacOS and Linux
-{/* add diagrams and describe OTel components*/}
+<div id="receivers"></div>
+### Receivers
 
-### Kubernetes
-{/* add diagrams and describe components*/}
+| Component  | Description |
+|---|---|
+| [filelogreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/receiver/filelogreceiver/v0.105.0/receiver/filelogreceiver/README.md) |  |
+| [hostmetricsreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/receiver/hostmetricsreceiver/v0.105.0/receiver/hostmetricsreceiver/README.md) |  |
+| [httpcheckreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/receiver/httpcheckreceiver/v0.105.0/receiver/httpcheckreceiver/README.md) |  |
+| [k8sclusterreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/receiver/k8sclusterreceiver/v0.105.0/receiver/k8sclusterreceiver/README.md) |  |
+| [k8sobjectsreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/receiver/k8sobjectsreceiver/v0.105.0/receiver/k8sobjectsreceiver/README.md) |  |
+| [kubeletstatsreceiver](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/receiver/kubeletstatsreceiver/v0.105.0/receiver/kubeletstatsreceiver/README.md) |  |
+| [otlpreceiver](https://github.com/open-telemetry/opentelemetry-collector/blob/receiver/otlpreceiver/v0.105.0/receiver/otlpreceiver/README.md) |  |
 
+<div id="processors"></div>
+### Processors
+
+| Component  | Description |
+|---|---|
+| [elasticinframetricsprocessor](https://github.com/elastic/opentelemetry-collector-components/blob/processor/elasticinframetricsprocessor/v0.7.1/processor/elasticinframetricsprocessor/README.md)  |  |
+| [attributesprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/processor/attributesprocessor/v0.105.0/processor/attributesprocessor/README.md) |  |
+| [filterprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/processor/filterprocessor/v0.105.0/processor/filterprocessor/README.md) |  |
+| [k8sattributesprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/processor/k8sattributesprocessor/v0.105.0/processor/k8sattributesprocessor/README.md) |  |
+| [resourcedetectionprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/processor/resourcedetectionprocessor/v0.105.0/processor/resourcedetectionprocessor/README.md) |  |
+| [resourceprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/processor/resourceprocessor/v0.105.0/processor/resourceprocessor/README.md) |  |
+| [transformprocessor](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/processor/transformprocessor/v0.105.0/processor/transformprocessor/README.md) |  |
+| [batchprocessor](https://github.com/open-telemetry/opentelemetry-collector/blob/processor/batchprocessor/v0.105.0/processor/batchprocessor/README.md) |  |
+
+<div id="exporters"></div>
+### Exporters
+
+| Component  | Description |
+|---|---|
+| [elasticsearchexporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/exporter/elasticsearchexporter/v0.105.0/exporter/elasticsearchexporter/README.md) |  |
+| [fileexporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/exporter/fileexporter/v0.105.0/exporter/fileexporter/README.md) |  |
+| [debugexporter](https://github.com/open-telemetry/opentelemetry-collector/blob/exporter/debugexporter/v0.105.0/exporter/debugexporter/README.md) |  |
+| `[otlpexporter](https://github.com/open-telemetry/opentelemetry-collector/blob/exporter/otlpexporter/v0.105.0/exporter/otlpexporter/README.md) |  |
+| [otlphttpexporter](https://github.com/open-telemetry/opentelemetry-collector/blob/exporter/otlphttpexporter/v0.105.0/exporter/otlphttpexporter/README.md) |  |
 
 ## Collect logs and metrics using the quickstart
 
@@ -52,12 +83,15 @@ Under **Visualize your data**, you'll see links to **Logs Explorer** to view you
 
 ## Manually configure the collector
 Collecting logs and host metrics with the Elastic Distribution of the OpenTelemetry Collector without using the quickstart requires some additional configuration.
-When you download the ((agent)) package, you'll find a sample OpenTelemetry configuration file, `otel.yml`, in the package base directory.
-Refer to the following sections for more on updating the `otel.yml` file to include the necessary receivers, processors, and exporters.
+Refer to:
+- <DocLink slug="/serverless/observability/quickstarts/otel-logs-metrics" section="manual-k8s">Manual Kubernetes OpenTelemetry configuration</DocLink>.
+- <DocLink slug="/serverless/observability/quickstarts/otel-logs-metrics" section="manual-mac-linux">Manual MacOS and Linux OpenTelemetry Configuration</DocLink>.
 
+<div id="manual-k8s"></div>
 ### Kubernetes
 {/* might need some input here, not sure how/if a user would need to create a whole manifest or if we would want to recommend that. */}
 
+<div id="manual-mac-linux"></div>
 ### MacOS and Linux
 
 <DocCallOut title="Before you begin">
@@ -66,7 +100,6 @@ Refer to the following sections for more on updating the `otel.yml` file to incl
    - **Your ((es)) endpoint**: From the Observability project help menu, select **Connection details** and copy the ((es)) endpoint.
    - **API key**: From the Observability project help menu, select **Connection details** and select the **API key** tab. Give your API key a name, select **Create API key**, and copy the new API key.
 </DocCallOut>
-
 
 To manually collect logs and metrics on a MacOS or Linux system using OpenTelemetry:
 
