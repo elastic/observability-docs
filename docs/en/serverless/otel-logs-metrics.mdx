@@ -1,7 +1,7 @@
 ---
 slug: /serverless/observability/quickstarts/otel-logs-metrics
 title: Use OpenTelemetry to collect logs and metrics
-description: Learn how to use the Elastic OpenTelemetry Collector to collect logs and metrics.
+description: Learn how to use the Elastic Distribution of the OpenTelemetry Collector to collect logs and metrics.
 tags: [ 'serverless', 'observability', 'how-to' ]
 ---
 
@@ -16,12 +16,12 @@ tags: [ 'serverless', 'observability', 'how-to' ]
    - See the <DocLink slug="/serverless/observability/quickstarts/otel-logs-metrics" section="limitations">Limitations section</DocLink> for known limitations when using Elastic distribution of the OpenTelemetry collector.
 </DocCallOut>
 
-In this quickstart guide, you'll learn how to collect logs and metrics using the Elastic OpenTelemetry Collector,
+In this quickstart guide, you'll learn how to collect logs and metrics using the Elastic Distribution of the OpenTelemetry Collector,
 then navigate to Logs Explorer and Discover to further analyze and explore your observability data.
 
 ## Overview
 
-The Elastic OpenTelemetry Collector is made up of the following components:
+The Elastic Distribution of the OpenTelemetry Collector is made up of the following components:
 
 - Receivers collect telemetry from your host.
 - Processors take the data collected by receivers and modify or transform it before sending it to the exporters.
@@ -51,14 +51,23 @@ The default log path is `/var/log/*`. To update the path, modify the `otel.yml`.
 Under **Visualize your data**, you'll see links to **Logs Explorer** to view your logs and **Hosts** to view your host metrics.
 
 ## Manually configure the collector
-Collecting logs and host metrics with the Elastic OpenTelemetry Collector without using the quickstart requires some additional configuration.
+Collecting logs and host metrics with the Elastic Distribution of the OpenTelemetry Collector without using the quickstart requires some additional configuration.
 When you download the ((agent)) package, you'll find a sample OpenTelemetry configuration file, `otel.yml`, in the package base directory.
-Update the `otel.yml` file to include the necessary receivers, processors, and exporters.
+Refer to the following sections for more on updating the `otel.yml` file to include the necessary receivers, processors, and exporters.
 
 ### Kubernetes
 {/* might need some input here, not sure how/if a user would need to create a whole manifest or if we would want to recommend that. */}
 
 ### MacOS and Linux
+
+<DocCallOut title="Before you begin">
+   To manually configure the Elastic Distribution of the OpenTelemetry Collector, you'll need the following information:
+
+   - **Your ((es)) endpoint**: From the Observability project help menu, select **Connection details** and copy the ((es)) endpoint.
+   - **API key**: From the Observability project help menu, select **Connection details** and select the **API key** tab. Give your API key a name, select **Create API key**, and copy the new API key.
+</DocCallOut>
+
+
 To manually collect logs and metrics on a MacOS or Linux system using OpenTelemetry:
 
 1. Download and extract the standalone ((agent)) for your platform. For more on downloading and extracting a standalone ((agent)), refer to the first step on [Install standalone Elastic Agents](((fleet-guide))/install-standalone-elastic-agent.html).
@@ -66,9 +75,9 @@ To manually collect logs and metrics on a MacOS or Linux system using OpenTeleme
 1. Copy the contents of the `platformlogs_hostmetrics.yml`.
 1. From the ((agent)) base directory, open the `otel.yml` file and replace its contents with the contents of `platformlogs_hostmetrics.yml`.
 1. Update the following in the OpenTelemetry configuration: {/* not sure if we want to actually set env vars for these or just replace them in the config */}
-    - `${env:STORAGE_DIR}`: Replace this value with the storage directory.{/* not sure what's being stored here. */}
-    - `${env:ELASTIC_ENDPOINT}`: From the Observability project help menu, select **Connection details** and copy the ((es)) endpoint. Set `elasticsearch.endpoint` to this value in the `otel.yml` file.
-    - ${env:ELASTIC_API_KEY}: From the Observability project help menu, select **Connection details** and select the **API key** tab. Give your API key a name, select **Create API key**, and copy the new API key. Set `elasticsearch.api_key` to this value in the `otel.yml` file.
+    - `file_storage.directory`: Set to the directory where you want to store you OpenTelemetry data.{/* not sure what's being stored here. */}
+    - `elasticsearch.endpoint`: Set to your ((es)) endpoint you copied in the **Before you begin** section.
+    - `elasticsearch.api_key`: Set to the API key you created previously in the **Before you begin** section.
 1. Run the OpenTelemetry collector with the following command:
    ```console
    ./elastic-agent otel --config otel.yml
@@ -81,7 +90,7 @@ The default log path is `/var/log/*`. To update the path, modify the `otel.yml`.
 
 ## Limitations
 
-The Elastic OpenTelemetry Collector currently has the following limitations:
+The Elastic Distribution of the OpenTelemetry Collector currently has the following limitations:
 
 - `host.network.*` metrics are not present from OpenTelemetry side.
 - `process.state` is not present in the OpenTelemetry host metric. It's set to a dummy value of **Unknown** in the **State** comlumn of the host processes table.
