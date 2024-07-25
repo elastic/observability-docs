@@ -15,7 +15,7 @@ See <<traces-get-started,getting started documentation>> to get started in minut
 IMPORTANT: Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
 {ilm-init} policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
 
-The APM Server receives performance data from your APM agents,
+The APM Server receives performance data from your _{generic_term_for_agent_distro}_,
 validates and processes it, and then transforms the data into {es} documents.
 If you're on this page, then you've chosen to self-manage the Elastic Stack,
 and you now must decide how to run and configure the APM Server.
@@ -51,7 +51,7 @@ image::./images/bin-ov.png[APM Server binary overview]
 
 **Required components**:
 
-- APM agents
+- APM agents or Elastic Distributions for OpenTelemetry
 - APM Server
 - {stack}
 
@@ -82,7 +82,7 @@ image::./images/fm-ov.png[APM Server fleet overview]
 
 **Required components**:
 
-- APM agents
+- APM agents or Elastic Distributions for OpenTelemetry
 - APM Server
 - {agent}
 - Fleet Server
@@ -451,20 +451,10 @@ See the <<apm-directory-layout,deb & rpm default paths>> for a full directory la
 ==== Step 4: Next steps
 
 // Use a tagged region to pull APM Agent information from the APM Overview
-If you haven't already, you can now install APM Agents in your services!
+If you haven't already, you can now install _{generic_term_for_agent_distro}_ in your services!
+To choose the right option for your use case, refer to <<apm-collect-application-data>>.
 
-* {apm-android-ref}/intro.html[Android agent]
-* {apm-go-ref-v}/introduction.html[Go agent]
-* {apm-ios-ref-v}/intro.html[iOS agent]
-* {apm-java-ref-v}/intro.html[Java agent]
-* {apm-dotnet-ref-v}/intro.html[.NET agent]
-* {apm-node-ref-v}/intro.html[Node.js agent]
-* {apm-php-ref-v}/intro.html[PHP agent]
-* {apm-py-ref-v}/getting-started.html[Python agent]
-* {apm-ruby-ref-v}/introduction.html[Ruby agent]
-* {apm-rum-ref-v}/intro.html[JavaScript Real User Monitoring (RUM) agent]
-
-Once you have at least one {apm-agent} sending data to APM Server,
+Once you have at least one _{generic_term_for_agent_distro}_ sending data to APM Server,
 you can start visualizing your data in the {kibana-ref}/xpack-apm.html[{apm-app}].
 
 If you're migrating from Jaeger, see <<apm-jaeger-integration>>.
@@ -510,13 +500,15 @@ include::{observability-docs-root}/docs/en/observability/apm/getting-started-apm
 --
 ****
 
-==== Step 3: Install APM agents
+==== Step 3: Install _{generic_term_for_agent_distro}_
 
-APM agents are written in the same language as your service.
-To monitor a new service, you must install the agent and configure it with a service name,
+_{generic_term_for_agent_distro}_ are written in the same language as your service.
+To choose the right option for your use case, refer to <<apm-collect-application-data>>.
+
+To monitor a new service, you must install the _{generic_term_for_agent_distro}_ and configure it with a service name,
 APM Server host, and Secret token.
 
-* **Service name**: The APM integration maps an instrumented service's name–defined in each {apm-agent}'s configuration–
+* **Service name**: The APM integration maps an instrumented service's name–defined in each _{generic_term_for_agent_distro}_ 's configuration–
 to the index that its data is stored in {es}.
 Service names are case-insensitive and must be unique.
 For example, you cannot have a service named `Foo` and another named `foo`.
@@ -525,11 +517,13 @@ Special characters will be removed from service names and replaced with undersco
 * **APM Server URL**: The host and port that APM Server listens for events on.
 This should match the host and port defined when setting up the APM integration.
 
-* **Secret token**: Authentication method for {apm-agent} and APM Server communication.
+* **Secret token**: Authentication method for _{generic_term_for_agent_distro}_ and APM Server communication.
 This should match the secret token defined when setting up the APM integration.
 
 TIP: You can edit your APM integration settings if you need to change the APM Server URL
-or secret token to match your APM agents.
+or secret token to match your _{generic_term_for_agent_distro}_.
+
+<Add instructions for using Otel distros, too?>
 
 include::{observability-docs-root}/docs/en/observability/apm/tab-widgets/install-agents-widget.asciidoc[]
 
