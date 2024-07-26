@@ -1,6 +1,6 @@
 ---
-slug: /serverless/observability/quickstarts/auto-detect-logs-metrics
-title: Auto-detect logs and metrics
+slug: /serverless/observability/quickstarts/monitor-hosts-with-elastic-agent
+title: Monitor hosts with ((agent))
 description: Learn how to scan your hosts to detect and collect logs and metrics.
 tags: [ 'serverless', 'observability', 'how-to' ]
 ---
@@ -11,6 +11,11 @@ In this quickstart guide, you'll learn how to scan your host to detect and colle
 then navigate to dashboards to further analyze and explore your observability data.
 You'll also learn how to get value out of your observability data.
 
+To scan your host, you'll run an auto-detection script that downloads and installs ((agent)),
+which is used to collect observability data from the host and send it to Elastic.
+
+The script also generate an ((agent)) configuration file that you can use with your existing Infrastructure-as-Code tooling.
+
 ## Prerequisites and limitations
 
 This quickstart has the following requirements and limitations:
@@ -20,6 +25,8 @@ This quickstart has the following requirements and limitations:
 - The auto-detection script currently scans for metrics and logs from Apache, Docker, Nginx, and the host system.
    It also scans for custom log files.
 - The auto-detection script works on Linux and MacOS only. Support for the `lsof` command is also required if you want to detect custom log files.
+- If you've installed Apache or Nginx in a non-standard location, you'll need to specify log file paths manually when you run the scan.
+- Because Docker Desktop runs in a VM, its logs are not auto-detected.
 
 ## Detect and collect observability data
 
@@ -34,7 +41,6 @@ This quickstart has the following requirements and limitations:
     - Enter `Y` to ingest all the log files listed
     - Enter `n` to either exclude log files or specify additional log paths. Enter `Y` to confirm your selections.
 
-  The script downloads and installs ((agent)), which is used to collect observability data from the host and send it to Elastic.
   When the script is done, you'll see a message like "((agent)) is configured and running."
 
 There might be a slight delay before logs and other data are ingested.
@@ -50,14 +56,18 @@ There might be a slight delay before logs and other data are ingested.
 After installation is complete and all relevant data is flowing into Elastic,
 the **Visualize your data** section will show links to assets you can use to analyze your data.
 Depending on what type of observability data was collected,
-the page may show assets for the following integrations:
+the page may link to assets for the following integrations:
 
-{/* TODO: Add more detail to this section to highlight " the salient points of the specific dashboards or pages." Waiting for info from SMEs. */}
+{/* TODO: Add more detail to this section to highlight "the salient points of the specific dashboards or pages." Waiting for info from SMEs. */}
 
-<DocTable columns={[{ title: "Integration" }, { title: "What assets are available?" }]}>
+<DocTable columns={[{ title: "Integration assets" }, { title: "What insights can you get?" }]}>
   <DocRow>
     <DocCell>**System**</DocCell>
-    <DocCell>ADD DESCRIPTION HERE</DocCell>
+    <DocCell>
+      - Identify high disk, memory, or CPU usage
+      - Monitor throughput
+      - Detect log spikes and drops
+    </DocCell>
   </DocRow>
   <DocRow>
     <DocCell>**Apache**</DocCell>
@@ -76,6 +86,13 @@ the page may show assets for the following integrations:
     <DocCell>ADD DESCRIPTION HERE</DocCell>
   </DocRow>
 </DocTable>
+
+For example, you can navigate the **Host overview** dashboard to explore detailed metrics about system usage and throughput.
+Metrics that indicate a possible problem are highlighted in red.
+
+{/* TODO: Decide where to crop this dashboard...it's kind of big to include it its entirety. */}
+
+![Host overview dashboard](../images/quickstart-host-overview.png)
 
 ## Get value out of your data
 
