@@ -1,0 +1,27 @@
+[[apm-performance-diagnostic]]
+=== APM Server performance diagnostic
+
+[[apm-es-backpressure]]
+[float]
+==== Diagnosing backpressure from {es}
+
+When {es} is under excessive load or indexing pressure, APM Server could experience the downstream backpressure when indexing new documents into {es}.
+Most commonly backpressure from {es} will manifest itself in a form of higher indexing latency and/or rejected requests, which in return could lead to denied incoming requests by APM Server.
+
+To quickly identify possible issues try looking for similar error logs lines in APM Server logs:
+
+[source,json]
+----
+...
+{"log.level":"error","@timestamp":"2024-07-27T23:46:28.529Z","log.origin":{"function":"github.com/elastic/go-docappender/v2.(*Appender).flush","file.name":"v2@v2.2.0/appender.go","file.line":370},"message":"bulk indexing request failed","service.name":"apm-server","error":{"message":"flush failed (429): [429 Too Many Requests]"},"ecs.version":"1.6.0"}
+{"log.level":"error","@timestamp":"2024-07-27T23:55:38.612Z","log.origin":{"function":"github.com/elastic/go-docappender/v2.(*Appender).flush","file.name":"v2@v2.2.0/appender.go","file.line":370},"message":"bulk indexing request failed","service.name":"apm-server","error":{"message":"flush failed (503): [503 Service Unavailable] "},"ecs.version":"1.6.0"}
+...
+----
+
+To gain better insight into APM Server health and performance please consider enabling Elastic Stack monitoring by following the guide <<monitor>>.
+When enabled APM Server will additionally report a set of vital metrics to help you identify any performance degradation.
+Most notably metric fields `beats_stats.metrics.libbeat.output.events.*` will depict the number of documents that are pending in the buffer for indexing, already indexed successfully or failed during the indexing.
+See https://www.elastic.co/guide/en/beats/metricbeat/current/exported-fields-beat.html[{metricbeat} documentation] for the full list of exported metric fields.
+
+If rejected requests are identified try to follow the guide from https://www.elastic.co/guide/en/elasticsearch/reference/current/rejected-requests.html.
+Alternatively try adjusting `max_retries` and `timeout` setting from <<elasticsearch>> to reduce APM Server indexing pressure.
