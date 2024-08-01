@@ -5,20 +5,16 @@
 <titleabbrev>Use OpenTelemetry</titleabbrev>
 ++++
 
-https://opentelemetry.io/docs/concepts/what-is-opentelemetry/[OpenTelemetry] is a set of APIs, SDKs, tooling, and integrations that enable the capture and management of
-telemetry data from your services and applications. For more information about the
-OpenTelemetry project, see the https://github.com/open-telemetry/opentelemetry-specification/blob/master/README.md[spec].
+https://opentelemetry.io/docs/concepts/what-is-opentelemetry/[OpenTelemetry] is a set of APIs, SDKs, tooling,
+and integrations that enable the capture and management of telemetry data from your services and applications.
 
 // Improve wording?
 // TODO: Update link when landing page is ready
 [NOTE]
 ====
 To learn more about using OpenTelemetry with Elastic _outside_ the context of APM,
-refer to https://github.com/elastic/opentelemetry[Elastic + OpenTelemetry].
+refer to https://github.com/elastic/opentelemetry[Use OpenTelemetry with Elastic].
 ====
-
-[float]
-== OpenTelemetry and the {stack}
 
 Elastic integrates with OpenTelemetry, allowing you to reuse your existing instrumentation
 to easily send observability data to the {stack}.
@@ -28,20 +24,17 @@ There are several ways to integrate OpenTelemetry with the {stack}:
 * <<apm-otel-api-sdk,OpenTelemetry API/SDK>>
 * <<apm-otel-api-sdk-elastic-agent,OpenTelemetry API/SDK + Elastic APM agent>>
 * <<apm-otel-collector,OpenTelemetry Collector>>
-// TODO: Should this be reflected in the diagram, too?
 * <<apm-otel-lambda,Lambda collector exporter>>
-
-// TODO: Add links to Otel docs?
-// [subs=attributes+]
-// include::./diagrams/apm-otel-architecture.asciidoc[Architecture of Elastic APM with OpenTelemetry]
 
 [float]
 [[apm-otel-elastic-distros]]
-=== Elastic Distributions for OpenTelemetry
+== Elastic Distributions for OpenTelemetry
 
 Elastic offers several distributions for OpenTelemetry.
-A _distribution_ is a customized version of an upstream OpenTelemetry repository with some customizations.
-Each Elastic Distribution for OpenTelemetry is an extension around an https://opentelemetry.io/docs/languages/[OpenTelemetry Language API or SDK].
+A _distribution_ is a customized version of an upstream OpenTelemetry repository.
+Each Elastic Distribution for OpenTelemetry is an extension of an https://opentelemetry.io/docs/languages/[OpenTelemetry Language API or SDK].
+
+image::images/apm-otel-distro.png[]
 
 With an Elastic distro you have access to all the features of the OpenTelemetry API or SDK that it extends, plus:
 
@@ -50,14 +43,13 @@ the changes are available upstream in the OpenTelemetry repositories.
 * The distro preconfigures the collection of tracing and metrics signals, applying some opinionated defaults,
 such as which sources are collected by default.
 
-image::images/apm-otel-distro.png[]
-
 // TODO: Update links when distro docs are markdown-ified
 Get started with an Elastic Distribution for OpenTelemetry:
 
 * https://github.com/elastic/elastic-otel-java[Java]
 * https://github.com/elastic/elastic-otel-dotnet[.NET]
 * https://github.com/elastic/elastic-otel-node[Node.js]
+* https://github.com/elastic/elastic-otel-python[Python]
 
 [NOTE]
 ====
@@ -67,50 +59,71 @@ visit the https://opentelemetry.io/docs/concepts/distributions[OpenTelemetry doc
 
 [float]
 [[apm-otel-api-sdk]]
-=== OpenTelemetry API/SDK
+== OpenTelemetry API/SDK
 
 The {stack} natively supports the OpenTelemetry protocol (OTLP).
 This means trace data and metrics collected from your applications and infrastructure by an
 OpenTelemetry agent can be sent directly to the {stack}.
 
-<<apm-instrument-apps-otel,Get started with an OpenTelemetry API/SDK →>>
+// Do we want to say anything about why you would/wouldn't choose this
+// method to send data to Elastic?
+
+<<apm-instrument-apps-otel,*Get started with an OpenTelemetry API/SDK →*>>
 
 image::images/apm-otel-api-sdk.png[]
 
-[float]
-[[apm-otel-api-sdk-elastic-agent]]
-=== OpenTelemetry API/SDK + Elastic APM agent
-
-Use the OpenTelemetry API/SDKs with Elastic APM agents to translate OpenTelemetry API calls to Elastic APM API calls.
-This allows you to reuse your existing instrumentation to create Elastic APM transactions and spans--
-avoiding vendor lock-in and having to redo manual instrumentation.
-
-This is currently supported by the Java, Python, .NET, and Node.js agents.
-
-<<apm-open-telemetry-with-elastic,Get started with an OpenTelemetry API/SDK + an Elastic APM agent →>>
-
-image::images/apm-otel-api-sdk-elastic-agent.png[]
+{nbsp} +
 
 [float]
 [[apm-otel-collector]]
-=== OpenTelemetry collector
+== OpenTelemetry Collector
 
+// Should we also mention the Elastic Distribution for OpenTelemetry Collector?
 The {stack} natively supports the OpenTelemetry protocol (OTLP).
 This means trace data and metrics collected from your applications and infrastructure by an
-OpenTelemetry collector can be sent directly to the {stack}.
+OpenTelemetry Collector can be sent directly to the {stack}.
 
-<<apm-connect-open-telemetry-collector,Get started with an OpenTelemetry collector →>>
+// Do we want to say anything about why you would/wouldn't choose this
+// method to send data to Elastic?
+
+<<apm-connect-open-telemetry-collector,*Get started with an OpenTelemetry Collector →*>>
 
 image::images/apm-otel-collector.png[]
 
-// TODO: Should this be reflected in the diagram, too?
+{nbsp} +
+
+[float]
+[[apm-otel-api-sdk-elastic-agent]]
+== OpenTelemetry API/SDK + Elastic APM agent
+
+Use the OpenTelemetry API/SDKs with Elastic APM agents to translate OpenTelemetry API calls to Elastic APM API calls.
+This allows you to reuse your existing instrumentation to create Elastic APM transactions and spans--avoiding
+vendor lock-in and having to redo manual instrumentation.
+
+// Do we want to say anything about why you wouldn't choose this
+// method to send data to Elastic?
+
+This is currently supported by the Java, Python, .NET, and Node.js agents.
+
+<<apm-open-telemetry-with-elastic,*Get started with an OpenTelemetry API/SDK + an Elastic APM agent →*>>
+
+image::images/apm-otel-api-sdk-elastic-agent.png[]
+
+{nbsp} +
+
 [float]
 [[apm-otel-lambda]]
-=== Lambda collector exporter
+== AWS Lambda Collector exporter
 
 AWS Lambda functions can be instrumented with OpenTelemetry and monitored with Elastic {observability}.
 
-<<apm-open-telemetry-aws-lambda,Get started with a Lambda collector exporter →>>
+// Do we want to say anything about why you would/wouldn't choose this
+// method to send data to Elastic?
+
+<<apm-open-telemetry-aws-lambda,*Get started with a Lambda collector exporter →*>>
+
+// TODO: I'm not sure what this diagram should look like...
+image::images/apm-otel-lambda.png[]
 
 include::./otel-with-elastic.asciidoc[]
 
