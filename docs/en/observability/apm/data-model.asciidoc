@@ -46,7 +46,7 @@ and non-keyword fields, like `span.start.us`, to 10,000 characters.
 For performance reasons, APM agents can choose to sample or omit spans purposefully.
 This can be useful in preventing edge cases, like long-running transactions with over 100 spans,
 that would otherwise overload both the Agent and the APM Server.
-When this occurs, the {apm-app} will display the number of spans dropped.
+When this occurs, the APM UI will display the number of spans dropped.
 
 To configure the number of spans recorded per transaction, see the relevant Agent documentation:
 
@@ -68,7 +68,7 @@ Agents stream spans to the APM Server separately from their transactions.
 Because of this, unforeseen errors may cause spans to go missing.
 Agents know how many spans a transaction should have;
 if the number of expected spans does not equal the number of spans received by the APM Server,
-the {apm-app} will calculate the difference and display a message.
+the APM UI will calculate the difference and display a message.
 
 [float]
 ==== Data streams
@@ -128,7 +128,7 @@ In addition, agents provide options for users to capture custom <<apm-data-model
 Metadata can be indexed - <<apm-data-model-labels,`labels`>>, or not-indexed - <<apm-data-model-custom,`custom`>>.
 
 Transactions are grouped by their `type` and `name` in the APM UI's
-{kibana-ref}/transactions.html[Transaction overview].
+<<apm-transactions,Transaction overview>>.
 If you're using a supported framework, APM agents will automatically handle the naming for you.
 If you're not, or if you wish to override the default,
 all agents have API methods to manually set the `type` and `name`.
@@ -223,7 +223,7 @@ include::{apm-server-root}/docs/data/elasticsearch/generated/errors.json[]
 **Metrics** measure the state of a system by gathering information on a regular interval. There are two types of APM metrics:
 
 * **System metrics**: Basic infrastructure and application metrics.
-* **Calculated metrics**: Aggregated trace event metrics used to power visualizations in the {apm-app}.
+* **Calculated metrics**: Aggregated trace event metrics used to power visualizations in the APM UI.
 
 [float]
 ==== System metrics
@@ -235,7 +235,7 @@ like {apm-java-ref-v}/metrics.html[JVM metrics] in the Java Agent,
 and {apm-go-ref-v}/metrics.html[Go runtime] metrics in the Go Agent.
 
 Infrastructure and application metrics are important sources of information when debugging production systems,
-which is why we've made it easy to filter metrics for specific hosts or containers in the {kib} {kibana-ref}/metrics.html[metrics overview].
+which is why we've made it easy to filter metrics for specific hosts or containers in the {kib} <<apm-metrics,metrics overview>>.
 
 TIP: Most agents limit keyword fields to 1024 characters,
 non-keyword fields (e.g. `system.memory.total`) to 10,000 characters.
@@ -273,7 +273,7 @@ include::{apm-server-root}/docs/data/elasticsearch/metricset.json[]
 [float]
 ==== Calculated metrics
 
-APM agents and APM Server calculate metrics from trace events to power visualizations in the {apm-app}.
+APM agents and APM Server calculate metrics from trace events to power visualizations in the APM UI.
 
 Calculated metrics are an implementation detail and while we aim for stability for these data models,
 the dimensions and concrete limits for aggregations are subject to change within minor version updates.
@@ -283,7 +283,7 @@ These metrics are described below.
 [float]
 ===== Breakdown metrics
 
-To power the {apm-app-ref}/transactions.html[Time spent by span type] graph,
+To power the <<apm-transactions,Time spent by span type>> graph,
 agents collect summarized metrics about the timings of spans and transactions,
 broken down by span type.
 
@@ -323,7 +323,7 @@ include::{apm-server-root}/docs/data/elasticsearch/span_breakdown.json[]
 [float]
 ===== Transaction metrics
 
-To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
+To power <<apm-ui,{kib} APM UI>> visualizations,
 APM Server aggregates transaction events into latency distribution metrics.
 
 *`transaction.duration.summary`* and *`transaction.duration.histogram`*::
@@ -394,7 +394,7 @@ include::{apm-server-root}/docs/data/elasticsearch/transaction_metric.json[]
 [float]
 ===== Service-transaction metrics
 
-To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
+To power <<apm-ui,{kib} APM UI>> visualizations,
 APM Server aggregates transaction events into service-transaction metrics.
 Service-transaction metrics are similar to transaction metrics, but they usually
 have a much lower cardinality as they have significantly fewer dimensions.
@@ -440,7 +440,7 @@ include::{apm-server-root}/docs/data/elasticsearch/service_transaction_metric.js
 [float]
 ===== Service-destination metrics
 
-To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
+To power <<apm-ui,{kib} APM UI>> visualizations,
 APM Server aggregates span events into service-destination metrics.
 
 *`span.destination.service.response_time.count`* and *`span.destination.service.response_time.sum.us`*::
@@ -448,7 +448,7 @@ APM Server aggregates span events into service-destination metrics.
 --
 These metrics measure the count and total duration of requests from one service to another service.
 These are used to calculate the throughput and latency of requests to backend services such as databases in
-{kibana-ref}/service-maps.html[Service maps].
+<<apm-service-maps,Service maps>>.
 
 These metric documents can be identified by searching for `metricset.name: service_destination`.
 
@@ -488,7 +488,7 @@ include::{apm-server-root}/docs/data/elasticsearch/service_destination_metric.js
 [float]
 ===== Service-summary metrics
 
-To power {kibana-ref}/xpack-apm.html[{apm-app}] visualizations,
+To power <<apm-ui,{kib} APM UI>> visualizations,
 APM Server aggregates transaction, error, log, and metric events into service-summary metrics.
 
 These metric documents can be identified by searching for `metricset.name: service_summary`.
