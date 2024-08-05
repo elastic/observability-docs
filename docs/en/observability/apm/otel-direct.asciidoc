@@ -108,12 +108,20 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
 
-| `OTEL_EXPORTER_OTLP_HEADERS` | Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=Bearer an_apm_secret_token"` or `"Authorization=ApiKey an_api_key"`.
+| `OTEL_EXPORTER_OTLP_HEADERS` a| Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=Bearer an_apm_secret_token"` or `"Authorization=ApiKey an_api_key"`.
 
 For information on how to format an API key, see
 {observability-guide}/apm-api-key.html[API keys].
 
 Please note the required space between `Bearer` and `an_apm_secret_token`, and `ApiKey` and `an_api_key`.
+
+The Python OpenTelemetry agent requires the content of the header to be URL-encoded. For the `Bearer` token that would mean substituting the space between `Bearer` and the token with `%20`, e.g. `"Authorization=Bearer%20an_apm_secret_token"`, for encoding an API key you can use the following snippet:
+
+[source,python]
+----
+from urllib.parse import quote
+quote("ApiKey an_api_key")
+----
 
 | `OTEL_METRICS_EXPORTER` | Metrics exporter to use. See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection[exporter selection] for more information.
 

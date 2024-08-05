@@ -11,7 +11,8 @@ This page outlines operating the backend when running Universal Profiling on a s
 * <<profiling-self-managed-ops-configuration, Configuring your collector and symbolizer>>
 * <<profiling-self-managed-ops-monitoring, Monitoring your collector and symbolizer>>
 * <<profiling-scaling-backend-resources, Scaling your resources>>
-* <<profiling-upgrade-backend-bin, Upgrading backend binaries>>
+* <<profiling-self-managed-upgrade, Upgrading backend binaries>>
+* <<profiling-self-managed-kubernetes-tips, Kubernetes tips>>
 
 [discrete]
 [[profiling-self-managed-ops-sizing-guidance]]
@@ -38,8 +39,9 @@ NOTE: This table is derived from benchmarks performed on Universal Profiling wit
 The profiled machines had a near-constant load of 75% CPU utilization.
 The deployment used 3 Elasticsearch nodes with 64 GB memory each, 8 vCPU, and 1.5 TB NVMe disk drives.
 
-Because resource demand is nearly proportional to the amount of data the Universal Profiling Agents generate, you can calculate the necessary resources for use cases beyond those in the table by comparing your actual number of cores profiled with the number of cores in the table.
-When calculating, factor in the following:
+Resource demand is nearly proportional to the amount of data the Universal Profiling Agents generate.
+Therefore, you can calculate the necessary resources for use cases beyond those in the table by comparing your actual number of cores profiled with the number of cores in the table.
+When calculating, consider the following:
 
 * The average load of the machines being profiled: The average load directly impacts the amount of CPU samples collected. For example, on a system that is mostly idle, not all CPUs will be scheduling tasks during the sampling intervals.
 * The rate of change of the executables being profiled—for example, how often you deploy new versions of your software: The rate of change impacts the amount of debug metadata stored in Elasticsearch as a result of symbolization; the more different executables the Universal Profiling Agent collects, the more debug data will be stored in Elasticsearch. Note that two different builds of the same application still result in two different executables, as the Universal Profiling Agent will treat each ELF file independently.
@@ -185,44 +187,167 @@ When scaling out the number of replicas, depending on the load balancer that you
 This ensures that the load is evenly distributed across all replicas.
 
 [discrete]
-[[profiling-upgrade-backend-bin]]
-== Upgrade the backend binaries
+[[profiling-self-managed-upgrade]]
+== Upgrade a self-hosted stack
 
-Upgrade the backend binaries whenever you upgrade the rest of the Elastic stack.
-While we try to keep backward compatibility between two consecutive minor version, we may introduce changes to the data format that require the applications to be at the same version of Elasticsearch and Kibana.
+Upgrading a self-hosted stack involves upgrading the backend applications and the agent.
+We recommend upgrading the backend first, followed by the agent. This way, if you encounter problems with the backend, you can roll back to the previous version without needing to downgrade the agent.
+
+NOTE: We recommend having the same version of the agent and the backend deployed.
+
+We strive to maintain backward compatibility between minor versions.
+Occasionally, changes to the data format may require having the same version of the agent and backend deployed.
+When a breaking change in the protocol is introduced, the profiling agents that are not up to date will stop sending data.
+The agent logs will report an error message indicating that the backend is not compatible with the agent (or vice versa).
 
 The upgrade process steps vary depending on the installation method used.
+You may have a combination of installation methods. For example, you might deploy the backend on ECE and the agents on Kubernetes.
+In that case, refer to the specific sections (backend/agent) in each method.
+
+IMPORTANT: Depending on your infrastructure setup, upgrading the backend may also update the endpoint exposed by the collector.
+In this case, amend the agent configuration to connect to the new endpoint upon upgrade.
 
 [discrete]
-[[profiling-backend-upgrade-ece]]
+[[profiling-self-managed-upgrade-ece]]
 === ECE
 
-When using ECE, the upgrade process is managed by the platform itself.
-You don't need to perform any action to upgrade the backend binaries.
+When using ECE, the upgrade process of the backend is part of the installation of a new ECE release.
+You don't need to perform any action to upgrade the backend applications, as they will be upgraded automatically.
+
+For the agent deployment, you can upgrade the Fleet integration installed on the Elastic Agent if that's how you're deploying the agent.
 
 [discrete]
-[[profiling-backend-upgrade-k8s]]
-=== Kubernetes
+[[profiling-self-managed-upgrade-k8s]]
+=== ECK or generic Kubernetes
 
-Perform a helm upgrade using the `helm upgrade` command.
+Perform a helm upgrade of the backend charts using the `helm upgrade` command.
 You may reuse existing values or provide the full values YAML file on each upgrade.
 
+For the agent deployment, upgrading through the Helm chart is also the simplest option.
+
+IMPORTANT: starting with version 8.15 the agent Helm chart has been renamed from `pf-host-agent` to `profiling-agent`.
+
+When **upgrading to 8.15 from 8.14 or lower**, follow these additional instructions:
+
+. Fetch the currently applied Helm values:
+
+        helm -n universal-profiling get values pf-host-agent -oyaml > profiling-agent-values.yaml
+
+. Update the repo to find the new chart:
+
+        helm repo update
+
+. Uninstall the old chart:
+
+        helm -n uninstall pf-host-agent
+
+. Install the new chart by following the instructions displayed in the Universal Profiling "Add Data" page or with the following command:
+
+        helm install -n universal-profiling universal-profiling-agent elastic/profiling-agent -f profiling-agent-values.yaml
+
 [discrete]
-[[profiling-backend-upgrade-os]]
+[[profiling-self-managed-upgrade-os]]
 === OS packages
 
 Upgrade the package version using the OS package manager.
-Not all package managers will call into `systemd` to restart the service, so you may need to restart the service manually or through any other automation in place.
+You will find the name and links to the new packages in the "Add Data" page.
+
+Not all package managers will call into `systemd` to restart the service,
+so you may need to restart the service manually or through any other automation in place.
 
 [discrete]
-[[profiling-backend-upgrade-binaries]]
+[[profiling-self-managed-upgrade-binaries]]
 === Binaries
 
 Download the corresponding binary version and replace the existing one, using the command seen in the <<profiling-self-managed-running-linux-binary, Binary>> section of the setup guide.
 Replace the old binary and restart the services.
 
-[discrete]
-[[profiling-backend-upgrade-containers]]
-=== Containers
+You will find the links to the new binaries in the "Add Data" page, under the "Binary" tab.
 
-Pull the new container image, and replace the existing image with the new image.
+[discrete]
+[[profiling-self-managed-kubernetes-tips]]
+== Kubernetes tips
+
+When deploying the Universal Profiling backend on Kubernetes, there are some best practices to follow.
+
+[discrete]
+=== Ingress configuration
+
+If you are using an ingress controller, the connection routing to the collector Service should be configured to use the gRPC protocol.
+
+We provide an `Ingress` resource as part of the Helm chart. Because the ingress can be any implementation,
+you must configure the controller with a class name and
+any necessary annotations using the `ingress.annotations` field.
+
+For example, when using an NGINX ingress controller,
+set the annotation `nginx.ingress.kubernetes.io/backend-protocol: "GRPC"`, as shown in the following example:
+
+[source,yaml]
+----
+ingress:
+  create: true
+  ingressClassName: "nginx"
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+----
+
+For symbolizer, the connection routing should be configured to use the HTTP protocol.
+There is usually no need to customize annotations for this type of service, but the chart provides similar configuration options.
+
+[discrete]
+=== Output TLS configuration
+
+You can secure the communication between the Universal Profiling backend and the Elasticsearch cluster by enabling TLS
+in the `output.elasticsearch` section of the collector and symbolizer configuration files.
+
+To do so, Kubernetes secrets containing the TLS key pairs should be provisioned in the namespace where the backend is installed.
+In case of self-signed certificates, the CA bundle used to validate Elasticsearch's certificates should also be part of the secret.
+
+Create two secrets, one for the collector and one for the symbolizer, with the names `pf-symbolizer-tls-certificate` and `pf-collector-tls-certificate`.
+The secrets should contain the following keys:
+
+- `tls.key`: the certificate private key
+- `tls.cert`: the certificate public key
+- `ca.cert` (optional): the certificate CA bundle
+
+Follow these steps to enable TLS connection from collector/symbolizer to Elasticsearch:
+
+1. Create secrets with the TLS key pairs (omit the `ca.pem` field if you are not using a self-signed CA):
++
+[source,terminal]
+----
+kubectl -n universal-profiling create secret generic pf-collector-tls-certificate --from-file=tls.key=/path/to/key.pem \
+--from-file=tls.cert=/path/to/cert.pem --from-file=ca.pem=/path/to/ca.crt
+----
++
+[source,terminal]
+----
+kubectl -n universal-profiling create secret generic pf-symbolizer-tls-certificate --from-file=tls.key=/path/to/key.pem \
+--from-file=tls.cert=/path/to/cert.pem --from-file=ca.pem=/path/to/ca.crt
+----
+
+2. Update the collector and symbolizer Helm values files to enable the use of TLS configuration, uncommenting the `output.elasticsearch.ssl` section:
++
+[source, yaml]
+----
+output:
+  elasticsearch:
+    ssl:
+      enabled: true
+----
+
+3. Upgrade the charts using the `helm upgrade` command, providing the updated values file.
+
+[discrete]
+=== Horizontal scaling
+
+When scaling the Universal Profiling backend on Kubernetes, you can increase the number of replicas for the collector, or
+enable Horizontal Pod Autoscaling V2.
+
+To enable HPAv2 for the collector or symbolizer, you can set the `autoscalingV2` dictionary in each Helm values file.
+
+At the moment, **it is not recommended to enable an autoscaler for symbolizer**.
+Due to a current limitation on how symbolizer replicas can synchronize their workloads, it is best
+to only use a single replica for the symbolizer.
+Scale the symbolizer vertically first.
+Only in case of high latency in symbolizing native frames (10+ minutes) you can evaluate adding more replicas.

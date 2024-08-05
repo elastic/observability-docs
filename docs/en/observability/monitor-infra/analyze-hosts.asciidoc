@@ -30,21 +30,24 @@ include::view-infrastructure-metrics.asciidoc[tag=add-metrics-tip]
 The **Hosts** page provides several ways to view host metrics:
 
 * Overview tiles show the number of hosts returned by your search plus
-averages of key metrics, including CPU usage, memory usage, and throughput.
+averages of key metrics, including CPU usage, normalized load, and memory usage.
+Max disk usage is also shown.
 * The Host limit controls the maximum number of hosts shown on the page. The
 default is 50, which means the page shows data for the top 50 hosts based on the
 most recent timestamps. You can increase the host limit to see data for more
 hosts, but doing so may impact query performance.
-* The Hosts table shows a breakdown of metrics for each host. You may need to
-page through the list or change the number of rows displayed on each page to see
-all of your hosts.
+* The Hosts table shows a breakdown of metrics for each host along with an alert count
+for any hosts with active alerts. You may need to page through the list
+or change the number of rows displayed on each page to see all of your hosts.
 * Each host name is an active link to a <<view-host-details, host details>> page,
-which includes metrics, host metadata, alerts, processes, logs, and anomalies.
+where you can explore enhanced metrics and other observability data related to the selected host.
 You can optionally open the host details in an overlay.
 * Table columns are sortable, but note that the sorting behavior is applied to
 the already returned data set.
 * The tabs at the bottom of the page show an overview of the metrics, logs,
 and alerts for all hosts returned by your search.
+
+TIP: For more information about creating and viewing alerts, refer to <<create-alerts>>.
 
 [discrete]
 [[analyze-hosts-filter-view]]
@@ -83,14 +86,16 @@ To learn more about filtering data in {kib}, refer to
 [[analyze-hosts-inspect-data]]
 == View metrics
 
-On the **Metrics** tab, view metrics trending over time, including normalized load,
-CPU usage, memory usage, network inbound, network outbound, disk read IOPS, and
-disk write IOPS. Place your cursor over a line to view metrics at a specific
-point in time. From within each visualization, you can choose to inspect
-and download the metrics or open the visualization in Lens.
+On the **Metrics** tab, view metrics trending over time, including CPU usage,
+normalized load, memory usage, disk usage, and other metrics related to disk IOPs and throughput.
+Place your cursor over a line to view metrics at a specific
+point in time. From within each visualization, you can choose to open the visualization in Lens.
 
 To see metrics for a specific host, refer to <<view-host-details>>.
 
+//TODO: Uncomment this section if/when the inspect option feature is added back in.
+
+/////
 [discrete]
 [[inspect-metrics]]
 === Inspect and download metrics
@@ -112,6 +117,7 @@ Notice that you can change the view to **View: Requests** to explore the request
 used to fetch the data and the response returned from {es}. You can click links
 to further inspect and analyze the request in the **Dev Console** or
 **Search Profiler**.
+/////
 
 [discrete]
 [[analyze-hosts-open-in-lens]]
@@ -170,6 +176,18 @@ image::images/hosts-view-alerts.png[Screenshot showing Alerts view]
 
 To see alerts for a specific host, refer to <<view-host-details>>.
 
+*****
+**Why are alerts missing from the Hosts page?**
+
+If your rules are triggering alerts that don't appear on the **Hosts** page,
+edit the rules and make sure they are correctly configured to associate the host name with the alert:
+
+* For Metric threshold or Custom threshold rules, select `host.name` in the **Group alerts by** field.
+* For Inventory rules, select **Host** for the node type under **Conditions**.
+
+To learn more about creating and managing rules, refer to <<create-alerts>>.
+*****
+
 [discrete]
 [[view-host-details]]
 == View host details
@@ -185,8 +203,7 @@ The host details overlay contains the following tabs:
 
 include::host-details-partial.asciidoc[]
 
-NOTE: These metrics are also available when viewing hosts on the **Inventory**
-page.
+NOTE: The metrics shown on the **Hosts** page are also available when viewing hosts on the **Inventory** page.
 
 [discrete]
 [[analyze-hosts-why-dashed-lines]]

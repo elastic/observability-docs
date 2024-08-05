@@ -1,0 +1,26 @@
+---
+slug: /serverless/observability/apm-view-and-analyze-traces
+title: View and analyze traces
+# description: Description to be written
+tags: [ 'serverless', 'observability', 'overview' ]
+---
+
+<p><DocBadge template="technical preview" /></p>
+
+APM allows you to monitor your software services and applications in real time;
+visualize detailed performance information on your services,
+identify and analyze errors,
+and monitor host-level and APM agent-specific metrics like JVM and Go runtime metrics.
+
+## Visualizing application bottlenecks
+
+Having access to application-level insights with just a few clicks can drastically decrease the time you spend
+debugging errors, slow response times, and crashes.
+
+For example, you can see information about response times, requests per minute, and status codes per endpoint.
+You can even dive into a specific request sample and get a complete waterfall view of what your application is spending its time on.
+You might see that your bottlenecks are in database queries, cache calls, or external requests.
+For each incoming request and each application error,
+you can also see contextual information such as the request header, user information,
+system values, or custom data that you manually attached to the request.
+
