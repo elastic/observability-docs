@@ -16,13 +16,19 @@ Examples of entities include (but are not limited to) services, hosts, and conta
 
 The concept of an entity is important as a means to unify observability signals based on the underlying entity that the signals describe.
 
+[NOTE]
+====
+* The Elastic Entity Model currently supports the <<new-experience-services,new service inventory experience>> limited to service-based entities (as identified by `service.name`) located in data identified by `logs-*` and `trace-*` index patterns
+* During Technical Preview, Entity Discovery Framework components are not enabled by default
+====
+
 [discrete]
-== Enable or disable the Elastic Entity Model
+== Enable the Elastic Entity Model
 
 During Technical Preview,
 the Elastic Entity Model is enabled when you turn on the entity-centric service inventory described in <<new-experience-services>>.
 
-The following {es} privileges are required to turn on the new experience:
+The following {es} privileges are required:
 
 [cols="1,1"]
 |====
@@ -39,12 +45,23 @@ names: [`logs-*`, `filebeat*`, `metrics-*`, `metricbeat*`, `traces-*`, `.entitie
 
 For more information, refer to {ref}/security-privileges.html[Security privileges] in the {es} documentation.
 
-**To disable the Elastic Entity Model:**
+[discrete]
+== Disable the Elastic Entity Model
 
-- From the Dev Console, run the command: `DELETE kbn:/internal/entities/managed/enablement`
+From the Dev Console, run the command: `DELETE kbn:/internal/entities/managed/enablement`
 
-[NOTE]
-====
-* The Elastic Entity Model currently supports the <<new-experience-services,new service inventory experience>> limited to service-based entities (as identified by `service.name`) located in data identified by `logs-*` and `trace-*` index patterns
-* During Technical Preview, Entity Discovery Framework components are not enabled by default
-====
+The following {es} privileges are required to delete {es} resources:
+
+[cols="1,1"]
+|====
+|**Index privileges**
+|names: [`.entities*`], privileges: [`delete_index`]
+
+names: [`logs-*`, `filebeat*`, `metrics-*`, `metricbeat*`, `traces-*`, `.entities*`], privileges: [`read`, `view_index_metadata`],
+|**Cluster privileges**
+|`manage_transform`, `manage_ingest_pipelines`, `manage_index_templates`
+
+|**Application privileges**
+|application: `kibana-.kibana`, privileges: [`saved_object:entity-definition/delete`, `saved_object:entity-discovery-api-key/delete`], resources: [*]
+|====
+
