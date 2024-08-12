@@ -19,7 +19,7 @@ There are several ways to integrate OpenTelemetry with the {stack}:
 
 * <<apm-otel-elastic-distros,Elastic Distributions of OpenTelemetry language SDKs>>
 * <<apm-otel-api-sdk-elastic-agent,Upstream OpenTelemetry API/SDK + Elastic APM agent>>
-* <<apm-otel-upstream,Upstream OpenTelemetry language SDK or Collector>>
+* <<apm-otel-upstream,Upstream OpenTelemetry Collector and language SDKs>>
 * <<apm-otel-lambda,Lambda collector exporter>>
 
 [float]
@@ -85,28 +85,33 @@ which OpenTelemetry API features are supported in the APM agent documentation:
 
 [float]
 [[apm-otel-upstream]]
-== Upstream OpenTelemetry language SDK or Collector
+== Upstream OpenTelemetry Collector and language SDKs
 
 The {stack} natively supports the OpenTelemetry protocol (OTLP).
 This means trace data and metrics collected from your applications and infrastructure by an
-OpenTelemetry language SDK or OpenTelemetry Collector can be sent directly to the {stack}.
+OpenTelemetry Collector or OpenTelemetry language SDK can be sent to the {stack}.
+
+You can set up an https://opentelemetry.io/docs/collector/[OpenTelemetry Collector], instrument your
+application with an https://opentelemetry.io/docs/languages/[OpenTelemetry language SDK] that sends
+data to the collector, and use the collector to process and export the data to APM Server.
 
 image::images/apm-otel-api-sdk-collector.png[]
 
+[NOTE]
+====
+It's also possible to send data directly to APM Server from an upstream OpenTelemetry SDK.
+You might do this during development or if you're monitoring a small-scale application.
+Read more about when to use a collector in the https://opentelemetry.io/docs/collector/#when-to-use-a-collector[OpenTelemetry documentation].
+====
+
 // Why you _would_ choose this approach
-// OpenTelemetry agent
-If you want to instrument a technology that Elastic doesn't provide a solution for,
-you can use an upstream OpenTelemetry language SDK to send data directly to APM Server.
-For example, if you want to instrument C or C++ you could use the
+This approach works well when you need to instrument a technology that Elastic doesn't
+provide a solution for. For example, if you want to instrument C or C++ you could use the
 https://github.com/open-telemetry/opentelemetry-cpp[OpenTelemetry C{plus}{plus} client].
 // Other languages include erlang, lua, perl.
 
-// Why you _would_ choose this approach
-// OpenTelemetry Collector
-Alternatively, you can use an OpenTelemetry Collector to collect data and send it directly to APM Server without maintaining multiple agents.
-
 // Why you would _not_ choose this approach
-However, there are some limitations when using language SDKs and collectors built and maintained
+However, there are some limitations when using collectors and language SDKs built and maintained
 by OpenTelemetry, including:
 
 * Elastic can't provide implementation support on how to use upstream OpenTelemetry tools.
@@ -117,7 +122,7 @@ For more on the limitations associated with using upstream OpenTelemetry tools,
 refer to <<apm-open-telemetry-known-limitations>>.
 
 // Where to go next
-<<apm-open-telemetry-direct,*Get started with upstream OpenTelemetry SDKs and Collectors →*>>
+<<apm-open-telemetry-direct,*Get started with upstream OpenTelemetry Collectors and language SDKs →*>>
 
 [float]
 [[apm-otel-lambda]]

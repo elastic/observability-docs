@@ -1,5 +1,5 @@
 [[apm-open-telemetry-direct]]
-=== Upstream OpenTelemetry language SDKs and Collectors
+=== Upstream OpenTelemetry Collectors and language SDKs
 
 [NOTE]
 ====
@@ -12,65 +12,8 @@ The {stack} natively supports the OpenTelemetry protocol (OTLP).
 This means trace data and metrics collected from your applications and infrastructure can
 be sent directly to the {stack}.
 
-* Send data to the {stack} from an upstream <<apm-instrument-apps-otel,OpenTelemetry language SDK>>
 * Send data to the {stack} from an upstream <<apm-connect-open-telemetry-collector,OpenTelemetry Collector>>
-
-[discrete]
-[[apm-instrument-apps-otel]]
-==== Send data from an upstream OpenTelemetry SDK
-
-To export traces and metrics to APM Server, instrument your services and applications
-with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app with the
-https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java].
-See the https://opentelemetry.io/docs/instrumentation/[OpenTelemetry Instrumentation guides] to download the
-OpenTelemetry agent or SDK for your language.
-
-Define environment variables to configure the OpenTelemetry agent or SDK and enable communication with Elastic APM.
-For example, if you are instrumenting a Java app, define the following environment variables:
-
-[source,bash]
-----
-export OTEL_RESOURCE_ATTRIBUTES=service.name=checkoutService,service.version=1.1,deployment.environment=production
-export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
-export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer an_apm_secret_token"
-export OTEL_METRICS_EXPORTER="otlp" \
-export OTEL_LOGS_EXPORTER="otlp" \ <1>
-java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
-     -classpath lib/*:classes/ \
-     com.mycompany.checkout.CheckoutServiceServer
-----
-<1> preview:[] The OpenTelemetry logs intake via APM Server is currently in technical preview.
-
-|===
-
-| `OTEL_RESOURCE_ATTRIBUTES` | Fields that describe the service and the environment that the service runs in. See
-<<apm-open-telemetry-resource-attributes,resource attributes>> for more information.
-
-| `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
-
-| `OTEL_EXPORTER_OTLP_HEADERS` a| Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=Bearer an_apm_secret_token"` or `"Authorization=ApiKey an_api_key"`.
-
-For information on how to format an API key, see
-{observability-guide}/apm-api-key.html[API keys].
-
-Please note the required space between `Bearer` and `an_apm_secret_token`, and `ApiKey` and `an_api_key`.
-
-The Python OpenTelemetry agent requires the content of the header to be URL-encoded. For the `Bearer` token that would mean substituting the space between `Bearer` and the token with `%20`, e.g. `"Authorization=Bearer%20an_apm_secret_token"`, for encoding an API key you can use the following snippet:
-
-[source,python]
-----
-from urllib.parse import quote
-quote("ApiKey an_api_key")
-----
-
-| `OTEL_METRICS_EXPORTER` | Metrics exporter to use. See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection[exporter selection] for more information.
-
-| `OTEL_LOGS_EXPORTER` | Logs exporter to use. See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection[exporter selection] for more information.
-
-|===
-
-You are now ready to collect traces and <<apm-open-telemetry-collect-metrics,metrics>> before <<apm-open-telemetry-verify-metrics,verifying metrics>>
-and <<apm-open-telemetry-visualize,visualizing metrics>> in {kib}.
+* Send data to the {stack} from an upstream <<apm-instrument-apps-otel,OpenTelemetry language SDK>>
 
 [discrete]
 [[apm-connect-open-telemetry-collector]]
@@ -134,6 +77,71 @@ TIP: When using the OpenTelemetry Collector, you should always prefer sending da
 Other methods, like using the https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter[`elasticsearch` exporter] to send data directly to {es} will send data to the {stack},
 but will bypass all of the validation and data processing that the APM Server performs.
 In addition, your data will not be viewable in the {kib} {observability} apps if you use the `elasticsearch` exporter.
+
+[discrete]
+[[apm-instrument-apps-otel]]
+==== Send data from an upstream OpenTelemetry SDK
+
+[NOTE]
+====
+While it's possible to send data directly from an upstream OpenTelemetry SDK to APM Server,
+in many cases you should use the SDK to send data to an OpenTelemetry Collector that processes
+and exports data to APM Server. Read more about when you should use a collector in the
+https://opentelemetry.io/docs/collector/#when-to-use-a-collector[OpenTelemetry documentation].
+====
+
+To export traces and metrics to APM Server, instrument your services and applications
+with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app with the
+https://github.com/open-telemetry/opentelemetry-java-instrumentation[OpenTelemetry agent for Java].
+See the https://opentelemetry.io/docs/instrumentation/[OpenTelemetry Instrumentation guides] to download the
+OpenTelemetry agent or SDK for your language.
+
+Define environment variables to configure the OpenTelemetry agent or SDK and enable communication with Elastic APM.
+For example, if you are instrumenting a Java app, define the following environment variables:
+
+[source,bash]
+----
+export OTEL_RESOURCE_ATTRIBUTES=service.name=checkoutService,service.version=1.1,deployment.environment=production
+export OTEL_EXPORTER_OTLP_ENDPOINT=https://apm_server_url:8200
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=Bearer an_apm_secret_token"
+export OTEL_METRICS_EXPORTER="otlp" \
+export OTEL_LOGS_EXPORTER="otlp" \ <1>
+java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
+     -classpath lib/*:classes/ \
+     com.mycompany.checkout.CheckoutServiceServer
+----
+<1> preview:[] The OpenTelemetry logs intake via APM Server is currently in technical preview.
+
+|===
+
+| `OTEL_RESOURCE_ATTRIBUTES` | Fields that describe the service and the environment that the service runs in. See
+<<apm-open-telemetry-resource-attributes,resource attributes>> for more information.
+
+| `OTEL_EXPORTER_OTLP_ENDPOINT` | APM Server URL. The host and port that APM Server listens for events on.
+
+| `OTEL_EXPORTER_OTLP_HEADERS` a| Authorization header that includes the Elastic APM Secret token or API key: `"Authorization=Bearer an_apm_secret_token"` or `"Authorization=ApiKey an_api_key"`.
+
+For information on how to format an API key, see
+{observability-guide}/apm-api-key.html[API keys].
+
+Please note the required space between `Bearer` and `an_apm_secret_token`, and `ApiKey` and `an_api_key`.
+
+The Python OpenTelemetry agent requires the content of the header to be URL-encoded. For the `Bearer` token that would mean substituting the space between `Bearer` and the token with `%20`, e.g. `"Authorization=Bearer%20an_apm_secret_token"`, for encoding an API key you can use the following snippet:
+
+[source,python]
+----
+from urllib.parse import quote
+quote("ApiKey an_api_key")
+----
+
+| `OTEL_METRICS_EXPORTER` | Metrics exporter to use. See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection[exporter selection] for more information.
+
+| `OTEL_LOGS_EXPORTER` | Logs exporter to use. See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection[exporter selection] for more information.
+
+|===
+
+You are now ready to collect traces and <<apm-open-telemetry-collect-metrics,metrics>> before <<apm-open-telemetry-verify-metrics,verifying metrics>>
+and <<apm-open-telemetry-visualize,visualizing metrics>> in {kib}.
 
 [discrete]
 [[apm-open-telemetry-proxy-apm]]
