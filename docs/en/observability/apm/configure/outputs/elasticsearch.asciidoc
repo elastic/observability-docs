@@ -61,16 +61,19 @@ output.elasticsearch:
 
 See <<securing-communication-elasticsearch>> for details on each authentication method.
 
+[float]
 === Compatibility
 
 This output works with all compatible versions of {es}. See the
 https://www.elastic.co/support/matrix#matrix_compatibility[Elastic Support
 Matrix].
 
+[float]
 === Configuration options
 
 You can specify the following options in the `elasticsearch` section of the +{beatname_lc}.yml+ config file:
 
+[float]
 ==== `enabled`
 
 The enabled config is a boolean setting to enable or disable the output. If set
@@ -78,8 +81,13 @@ to `false`, the output is disabled.
 
 The default value is `true`.
 
+<<<<<<< HEAD
 
 [[hosts-option]]
+=======
+[float]
+[[apm-hosts-option]]
+>>>>>>> 048c755d (Add tags to fix chunking in obs guide (#4147))
 ==== `hosts`
 
 The list of {es} nodes to connect to. The events are distributed to
@@ -102,6 +110,7 @@ output.elasticsearch:
 In the previous example, the {es} nodes are available at `https://10.45.3.2:9220/elasticsearch` and
 `https://10.45.3.1:9230/elasticsearch`.
 
+[float]
 ==== `compression_level`
 
 The gzip compression level. Setting this value to `0` disables compression.
@@ -111,12 +120,14 @@ Increasing the compression level will reduce the network usage but will increase
 
 The default value is `0`.
 
+[float]
 ==== `escape_html`
 
 Configure escaping of HTML in strings. Set to `true` to enable escaping.
 
 The default value is `false`.
 
+[float]
 ==== `api_key`
 
 Instead of using a username and password, you can use API keys to secure communication
@@ -124,6 +135,7 @@ with {es}. The value must be the ID of the API key and the API key joined by a c
 
 See <<beats-api-keys>> for more information.
 
+[float]
 ==== `username`
 
 The basic authentication username for connecting to {es}.
@@ -131,15 +143,22 @@ The basic authentication username for connecting to {es}.
 This user needs the privileges required to publish events to {es}.
 To create a user like this, see <<privileges-to-publish-events>>.
 
+[float]
 ==== `password`
 
 The basic authentication password for connecting to {es}.
 
+[float]
 ==== `parameters`
 
 Dictionary of HTTP parameters to pass within the URL with index operations.
 
+<<<<<<< HEAD
 [[protocol-option]]
+=======
+[float]
+[[apm-protocol-option]]
+>>>>>>> 048c755d (Add tags to fix chunking in obs guide (#4147))
 ==== `protocol`
 
 The name of the protocol {es} is reachable on. The options are:
@@ -147,13 +166,19 @@ The name of the protocol {es} is reachable on. The options are:
 <<hosts-option,`hosts`>>, the value of `protocol` is overridden by whatever scheme you
 specify in the URL.
 
+<<<<<<< HEAD
 [[path-option]]
+=======
+[float]
+[[apm-path-option]]
+>>>>>>> 048c755d (Add tags to fix chunking in obs guide (#4147))
 ==== `path`
 
 An HTTP path prefix that is prepended to the HTTP API calls. This is useful for
 the cases where {es} listens behind an HTTP reverse proxy that exports
 the API under a custom prefix.
 
+[float]
 ==== `headers`
 
 Custom HTTP headers to add to each request created by the {es} output.
@@ -168,6 +193,7 @@ output.elasticsearch.headers:
 It is possible to specify multiple header values for the same header
 name by separating them with a comma.
 
+[float]
 ==== `proxy_url`
 
 The URL of the proxy to use when connecting to the {es} servers. The
@@ -196,6 +222,7 @@ dashboards, you also need to set the `setup.dashboards.index` option (see
 endif::no_dashboards[]
 
 ifndef::no_ilm[]
+<<<<<<< HEAD
 When <<ilm,{ilm} ({ilm-init})>> is enabled, the default `index` is
 +"{beatname_lc}-%{[{beat_version_key}]}-%{+yyyy.MM.dd}-%{index_num}"+, for example,
 +"{beatname_lc}-{version}-{localdate}-000001"+. Custom `index` settings are ignored
@@ -304,6 +331,10 @@ endif::apm-server[]
 
 ifndef::no_ilm[]
 [[ilm-es]]
+=======
+[float]
+[[apm-ilm-es]]
+>>>>>>> 048c755d (Add tags to fix chunking in obs guide (#4147))
 ==== `ilm`
 
 Configuration options for {ilm}.
@@ -312,7 +343,12 @@ See <<ilm>> for more information.
 endif::no_ilm[]
 
 ifndef::no-pipeline[]
+<<<<<<< HEAD
 [[pipeline-option-es]]
+=======
+[float]
+[[apm-pipeline-option-es]]
+>>>>>>> 048c755d (Add tags to fix chunking in obs guide (#4147))
 ==== `pipeline`
 
 A format string value that specifies the ingest node pipeline to write events to.
@@ -347,7 +383,12 @@ TIP: To learn how to add custom fields to events, see the
 See the <<pipelines-option-es,`pipelines`>> setting for other ways to set the
 ingest node pipeline dynamically.
 
+<<<<<<< HEAD
 [[pipelines-option-es]]
+=======
+[float]
+[[apm-pipelines-option-es]]
+>>>>>>> 048c755d (Add tags to fix chunking in obs guide (#4147))
 ==== `pipelines`
 
 An array of pipeline selector rules. Each rule specifies the ingest node
@@ -418,6 +459,7 @@ For more information about ingest node pipelines, see
 
 endif::[]
 
+[float]
 ==== `max_retries`
 
 ifdef::ignores_max_retries[]
@@ -433,16 +475,19 @@ Set `max_retries` to a value less than 0 to retry until all events are published
 The default is 3.
 endif::[]
 
+[float]
 ==== `flush_bytes`
 
 The bulk request size threshold, in bytes, before flushing to {es}.
 The value must have a suffix, e.g. `"2MB"`. The default is `1MB`.
 
+[float]
 ==== `flush_interval`
 
 The maximum duration to accumulate events for a bulk request before being flushed to {es}.
 The value must have a duration suffix, e.g. `"5s"`. The default is `1s`.
 
+[float]
 ==== `backoff.init`
 
 The number of seconds to wait before trying to reconnect to {es} after
@@ -451,16 +496,18 @@ reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
 default is `1s`.
 
-
+[float]
 ==== `backoff.max`
 
 The maximum number of seconds to wait before attempting to connect to
 {es} after a network error. The default is `60s`.
 
+[float]
 ==== `timeout`
 
 The HTTP request timeout in seconds for the {es} request. The default is 90.
 
+[float]
 ==== `ssl`
 
 Configuration options for SSL parameters like the certificate authority to use
@@ -471,4 +518,5 @@ See the <<securing-communication-elasticsearch,secure communication with {es}>> 
 or <<configuration-ssl,SSL configuration reference>> for more information.
 
 // Elasticsearch security
-include::{apm-server-dir}/https.asciidoc[]
+[float]
+include::{apm-server-dir}/https.asciidoc[leveloffset=+1]
