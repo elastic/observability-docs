@@ -160,17 +160,20 @@ output {
 <5> In this example, `cloud_id` and `cloud_auth` are stored as {logstash-ref}/environment-variables.html[environment variables]
 <6> For all other event types, index data directly into the predefined APM data steams
 
+[float]
 === Compatibility
 
 This output works with all compatible versions of {ls}. See the
 https://www.elastic.co/support/matrix#matrix_compatibility[Elastic Support
 Matrix].
 
+[float]
 === Configuration options
 
 You can specify the following options in the `logstash` section of the
 +apm-server.yml+ config file:
 
+[float]
 ==== `enabled`
 
 The enabled config is a boolean setting to enable or disable the output. If set
@@ -178,6 +181,7 @@ to false, the output is disabled.
 
 The default value is `false`.
 
+[float]
 [[apm-hosts]]
 ==== `hosts`
 
@@ -187,6 +191,7 @@ If one host becomes unreachable, another one is selected randomly.
 
 All entries in this list can contain a port number. The default port number 5044 will be used if no number is given.
 
+[float]
 ==== `compression_level`
 
 The gzip compression level. Setting this value to 0 disables compression.
@@ -196,18 +201,21 @@ Increasing the compression level will reduce the network usage but will increase
 
 The default value is 3.
 
+[float]
 ==== `escape_html`
 
 Configure escaping of HTML in strings. Set to `true` to enable escaping.
 
 The default value is `false`.
 
+[float]
 ==== `worker`
 
 The number of workers per configured host publishing events to {ls}. This
 is best used with load balancing mode enabled. Example: If you have 2 hosts and
 3 workers, in total 6 workers are started (3 for each host).
 
+[float]
 [[apm-loadbalance]]
 ==== `loadbalance`
 
@@ -224,6 +232,7 @@ output.logstash:
   index: apm-server
 ------------------------------------------------------------------------------
 
+[float]
 ==== `ttl`
 
 Time to live for a connection to {ls} after which the connection will be re-established.
@@ -236,6 +245,7 @@ The default value is 0.
 
 NOTE: The "ttl" option is not yet supported on an asynchronous {ls} client (one with the "pipelining" option set).
 
+[float]
 ==== `pipelining`
 
 Configures the number of batches to be sent asynchronously to {ls} while waiting
@@ -243,6 +253,7 @@ for ACK from {ls}. Output only becomes blocking once number of `pipelining`
 batches have been written. Pipelining is disabled if a value of 0 is
 configured. The default value is 2.
 
+[float]
 ==== `proxy_url`
 
 The URL of the SOCKS5 proxy to use when connecting to the {ls} servers. The
@@ -263,6 +274,7 @@ output.logstash:
   proxy_url: socks5://user:password@socks5-proxy:2233
 ------------------------------------------------------------------------------
 
+[float]
 [[apm-logstash-proxy-use-local-resolver]]
 ==== `proxy_use_local_resolver`
 
@@ -270,6 +282,7 @@ The `proxy_use_local_resolver` option determines if {ls} hostnames are
 resolved locally when using a proxy. The default value is false, which means
 that when a proxy is used the name resolution occurs on the proxy server.
 
+[float]
 [[apm-logstash-index]]
 ==== `index`
 
@@ -280,16 +293,19 @@ indices (for example, +"apm-{version}-2017.04.26"+).
 NOTE: This parameter's value will be assigned to the `metadata.beat` field. It
 can then be accessed in {ls}'s output section as `%{[@metadata][beat]}`.
 
+[float]
 ==== `ssl`
 
 Configuration options for SSL parameters like the root CA for {ls} connections. See
 <<apm-configuration-ssl>> for more information. To use SSL, you must also configure the
 {logstash-ref}/plugins-inputs-beats.html[{beats} input plugin for {ls}] to use SSL/TLS.
 
+[float]
 ==== `timeout`
 
 The number of seconds to wait for responses from the {ls} server before timing out. The default is 30 (seconds).
 
+[float]
 ==== `max_retries`
 
 The number of times to retry publishing an event after a publishing failure.
@@ -299,6 +315,7 @@ Set `max_retries` to a value less than 0 to retry until all events are published
 
 The default is 3.
 
+[float]
 ==== `bulk_max_size`
 
 The maximum number of events to bulk in a single {ls} request. The default is 2048.
@@ -316,6 +333,7 @@ Setting `bulk_max_size` to values less than or equal to 0 disables the
 splitting of batches. When splitting is disabled, the queue decides on the
 number of events to be contained in a batch.
 
+[float]
 ==== `slow_start`
 
 If enabled, only a subset of events in a batch of events is transferred per transaction.
@@ -324,6 +342,7 @@ On error, the number of events per transaction is reduced again.
 
 The default is `false`.
 
+[float]
 ==== `backoff.init`
 
 The number of seconds to wait before trying to reconnect to {ls} after
@@ -332,10 +351,13 @@ reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
 default is `1s`.
 
+[float]
 ==== `backoff.max`
 
 The maximum number of seconds to wait before attempting to connect to
 {ls} after a network error. The default is `60s`.
 
 // Logstash security
+
+[float]
 include::{observability-docs-root}/docs/en/observability/apm/shared-ssl-logstash-config.asciidoc[]

@@ -35,15 +35,18 @@ output.redis:
 
 include::../../shared-kibana-endpoint.asciidoc[tag=shared-kibana-config]
 
+[float]
 === Compatibility
 
 This output is expected to work with all Redis versions between 3.2.4 and 5.0.8. Other versions might work as well,
 but are not supported.
 
+[float]
 === Configuration options
 
 You can specify the following `output.redis` options in the +apm-server.yml+ config file:
 
+[float]
 ==== `enabled`
 
 The enabled config is a boolean setting to enable or disable the output. If set
@@ -51,6 +54,7 @@ to false, the output is disabled.
 
 The default value is `true`.
 
+[float]
 ==== `hosts`
 
 The list of Redis servers to connect to. If load balancing is enabled, the events are
@@ -65,10 +69,12 @@ The `redis` scheme will disable the `ssl` settings for the host, while `rediss`
 will enforce TLS.  If `rediss` is specified and no `ssl` settings are
 configured, the output uses the system certificate store.
 
+[float]
 ==== `index`
 
 The index name added to the events metadata for use by {ls}. The default is "apm-server".
 
+[float]
 [[apm-key-option-redis]]
 ==== `key`
 
@@ -89,6 +95,7 @@ output.redis:
 See the <<apm-keys-option-redis,`keys`>> setting for other ways to set the key
 dynamically.
 
+[float]
 [[apm-keys-option-redis]]
 ==== `keys`
 
@@ -136,14 +143,17 @@ output.redis:
         mysql: "backend_list"
 ------------------------------------------------------------------------------
 
+[float]
 ==== `password`
 
 The password to authenticate with. The default is no authentication.
 
+[float]
 ==== `db`
 
 The Redis database number where the events are published. The default is 0.
 
+[float]
 ==== `datatype`
 
 The Redis data type to use for publishing events.If the data type is `list`, the
@@ -152,27 +162,32 @@ If the data type `channel` is used, the Redis `PUBLISH` command is used and mean
 are pushed to the pub/sub mechanism of Redis. The name of the channel is the one defined under `key`.
 The default value is `list`.
 
+[float]
 ==== `codec`
 
 Output codec configuration. If the `codec` section is missing, events will be JSON encoded.
 
 See <<apm-configuration-output-codec>> for more information.
 
+[float]
 ==== `worker`
 
 The number of workers to use for each host configured to publish events to Redis. Use this setting along with the
 `loadbalance` option. For example, if you have 2 hosts and 3 workers, in total 6 workers are started (3 for each host).
 
+[float]
 ==== `loadbalance`
 
 If set to true and multiple hosts or workers are configured, the output plugin load balances published events onto all
 Redis hosts. If set to false, the output plugin sends all events to only one host (determined at random) and will switch
 to another host if the currently selected one becomes unreachable. The default value is true.
 
+[float]
 ==== `timeout`
 
 The Redis connection timeout in seconds. The default is 5 seconds.
 
+[float]
 ==== `backoff.init`
 
 The number of seconds to wait before trying to reconnect to Redis after
@@ -181,11 +196,13 @@ reconnect. If the attempt fails, the backoff timer is increased exponentially up
 to `backoff.max`. After a successful connection, the backoff timer is reset. The
 default is `1s`.
 
+[float]
 ==== `backoff.max`
 
 The maximum number of seconds to wait before attempting to connect to
 Redis after a network error. The default is `60s`.
 
+[float]
 ==== `max_retries`
 
 ifdef::ignores_max_retries[]
@@ -201,7 +218,7 @@ Set `max_retries` to a value less than 0 to retry until all events are published
 The default is 3.
 endif::[]
 
-
+[float]
 ==== `bulk_max_size`
 
 The maximum number of events to bulk in a single Redis request or pipeline. The default is 2048.
@@ -219,12 +236,14 @@ Setting `bulk_max_size` to values less than or equal to 0 disables the
 splitting of batches. When splitting is disabled, the queue decides on the
 number of events to be contained in a batch.
 
+[float]
 ==== `ssl`
 
 Configuration options for SSL parameters like the root CA for Redis connections
 guarded by SSL proxies (for example https://www.stunnel.org[stunnel]). See
 <<apm-configuration-ssl>> for more information.
 
+[float]
 ==== `proxy_url`
 
 The URL of the SOCKS5 proxy to use when connecting to the Redis servers. The
@@ -238,6 +257,7 @@ When using a proxy, hostnames are resolved on the proxy server instead of on the
 client. You can change this behavior by setting the
 <<apm-redis-proxy-use-local-resolver,`proxy_use_local_resolver`>> option.
 
+[float]
 [[apm-redis-proxy-use-local-resolver]]
 ==== `proxy_use_local_resolver`
 
