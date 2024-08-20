@@ -1,24 +1,27 @@
 ---
 slug: /serverless/observability/apm-agents-opentelemetry-opentelemetry-native-support
-title: OpenTelemetry native support
+title: Upstream OpenTelemetry Collectors and language SDKs
 # description: Description to be written
 tags: [ 'serverless', 'observability', 'overview' ]
 ---
 
 <p><DocBadge template="technical preview" /></p>
 
+<DocCallOut title="Note">
+This is one of several approaches you can use to integrate Elastic with OpenTelemetry.
+**To compare approaches and choose the best approach for your use case, refer to <DocLink slug="/serverless/observability/apm-agents-opentelemetry" />.**
+</DocCallOut>
+
 Elastic natively supports the OpenTelemetry protocol (OTLP).
 This means trace data and metrics collected from your applications and infrastructure can
 be sent directly to Elastic.
 
-* Send data to Elastic from an <DocLink slug="/serverless/observability/apm-agents-opentelemetry-opentelemetry-native-support" section="send-data-from-an-opentelemetry-collector">OpenTelemetry collector</DocLink>
-* Send data to Elastic from an <DocLink slug="/serverless/observability/apm-agents-opentelemetry-opentelemetry-native-support" section="send-data-from-an-opentelemetry-agent">OpenTelemetry agent</DocLink>
+* Send data to Elastic from an upstream [OpenTelemetry Collector](#send-data-from-an-upstream-opentelemetry-collector)
+* Send data to Elastic from an upstream [OpenTelemetry language SDK](#send-data-from-an-upstream-opentelemetry-sdk)
 
-<div id="connect-open-telemetry-collector"></div>
+## Send data from an upstream OpenTelemetry Collector
 
-## Send data from an OpenTelemetry collector
-
-Connect your OpenTelemetry collector instances to Elastic ((observability)) using the OTLP exporter:
+Connect your OpenTelemetry Collector instances to Elastic ((observability)) using the OTLP exporter:
 
 ```yaml
 receivers:  [^1]
@@ -72,22 +75,24 @@ To learn more about these exporters, see the OpenTelemetry Collector documentati
 You're now ready to export traces and metrics from your services and applications.
 
 <DocCallOut title="Tip">
-When using the OpenTelemetry collector, you should always prefer sending data via the [`OTLP` exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter).
+When using the OpenTelemetry Collector, you should always prefer sending data via the [`OTLP` exporter](https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter).
 Using other methods, like the [`elasticsearch` exporter](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter), will bypass all of the validation and data processing that Elastic performs.
 In addition, your data will not be viewable in your Observability project if you use the `elasticsearch` exporter.
 </DocCallOut>
 
-<div id="instrument-apps-otel"></div>
+## Send data from an upstream OpenTelemetry SDK
 
-## Send data from an OpenTelemetry agent
+<DocCallOut title="Note">
+This document outlines how to send data directly from an upstream OpenTelemetry SDK to APM Server, which is appropriate when getting started. However, in many cases you should use the OpenTelemetry SDK to send data to an OpenTelemetry Collector that processes and exports data to APM Server. Read more about when and how to use a collector in the [OpenTelemetry documentation](https://opentelemetry.io/docs/collector/#when-to-use-a-collector).
+</DocCallOut>
 
 To export traces and metrics to Elastic, instrument your services and applications
 with the OpenTelemetry API, SDK, or both. For example, if you are a Java developer, you need to instrument your Java app with the
 [OpenTelemetry agent for Java](https://github.com/open-telemetry/opentelemetry-java-instrumentation).
 See the [OpenTelemetry Instrumentation guides](https://opentelemetry.io/docs/instrumentation/) to download the
-OpenTelemetry Agent or SDK for your language.
+OpenTelemetry agent or SDK for your language.
 
-Define environment variables to configure the OpenTelemetry agent and enable communication with Elastic APM.
+Define environment variables to configure the OpenTelemetry agent or SDK and enable communication with Elastic APM.
 For example, if you are instrumenting a Java app, define the following environment variables:
 
 ```bash
@@ -140,8 +145,6 @@ java -javaagent:/path/to/opentelemetry-javaagent-all.jar \
 You are now ready to collect traces and <DocLink slug="/serverless/observability/apm-agents-opentelemetry-collect-metrics">metrics</DocLink> before <DocLink slug="/serverless/observability/apm-agents-opentelemetry-collect-metrics" section="verify-opentelemetry-metrics-data">verifying metrics</DocLink>
 and <DocLink slug="/serverless/observability/apm-agents-opentelemetry-collect-metrics" section="visualize">visualizing metrics</DocLink>.
 
-<div id="open-telemetry-proxy-apm"></div>
-
 ## Proxy requests to Elastic
 
 Elastic supports both the [(OTLP/gRPC)](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#otlpgrpc) and [(OTLP/HTTP)](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/protocol/otlp.md#otlphttp) protocol on the same port as Elastic APM agent requests. For ease of setup, we recommend using OTLP/HTTP when proxying or load balancing requests to Elastic.
@@ -155,8 +158,6 @@ For more information on how to configure an AWS ALB to support gRPC, see this AW
 
 For more information on how Elastic services gRPC requests, see
 [Muxing gRPC and HTTP/1.1](https://github.com/elastic/apm-server/blob/main/dev_docs/otel.md#muxing-grpc-and-http11).
-
-<div id="open-telemetry-direct-next"></div>
 
 ## Next steps
 
