@@ -13,13 +13,22 @@ which is used to collect observability data from the host and send it to Elastic
 The script also generate an {agent} configuration file that you can use with your existing Infrastructure-as-Code tooling.
 
 [discrete]
-== Prerequisites and limitations
+== Prerequisites
 
-This quickstart has the following requirements and limitations:
+* A user with the `superuser` {ref}/built-in-roles.html[built-in role] or the privileges required to onboard data.
++
+[%collapsible]
+.Expand to view required privileges
+====
+* {ref}/security-privileges.html#privileges-list-cluster[**Cluster**]: `['monitor', 'manage_own_api_key']`
+* {ref}/security-privileges.html#privileges-list-indices[**Index**]: `{ names: ['logs-*-*', 'metrics-*-*'], privileges: ['auto_configure', 'create_doc'] }`
+* {kibana-ref}/kibana-privileges.html[**Kibana**]: `{ spaces: ['*'], feature: { fleet: ['all'], fleetv2: ['all'] } }`
+====
+* Root privileges on the host—required to run the auto-detection script used in this quickstart.
 
-//REVIEWERS: What Elasticsearch privileges are required?
+[discrete]
+== Limitations
 
-* Root privileges on the host are required to run the auto-detection script used in this quickstart.
 * The auto-detection script currently scans for metrics and logs from Apache, Docker, Nginx, and the host system.
    It also scans for custom log files.
 * The auto-detection script works on Linux and MacOS only. Support for the `lsof` command is also required if you want to detect custom log files.
@@ -27,7 +36,7 @@ This quickstart has the following requirements and limitations:
 * Because Docker Desktop runs in a VM, its logs are not auto-detected.
 
 [discrete]
-== Detect and collect observability data
+== Collect your data
 
 . In {kib}, go to **Observability** and click **Add Data**.
 . Select **Collect and analyze logs**, and then select **Auto-detect logs and metrics**.
