@@ -19,6 +19,80 @@ If applicable, exact error messages linked to this issue so users searching for 
 Link to fix
 ////
 
+*Upgrading to v8.15.0 may cause APM indices to become unmanaged w.r.t. lifecycle policy* +
+_Elastic Stack versions: 8.15.0_ +
+_Fixed in Elastic Stack version 8.15.1_
+
+// The conditions in which this issue occurs
+The issue occurs when Elastic Stack is upgraded to 8.15.0.
+The issue will NOT occur on a new cluster creation with version 8.15.0.
+The issue occurs because APM Server switched to Elasticsearch APM-data plugin for managing index templates.
+
+The switch also migrated us from Index Lifecycle Management (ILM) to Datastream Lifecycle (DSL) for managing
+data retention for APM indices. Due to this migration, any datastream created before 8.15.0 would be without
+datastream lifecycle configuration and, when migrated to 8.15.0, would become unmanaged (without any data 
+retention configuration). This can be fixed by explicitly configuring APM datastreams with the default
+lifecyle config:
+
+[source,txt]
+----
+
+Thanks for adding more details, we have identified a bug which is causing this issue. In 8.15.0 we migrated from using ILM to DLM (Datastream Lifecycle) and on update, the existing datastreams are not updated with the DLM settings causing Unmanaged indexes.
+
+I have created a bug report in APM-Server and we are working on a fix. For short-term mitigation, we would need to update all the APM datastream manually with the default data retention:
+
+PUT _data_stream/traces-apm-*/_lifecycle
+{
+  "data_retention": "10d"
+}
+
+PUT _data_stream/traces-apm.rum*/_lifecycle
+{
+  "data_retention": "90d"
+}
+
+PUT _data_stream/traces-apm.sampled*/_lifecycle
+{
+  "data_retention": "1h"
+}
+
+PUT _data_stream/metrics-apm.*.1m-*/_lifecycle
+{
+  "data_retention": "90d"
+}
+
+PUT _data_stream/metrics-apm.*.10m-*/_lifecycle
+{
+  "data_retention": "180d"
+}
+
+PUT _data_stream/metrics-apm.*.60m-*/_lifecycle
+{
+  "data_retention": "390d"
+}
+
+PUT _data_stream/metrics-apm.internal-*/_lifecycle
+{
+  "data_retention": "90d"
+}
+
+PUT _data_stream/metrics-apm.app.*/_lifecycle
+{
+  "data_retention": "90d"
+}
+
+PUT _data_stream/logs-apm.*/_lifecycle
+{
+  "data_retention": "10d"
+}
+----
+
+NOTE that while this issue is fixed in 8.15.1, any indices created in 8.15.0 due
+to rollovers would still be unmanaged even after upgrading. The only way to fix
+these is by configuring the datastream lifecycle explicitly as described above.
+Explicitly configuring datastream lifecycle has an added benefit of migrating
+to datastream lifecycle for all APM datastreams.
+
 [[broken-apm-anomaly-rule]]
 *Upgrading to v8.13.0 to v8.13.2 breaks APM anomaly rules* +
 _Elastic Stack versions: 8.13.0, 8.13.1, 8.13.2_ +
