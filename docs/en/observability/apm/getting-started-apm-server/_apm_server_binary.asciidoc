@@ -1,153 +1,10 @@
-[[apm-getting-started-apm-server]]
-== Self manage APM Server
-
-++++
-<titleabbrev>Self manage APM Server</titleabbrev>
-++++
-
-TIP: The easiest way to get started with Elastic APM is by using our
-{ess-product}[hosted {es} Service] on {ecloud}.
-The {es} Service is available on AWS, GCP, and Azure.
-See <<get-started-with-fleet-apm-server,getting started documentation>> to get started in minutes.
-
-
-// TODO: MOVE THIS
-IMPORTANT: Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
-{ilm-init} policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
-
-The APM Server receives performance data from your APM agents,
-validates and processes it, and then transforms the data into {es} documents.
-If you're on this page, then you've chosen to self-manage the Elastic Stack,
-and you now must decide how to run and configure the APM Server.
-There are two options, and the components required are different for each:
-
-* **<<apm-setup-apm-server-binary,APM Server binary>>**
-* **<<apm-setup-fleet-managed-apm,Fleet-managed APM Server>>**
-// * **<<setup-apm-server-ea,Standalone Elastic Agent-managed APM Server>>**
-
-[float]
-[[apm-setup-apm-server-binary]]
-=== APM Server binary
-
-Install, configure, and run the APM Server binary wherever you need it.
-
-image::./images/bin-ov.png[APM Server binary overview]
-
-**Pros**:
-
-- Simplest self-managed option
-- No addition component knowledge required
-- YAML configuration simplifies automation
-
-**Supported outputs**:
-
-- {es}
-- {ess}
-- {ls}
-- Kafka
-- Redis
-- File
-- Console
-
-**Required components**:
-
-- APM agents
-- APM Server
-- {stack}
-
-**Configuration method**: YAML
-
-[float]
-[[apm-setup-fleet-managed-apm]]
-=== Fleet-managed APM Server
-
-Fleet is a web-based UI in {kib} that is used to centrally manage {agent}s.
-In this deployment model, use {agent} to spin up APM Server instances that can be centrally-managed in a custom-curated user interface.
-
-NOTE: Fleet-managed APM Server does not have full feature parity with the APM Server binary method of running Elastic APM.
-
-image::./images/fm-ov.png[APM Server fleet overview]
-
-// (outputs, stable APIs)
-// not the best option for a simple test setup or if only interested in centrally running APM Server
-
-**Pros**:
-
-- Conveniently manage one, some, or many different integrations from one central {fleet} UI.
-
-**Supported outputs**:
-
-- {es}
-- {ess}
-
-**Required components**:
-
-- APM agents
-- APM Server
-- {agent}
-- Fleet Server
-- {stack}
-
-**Configuration method**: {kib} UI
-
-// [float]
-// [[apm-setup-apm-server-ea]]
-// === Standalone Elastic Agent-managed APM Server
-// // I really don't know how to sell this option
-// Instead of installing and configuring the APM Server binary, let {agent} orchestrate it for you.
-// Install {agent} and manually configure the agent locally on the system where it's installed.
-// You are responsible for managing and upgrading {agent}. This approach is recommended for advanced users only.
-
-// **Pros**:
-
-// - Easily add integrations for other data sources
-// useful if EA already in place for other integrations, and customers want to customize setup rather than using Fleet for configuration
-// // TODO:
-// // maybe get some more hints on this one from the EA team to align with highlighting the same pros & cons.
-
-// **Available on Elastic Cloud**: ❌
-
-// This supports all of the same outputs as binary
-// see https://github.com/elastic/apm-server/issues/10467
-// **Supported outputs**:
-
-// **Configuration method**: YAML
-
-// image::./images/ea-ov.png[APM Server ea overview]
-
-// @simitt's notes for how to include EA-managed in the decision tree:
-// ****
-// If we generally describe Standalone Elastic Agent managed APM Server then we should also add it to this diagram:
-// Do you want to use other integrations?
-// -> yes: Would you like to use the comfort of Fleet UI based management? -> yes: Fleet managed APM Server; -> no: Standalone Elastic Agent managed APM Server
-// -> no: What is your prefered way of configuration? -> yaml: APM Server binary; -> Kibana UI: Fleet managed APM Server
-// ****
-
-// Components required:
-
-// [options="header"]
-// |====
-// | Installation method                         | APM Server | Elastic Agent | Fleet Server
-// | APM Server binary                           | ✔️          |               |
-// // | Standalone Elastic Agent-managed APM Server | ✔️          | ✔️             |
-// | Fleet-managed APM Server                    | ✔️          | ✔️             | ✔️
-// |====
-
-[float]
-=== Help me decide
-
-Use the decision tree below to help determine which method of configuring and running the APM Server is best for your use case.
-
-[subs=attributes+]
-include::{observability-docs-root}/docs/en/observability/apm/diagrams/apm-decision-tree.asciidoc[APM Server decision tree]
-
-
-=== APM Server binary
+[[_apm_server_binary]]
+= APM Server binary
 
 This guide will explain how to set up and configure the APM Server binary.
 
 [float]
-==== Prerequisites
+== Prerequisites
 
 // tag::prereq[]
 First, see the https://www.elastic.co/support/matrix[Elastic Support Matrix] for information about supported operating systems and product compatibility.
@@ -168,8 +25,9 @@ image::images/apm-architecture-diy.png[Install Elastic APM yourself]
 // STEP 1
 // *******************************************************
 
+[float]
 [[apm-installing]]
-==== Step 1: Install
+== Step 1: Install
 
 NOTE: *Before you begin*: If you haven't installed the {stack}, do that now.
 See {stack-ref}/installing-elastic-stack.html[Learn how to install the
@@ -303,8 +161,9 @@ See <<apm-running-on-docker, Running on Docker>> for deploying Docker containers
 // STEP 2
 // *******************************************************
 
+[float]
 [[apm-server-configuration]]
-==== Step 2: Set up and configure
+== Step 2: Set up and configure
 
 // This content is reused in the upgrading guide
 // tag::why-apm-integration[]
@@ -313,7 +172,7 @@ Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage
 // end::why-apm-integration[]
 
 [float]
-===== Install the APM integration
+=== Install the APM integration
 
 // This content is reused in the upgrading guide
 // tag::install-apm-integration[]
@@ -367,7 +226,7 @@ See {kibana-ref}/api.html[Kibana API] to learn more about how to use the Kibana 
 // end::install-apm-integration[]
 
 [float]
-===== Configure APM
+=== Configure APM
 
 Configure APM by editing the `apm-server.yml` configuration file.
 The location of this file varies by platform--see the <<apm-directory-layout>> for help locating it.
@@ -396,8 +255,9 @@ All available configuration options are outlined in
 // STEP 3
 // *******************************************************
 
+[float]
 [[apm-server-starting]]
-==== Step 3: Start
+== Step 3: Start
 
 In a production environment, you would put APM Server on its own machines,
 similar to how you run {es}.
@@ -426,7 +286,7 @@ You can change the defaults in `apm-server.yml` or by supplying a different addr
 
 [float]
 [[apm-running-deb-rpm]]
-===== Debian Package / RPM
+=== Debian Package / RPM
 
 For Debian package and RPM installations, we recommend the `apm-server` process runs as a non-root user.
 Therefore, these installation methods create an `apm-server` user which you can use to start the process.
@@ -447,8 +307,9 @@ See the <<apm-directory-layout,deb & rpm default paths>> for a full directory la
 // STEP 4
 // *******************************************************
 
+[float]
 [[apm-next-steps]]
-==== Step 4: Next steps
+== Step 4: Next steps
 
 // Use a tagged region to pull APM Agent information from the APM Overview
 If you haven't already, you can now install APM Agents in your services!
@@ -469,75 +330,11 @@ you can start visualizing your data in the <<apm-ui,{kib} APM UI>>.
 
 If you're migrating from Jaeger, see <<apm-jaeger-integration>>.
 
+////
+Subsections
+////
+
 // Shared APM & YUM
-include::{observability-docs-root}/docs/en/observability/apm/repositories.asciidoc[]
-
+include::{observability-docs-root}/docs/en/observability/apm/repositories.asciidoc[leveloffset=+1]
 // Shared docker
-include::{observability-docs-root}/docs/en/observability/apm/shared-docker.asciidoc[]
-
-[[get-started-with-fleet-apm-server]]
-=== Fleet-managed APM Server
-
-This guide will explain how to set up and configure a Fleet-managed APM Server.
-
-[float]
-==== Prerequisites
-
-You need {es} for storing and searching your data, and {kib} for visualizing and managing it.
-When setting these components up, you need:
-
-include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/prereq.asciidoc[tag=self-managed]
-
-==== Step 1: Set up Fleet
-
-Use {fleet} in {kib} to get APM data into the {stack}.
-The first time you use {fleet}, you'll need to set it up and add a
-{fleet-server}:
-
-include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/add-fleet-server/content.asciidoc[tag=self-managed]
-
-For more information, refer to {fleet-guide}/fleet-server.html[{fleet-server}].
-
-[[add-apm-integration]]
-==== Step 2: Add and configure the APM integration
-
-include::{observability-docs-root}/docs/en/observability/tab-widgets/add-apm-integration/content.asciidoc[tag=self-managed]
-
-****
-An internet connection is required to install the APM integration via the Fleet UI in Kibana.
-
---
-include::{observability-docs-root}/docs/en/observability/apm/getting-started-apm-server.asciidoc[tag=install-apm-integration-no-internet]
---
-****
-
-==== Step 3: Install APM agents
-
-APM agents are written in the same language as your service.
-To monitor a new service, you must install the agent and configure it with a service name,
-APM Server host, and Secret token.
-
-* **Service name**: The APM integration maps an instrumented service's name–defined in each {apm-agent}'s configuration–
-to the index that its data is stored in {es}.
-Service names are case-insensitive and must be unique.
-For example, you cannot have a service named `Foo` and another named `foo`.
-Special characters will be removed from service names and replaced with underscores (`_`).
-
-* **APM Server URL**: The host and port that APM Server listens for events on.
-This should match the host and port defined when setting up the APM integration.
-
-* **Secret token**: Authentication method for {apm-agent} and APM Server communication.
-This should match the secret token defined when setting up the APM integration.
-
-TIP: You can edit your APM integration settings if you need to change the APM Server URL
-or secret token to match your APM agents.
-
-include::{observability-docs-root}/docs/en/observability/apm/tab-widgets/install-agents-widget.asciidoc[]
-
-==== Step 4: View your data
-
-Back in {kib}, under {observability}, select APM.
-You should see application performance monitoring data flowing into the {stack}!
-
-[role="screenshot"]
-image::./images/kibana-apm-sample-data.png[APM UI with data]
+include::{observability-docs-root}/docs/en/observability/apm/shared-docker.asciidoc[leveloffset=+1]
