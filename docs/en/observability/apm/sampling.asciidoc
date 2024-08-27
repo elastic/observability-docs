@@ -29,50 +29,62 @@ data might be discarded purely due to chance.
 
 See <<apm-configure-head-based-sampling>> to get started.
 
-**Distributed tracing with head-based sampling**
+[float]
+===== Distributed tracing
 
 In a distributed trace, the sampling decision is still made when the trace is initiated.
 Each subsequent service respects the initial service's sampling decision, regardless of its configured sample rate;
 the result is a sampling percentage that matches the initiating service.
 
 In this example, `Service A` initiates four transactions and has sample rate of `.5` (`50%`).
-The sample rates of `Service B` and `Service C` are ignored.
+The upstream sampling decision is respected, so even if the sample rate is defined and is a different
+value in `Service B` and `Service C`, the sample rate will be `.5` (`50%`) for all services.
 
 image::./images/dt-sampling-example-1.png[Distributed tracing and head based sampling example one]
 
 In this example, `Service A` initiates four transactions and has a sample rate of `1` (`100%`).
-Again, the sample rates of `Service B` and `Service C` are ignored.
+Again, the upstream sampling decision is respected, so the sample rate for all services will
+be `1` (`100%`).
 
 image::./images/dt-sampling-example-2.png[Distributed tracing and head based sampling example two]
 
-In addition to setting the sample rate, you can also specify what trace continuation strategy to use.
-This can be especially helpful if:
+[float]
+===== Trace continuation strategies with distributed tracing
 
-* An Elastic-monitored service is receiving requests with `traceparent` headers from unmonitored or third-party monitored services.
-* An Elastic-monitored service is publicly exposed, and does not want tracing data to possibly be spoofed by user requests.
+In addition to setting the sample rate, you can also specify which _trace continuation strategy_ to use.
+There are three trace continuation strategies: `continue`, `restart`, and `restart_external`.
 
-The default continuation strategy is `continue`, which will behave similar to the examples above.
+The *`continue`* trace continuation strategy is the default and will behave similar to the examples above.
 
-The example below uses the `restart` continuation strategy in which a new trace is started with every service.
-// Is this true? Is the opposite true?
-`Service A` initiates four transactions, and because it is a third-party monitored service none of the transactions will be sampled.
-`Service B` and `Service C` are Elastic-monitored services with sample rates of `.5` (`50%`) and `1` (`100%`) respectively.
-Because these are treated as separate traces when using the `restart` continuation strategy,
-the sample rate for each service is applied, unlike the examples above.
+Use the *`restart_external`* trace continuation strategy on an Elastic-monitored service to start
+a new trace if the previous service did not have a `traceparent` header. This can be helpful if a
+transaction includes an Elastic-monitored service that is receiving requests from an unmonitored service.
 
-image::./images/dt-sampling-continuation-strategy-restart.png[Distributed tracing and head based sampling with restart continuation strategy]
-
-The next example uses the `restart_external` continuation strategy in which a new
-trace is only started if the previous service was not Elastic-monitored.
-`Service A` is an Elastic-monitored service initiates four transactions with a sample rate of `.25` (`25%`).
-// Is `Service B` part of the trace that starts in `Service A`?
-Because `Service B` is a third-party monitored service that will be the end of the traces started in `Service A`.
-`Service C` will initiate four transactions that which start new traces with a sample rate of `.5` (`50%`).
-Because `Service D` is also Elastic-monitored service, the sample rates of `Service D` is ignored.
+In the example below, `Service A` is an Elastic-monitored service that initiates four transactions
+with a sample rate of `.25` (`25%`). Because `Service B` is unmonitored, the traces started in
+`Service A` will end there. `Service C` is an Elastic-monitored service that initiates four transactions
+that start new traces with a new sample rate of `.5` (`50%`). Because `Service D` is also
+Elastic-monitored service, the upstream sampling decision defined in `Service C` is respected.
+The end result will be three sampled traces.
 
 image::./images/dt-sampling-continuation-strategy-restart_external.png[Distributed tracing and head based sampling with restart_external continuation strategy]
 
-**OpenTelemetry with head-based sampling**
+Use the *`restart`* trace continuation strategy on an Elastic-monitored service to start
+a new trace regardless of whether the previous service had a `traceparent` header.
+This can be helpful if an Elastic-monitored service is publicly exposed, and you do not
+want tracing data to possibly be spoofed by user requests.
+
+In the example below, `Service A` and `Service B` are Elastic-monitored services that use the
+default trace continuation strategy. `Service A` has a sample rate of `.25` (`25%`), and that
+sampling decision is respected in `Service B`. `Service C` is an Elastic-monitored service that
+uses the `restart` trace continuation strategy and has a sample rate of `1` (`100%`).
+Because it uses `restart`, the upstream sample rate is _not_ respected in `Service C` and all four
+traces will be sampled as new traces in `Service C`. The end result will be five sampled traces.
+
+image::./images/dt-sampling-continuation-strategy-restart.png[Distributed tracing and head based sampling with restart continuation strategy]
+
+[float]
+===== OpenTelemetry
 
 Head-based sampling is implemented directly in the APM agents and SDKs.
 The sample rate must be propagated between services and the managed intake service in order to produce accurate metrics.
@@ -129,7 +141,7 @@ and will work with traces sent by either Elastic APM agents or OpenTelemetry SDK
 Due to <<apm-open-telemetry-tbs,OpenTelemetry tail-based sampling limitations>> when using https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor[tailsamplingprocessor], we recommend using APM Server tail-based sampling instead.
 
 [float]
-=== Sampled data and visualizations
+==== Sampled data and visualizations
 
 A sampled trace retains all data associated with it.
 A non-sampled trace drops all <<apm-data-model-spans,span>> and <<apm-data-model-transactions,transaction>> data^1^.
@@ -155,7 +167,7 @@ The {kib} apps that utilize RUM data depend on transaction events,
 so non-sampled RUM traces retain transaction data -- only span data is dropped.
 
 [float]
-=== Sample rates
+==== Sample rates
 
 What's the best sampling rate? Unfortunately, there isn't one.
 Sampling is dependent on your data, the throughput of your application, data retention policies, and other factors.
