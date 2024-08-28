@@ -1,0 +1,87 @@
+[[apm-data-security]]
+= Data security
+
+When setting up Elastic APM, it's essential to review all captured data carefully to ensure
+it doesn't contain sensitive information like passwords, credit card numbers, or health data.
+In addition, you may wish to filter out other identifiable information, like IP addresses, user agent information,
+or form field data.
+
+Depending on the type of data, we offer several different ways to filter, manipulate,
+or obfuscate sensitive information during or before ingestion:
+
+* <<apm-built-in-data-filters>>
+* <<apm-custom-data-filters>>
+
+In addition to utilizing filters, you should regularly review the <<apm-sensitive-fields,sensitive fields>> table to ensure
+sensitive data is not being ingested. If it is, it's possible to remove or redact it.
+See <<apm-data-security-delete>> for more information.
+
+[float]
+[[apm-built-in-data-filters]]
+== Built-in data filters
+
+// tag::data-filters[]
+Built-in data filters allow you to filter or turn off ingestion of the following types of data:
+
+[options="header"]
+|====
+|Data type |Common sensitive data
+|<<apm-filters-http-header>> |Passwords, credit card numbers, authorization, etc.
+|<<apm-filters-http-body>> |Passwords, credit card numbers, etc.
+|<<apm-filters-personal-data>> |Client IP address and user agent.
+|<<apm-filters-real-user-data>> |URLs visited, click events, user browser errors, resources used, etc.
+|<<apm-filters-database-statements>> |Sensitive user or business information
+|====
+// end::data-filters[]
+
+[float]
+[[apm-custom-data-filters]]
+== Custom filters
+
+// tag::custom-filters[]
+Custom filters allow you to filter or redact other types of APM data on ingestion:
+
+|====
+|<<apm-filters-ingest-pipeline,Ingest pipelines>> | Applied at ingestion time.
+All agents and fields are supported. Data leaves the instrumented service.
+There are no performance overhead implications on the instrumented service.
+
+|<<apm-filters-in-agent,{apm-agent} filters>> | Not supported by all agents.
+Data is sanitized before leaving the instrumented service.
+Potential overhead implications on the instrumented service
+|====
+// end::custom-filters[]
+
+[float]
+[[apm-sensitive-fields]]
+== Sensitive fields
+
+You should review the following fields regularly to ensure sensitive data is not being captured:
+
+[options="header"]
+|====
+| Field | Description | Remedy
+| `client.ip` | The client IP address, as forwarded by proxy. | <<apm-filters-personal-data>>
+| `http.request.body.original` | The body of the monitored HTTP request. | <<apm-filters-http-body>>
+| `http.request.headers` | The canonical headers of the monitored HTTP request. | <<apm-filters-http-header>>
+| `http.request.socket.remote_address` | The address of the last proxy or end-user (if no proxy). | <<apm-custom-filter>>
+| `http.response.headers` | The canonical headers of the monitored HTTP response. | <<apm-filters-http-header>>
+| `process.args` | Process arguments. | <<apm-filters-database-statements>>
+| `span.db.statement` | Database statement. | <<apm-filters-database-statements>>
+| `stacktrace.vars` | A flat mapping of local variables captured in the stack frame | <<apm-custom-filter>>
+| `url.query` | The query string of the request, e.g. `?pass=hunter2`. | <<apm-custom-filter>>
+| `user.*` | Logged-in user information. | <<apm-custom-filter>>
+| `user_agent.*` | Device and version making the network request. | <<apm-filters-personal-data>>
+|====
+
+////
+Subsections
+////
+
+:leveloffset: +1
+
+include::{observability-docs-root}/docs/en/observability/apm/security/data-security/filtering.asciidoc[]
+include::{observability-docs-root}/docs/en/observability/apm/security/data-security/custom-filter.asciidoc[]
+include::{observability-docs-root}/docs/en/observability/apm/security/data-security/delete.asciidoc[]
+
+:!leveloffset:
