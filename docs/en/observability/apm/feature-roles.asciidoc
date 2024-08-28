@@ -45,25 +45,23 @@ A _role_ identifies a set of permissions that translate to privileges on resourc
 
 Below are some common tasks that users in your organization might need to do and links to more information on creating roles that provides access to the right resources:
 
+* <<apm-privileges-to-publish-events,*Writer role*>>:
+Allows a user to publish events collected by APM Server, which is *required* to write to {es}.
 * <<apm-privileges-agent-central-config,*Central configuration management role*>>:
 Allows a user to view APM Agent central configurations, which is *required* when
 <<apm-agent-configuration,central configuration management>> is enabled (it is enabled by default).
-* <<apm-privileges-to-publish-events,*Writer role*>>:
-Allows a user to publish events collected by APM Server.
 * <<apm-privileges-to-publish-monitoring,*Monitoring role*>>: Allows a user to publish monitoring data,
 view monitoring data, or both.
-* <<apm-privileges-api-key,*API key role*>>: Allow a user to create and manage API keys.
+* <<apm-privileges-api-key,*API key role*>>: Allows a user to create and manage API keys.
 * <<apm-privileges-rum-source-mapping,*RUM source mapping role*>>: Allows a user to read RUM source maps.
 
-// Is "deployment" the right word?
 .Example: Assigning multiple roles to a user
 *****
-For example, if you have a user in your organization who needs to be able to <do something> in a deployment where
-central configuration management is enabled and <<apm-configuration-rum,real user monitoring>> is enabled,
-you would need to assign three of the roles listed above to the user:
+For example, if you use agent central configuration to manage APM agents and you use RUM source mapping,
+and you want to create a user who can <do something>, you would need to assign these three roles to the user:
 
-* <<apm-privileges-agent-central-config,Central configuration management role>>
 * <<apm-privileges-to-publish-events,Writer role>>
+* <<apm-privileges-agent-central-config,Central configuration management role>>
 * <<apm-privileges-to-publish-events,RUM source mapping role>>
 *****
 
@@ -76,6 +74,52 @@ In general, there are three types of privileges you'll work with:
 * **{es} cluster privileges**: Manage the actions a user can perform against your cluster.
 * **{es} index privileges**: Control access to the data in specific indices your cluster.
 * **{kib} space privileges**: Grant users write or read access to features and apps within {kib}.
+
+////
+***********************************  ***********************************
+***********************************  ***********************************
+////
+
+[float]
+[[apm-privileges-to-publish-events]]
+=== Create a _writer_ role
+
+
+APM users that publish events to {es} _must_ privileges to write to APM data streams.
+
+// Not sure if I captured this accurately...
+[NOTE]
+====
+This is not needed if APM Server doesn't write to {es} directly.
+Instead, another configured {es} role will need to be passed to
+<<apm-agent-config-elasticsearch,`apm-server.agent.config.elasticsearch`>>.
+====
+
+To grant an APM user the required privileges for writing events to {es}:
+
+. Create a *general writer role*, called something like `apm_writer`,
+that has the following privileges:
++
+[options="header"]
+|====
+|Type | Privilege | Purpose
+
+|Index
+|`auto_configure` on `traces-apm*`, `logs-apm*`, and `metrics-apm*` indices
+|Permits auto-creation of indices and data streams
+
+|Index
+|`create_doc` on `traces-apm*`, `logs-apm*`, and `metrics-apm*` indices
+|Write events into {es}
+|====
+
+. Assign the *general writer role* to users who need to publish APM data.
+
+[NOTE]
+====
+Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
+_Central configuration management role_, which is <<apm-central-config-role-note,required in most cases>>.
+====
 
 ////
 ***********************************  ***********************************
@@ -123,45 +167,14 @@ which requires the following privileges:
 |Allow APM Server to manage central configurations via the APM UI
 |====
 
-TIP: Looking for privileges and roles needed to use central configuration from the APM UI or APM UI API?
-See <<apm-app-central-config-user,APM UI central configuration user>>.
-
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
-
-[float]
-[[apm-privileges-to-publish-events]]
-=== Create a _writer_ role
-
-APM users that publish events to {es} need privileges to write to APM data streams.
-To grant an APM user the required privileges for writing events to {es}:
-
-. Create a *general writer role*, called something like `apm_writer`,
-that has the following privileges:
-+
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-|Index
-|`auto_configure` on `traces-apm*`, `logs-apm*`, and `metrics-apm*` indices
-|Permits auto-creation of indices and data streams
-
-|Index
-|`create_doc` on `traces-apm*`, `logs-apm*`, and `metrics-apm*` indices
-|Write events into {es}
-|====
-
-. Assign the *general writer role* to users who need to publish APM data.
-. Assign <<apm-feature-roles,additional APM feature roles>> to users as needed
-(including the _Central configuration management role_, which is <<apm-central-config-role-note,required in most cases>>).
-
 [NOTE]
 ====
-If <<apm-configuration-rum,real user monitoring>> is enabled, create a separate <<apm-privileges-rum-source-mapping,RUM source mapping role>>.
+Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
+_Writer role_, which is <<apm-privileges-to-publish-events,required in most cases>>.
 ====
+
+TIP: Looking for privileges and roles needed to use central configuration from the APM UI or APM UI API?
+See <<apm-app-central-config-user,APM UI central configuration user>>.
 
 ////
 ***********************************  ***********************************
@@ -218,7 +231,6 @@ make sure you set the password before using it.
 
 If you don't use the +apm_system+ user, you can create a custom role:
 
---
 . Create a *monitoring role*, called something like
 +apm_monitoring_writer+, that has the following privileges:
 +
@@ -236,9 +248,13 @@ If you don't use the +apm_system+ user, you can create a custom role:
 |====
 +
 . Assign the *monitoring role* to users who need to write monitoring data to {es}.
-. Assign <<apm-feature-roles,additional APM feature roles>> to users as needed
-(including the _Central configuration management role_, which is <<apm-central-config-role-note,required in most cases>>).
---
+
+[NOTE]
+====
+Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
+<<apm-privileges-to-publish-events,_Writer role_>> and <<apm-central-config-role-note,_Central configuration management role_>>,
+both of which are required in most cases.
+====
 
 [float]
 [[apm-privileges-to-publish-monitoring-metricbeat]]
@@ -271,7 +287,6 @@ make sure you set the password before using it.
 
 If you don't use the `remote_monitoring_user` user, you can create a custom user:
 
---
 . Create a *monitoring user* on the production cluster who will collect and send monitoring
 information. Assign the following roles to the *monitoring user*:
 +
@@ -286,9 +301,12 @@ information. Assign the following roles to the *monitoring user*:
 |Send monitoring data to the monitoring cluster
 |====
 
-. Assign <<apm-feature-roles,additional APM feature roles>> to the *monitoring user* as needed
-(including the _Central configuration management role_, which is <<apm-central-config-role-note,required in most cases>>).
---
+[NOTE]
+====
+Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
+<<apm-privileges-to-publish-events,_Writer role_>> and <<apm-central-config-role-note,_Central configuration management role_>>,
+both of which are required in most cases.
+====
 
 [float]
 [[apm-privileges-to-publish-monitoring-view]]
@@ -322,8 +340,13 @@ need to view monitoring data for APM Server:
 |`monitoring_user`
 |Grants access to monitoring indices for APM Server
 |====
-. Assign <<apm-feature-roles,additional APM feature roles>> to users as needed
-(including the _Central configuration management role_, which is <<apm-central-config-role-note,required in most cases>>).
+
+[NOTE]
+====
+Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
+<<apm-privileges-to-publish-events,_Writer role_>> and <<apm-central-config-role-note,_Central configuration management role_>>,
+both of which are required in most cases.
+====
 
 ////
 ***********************************  ***********************************
@@ -357,8 +380,13 @@ also assign the appropriate `apm` application-level privileges:
 * To **upload source maps**, assign `sourcemap:write`.
 . Assign the **API key role** to users that need to create and manage API keys.
 Users with this role can only create API keys that have the same or lower access rights.
-. Assign <<apm-feature-roles,additional APM feature roles>> to users as needed
-(including the _Central configuration management role_, which is <<apm-central-config-role-note,required in most cases>>).
+
+[NOTE]
+====
+Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
+<<apm-privileges-to-publish-events,_Writer role_>> and <<apm-central-config-role-note,_Central configuration management role_>>,
+both of which are required in most cases.
+====
 
 [float]
 [[apm-privileges-api-key-example]]
@@ -416,8 +444,12 @@ assign the user the following privileges:
 |Allow APM Server to read RUM source maps from {es}
 |====
 
-Then assign <<apm-feature-roles,additional APM feature roles>> to users as needed
-(including the _Central configuration management role_, which is <<apm-central-config-role-note,required in most cases>>).
+[NOTE]
+====
+Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
+<<apm-privileges-to-publish-events,_Writer role_>> and <<apm-central-config-role-note,_Central configuration management role_>>,
+both of which are required in most cases.
+====
 
 The above privileges should be sufficient for RUM source mapping to work properly
 as long as APM Server communicates with {es} successfully.
