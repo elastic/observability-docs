@@ -1,5 +1,5 @@
 [[apm-sampling]]
-=== Transaction sampling
+= Transaction sampling
 
 Distributed tracing can generate a substantial amount of data.
 More data can mean higher costs and more noise.
@@ -14,7 +14,7 @@ Elastic APM supports two types of sampling:
 
 [float]
 [[apm-head-based-sampling]]
-==== Head-based sampling
+== Head-based sampling
 
 In head-based sampling, the sampling decision for each trace is made when the trace is initiated.
 Each trace has a defined and equal probability of being sampled.
@@ -113,7 +113,7 @@ Refer to the documentation of your favorite OpenTelemetry agent or SDK for more 
 
 [float]
 [[apm-tail-based-sampling]]
-==== Tail-based sampling
+== Tail-based sampling
 
 In tail-based sampling, the sampling decision for each trace is made after the trace has completed.
 This means all traces will be analyzed against a set of rules, or policies, which will determine the rate at which they are sampled.
@@ -148,7 +148,7 @@ and will work with traces sent by either Elastic APM agents or OpenTelemetry SDK
 Due to <<apm-open-telemetry-tbs,OpenTelemetry tail-based sampling limitations>> when using https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor[tailsamplingprocessor], we recommend using APM Server tail-based sampling instead.
 
 [float]
-==== Sampled data and visualizations
+== Sampled data and visualizations
 
 A sampled trace retains all data associated with it.
 A non-sampled trace drops all <<apm-data-model-spans,span>> and <<apm-data-model-transactions,transaction>> data^1^.
@@ -174,7 +174,7 @@ The {kib} apps that utilize RUM data depend on transaction events,
 so non-sampled RUM traces retain transaction data -- only span data is dropped.
 
 [float]
-==== Sample rates
+== Sample rates
 
 What's the best sampling rate? Unfortunately, there isn't one.
 Sampling is dependent on your data, the throughput of your application, data retention policies, and other factors.
@@ -189,26 +189,27 @@ Here are some examples:
 
 Regardless of the above, cost conscious customers are likely to be fine with a lower sample rate.
 
+[float]
 [[apm-configure-head-based-sampling]]
-==== Configure head-based sampling
+== Configure head-based sampling
 
 There are three ways to adjust the head-based sampling rate of your APM agents:
 
 [float]
-===== Dynamic configuration
+=== Dynamic configuration
 
 The transaction sample rate can be changed dynamically (no redeployment necessary) on a per-service and per-environment
 basis with <<apm-agent-configuration,{apm-agent} Configuration>> in {kib}.
 
 [float]
-===== {kib} API configuration
+=== {kib} API configuration
 
 {apm-agent} configuration exposes an API that can be used to programmatically change
 your agents' sampling rate.
 An example is provided in the <<apm-agent-config-api,Agent configuration API reference>>.
 
 [float]
-===== {apm-agent} configuration
+=== {apm-agent} configuration
 
 Each agent provides a configuration value used to set the transaction sample rate.
 See the relevant agent's documentation for more details:
@@ -221,8 +222,9 @@ See the relevant agent's documentation for more details:
 * Python: {apm-py-ref-v}/configuration.html#config-transaction-sample-rate[`transaction_sample_rate`]
 * Ruby: {apm-ruby-ref-v}/configuration.html#config-transaction-sample-rate[`transaction_sample_rate`]
 
+[float]
 [[apm-configure-tail-based-sampling]]
-==== Configure tail-based sampling
+== Configure tail-based sampling
 
 Enable tail-based sampling with <<sampling-tail-enabled-ref>>.
 When enabled, trace events are mapped to sampling policies.
@@ -241,7 +243,7 @@ but, due to how the limit is calculated and enforced the actual disk space may s
 over the limit.
 
 [float]
-===== Example configuration
+=== Example configuration
 
 This example defines three tail-based sampling polices:
 
@@ -261,14 +263,14 @@ This example defines three tail-based sampling polices:
 or traces with any other name
 
 [float]
-===== Configuration reference
+=== Configuration reference
 
 **Top-level tail-based sampling settings:**
 
 :leveloffset: +4
-include::./configure/sampling.asciidoc[tag=tbs-top]
+include::{observability-docs-root}/docs/en/observability/apm/configure/sampling.asciidoc[tag=tbs-top]
 
 **Policy settings:**
 
-include::./configure/sampling.asciidoc[tag=tbs-policy]
+include::{observability-docs-root}/docs/en/observability/apm/configure/sampling.asciidoc[tag=tbs-policy]
 :leveloffset: -4
