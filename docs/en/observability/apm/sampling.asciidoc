@@ -30,22 +30,25 @@ data might be discarded purely due to chance.
 See <<apm-configure-head-based-sampling>> to get started.
 
 [float]
+[[distributed-tracing-examples]]
 ===== Distributed tracing
 
 In a distributed trace, the sampling decision is still made when the trace is initiated.
 Each subsequent service respects the initial service's sampling decision, regardless of its configured sample rate;
 the result is a sampling percentage that matches the initiating service.
 
-In this example, `Service A` initiates four transactions and has sample rate of `.5` (`50%`).
+In the example in _Figure 1_, `Service A` initiates four transactions and has sample rate of `.5` (`50%`).
 The upstream sampling decision is respected, so even if the sample rate is defined and is a different
 value in `Service B` and `Service C`, the sample rate will be `.5` (`50%`) for all services.
 
+.Upstream sampling decision is respected
 image::./images/dt-sampling-example-1.png[Distributed tracing and head based sampling example one]
 
-In this example, `Service A` initiates four transactions and has a sample rate of `1` (`100%`).
+In the example in _Figure 2_, `Service A` initiates four transactions and has a sample rate of `1` (`100%`).
 Again, the upstream sampling decision is respected, so the sample rate for all services will
 be `1` (`100%`).
 
+.Upstream sampling decision is respected
 image::./images/dt-sampling-example-2.png[Distributed tracing and head based sampling example two]
 
 [float]
@@ -54,20 +57,22 @@ image::./images/dt-sampling-example-2.png[Distributed tracing and head based sam
 In addition to setting the sample rate, you can also specify which _trace continuation strategy_ to use.
 There are three trace continuation strategies: `continue`, `restart`, and `restart_external`.
 
-The *`continue`* trace continuation strategy is the default and will behave similar to the examples above.
+The *`continue`* trace continuation strategy is the default and will behave similar to the examples in
+the <<distributed-tracing-examples,Distributed tracing section>>.
 
 Use the *`restart_external`* trace continuation strategy on an Elastic-monitored service to start
 a new trace if the previous service did not have a `traceparent` header with `es` vendor data.
 This can be helpful if a transaction includes an Elastic-monitored service that is receiving requests
 from an unmonitored service.
 
-In the example below, `Service A` is an Elastic-monitored service that initiates four transactions
+In the example in _Figure 3_, `Service A` is an Elastic-monitored service that initiates four transactions
 with a sample rate of `.25` (`25%`). Because `Service B` is unmonitored, the traces started in
 `Service A` will end there. `Service C` is an Elastic-monitored service that initiates four transactions
 that start new traces with a new sample rate of `.5` (`50%`). Because `Service D` is also
 Elastic-monitored service, the upstream sampling decision defined in `Service C` is respected.
 The end result will be three sampled traces.
 
+.Using the `restart_external` trace continuation strategy
 image::./images/dt-sampling-continuation-strategy-restart_external.png[Distributed tracing and head based sampling with restart_external continuation strategy]
 
 Use the *`restart`* trace continuation strategy on an Elastic-monitored service to start
@@ -75,13 +80,14 @@ a new trace regardless of whether the previous service had a `traceparent` heade
 This can be helpful if an Elastic-monitored service is publicly exposed, and you do not
 want tracing data to possibly be spoofed by user requests.
 
-In the example below, `Service A` and `Service B` are Elastic-monitored services that use the
+In the example in _Figure 4_, `Service A` and `Service B` are Elastic-monitored services that use the
 default trace continuation strategy. `Service A` has a sample rate of `.25` (`25%`), and that
 sampling decision is respected in `Service B`. `Service C` is an Elastic-monitored service that
 uses the `restart` trace continuation strategy and has a sample rate of `1` (`100%`).
 Because it uses `restart`, the upstream sample rate is _not_ respected in `Service C` and all four
 traces will be sampled as new traces in `Service C`. The end result will be five sampled traces.
 
+.Using the `restart` trace continuation strategy
 image::./images/dt-sampling-continuation-strategy-restart.png[Distributed tracing and head based sampling with restart continuation strategy]
 
 [float]
