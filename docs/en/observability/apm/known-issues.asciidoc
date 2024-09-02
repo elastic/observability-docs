@@ -19,28 +19,28 @@ If applicable, exact error messages linked to this issue so users searching for 
 Link to fix
 ////
 
-*Upgrading to v8.15.0 may cause APM indices to become unmanaged w.r.t. lifecycle policy* +
+*Upgrading to v8.15.0 may cause APM indices to lose their lifecycle policy* +
 _Elastic Stack versions: 8.15.0_ +
 _Fixed in Elastic Stack version 8.15.1_
 
 // The conditions in which this issue occurs
-The issue occurs when Elastic Stack is upgraded to 8.15.0.
-The issue will NOT occur on a new cluster creation with version 8.15.0.
-The issue occurs because APM Server switched to Elasticsearch APM-data plugin for managing index templates.
+The issue only occurs when _upgrading_ the {stack} to 8.15.0.
+The issue does _not_ occur when creating a _new_ cluster using 8.15.0.
 
-The switch also migrated us from Index Lifecycle Management (ILM) to Datastream Lifecycle (DSL) for managing
-data retention for APM indices. Due to this migration, any datastream created before 8.15.0 would be without
-datastream lifecycle configuration and, when migrated to 8.15.0, would become unmanaged (without any data 
-retention configuration). This can be fixed by explicitly configuring APM datastreams with the default
-lifecyle config:
+// Describe why it happens
+This happens because APM Server now uses the Elasticsearch apm-data plugin to manage
+index templates, and as a result APM Server now uses data stream lifecycle (DSL) instead
+of index lifecycle management (ILM) to manage data retention for APM indices.
+This means that any data stream created before 8.15.0 does not have DSL configuration
+and, when upgraded to 8.15.0, the data stream becomes unmanaged because it has
+no DSL configuration. 
+
+// How to fix it
+This can be fixed by explicitly configuring APM data streams with the default
+DSL config:
 
 [source,txt]
 ----
-
-Thanks for adding more details, we have identified a bug which is causing this issue. In 8.15.0 we migrated from using ILM to DLM (Datastream Lifecycle) and on update, the existing datastreams are not updated with the DLM settings causing Unmanaged indexes.
-
-I have created a bug report in APM-Server and we are working on a fix. For short-term mitigation, we would need to update all the APM datastream manually with the default data retention:
-
 PUT _data_stream/traces-apm-*/_lifecycle
 {
   "data_retention": "10d"
@@ -87,11 +87,12 @@ PUT _data_stream/logs-apm.*/_lifecycle
 }
 ----
 
-NOTE that while this issue is fixed in 8.15.1, any indices created in 8.15.0 due
+// Link to fix if it exists
+While this issue is fixed in 8.15.1 (https://github.com/elastic/elasticsearch/pull/112028[elastic/elasticsearch#112028]), any indices created in 8.15.0 due
 to rollovers would still be unmanaged even after upgrading. The only way to fix
-these is by configuring the datastream lifecycle explicitly as described above.
-Explicitly configuring datastream lifecycle has an added benefit of migrating
-to datastream lifecycle for all APM datastreams.
+these is by configuring the data stream lifecycle explicitly as described above.
+Explicitly configuring data stream lifecycle has an added benefit of migrating
+to data stream lifecycle for all APM data streams.
 
 [[broken-apm-anomaly-rule]]
 *Upgrading to v8.13.0 to v8.13.2 breaks APM anomaly rules* +
