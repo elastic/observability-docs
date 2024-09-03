@@ -26,18 +26,24 @@ _Fixed in Elastic Stack version 8.15.1_
 // The conditions in which this issue occurs
 The issue only occurs when _upgrading_ the {stack} to 8.15.0.
 The issue does _not_ occur when creating a _new_ cluster using 8.15.0.
+The issue also does not occur if a custom ILM policy is configured using a custom component template.
 
 // Describe why it happens
 This happens because APM Server now uses the Elasticsearch apm-data plugin to manage
-index templates, and as a result APM Server now uses data stream lifecycle (DSL) instead
+index templates, and as a result APM Server now uses datastream lifecycle (DSL) instead
 of index lifecycle management (ILM) to manage data retention for APM indices.
-This means that any data stream created before 8.15.0 does not have DSL configuration
-and, when upgraded to 8.15.0, the data stream becomes unmanaged because it has
+This means that any datastream created before 8.15.0 does not have DSL configuration
+and, when upgraded to 8.15.0, the datastream becomes unmanaged because it has
 no DSL configuration. 
 
 // How to fix it
-This can be fixed by explicitly configuring APM data streams with the default
-DSL config:
+Upgrading to 8.15.1 should fix any new indices created for the datastream. However,
+indices created in version 8.15.0 would remain unmanaged if a custom ILM policy is not
+used. One of the following two approaches can be adopted to fix the unmanaged indices:
+1. Manually delete the indices when they are no longer needed.
+2. Explicitly configure APM datastreams with the default DSL config, note that using
+this approach would migrate all datastreams to DSL which should be equivalent to the
+default ILM policies:
 
 [source,txt]
 ----
@@ -88,11 +94,7 @@ PUT _data_stream/logs-apm.*/_lifecycle
 ----
 
 // Link to fix if it exists
-While this issue is fixed in 8.15.1 (https://github.com/elastic/elasticsearch/pull/112028[elastic/elasticsearch#112028]), any indices created in 8.15.0 due
-to rollovers would still be unmanaged even after upgrading. The only way to fix
-these is by configuring the data stream lifecycle explicitly as described above.
-Explicitly configuring data stream lifecycle has an added benefit of migrating
-to data stream lifecycle for all APM data streams.
+This issue is fixed in 8.15.1 (https://github.com/elastic/elasticsearch/pull/112028[elastic/elasticsearch#112028]).
 
 [[broken-apm-anomaly-rule]]
 *Upgrading to v8.13.0 to v8.13.2 breaks APM anomaly rules* +
