@@ -29,12 +29,10 @@ The issue does _not_ occur when creating a _new_ cluster using 8.15.0.
 The issue also does not occur if a custom ILM policy is configured using a custom component template.
 
 // Describe why it happens
-This happens because APM Server now uses the Elasticsearch apm-data plugin to manage
-index templates, and as a result APM Server now uses datastream lifecycle (DSL) instead
-of index lifecycle management (ILM) to manage data retention for APM indices.
-This means that any datastream created before 8.15.0 does not have DSL configuration
-and, when upgraded to 8.15.0, the datastream becomes unmanaged because it has
-no DSL configuration. 
+In 8.15.0, APM Server switched to use Datastream Lifecycle(DSL) to manage data retention
+for APM indices for new deployments as well as for upgraded deployments with default lifecycle
+configurations. Unfortunately, since any datastream created before 8.15.0 does not have DSL
+configuration, such existing datastreams become unmanaged for default lifecycle configurations.
 
 // How to fix it
 Upgrading to 8.15.1 should fix any new indices created for the datastream. However,
