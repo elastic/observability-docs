@@ -29,19 +29,19 @@ The issue does _not_ occur when creating a _new_ cluster using 8.15.0.
 The issue also does not occur if a custom ILM policy is configured using a custom component template.
 
 // Describe why it happens
-In 8.15.0, APM Server switched to use Data stream Lifecycle to manage data retention
+In 8.15.0, APM Server switched to use data stream lifecycle to manage data retention
 for APM indices for new deployments as well as for upgraded deployments with default lifecycle
-configurations. Unfortunately, since any data stream created before 8.15.0 does not have data
+configurations. Unfortunately, since any data stream created before 8.15.0 does not have a data
 stream lifecycle configuration, such existing data streams become unmanaged for default
 lifecycle configurations.
 
 // How to fix it
 Upgrading to 8.15.1 should fix any new indices created for the data stream. However,
-indices created in version 8.15.0 would remain unmanaged if a custom ILM policy is not
-used. One of the following two approaches can be adopted to fix the unmanaged indices:
+indices created in version 8.15.0 would remain unmanaged if the default ILM policy is
+used. One of the following approaches can be adopted to fix the unmanaged indices:
 1. Manually delete the indices when they are no longer needed.
-2. Explicitly configure APM data streams with the default data stream lifecycle config,
-note that using this approach would migrate all data streams to data stream lifecycle
+2. Explicitly configure APM data streams with the default data stream lifecycle config.
+Using this approach would migrate all data streams to use data stream lifecycles,
 which should be equivalent to the default ILM policies:
 
 [source,txt]
