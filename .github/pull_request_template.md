@@ -1,23 +1,31 @@
 ## Description
 <!-- Add a description here -->
 
+### Documentation sets edited in this PR
+
+_Check all that apply._
+
+- [ ] Stateful (`docs/en/observability/*`)
+- [ ] Serverless (`docs/en/serverless/*`)
+- [ ] Integrations Developer Guide (`docs/en/integrations/*`)
+- [ ] None of the above
+
 ### Related issue
 Closes # <!-- Add the issue this PR closes here -->
 
 ## Checklist
+
 - [ ] Product/Engineering Review
 - [ ] Writer Review
 
-### Serverless/Stateful port
-<!--
-Most documentation changes apply to both our Serverless and Stateful content sets.
-You must either add your changes to both content sets or add the `needs-serverless-port`
-or `needs-stateless-port` label to this PR.
--->
-Select one of the following:
-- [ ] This PR adds content to both the Serverless and Stateful docs ✔️
-- [ ] This PR only applies to one content set and does not need to be ported ✔️
-- [ ] This PR adds Serverless content and has been ported to Stateful in PR#_HERE ✔️
-- [ ] This PR adds Serverless content and I've added the `needs-stateless-port` label 🚧
-- [ ] This PR adds Stateful content and has been ported to Servless in PR#_HERE ✔️
-- [ ] This PR adds Stateful content and I've added the `needs-serverless-port` label 🚧
+### Follow-up tasks
+<!-- If you are updating the Integrations Developer Guide, you can delete this section -->
+
+_Select one._
+
+* This PR does _not_ need to be ported to another doc set because:
+  - [ ] The concepts in this PR only apply to one doc set (serverless _or_ stateful)
+  - [ ] The PR contains edits to both doc sets (serverless _and_ stateful)
+* This PR needs to be ported to another doc set:
+  - [ ] Port to stateful docs: \<link to PR or tracking issue>
+  - [ ] Port to serverless docs: \<link to PR or tracking issue>
