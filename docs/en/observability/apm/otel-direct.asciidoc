@@ -48,12 +48,15 @@ service:
   pipelines:
     traces:
       receivers: [otlp]
+      processors: [..., memory_limiter, batch]
       exporters: [debug, otlp/elastic]
     metrics:
       receivers: [otlp]
+      processors: [..., memory_limiter, batch]
       exporters: [debug, otlp/elastic]
     logs: <8>
       receivers: [otlp]
+      processors: [..., memory_limiter, batch]
       exporters: [debug, otlp/elastic]
 ----
 <1> The receivers, like the
@@ -123,13 +126,7 @@ For information on how to format an API key, see
 
 Please note the required space between `Bearer` and `an_apm_secret_token`, and `ApiKey` and `an_api_key`.
 
-The Python OpenTelemetry agent requires the content of the header to be URL-encoded. For the `Bearer` token that would mean substituting the space between `Bearer` and the token with `%20`, e.g. `"Authorization=Bearer%20an_apm_secret_token"`, for encoding an API key you can use the following snippet:
-
-[source,python]
-----
-from urllib.parse import quote
-quote("ApiKey an_api_key")
-----
+NOTE: If you are using a version of the Python OpenTelemetry agent _before_ 1.27.0, the content of the header _must_ be URL-encoded. You can use the Python standard library's `urllib.parse.quote` function to encode the content of the header.
 
 | `OTEL_METRICS_EXPORTER` | Metrics exporter to use. See https://opentelemetry.io/docs/specs/otel/configuration/sdk-environment-variables/#exporter-selection[exporter selection] for more information.
 
