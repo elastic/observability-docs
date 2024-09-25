@@ -9,8 +9,29 @@ NOTE: This documentation only applies to the APM Server binary.
 
 Use role-based access control or API keys to grant APM Server users access to secured resources.
 
-* <<apm-feature-roles,Create and assign feature roles to users>>
-* <<apm-beats-api-keys>>
+[discrete]
+[[apm-secure-comms-stack-role-based]]
+=== Role-based access
+
+{es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a
+subset of the privileges needed by users.
+When possible, assign users the built-in roles to minimize the affect of future changes on your security strategy.
+
+If no built-in role is available, you can assign users the privileges needed to accomplish a specific task by
+creating and assigning feature roles to users.
+
+<<apm-feature-roles,*Read more in Use feature roles →*>>
+
+[discrete]
+[[apm-secure-comms-stack-api-keys]]
+=== API keys
+
+Instead of using usernames and passwords, you can use API keys to grant access to Elasticsearch resources. You can set API keys to expire at a certain time, and you can explicitly invalidate them.
+
+<<apm-beats-api-keys,*Read more in Grant access using API keys →*>>
+
+[discrete]
+=== More resources
 
 After privileged users have been created, use authentication to connect to a secured Elastic cluster.
 
@@ -21,13 +42,13 @@ For secure communication between APM Server and APM Agents, see <<apm-secure-age
 
 A reference of all available <<apm-configuration-ssl-landing,SSL configuration settings>> is also available.
 
-[float]
 [[apm-security-overview]]
-=== Security Overview
-
+[IMPORTANT]
+====
 APM Server exposes an HTTP endpoint, and as with anything that opens ports on your servers,
 you should be careful about who can connect to it.
 Firewall rules are recommended to ensure only authorized systems can connect.
+====
 
 [[apm-feature-roles]]
 === Create and assign feature roles to APM Server users
@@ -36,14 +57,22 @@ Firewall rules are recommended to ensure only authorized systems can connect.
 <titleabbrev>Use feature roles</titleabbrev>
 ++++
 
-It's recommended that you only grant APM Server users the minimum privileges required to use specific features. One approach to managing access on a feature-by-feature basis is to create several feature-related _roles_ and assign one or more of these roles to each _user or group_ based on which features the user needs to access.
+It's recommended that you only grant APM Server users the minimum privileges required to use specific features.
+{es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a subset of the privileges needed by users.
+If no built-in role is available, you can manage access on a feature-by-feature basis by creating several custom feature-related _roles_ and assigning one or more of these roles to each _user or group_ based on which features they need to access.
 
 [TIP]
 ====
 A _role_ identifies a set of permissions that translate to privileges on resources. You can associate a _user or group_ with an arbitrary number of roles. The total set of permissions that a user has is defined by the union of the permissions in all its roles.
+
+In general, there are three types of privileges you'll work with when creating roles:
+
+* **{es} cluster privileges**: Manage the actions a user can perform against your cluster.
+* **{es} index privileges**: Control access to the data in specific indices your cluster.
+* **{kib} space privileges**: Grant users write or read access to features and apps within {kib}.
 ====
 
-Below are some common tasks that APM Server users might need to do and links to more information on creating roles that provides access to the right resources:
+Below are some common roles that APM Server users might need:
 
 * <<apm-privileges-to-publish-events,*Writer role*>>:
 Allows a user to publish events collected by APM Server, which is *required* to write to {es}.
@@ -57,23 +86,14 @@ view monitoring data, or both.
 // TO DO: Replace <do something> with a common task made possible by the listed roles
 .Example: Assigning multiple roles to an APM Server user
 *****
-For example, if you use agent central configuration to manage APM agents and you use RUM source mapping,
-and you want to create an APM Server user who can <do something>, you would need to assign these three roles to the user:
+If you use agent central configuration to manage APM agents, you use RUM source mapping,
+and you want to create an APM Server user who can <do something>,
+you would need to assign these three roles to the user:
 
 * <<apm-privileges-to-publish-events,Writer role>>
 * <<apm-privileges-agent-central-config,Central configuration management role>>
 * <<apm-privileges-to-publish-events,RUM source mapping role>>
 *****
-
-{es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a
-subset of the privileges needed by users.
-When possible, assign users the built-in roles to minimize the affect of future changes on your security strategy.
-If no built-in role is available, you can assign users the privileges needed to accomplish a specific task.
-In general, there are three types of privileges you'll work with:
-
-* **{es} cluster privileges**: Manage the actions a user can perform against your cluster.
-* **{es} index privileges**: Control access to the data in specific indices your cluster.
-* **{kib} space privileges**: Grant users write or read access to features and apps within {kib}.
 
 ////
 ***********************************  ***********************************
@@ -223,12 +243,12 @@ Monitoring on {ecloud} is enabled by clicking the *Enable* button in the *Monito
 If you're using <<apm-monitoring-internal-collection,internal collection>> to
 collect metrics about APM Server, you can either:
 
-* Use the  built-in `apm_system` user or role
+* Use the built-in `apm_system` user or role
 * Create a custom role
 
 *Use a built-in user or role*
 
-{security-features} provides the +apm_system+ {ref}/built-in-users.html[built-in user] and
+{es-security-features} provides the +apm_system+ {ref}/built-in-users.html[built-in user] and
 +apm_system+ {ref}/built-in-roles.html[built-in role] to send
 monitoring information. You can use the built-in user, if it's available in your
 environment, or create a user who has the built-in role assigned,
@@ -284,7 +304,7 @@ metrics about APM Server, you can either:
 
 *Use a built-in user or role*
 
-{security-features} provides the `remote_monitoring_user`
+{es-security-features} provides the `remote_monitoring_user`
 {ref}/built-in-users.html[built-in user], and the `remote_monitoring_collector`
 and `remote_monitoring_agent` {ref}/built-in-roles.html[built-in roles] for
 collecting and sending monitoring information. You can use the built-in user, if
