@@ -1,14 +1,23 @@
 [[apm-common-problems]]
 = Common problems
 
-This section describes common problems you might encounter when using a Fleet-managed APM Server.
+This section describes common problems you might encounter when using APM Server and the APM UI in {kib}.
+
+*APM Server*:
 
 * <<apm-no-data-indexed>>
-* <<apm-common-response-codes>>
 * <<apm-common-ssl-problems>>
 * <<apm-io-timeout>>
 * <<apm-field-limit-exceeded>>
 * <<apm-tail-based-sampling-memory-disk-io>>
+
+*APM UI*:
+
+* <<no-apm-data-found>>
+* <<troubleshooting-too-many-transactions>>
+* <<troubleshooting-unknown-route>>
+* <<troubleshooting-fields-unsearchable>>
+* <<service-map-rum-connections>>
 
 [float]
 [[apm-no-data-indexed]]
@@ -18,54 +27,6 @@ If no data shows up in {es}, first make sure that your APM components are proper
 
 include::{observability-docs-root}/docs/en/observability/apm/tab-widgets/no-data-indexed-widget.asciidoc[]
 
-[[apm-data-indexed-no-apm]]
-[float]
-== Data is indexed but doesn't appear in the APM UI
-
-The APM UI relies on index mappings to query and display data.
-If your APM data isn't showing up in the APM UI, but is elsewhere in {kib}, like the Discover app,
-you may have a missing index mapping.
-
-You can determine if a field was mapped correctly with the `_mapping` API.
-For example, run the following command in the {kib} {kibana-ref}/console-kibana.html[console].
-This will display the field data type of the `service.name` field.
-
-[source,curl]
-----
-GET *apm*/_mapping/field/service.name
-----
-
-If the `mapping.name.type` is `"text"`, your APM indices were not set up correctly.
-
-[source,yml]
-----
-".ds-metrics-apm.transaction.1m-default-2023.04.12-000038": {
-   "mappings": {
-      "service.name": {
-         "full_name": "service.name",
-         "mapping": {
-            "name": {
-               "type": "text" <1>
-            }
-         }
-      }
-   }
-}
-----
-<1> The `service.name` `mapping.name.type` would be `"keyword"` if this field had been set up correctly.
-
-To fix this problem, install the APM integration by following these steps:
-
-include::{observability-docs-root}/docs/en/observability/apm/getting-started-apm/_apm_server_binary.asciidoc[leveloffset=+2,tag=install-apm-integration]
-
-This will reinstall the APM index templates and trigger a data stream index rollover.
-
-You can verify the correct index templates were installed by running the following command in the {kib} console:
-
-[source,curl]
-----
-GET /_index_template/traces-apm
-----
 
 [float]
 [[apm-common-ssl-problems]]
@@ -197,23 +158,9 @@ it is possible to see a significant increase in OS page cache memory usage due t
 If you see a drop in throughput and excessive disk activity after enabling tail-based sampling,
 please ensure that there is enough memory headroom in the system for OS page cache to perform disk IO efficiently.
 
-
-// TO DO:
-// Integrate into the rest of the content on this page
-
-[discrete]
-[[troubleshooting-apm-app]]
-== Troubleshoot common APM UI problems
-
-* <<no-apm-data-found>>
-* <<troubleshooting-too-many-transactions>>
-* <<troubleshooting-unknown-route>>
-* <<troubleshooting-fields-unsearchable>>
-* <<service-map-rum-connections>>
-
 [float]
 [[no-apm-data-found]]
-=== No APM data found
+== Data doesn't appear in the APM UI
 
 This section can help with any of the following:
 
@@ -225,15 +172,64 @@ This section can help with any of the following:
 These problems are likely to be caused by a missing index template or ingest pipeline.
 By default, {fleet} sets up these and other APM assets when the APM integration is installed.
 Try reinstalling the APM integration by navigating to
-**Integrations** > **Elastic APM** > **Manage in Fleet** > **Settings** > **Reinstall Elastic APM**.
+**Integrations** → **Elastic APM** → **Manage in Fleet** → **Settings** → **Reinstall Elastic APM**.
 
 Because assets cannot be applied to indices retroactively,
 after reinstalling the APM integration you must either wait for the index to rollover or force a rollover.
 To force a rollover, use the {ref}/indices-rollover-index.html[rollover API] to target the relevant {apm-guide-ref}/apm-data-streams.html[APM data streams].
 
 [float]
+[[apm-data-indexed-no-apm]]
+=== Data is indexed but doesn't appear in the APM UI
+
+The APM UI relies on index mappings to query and display data.
+If your APM data isn't showing up in the APM UI, but is elsewhere in {kib}, like the Discover app,
+you may have a missing index mapping.
+
+You can determine if a field was mapped correctly with the `_mapping` API.
+For example, run the following command in the {kib} {kibana-ref}/console-kibana.html[console].
+This will display the field data type of the `service.name` field.
+
+[source,curl]
+----
+GET *apm*/_mapping/field/service.name
+----
+
+If the `mapping.name.type` is `"text"`, your APM indices were not set up correctly.
+
+[source,yml]
+----
+".ds-metrics-apm.transaction.1m-default-2023.04.12-000038": {
+   "mappings": {
+      "service.name": {
+         "full_name": "service.name",
+         "mapping": {
+            "name": {
+               "type": "text" <1>
+            }
+         }
+      }
+   }
+}
+----
+<1> The `service.name` `mapping.name.type` would be `"keyword"` if this field had been set up correctly.
+
+To fix this problem, install the APM integration by following these steps:
+
+include::{observability-docs-root}/docs/en/observability/apm/getting-started-apm/_apm_server_binary.asciidoc[leveloffset=+2,tag=install-apm-integration]
+
+This will reinstall the APM index templates and trigger a data stream index rollover.
+
+You can verify the correct index templates were installed by running the following command in the {kib} console:
+
+[source,curl]
+----
+GET /_index_template/traces-apm
+----
+
+[float]
 [[troubleshooting-too-many-transactions]]
-=== Too many unique transaction names
+== Too many unique transaction names
 
 Transaction names are defined in each APM agent; when an APM agent supports a framework,
 it includes logic for naming the transactions that the framework creates.
@@ -298,7 +294,7 @@ See the relevant {apm-agents-ref}[Agent API documentation] to adjust how you're 
 
 [float]
 [[troubleshooting-unknown-route]]
-=== Unknown route
+== Unknown route
 
 The <<apm-transactions,transaction overview>> will only display helpful information
 when the transactions in your services are named correctly.
@@ -319,7 +315,7 @@ You can also use the agent's public API to manually set a name for the transacti
 
 [float]
 [[troubleshooting-fields-unsearchable]]
-=== Fields are not searchable
+== Fields are not searchable
 
 In Elasticsearch, index templates are used to define settings and mappings that determine how fields should be analyzed.
 The recommended index templates for APM are installed by {fleet} when the Elastic APM integration is installed.
@@ -353,7 +349,7 @@ These are dynamic by default, which means they will be indexed and become search
 
 [float]
 [[service-map-rum-connections]]
-=== Service Maps: no connection between client and server
+== Service Maps: no connection between client and server
 
 If the service map is not showing an expected connection between the client and server,
 it's likely because you haven't configured
