@@ -29,11 +29,12 @@ In the role descriptors box, assign the appropriate privileges to the new API ke
 [source,json,subs="attributes,callouts"]
 ----
 {
-    "{beat_default_index_prefix}_writer": {
+    "apm_writer": {
+        "cluster": ["monitor"],
         "index": [
             {
-                "names": ["{beat_default_index_prefix}-*"],
-                "privileges": ["create_index", "create_doc"]
+                "names": ["traces-apm*","logs-apm*", "metrics-apm*"],
+                "privileges": ["auto_configure", "create_doc"]
             }
         ]
     },
@@ -49,7 +50,8 @@ In the role descriptors box, assign the appropriate privileges to the new API ke
         "index": [
             {
                 "names": [".apm-agent-configuration"],
-                "privileges": ["read"]
+                "privileges": ["read"],
+                "allow_restricted_indices": true
             }
         ]
     }
@@ -130,11 +132,12 @@ POST /_security/api_key
 {
   "name": "{beat_default_index_prefix}_host001", <1>
   "role_descriptors": {
-    "{beat_default_index_prefix}_writer": { <2>
+    "apm_writer": { <2>
+      "cluster": ["monitor"],
       "index": [
         {
-          "names": ["{beat_default_index_prefix}-*"],
-          "privileges": ["create_index", "create_doc"]
+          "names": ["traces-apm*","logs-apm*", "metrics-apm*"],
+          "privileges": ["auto_configure", "create_doc"]
         }
       ]
     },
@@ -150,7 +153,8 @@ POST /_security/api_key
       "index": [
         {
           "names": [".apm-agent-configuration"],
-          "privileges": ["read"]
+          "privileges": ["read"],
+          "allow_restricted_indices": true
         }
       ]
     }
