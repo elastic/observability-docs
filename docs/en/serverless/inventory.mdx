@@ -17,21 +17,27 @@ Inventory provides a single place where you can observe the status of your entir
 
 <DocImage url="../images/inventory-catalog.png" alt="Inventory catalog"/>
 
-Inventory is currently available for hosts, containers and services, but it can scale to support all of your entities.
+Inventory is currently available for hosts, containers and services, but it will scale to support all of your entities.
 
-- Hosts: Anything where `host.name` is set in a `metrics-*` or `logs-* index`
-- Containers: Anything where `container.id` is set in a `metrics-*` or `logs-* index`
-- Services: Anything where `service.name` is set in a `apm-*` or `logs-* index`
+The Elastic Entity Model currently supports the inventory experience (as identified by `host.name`, `service.name`, and `container.id`) located in data identified by the following index patterns:
+
+- Hosts
+  Where `host.name` is set in `metrics-*`, `logs-*`, `filebeat-*`, and `metricbeat-*`
+
+- Services
+  Where `service.name` is set in `filebeat*`, `logs-*`, `metrics-apm.service_transaction.1m*`, and `metrics-apm.service_summary.1m*`
+  
+- Containers
+  Where `container.id` is set in `metrics-*`, `logs-*`, `filebeat-*`, and `metricbeat-*`
 
 Inventory allows you to:
 
 - Filter for your entities to provide a high-level view of what you have leveraging your own tags and labels
-- Understand what needs attention by easily seeing what entities are alerting
-- Drill down into any host, container or services with curated entity views to help you understand performance
+- Drill down into any host, container or services to help you understand performance
 - Debug resource bottlenecks with your service caused by their containers and the hosts they run on.
 - Easily discover all entities related to the host, container or service you are viewing by leveraging your tags/labels
 
-## Explore the entities catalog
+## Explore your entities
 
 1. In your ((observability)) project, go to **Inventory** to open the entities catalog.
 
@@ -60,5 +66,13 @@ If you open an entity of type `host` or `container` that does not have infrastru
 
 To add entities to the inventory, use one of the following approaches:
 
-* Add data: TO_BE_COMPLETED
-* Associate existing service logs. To learn how, refer to <DocLink slug="/serverless/observability/add-logs-service-name" />.
+- **Add data** 
+  - Auto-detect logs and metrics 
+    Detects hosts (with metrics and logs)
+  - Kubernetes
+    Detects hosts, containers and services 
+  - Elastic APM / OpenTelemetry / Synthetic Monitor
+    Detects services
+
+- **Associate existing service logs**
+  To learn how, refer to <DocLink slug="/serverless/observability/add-logs-service-name" />.
