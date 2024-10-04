@@ -165,17 +165,23 @@ APM Server acts as a proxy between your APM agents and the APM UI.
 The APM UI communicates any changed settings to APM Server so that your agents only need to poll the Server
 to determine which central configuration settings have changed.
 
-To grant an APM Server user with the required privileges for managing central configuration in {es} without {kib},
-assign the user the following privileges:
+To create a role with the required privileges for managing central configuration in {es} without {kib},
+you must to use the {ref}/security-api-put-role.html[Roles API] (the required privileges can't be assigned to a role in Kibana):
 
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-| Index
-|`read` on `.apm-agent-configuration` index, `allow_restricted_indices: true`
-|Allow APM Server to manage central configurations in {es}
-|====
+[source,console]
+----
+POST /_security/role/apm_agentcfg
+{
+ "description": "Allow APM Server to manage central configurations in Elasticsearch.",
+ "indices": [
+   {
+     "names": [".apm-agent-configuration"],
+     "privileges": ["read"],
+     "allow_restricted_indices": true
+   }
+ ]
+}
+----
 
 The above privileges should be sufficient for APM agent central configuration to work properly
 as long as APM Server communicates with {es} successfully.
