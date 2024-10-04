@@ -39,7 +39,7 @@ The AI assistant requires the following:
 ** OpenAI `gpt-4`+.
 ** Azure OpenAI Service `gpt-4`(0613) or `gpt-4-32k`(0613) with API version `2023-07-01-preview` or more recent.
 ** AWS Bedrock, specifically the Anthropic Claude models.
-* An {enterprise-search-ref}/server.html[Enterprise Search] server if {enterprise-search-ref}/connectors.html[Search Connectors] are used to populate the knowledge base.
+* An {enterprise-search-ref}/server.html[Enterprise Search] server if {enterprise-search-ref}/connectors.html[search connectors] are used to populate external data into the knowledge base.
 * The knowledge base requires a 4 GB {ml} node.
 
 [IMPORTANT]
@@ -104,11 +104,11 @@ The AI Assistant uses {ml-docs}/ml-nlp-elser.html[ELSER], Elastic's semantic sea
 
 NOTE: Your AI provider may collect telemetry when using the AI Assistant. Contact your AI provider for information on how data is collected.
 
-External data can be added to the knowledge base through the following methods:
+Data can be added to the knowledge base through the following methods:
 
-* The **Knowledge base** UI available at <<obs-ai-settings>> page.
-* Configuring {enterprise-search-ref}/connectors.html[**Search Connectors**] from the <<obs-ai-settings>> page.
-* Manually using **{es} Index and Reindex APIs** (requires advanced skills).
+* <<obs-ai-kb-ui>> available at <<obs-ai-settings>> page.
+* <<obs-ai-search-connectors>>
+* <<obs-ai-reindex-api>> towards the knowledge base index directly (advanced method).
 
 It's also possible to add information to the knowledge base by asking the AI Assistant to remember something while chatting (for example, "remember this for next time"). The assistant will create a summary of the information and add it to the knowledge base.
 
@@ -137,35 +137,60 @@ To add external data to the knowledge base in {kib}:
 
 [discrete]
 [[obs-ai-search-connectors]]
-=== Use Search Connectors
+=== Use search connectors
 
 [TIP]
 ====
-{enterprise-search-ref}/connectors.html[Search Connectors] differ from the {kibana-ref}/action-types.html[Stack Connectors] configured during the <<obs-ai-set-up, AI Assistant setup>>.
-Search Connectors are only needed when importing external data into the Knowledge base of the AI Assistant, while the Stack Connector to the LLM is required for the AI Assistant to work.
+{enterprise-search-ref}/connectors.html[Search connectors] differ from the {kibana-ref}/action-types.html[Stack management -> Connectors] configured during the <<obs-ai-set-up, AI Assistant setup>>.
+Search connectors are only needed when importing external data into the Knowledge base of the AI Assistant, while the stack connector to the LLM is required for the AI Assistant to work.
 ====
 
+{enterprise-search-ref}/connectors.html[Connectors] allow you to index content from external sources thereby making it available for the AI Assistant. This can greatly improve the relevance of the AI Assistant’s responses. Data can be integrated from sources such as GitHub, Confluence, Google Drive, Jira, AWS S3, Microsoft Teams, Slack, and more.
 
-{enterprise-search-ref}/connectors.html[Search Connectors] allow to index content from external sources thereby making it available for the AI Assistant. This can greatly improve the relevance of the AI Assistant’s responses.
-These connectors are managed under *Search* -> *Connectors* in {kib}.
+These connectors are managed under *Search* -> *Content* -> *Connectors* in {kib}, they are outside of the {observability} Solution, and they require an {enterprise-search-ref}/server.html[Enterprise Search] server connected to the Elastic Stack.
 
-[IMPORTANT]
+By default, the AI Assistant queries all search connector indices. To customize which indices are queried, adjust the *Search connector index pattern* setting on the <<obs-ai-settings>> page. This allows precise control over which data sources are included in AI Assistant knowledge base.
+
+To create a connector and make its content available to the AI Assistant knowledge base, do the following:
+
+. In {kib} UI, go to *Search* -> *Content* -> *Connectors* and follow the instructions to create a new connector.
++
+[NOTE]
 ====
-Search Connectors require an Enterprise Search server. By default the AI Assistant will query the index for every search connector. Change the setting `observability:aiAssistantSearchConnectorIndexPattern` in the <<obs-ai-settings>> page if you want to modify this behavior.
+If your {kib} Space doesn't include the `Search` solution you will have to create the connector from a different space or change your space *Solution view* setting to `Classic`.
 ====
-
-(*TBD*) To use search connectors:
-
-. Open xxx
-. Create and synchronize connector
-. check that data is available for the AI Assistant
-. (pending to determine exact steps or links)
++
+For example, if you create a {enterprise-search-ref}/connectors-github.html[GitHub native connector] you will have to set a `name`, attach it to a new or existing `index`, add your `personal access token` and include the `list of repositories` to synchronize.
++
+Learn more about configuring connectors on (TBD - links)
++
+. Create a pipeline and process the data with ELSER
++
+In order to create the embeddings needed by the AI Assistant (weights and tokens into a sparse vector field) we will have to create a *ML Inference Pipeline*:
++
+.. Open the previously created connector and select the *Pipelines* tab.
+.. Select *Copy and customize* button at the `Unlock your custom pipelines` box.
+.. Select *Add Inference Pipeline* button at the `Machine Learning Inference Pipelines` box.
+.. Select ELSER ML model to add the necessary embeddings to the data.
+.. Select the fields that need to be evaluated as part of the inference pipeline.
+.. Test and save the inference pipeline and the overall pipeline.
+. Sync the data
++
+Once the pipeline is set up, perform a *Full Content Sync* in the connector. The inference pipeline will process the data as follows:
++
+* As data comes in, ELSER is applied to the data, and embeddings (weights and tokens into a sparse vector field) are added to capture semantic meaning and context of the data.
+* When you look at the documents that were ingested, you will see how the weights and token are added to the `predicted_value` field in the documents.
+. Check if AI Assistant can use the index (optional)
++
+Ask something to the AI Assistant related with the indexed data.
 
 [discrete]
-[[obs-ai-index-api]]
-=== Use the {es} Index API
+[[obs-ai-reindex-api]]
+=== Use the {es} Reindex API
 
-// EEDUGON note: is this section still worthy when we have the option of Search Connectors?
+TBD: quick introduction text about this method - Use the **{es} Reindex API** from existing indices towards the knowledge base index (advanced method).
+
+// EEDUGON note: is this section still worthy when we have the option of search connectors?
 // in the dest index below we are pointing directly to an ILM managed index that may not be valid. We should point to an existing ILM rollover alias or a data stream (TBD)
 // IMO this is too advanced to appear here. Maybe a different type of guide.
 
@@ -345,14 +370,14 @@ To learn more about alerting, actions, and connectors, refer to <<create-alerts>
 
 Access the AI Assistant Settings page:
 
-* From *{stack-manage-app}* -> _Kibana_ *AI Assistants* -> *Elastic AI Assistant for Observability* `Manage Settings` button.
-* From the `More ations` menu inside the AI Assistant window.
+* From *{stack-manage-app}* -> *Kibana* -> *AI Assistants* -> *Elastic AI Assistant for Observability*.
+* From the *More ations* menu inside the AI Assistant window.
 
 The AI Assistant Settings page contains the following tabs:
 
-* *Settings*: Configure the main AI Assistant settings, which are explained directly within the interface.
+* *Settings*: configure the main AI Assistant settings, which are explained directly within the interface.
 * *Knowledge base*: <<obs-ai-kb-ui,manage knowledge base entries>>. 
-* *Search Connectors*: *TBD*
+* *Search Connectors*: provides a link to {kib} *Search* -> *Content* -> *Connectors* UI for connectors configuration.
 
 [discrete]
 [[obs-ai-known-issues]]
