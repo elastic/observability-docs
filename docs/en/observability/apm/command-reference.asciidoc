@@ -2,7 +2,7 @@
 
 :deploy-command-short-desc: Deploys the specified function to your serverless environment
 
-:apikey-command-short-desc: Manage API Keys for communication between APM agents and server.
+:apikey-command-short-desc: Manage API Keys for communication between APM agents and server
 
 ifndef::serverless[]
 :export-command-short-desc: Exports the configuration, index template, or {ilm-init} policy to stdout
@@ -57,7 +57,9 @@ more information, see https://www.elastic.co/subscriptions and
 [options="header"]
 |=======================
 |Commands |
-|<<apm-apikey-command,`apikey`>> |{apikey-command-short-desc}.
+|<<apm-apikey-command,`apikey`>> a| {apikey-command-short-desc}.
+
+deprecated::[8.6.0, Users should create API Keys through {kib} or the {es} REST API. See <<apm-api-key>>.]
 |<<apm-export-command,`export`>> |{export-command-short-desc}.
 |<<apm-help-command,`help`>> |{help-command-short-desc}.
 ifndef::serverless[]
@@ -101,8 +103,31 @@ apm-server apikey SUBCOMMAND [FLAGS]
 Create an API Key with the specified privilege(s). No required flags.
 +
 The user requesting to create an API Key needs to have APM privileges used by the APM Server.
-A superuser, by default, has these privileges. For other users,
-you can create them. See <<apm-privileges-api-key,create an API key user>> for required privileges.
+A superuser, by default, has these privileges.
++
+.*Expand for more information on assigning these privileges to other users*
+[%collapsible]
+====
+To create an APM Server user with the required privileges for creating and managing API keys:
+
+. Create an **API key role**, called something like `apm_api_key`,
+that has the following `cluster` level privileges:
++
+[options="header"]
+|====
+| Privilege | Purpose
+
+|`manage_own_api_key`
+|Allow APM Server to create, retrieve, and invalidate API keys
+|====
+
+. Depending on what the **API key role** will be used for,
+also assign the appropriate `apm` application-level privileges:
++
+* To **receive Agent configuration**, assign `config_agent:read`.
+* To **ingest agent data**, assign `event:write`.
+* To **upload source maps**, assign `sourcemap:write`.
+====
 
 *`info`*::
 Query API Key(s). `--id` or `--name` required.
