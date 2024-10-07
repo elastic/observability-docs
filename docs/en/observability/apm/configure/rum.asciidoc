@@ -23,11 +23,11 @@ you will need to configure {apm-rum-ref-v}/configuring-cors.html[Cross-Origin Re
 
 [float]
 [[apm-enable-rum-support]]
-= Configuration reference
+== Configuration reference
 
 [[apm-rum-enable]]
 [float]
-== Enable RUM
+=== Enable RUM
 To enable RUM support, set to `true`.
 By default this is disabled. (bool)
 
@@ -45,7 +45,7 @@ Anonymous authentication is required as the RUM agent runs in the browser.
 
 [float]
 [[apm-rum-allow-origins]]
-== Allowed Origins
+=== Allowed Origins
 A list of permitted origins for RUM support.
 User-agents send an Origin header that will be validated against this list.
 This is done automatically by modern browsers as part of the https://www.w3.org/TR/cors/[CORS specification].
@@ -60,7 +60,7 @@ Default: `['*']` (allows everything). (text)
 
 [float]
 [[apm-rum-allow-headers]]
-== Access-Control-Allow-Headers
+=== Access-Control-Allow-Headers
 HTTP requests made from the RUM agent to the APM Server are limited in the HTTP headers they are allowed to have.
 If any other headers are added, the request will be rejected by the browser due to Cross-Origin Resource Sharing (CORS) restrictions.
 Use this setting to allow additional headers.
@@ -76,7 +76,7 @@ Default: `[]`. (text)
 
 [float]
 [[apm-rum-response-headers]]
-== Custom HTTP response headers
+=== Custom HTTP response headers
 Custom HTTP headers to add to RUM responses.
 This can be useful for security policy compliance.
 
@@ -91,7 +91,7 @@ Default: none. (text)
 
 [float]
 [[apm-rum-library-pattern]]
-== Library Frame Pattern
+=== Library Frame Pattern
 RegExp to be matched against a stack trace frame's `file_name` and `abs_path` attributes.
 If the RegExp matches, the stack trace frame is considered to be a library frame.
 When source mapping is applied, the `error.culprit` is set to reflect the _function_ and the _filename_
@@ -106,7 +106,7 @@ Default: `"node_modules|bower_components|~"`. (text)
 |====
 
 [float]
-== Exclude from grouping
+=== Exclude from grouping
 RegExp to be matched against a stack trace frame's `file_name`.
 If the RegExp matches, the stack trace frame is excluded from being used for calculating error groups.
 
@@ -120,7 +120,7 @@ Default: `"^/webpack"` (excludes stack trace frames that have a filename startin
 
 [float]
 [[apm-rum-source-map]]
-= Source map configuration options
+== Source map configuration options
 
 ****
 image:./binary-yes-fm-no.svg[supported deployment methods]
@@ -131,7 +131,7 @@ the options in this section are only supported by the APM Server binary.
 
 [[apm-config-sourcemapping-enabled]]
 [float]
-== `source_mapping.enabled`
+=== `source_mapping.enabled`
 Used to enable/disable <<apm-source-map-how-to,source mapping>> for RUM events.
 When enabled, the APM Server needs additional privileges to read source maps.
 See <<apm-privileges-rum-source-mapping>> for more details.
@@ -140,14 +140,14 @@ Default: `true`
 
 [[apm-config-sourcemapping-elasticsearch]]
 [float]
-== `source_mapping.elasticsearch`
+=== `source_mapping.elasticsearch`
 Configure the {es} source map retrieval location, taking the same options as <<apm-elasticsearch-output,output.elasticsearch>>.
 This must be set when using an output other than {es}, and that output is writing to {es}.
 Otherwise leave this section empty.
 
 [[apm-rum-sourcemap-cache]]
 [float]
-== `source_mapping.cache.expiration`
+=== `source_mapping.cache.expiration`
 If a source map has been uploaded to the APM Server,
 <<apm-source-map-how-to,source mapping>> is automatically applied to documents sent to the RUM endpoint.
 Source maps are fetched from {es} and then kept in an in-memory cache for the configured time.
@@ -156,7 +156,7 @@ Values configured without a time unit are treated as seconds.
 Default: `5m` (5 minutes)
 
 [float]
-== `source_mapping.index_pattern`
+=== `source_mapping.index_pattern`
 Previous versions of APM Server stored source maps in `apm-%{[observer.version]}-sourcemap` indices.
 Search source maps stored in an older version with this setting.
 
@@ -164,11 +164,11 @@ Default: `"apm-*-sourcemap*"`
 
 [float]
 [[apm-rum-deprecated]]
-= Deprecated configuration options
+== Deprecated configuration options
 
 [float]
 [[apm-event_rate.limit]]
-== `event_rate.limit`
+=== `event_rate.limit`
 
 deprecated::[7.15.0, Replaced by <<apm-config-auth-anon-event-limit>>.]
 
@@ -177,7 +177,7 @@ The maximum number of events allowed per second, per agent IP address.
 Default: `300`
 
 [float]
-== `event_rate.lru_size`
+=== `event_rate.lru_size`
 
 deprecated::[7.15.0, Replaced by <<apm-config-auth-anon-ip-limit>>.]
 
@@ -189,7 +189,7 @@ Default: `1000`
 
 [float]
 [[apm-rum-allow-service-names]]
-== `allow_service_names`
+=== `allow_service_names`
 
 deprecated::[7.15.0, Replaced by <<apm-config-auth-anon-allow-service>>.]
 A list of permitted service names for RUM support.
@@ -200,7 +200,7 @@ in order to limit the number of service-specific indices or data streams created
 Default: Not set (any service name is accepted)
 
 [float]
-= Ingest pipelines
+== Ingest pipelines
 
 The default APM Server pipeline includes processors that enrich RUM data prior to indexing in {es}.
 See <<apm-ingest-pipelines>> for details on how to locate, edit, or disable this preprocessing.
