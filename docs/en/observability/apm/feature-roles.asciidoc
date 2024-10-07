@@ -1,4 +1,3 @@
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
 [[apm-secure-comms-stack]]
 == Secure communication with the {stack}
 
@@ -10,10 +9,6 @@ NOTE: This documentation only applies to the APM Server binary.
 
 Use role-based access control or API keys to grant APM Server users access to secured resources.
 
-<<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-* <<apm-feature-roles>>
-* <<apm-beats-api-keys>>.
-========
 [discrete]
 [[apm-secure-comms-stack-role-based]]
 == Role-based access
@@ -33,7 +28,6 @@ Instead of using usernames and passwords, you can use API keys to grant access t
 
 [discrete]
 == More resources
->>>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/index.asciidoc
 
 After privileged users have been created, use authentication to connect to a secured Elastic cluster.
 
@@ -45,43 +39,15 @@ For secure communication between APM Server and APM Agents, see <<apm-secure-age
 A reference of all available <<apm-configuration-ssl-landing,SSL configuration settings>> is also available.
 
 [[apm-security-overview]]
-<<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-=== Security Overview
-
+[IMPORTANT]
+====
 APM Server exposes an HTTP endpoint, and as with anything that opens ports on your servers,
 you should be careful about who can connect to it.
 Firewall rules are recommended to ensure only authorized systems can connect.
+====
 
-[float]
 [[apm-feature-roles]]
-=== Feature roles
-
-You can use role-based access control to grant users access to secured
-resources. The roles that you set up depend on your organization's security
-requirements and the minimum privileges required to use specific features.
-
-Typically, you need to create the following separate roles:
-
-* <<apm-privileges-to-publish-events,Writer role>>: To publish events collected by APM Server.
-* <<apm-privileges-to-publish-monitoring,Monitoring role>>: One for sending monitoring
-information, and another for viewing it.
-* <<apm-privileges-api-key,API key role>>: To create and manage API keys.
-* <<apm-privileges-agent-central-config,Central configuration management role>>: To view
-APM Agent central configurations.
-* <<apm-privileges-rum-source-mapping,RUM source mapping role>>: To read RUM source maps.
-
-{es-security-features} provides {ref}/built-in-roles.html[built-in roles] that grant a
-subset of the privileges needed by APM users.
-When possible, assign users the built-in roles to minimize the affect of future changes on your security strategy.
-If no built-in role is available, you can assign users the privileges needed to accomplish a specific task.
-In general, there are three types of privileges you'll work with:
-
-* **{es} cluster privileges**: Manage the actions a user can perform against your cluster.
-* **{es} index privileges**: Control access to the data in specific indices your cluster.
-* **{kib} space privileges**: Grant users write or read access to features and apps within {kib}.
-=======
-[[apm-feature-roles]]
-= Create and assign feature roles to APM Server users
+=== Create and assign feature roles to APM Server users
 
 ++++
 <titleabbrev>Use feature roles</titleabbrev>
@@ -121,35 +87,18 @@ to manage APM agents, you would need to assign these three roles to the user:
 * <<apm-privileges-agent-central-config,Central configuration management role>>
 * <<apm-privileges-rum-source-mapping,RUM source mapping role>>
 *****
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 
 ////
 ***********************************  ***********************************
 ***********************************  ***********************************
 ////
 
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-[[apm-privileges-to-publish-events]]
-=== Grant privileges and roles needed for writing events
-
-++++
-<titleabbrev>Create a _writer_ user</titleabbrev>
-++++
-
-APM users that publish events to {es} need privileges to write to APM data streams.
-
-[float]
-==== General writer role
-
-To grant an APM user the required privileges for writing events to {es}:
-=======
 [float]
 [[apm-privileges-to-publish-events]]
-== Create a _writer_ role
+==== Create a _writer_ role
 
 APM users that publish events to {es} _must_ have privileges to write to APM data streams.
 
-// Not sure if I captured this accurately...
 [NOTE]
 ====
 This is not needed when APM Server doesn't write to {es} directly.
@@ -160,7 +109,6 @@ In these cases, different authentication credentials will need to be passed to
 ====
 
 To grant an APM Server user the required privileges for writing events to {es}:
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 
 . Create a *general writer role*, called something like `apm_writer`,
 that has the following privileges:
@@ -176,13 +124,6 @@ that has the following privileges:
 |Index
 |`create_doc` on `traces-apm*`, `logs-apm*`, and `metrics-apm*` indices
 |Write events into {es}
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-|====
-
-. Assign the *general writer role* to users who need to publish APM data.
-
-. If <<apm-configuration-rum,real user monitoring>> is enabled, create a separate <<apm-privileges-rum-source-mapping,RUM source mapping role>>.
-=======
 
 |Cluster
 |`monitor`
@@ -201,24 +142,15 @@ this privilege may not be necessary.
 Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
 _Central configuration management role_, which is <<apm-central-config-role-note,required in most cases>>.
 ====
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 
 ////
 ***********************************  ***********************************
 ***********************************  ***********************************
 ////
 
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-[[apm-privileges-to-publish-monitoring]]
-=== Grant privileges and roles needed for monitoring
-
-++++
-<titleabbrev>Create a _monitoring_ user</titleabbrev>
-++++
-=======
 [float]
 [[apm-privileges-agent-central-config]]
-== Create a _central configuration management_ role
+==== Create a _central configuration management_ role
 
 [[apm-central-config-role-note]]
 [IMPORTANT]
@@ -279,8 +211,7 @@ See <<apm-app-central-config-user,APM UI central configuration user>>.
 
 [float]
 [[apm-privileges-to-publish-monitoring]]
-== Create a _monitoring_ role
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
+==== Create a _monitoring_ role
 
 {es-security-features} provides built-in users and roles for publishing and viewing monitoring data.
 The privileges and roles needed to publish monitoring data
@@ -293,11 +224,7 @@ depend on the method used to collect that data.
 
 [float]
 [[apm-privileges-to-publish-monitoring-write]]
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-==== Publish monitoring data
-=======
-=== Publish monitoring data
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
+===== Publish monitoring data
 
 [IMPORTANT]
 ====
@@ -308,17 +235,7 @@ Monitoring on {ecloud} is enabled by clicking the *Enable* button in the *Monito
 
 [float]
 [[apm-privileges-to-publish-monitoring-internal]]
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-===== Internal collection
-
-If you're using <<apm-monitoring-internal-collection,internal collection>> to
-collect metrics about APM Server, {security-features} provides
-the +apm_system+ {ref}/built-in-users.html[built-in user] and
-+apm_system+ {ref}/built-in-roles.html[built-in role] to send
-monitoring information. You can use the built-in user, if it's available in your
-environment, or create a user who has the built-in role assigned,
-=======
-==== Internal collection
+====== Internal collection
 
 If you're using <<apm-monitoring-internal-collection,internal collection>> to
 collect metrics about APM Server, either:
@@ -332,23 +249,16 @@ collect metrics about APM Server, either:
 +apm_system+ {ref}/built-in-roles.html[built-in role] to send
 monitoring information. You can use the built-in user, if it's available in your
 environment, create a user who has the built-in role assigned,
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 or create a user and manually assign the privileges needed to send monitoring
 information.
 
 If you use the built-in +apm_system+ user,
 make sure you set the password before using it.
 
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-If you don't use the +apm_system+ user:
-
---
-=======
 *Create a custom role*
 
 If you don't use the +apm_system+ user, you can create a custom role:
 
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 . Create a *monitoring role*, called something like
 +apm_monitoring_writer+, that has the following privileges:
 +
@@ -365,14 +275,6 @@ If you don't use the +apm_system+ user, you can create a custom role:
 |Write monitoring events into {es}
 |====
 +
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-. Assign the *monitoring role* to users who need to write monitoring data to {es}.
---
-
-[float]
-[[apm-privileges-to-publish-monitoring-metricbeat]]
-===== {metricbeat} collection
-=======
 . Assign the *monitoring role* to APM Server users who need to write monitoring data to {es}.
 
 [NOTE]
@@ -384,8 +286,7 @@ both of which are required in most cases.
 
 [float]
 [[apm-privileges-to-publish-monitoring-metricbeat]]
-==== {metricbeat} collection
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
+====== {metricbeat} collection
 
 NOTE: When using {metricbeat} to collect metrics,
 no roles or users need to be created with APM Server.
@@ -393,9 +294,6 @@ See <<apm-monitoring-metricbeat-collection>>
 for complete details on setting up {metricbeat} collection.
 
 If you're <<apm-monitoring-metricbeat-collection,using {metricbeat}>> to collect
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-metrics about APM Server, {security-features} provides the `remote_monitoring_user`
-=======
 metrics about APM Server, you can either:
 
 * Use the built-in `remote_monitoring_user` user or role
@@ -404,7 +302,6 @@ metrics about APM Server, you can either:
 *Use a built-in user or role*
 
 {es-security-features} provides the `remote_monitoring_user`
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 {ref}/built-in-users.html[built-in user], and the `remote_monitoring_collector`
 and `remote_monitoring_agent` {ref}/built-in-roles.html[built-in roles] for
 collecting and sending monitoring information. You can use the built-in user, if
@@ -414,16 +311,10 @@ needed to collect and send monitoring information.
 If you use the built-in `remote_monitoring_user` user,
 make sure you set the password before using it.
 
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-If you don't use the `remote_monitoring_user` user:
-
---
-=======
 *Create a custom user*
 
 If you don't use the `remote_monitoring_user` user, you can create a custom user:
 
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 . Create a *monitoring user* on the production cluster who will collect and send monitoring
 information. Assign the following roles to the *monitoring user*:
 +
@@ -437,13 +328,6 @@ information. Assign the following roles to the *monitoring user*:
 |`remote_monitoring_agent`
 |Send monitoring data to the monitoring cluster
 |====
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
---
-
-[float]
-[[apm-privileges-to-publish-monitoring-view]]
-==== View monitoring data
-=======
 
 [NOTE]
 ====
@@ -454,8 +338,7 @@ both of which are required in most cases.
 
 [float]
 [[apm-privileges-to-publish-monitoring-view]]
-=== View monitoring data
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
+===== View monitoring data
 
 To grant users the required privileges for viewing monitoring data:
 
@@ -486,85 +369,6 @@ need to view monitoring data for APM Server:
 |Grants access to monitoring indices for APM Server
 |====
 
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
-
-[[apm-privileges-api-key]]
-=== Grant privileges and roles needed for API key management
-
-++++
-<titleabbrev>Create an _API key_ user</titleabbrev>
-++++
-
-You can configure <<apm-api-key,API keys>> to authorize requests to APM Server.
-To create an APM Server user with the required privileges for creating and managing API keys:
-
-. Create an **API key role**, called something like `apm_api_key`,
-that has the following `cluster` level privileges:
-+
-[options="header"]
-|====
-| Privilege | Purpose
-
-|`manage_own_api_key`
-|Allow APM Server to create, retrieve, and invalidate API keys
-|====
-
-. Depending on what the **API key role** will be used for,
-also assign the appropriate `apm` application-level privileges:
-+
-* To **receive Agent configuration**, assign `config_agent:read`.
-* To **ingest agent data**, assign `event:write`.
-* To **upload source maps**, assign `sourcemap:write`.
-
-. Assign the **API key role** to users that need to create and manage API keys.
-Users with this role can only create API keys that have the same or lower access rights.
-
-[float]
-[[apm-privileges-api-key-example]]
-=== Example API key role
-
-The following example assigns the required cluster privileges,
-and the ingest agent data `apm` API key application privileges to a role named `apm_api_key`:
-
-[source,kibana]
-----
-PUT _security/role/apm_api_key <1>
-{
-  "cluster": [
-    "manage_own_api_key" <2>
-  ],
-  "applications": [
-    {
-      "application": "apm",
-      "privileges": [
-        "event:write" <3>
-      ],
-      "resources": [
-        "*"
-      ]
-    }
-  ]
-}
-----
-<1> `apm_api_key` is the name of the role we're assigning these privileges to. Any name can be used.
-<2> Required cluster privileges.
-<3> Required for API keys that will be used to ingest agent events.
-========
-[IMPORTANT]
-====
-APM Server exposes an HTTP endpoint, and as with anything that opens ports on your servers,
-you should be careful about who can connect to it.
-Firewall rules are recommended to ensure only authorized systems can connect.
-====
-
->>>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/index.asciidoc
-
-
-=======
 [NOTE]
 ====
 Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
@@ -572,76 +376,16 @@ Assign <<apm-feature-roles,additional APM feature roles>> to users as needed inc
 both of which are required in most cases.
 ====
 
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 ////
 ***********************************  ***********************************
 ***********************************  ***********************************
 ////
 
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-<<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-[[apm-privileges-agent-central-config]]
-=== Grant privileges and roles needed for APM Agent central configuration
-
-++++
-<titleabbrev>Create a _central config_ user</titleabbrev>
-++++
-
-[float]
-[[apm-privileges-agent-central-config-server]]
-==== APM Server agent central configuration management
-
-APM Server acts as a proxy between your APM agents and the APM UI.
-The APM UI communicates any changed settings to APM Server so that your agents only need to poll the Server
-to determine which central configuration settings have changed.
-
-To grant an APM Server user with the required privileges for managing central configuration in {es} without {kib},
-assign the user the following privileges:
-
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-| Index
-|`read` on `.apm-agent-configuration` index, `allow_restricted_indices: true`
-|Allow APM Server to manage central configurations in {es}
-|====
-
-The above privileges should be sufficient for APM agent central configuration to work properly
-as long as APM Server communicates with {es} successfully.
-If it fails, it may fallback to read agent central configuration via {kib} if configured,
-which requires the following privileges:
-
-[options="header"]
-|====
-|Type | Privilege | Purpose
-
-| Spaces
-|`Read` on APM UI
-|Allow APM Server to manage central configurations via the APM UI
-|====
-
-TIP: Looking for privileges and roles needed to use central configuration from the APM UI or APM UI API?
-See <<apm-app-central-config-user,APM UI central configuration user>>.
-
-[[apm-privileges-rum-source-map]]
-=== Grant privileges and roles needed for reading source maps
-
-++++
-<titleabbrev>Create a _source map_ user</titleabbrev>
-++++
-
-[float]
-[[apm-privileges-rum-source-mapping]]
-==== APM Server RUM source mapping
-
-=======
 [float]
 [[apm-privileges-rum-source-map]]
-== Create a _source map_ role
+==== Create a _source map_ role
 
 [[apm-privileges-rum-source-mapping]]
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
 If <<apm-configuration-rum,real user monitoring>> is enabled, additional privileges are required to read source maps.
 
 To grant an APM Server user with the required privileges for reading RUM source maps from {es} directly without {kib},
@@ -656,31 +400,6 @@ assign the user the following privileges:
 |Allow APM Server to read RUM source maps from {es}
 |====
 
-<<<<<<< HEAD:docs/en/observability/apm/feature-roles.asciidoc
-The above privileges should be sufficient for RUM source mapping to work properly
-as long as APM Server communicates with {es} successfully.
-If it fails, it may fallback to read source maps via {kib} if configured,
-which requires additional {kib} privileges.
-See <<apm-rum-sourcemap-api,RUM source map API>> for more details.
-
-////
-***********************************  ***********************************
-***********************************  ***********************************
-////
-
-// [[apm-privileges-create-api-keys]]
-// === Grant privileges and roles needed to create APM Server API keys
-
-// ++++
-// <titleabbrev>Create an _APM API key_ user</titleabbrev>
-// ++++
-
-// CONTENT
-========
-include::{observability-docs-root}/docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc[leveloffset=+1]
-include::{observability-docs-root}/docs/en/observability/apm/security/elastic-stack/access-api-keys.asciidoc[leveloffset=+1]
->>>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/index.asciidoc
-=======
 [NOTE]
 ====
 Assign <<apm-feature-roles,additional APM feature roles>> to users as needed including the
@@ -693,4 +412,3 @@ as long as APM Server communicates with {es} successfully.
 If it fails, it may fallback to read source maps through {kib} if configured,
 which requires additional {kib} privileges.
 See <<apm-rum-sourcemap-api,RUM source map API>> for more details.
->>>>>>> d6a61fd1 ([apm] Update APM feature roles docs (#4193)):docs/en/observability/apm/security/elastic-stack/feature-roles.asciidoc
