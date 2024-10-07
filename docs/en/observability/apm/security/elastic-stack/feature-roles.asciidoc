@@ -9,16 +9,16 @@ Manage access on a feature-by-feature basis by creating several custom feature-r
 
 [TIP]
 ====
-A _role_ identifies a set of permissions that translate to privileges on resources. You can associate a _user or group_ with an arbitrary number of roles. The total set of permissions that a user has is defined by the union of the permissions in all its roles.
+A _role_ identifies a set of permissions that translates to privileges on resources. You can associate a _user or group_ with an arbitrary number of roles. The total set of permissions that a user has is defined by the union of the permissions in all its roles.
 
 In general, there are three types of privileges you'll work with when creating roles:
 
 * **{es} cluster privileges**: Manage the actions a user can perform against your cluster.
-* **{es} index privileges**: Control access to the data in specific indices your cluster.
+* **{es} index privileges**: Control access to the data in specific indices of your cluster.
 * **{kib} space privileges**: Grant users write or read access to features and apps within {kib}.
 ====
 
-Below are some common roles that APM Server users might need:
+The following are common roles that APM Server users might need:
 
 * <<apm-privileges-to-publish-events,*Writer role*>>:
 Allows a user to publish events collected by APM Server, which is *required* to write to {es}.
@@ -56,7 +56,7 @@ APM users that publish events to {es} _must_ have privileges to write to APM dat
 ====
 This is not needed when APM Server doesn't write to {es} directly.
 For example, in some cases you may configure APM Server to write to another
-output like Logstash, Kafka, or any another output supported by libbeat.
+output like Logstash, Kafka, or any other output supported by libbeat.
 In these cases, different authentication credentials will need to be passed to
 <<apm-agent-config-elasticsearch,`apm-server.agent.config.elasticsearch`>>.
 ====
@@ -103,12 +103,12 @@ _Central configuration management role_, which is <<apm-central-config-role-note
 
 [float]
 [[apm-privileges-agent-central-config]]
-== Create a _central config_ role
+== Create a _central configuration management_ role
 
 [[apm-central-config-role-note]]
 [IMPORTANT]
 ====
-The privileges included in this role are *required* for all users when <<apm-agent-configuration,central configuration management>> is enabled (it is enabled by default). You do _not_ need the _Central configuration management_ role only if central configuration management has been explicitly disabled in the APM UI.
+The privileges included in this role are *required* for all users when <<apm-agent-configuration,central configuration management>> is enabled (it is enabled by default). You need this role unless central configuration management has been explicitly disabled in the APM UI.
 ====
 
 [[apm-privileges-agent-central-config-server]]
@@ -117,7 +117,7 @@ The APM UI communicates any changed settings to APM Server so that your agents o
 to determine which central configuration settings have changed.
 
 To create a role with the required privileges for managing central configuration in {es} without {kib},
-you must to use the {ref}/security-api-put-role.html[Roles API] (the required privileges can't be assigned to a role in Kibana):
+you must use the {ref}/security-api-put-role.html[Roles API] (the required privileges can't be assigned to a role in Kibana):
 
 [source,console]
 ----
@@ -134,9 +134,9 @@ POST /_security/role/apm_agentcfg
 }
 ----
 
-The above privileges should be sufficient for APM agent central configuration to work properly
+The previous privileges should be sufficient for APM agent central configuration to work properly
 as long as APM Server communicates with {es} successfully.
-If it fails, it may fallback to read agent central configuration via {kib} if configured,
+If it fails, it may fallback to read agent central configuration through {kib} if configured,
 which requires the following privileges:
 
 [options="header"]
@@ -164,7 +164,7 @@ See <<apm-app-central-config-user,APM UI central configuration user>>.
 
 [float]
 [[apm-privileges-to-publish-monitoring]]
-=== Create a _monitoring_ role
+== Create a _monitoring_ role
 
 {es-security-features} provides built-in users and roles for publishing and viewing monitoring data.
 The privileges and roles needed to publish monitoring data
@@ -177,7 +177,7 @@ depend on the method used to collect that data.
 
 [float]
 [[apm-privileges-to-publish-monitoring-write]]
-== Publish monitoring data
+=== Publish monitoring data
 
 [IMPORTANT]
 ====
@@ -188,10 +188,10 @@ Monitoring on {ecloud} is enabled by clicking the *Enable* button in the *Monito
 
 [float]
 [[apm-privileges-to-publish-monitoring-internal]]
-=== Internal collection
+==== Internal collection
 
 If you're using <<apm-monitoring-internal-collection,internal collection>> to
-collect metrics about APM Server, you can either:
+collect metrics about APM Server, either:
 
 * Use the built-in `apm_system` user or role
 * Create a custom role
@@ -201,7 +201,7 @@ collect metrics about APM Server, you can either:
 {es-security-features} provides the +apm_system+ {ref}/built-in-users.html[built-in user] and
 +apm_system+ {ref}/built-in-roles.html[built-in role] to send
 monitoring information. You can use the built-in user, if it's available in your
-environment, or create a user who has the built-in role assigned,
+environment, create a user who has the built-in role assigned,
 or create a user and manually assign the privileges needed to send monitoring
 information.
 
@@ -239,7 +239,7 @@ both of which are required in most cases.
 
 [float]
 [[apm-privileges-to-publish-monitoring-metricbeat]]
-=== {metricbeat} collection
+==== {metricbeat} collection
 
 NOTE: When using {metricbeat} to collect metrics,
 no roles or users need to be created with APM Server.
@@ -360,8 +360,8 @@ Assign <<apm-feature-roles,additional APM feature roles>> to users as needed inc
 both of which are required in most cases.
 ====
 
-The above privileges should be sufficient for RUM source mapping to work properly
+The previous privileges should be sufficient for RUM source mapping to work properly
 as long as APM Server communicates with {es} successfully.
-If it fails, it may fallback to read source maps via {kib} if configured,
+If it fails, it may fallback to read source maps through {kib} if configured,
 which requires additional {kib} privileges.
 See <<apm-rum-sourcemap-api,RUM source map API>> for more details.
