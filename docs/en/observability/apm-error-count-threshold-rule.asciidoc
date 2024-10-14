@@ -1,0 +1,145 @@
+[[apm-error-count-threshold-rule]]
+= Error count threshold rule
+
+Alert when the number of errors in a service exceeds a defined threshold. Error count rules can be set at the
+environment level, service level, and error group level.
+
+[discrete]
+[[apm-error-count-threshold-rule-filters-conditions]]
+== Filters and conditions
+
+// TO DO: Write this section...
+Filters:
+
+* Service
+* Environment
+* Error grouping key
+
+Conditions:
+
+* is above XX errors
+* for the last X minutes
+
+[discrete]
+[[apm-error-count-threshold-rule-groups]]
+== Groups
+
+// TO DO: Write this section...
+Create an alert for every unique value. For example: "transaction.name". By default, alert is created for every unique service.name and service.environment.
+
+[discrete]
+== Actions
+
+Extend your rules by connecting them to actions that use built-in integrations.
+
+[discrete]
+=== Action types
+
+Supported built-in integrations include:
+
+include::../shared/alerting-connectors.asciidoc[]
+
+[discrete]
+=== Action variables
+
+Use the default notification message or customize it. You can add more context to the message by clicking the icon above the message text box and selecting from a list of available variables.
+
+// TO DO: add image?
+
+The following variables are specific to this rule type.
+You an also specify {kibana-ref}/rule-action-variables.html[variables common to all rules].
+
+`context.alertDetailsUrl`::
+Link to the alert troubleshooting view for further context and details. This will be an empty string if the server.publicBaseUrl is not configured.
+
+`context.environment`::
+The transaction type the alert is created for
+
+`context.errorGroupingKey`::
+The error grouping key the alert is created for
+
+`context.errorGroupingName`::
+The error grouping name the alert is created for
+
+`context.interval`::
+The length and unit of the time period where the alert conditions were met
+
+`context.reason`::
+A concise description of the reason for the alert
+
+`context.serviceName`::
+The service the alert is created for
+
+`context.threshold`::
+Any trigger value above this value will cause the alert to fir
+
+`context.transactionName`::
+The transaction name the alert is created for
+
+`context.triggerValue`::
+The value that breached the threshold and triggered the alert
+
+`context.viewInAppUrl`::
+Link to the alert source
+
+// TO DO: Should we show examples for all APM rules?
+
+// [discrete]
+// [[apm-create-error-alert]]
+// === Example
+
+// The error count threshold alert triggers when the number of errors in a service exceeds a defined threshold.
+// Because some errors are more important than others, this guide will focus a specific error group ID.
+
+// Before continuing, identify the service name, environment name, and error group ID that you'd like to create a latency anomaly rule for.
+// The easiest way to find an error group ID is to select the service that you're interested in and navigating to the **Errors** tab.
+
+// This guide will create an alert for an error group ID based on the following criteria:
+
+// * Service: `{your_service.name}`
+// * Environment: `{your_service.environment}`
+// * Error Grouping Key: `{your_error.ID}`
+// * Error rate is above 25 errors for the last five minutes
+// * Group alerts by `service.name` and `service.environment`
+// * Check every 1 minute
+// * Send the alert via email to the site reliability team
+
+// From any page in the APM UI, select **Alerts and rules** → **Create error count rule**.
+// Change the name of the alert, but do not edit the tags.
+
+// Based on the criteria above, define the following rule details:
+
+// * **Service**: `{your_service.name}`
+// * **Environment**: `{your_service.environment}`
+// * **Error Grouping Key**: `{your_error.ID}`
+// * **Is above** - `25 errors`
+// * **For the last** - `5 minutes`
+// * **Group alerts by** - `service.name` `service.environment`
+// * **Check every** - `1 minute`
+
+// [NOTE]
+// ====
+// Alternatively, you can use a KQL filter to limit the scope of the alert:
+
+// . Toggle on *Use KQL Filter*.
+// . Add a filter, for example to achieve the same effect as the example above:
+// +
+// [source,txt]
+// ------
+// service.name:"{your_service.name}" and service.environment:"{your_service.environment}" and error.grouping_key:"{your_error.ID}"
+// ------
+
+// Using a KQL Filter to limit the scope is available for _Latency threshold_, _Failed transaction rate threshold_, and
+// _Error count threshold_ rules.
+// ====
+
+// Select the **Email** connector and click **Create a connector**.
+// Fill out the required details: sender, host, port, etc., and click **save**.
+
+// A default message is provided as a starting point for your alert.
+// You can use the https://mustache.github.io/[Mustache] template syntax, i.e., `{{variable}}`
+// to pass additional alert values at the time a condition is detected to an action.
+// A list of available variables can be accessed by selecting the
+// **add variable** button image:./images/add-variable.png[add variable button].
+
+// Click **Save**. The alert has been created and is now active!
