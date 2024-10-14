@@ -108,7 +108,6 @@ Add data to the knowledge base with one or more of the following methods:
 
 * <<obs-ai-kb-ui>> available at <<obs-ai-settings>> page.
 * <<obs-ai-search-connectors>>
-* <<obs-ai-reindex-api>> towards the knowledge base index directly (advanced method).
 
 It's also possible to add information to the knowledge base by asking the AI Assistant to remember something while chatting (for example, "remember this for next time"). The assistant will create a summary of the information and add it to the knowledge base.
 
@@ -183,49 +182,6 @@ Once the pipeline is set up, perform a *Full Content Sync* in the connector. The
 . Check if AI Assistant can use the index (optional)
 +
 Ask something to the AI Assistant related with the indexed data.
-
-[discrete]
-[[obs-ai-reindex-api]]
-=== Use the {es} Reindex API
-
-// EEDUGON note: is this section still worthy "as it is" when we have the option of search connectors?
-// in the dest index below we are pointing directly to an ILM managed index that may not be valid. We should point to an existing ILM rollover alias or a data stream (TBD)
-// IMO this is too advanced to appear here. Maybe a different type of guide.
-
-. Ingest external data (GitHub issues, Markdown files, Jira tickets, text files, etc.) into {es} using the {es} {ref}/docs-index_.html[Index API].
-. Reindex the previously indexed data into the AI Assistant's knowledge base index by completing the following query in *Management* -> *Dev Tools* in {kib}. Update the following fields before reindexing:
-** `InternalDocsIndex` — name of the index where your internal documents are stored.
-** `text_field` — name of the field containing your internal documents' text.
-** `timestamp` — name of the timestamp field in your internal documents.
-** `public` — (`true` or `false`) if `true`, the document is available to users in the space defined in the following `space` field or in all spaces if no `space` is defined. If `false`, the document is restricted to the user indicated in the following `user.name` field.
-** `space` — (can be `null`) if defined, restricts the internal document's availability to a specific {kib} space.
-** `user.name` — (can be `null`) if defined, restricts the internal document's availability to a specific user.
-** You can add a query filter to index specific documents.
-
-[source,console]
-----
-POST _reindex
-{
-    "source": {
-        "index": "<InternalDocsIndex>",
-        "_source": [
-            "<text_field>",
-            "<timestamp>",
-            "namespace",
-            "is_correction",
-            "public",
-            "confidence"
-        ]
-    },
-    "dest": {
-        "index": ".kibana-observability-ai-assistant-kb-000001",
-        "pipeline": ".kibana-observability-ai-assistant-kb-ingest-pipeline"
-    },
-    "script": {
-        "inline": "ctx._source.text = ctx._source.remove(\"<text_field>\");ctx._source.namespace=\"<space>\";ctx._source.is_correction=false;ctx._source.public=<public>;ctx._source.confidence=\"high\";ctx._source['@timestamp'] = ctx._source.remove(\"<timestamp>\");ctx._source['user.name'] = \"<user.name>\""
-    }
-}
-----
 
 [discrete]
 [[obs-ai-interact]]
