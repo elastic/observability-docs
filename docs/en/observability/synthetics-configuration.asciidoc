@@ -82,7 +82,51 @@ For all available options, refer to the https://playwright.dev/docs/test-configu
 Do not attempt to run in headful mode (using `headless:false`) when running through Elastic's global managed testing infrastructure or Private Locations as this is not supported.
 ====
 
-Below are details on a few Playwright options that are particularly relevant to Elastic Synthetics including timeouts, timezones, and device emulation.
+Below are details on a few Playwright options that are particularly relevant to Elastic Synthetics including TLS client authentication, timeouts, timezones, and device emulation.
+
+[discrete]
+[[synthetics-configuration-playwright-options-client-certificates]]
+== TLS client authentication
+To enable TLS client authentication, set the https://playwright.dev/docs/api/class-testoptions#test-options-client-certificates[`clientCertificates`] option in the configuration file:
+
+[NOTE]
+=====
+Path-based options `{certPath, keyPath, pfxPath}` are only supported on Private Locations, defer to in-memory alternatives `{cert, key, pfx}` when running on locations hosted by Elastic.
+=====
+
+[source,js]
+----
+playwrightOptions: {
+  clientCertificates: [
+    {
+      origin: 'https://example.com',
+      certPath: './cert.pem',
+      keyPath: './key.pem',
+      passphrase: 'mysecretpassword',
+    },
+    {
+      origin: 'https://example.com',
+      cert: Buffer.from("-----BEGIN CERTIFICATE-----\n..."),
+      key: Buffer.from("-----BEGIN RSA PRIVATE KEY-----\n..."),
+      passphrase: 'mysecretpassword',
+    }
+  ],
+}
+----
+
+[TIP]
+=====
+When using Synthetics monitor UI, `cert`, `key` and `pfx` can simply be specified using a string literal:
+[source,js]
+----
+clientCertificates: [
+  {
+    cert: "-----BEGIN CERTIFICATE-----\n...",
+    // Not cert: Buffer.from("-----BEGIN CERTIFICATE-----\n..."),
+  }
+],
+----
+=====
 
 [discrete]
 [[synthetics-configuration-playwright-options-timeouts]]
