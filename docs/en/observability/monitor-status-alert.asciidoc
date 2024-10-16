@@ -236,23 +236,32 @@ image::images/monitor-status-alert-recovery.png[Default recovery message for mon
 == Migrate from the Uptime rule to the Synthetics rule
 
 If you are currently using the Uptime monitor status with a monitor created with Elastic Synthetics,
-you should migrate the Uptime monitor status rule to the Synthetics monitor rule.
+you should migrate the Uptime monitor status rule to:
+
+* The *Synthetics monitor rule* for <<migrate-monitor-rule-synthetics-rule,synthetic monitor _status_ checks>>.
+* The *Synthetics availability SLI* for <<migrate-monitor-rule-synthetics-sli,synthetic monitor _availability_ checks>>.
 
 [discrete]
-=== Filters
+[[migrate-monitor-rule-synthetics-rule]]
+=== Uptime status check to Synthetics monitor rule
+
+[discrete]
+==== Filters
 
 The KQL syntax that you used in the Uptime monitor status rule is also valid in the *Filter by* section
 of the Synthetics monitor status rule. The Synthetics monitor status rule also offers dropdowns for several
 categories for easy filtering. However, you can still use KQL syntax for these categories if you prefer.
 
 [discrete]
-=== Conditions
+==== Conditions
 
-The condition options are different for the Uptime monitor status rule and Synthetics monitor status rule,
-but you can recreate similar effects using the following Synthetics monitor status rule condition equivalents.
+[NOTE]
+====
+If you are using the _Uptime availability condition_ refer to <<migrate-monitor-rule-synthetics-sli>>.
+====
 
-[discrete]
-==== Uptime status check condition
+If you're using the Uptime status check condition, you can recreate similar effects using the following
+Synthetics monitor status rule condition equivalents:
 
 |===
 | | Uptime | Synthetics equivalent
@@ -277,11 +286,113 @@ a| `WITHIN THE LAST` `{number}` `{time range unit}`
 |===
 
 [discrete]
-==== Uptime availability condition
+==== Actions
 
-////
-Should this use a custom threshold rule instead?
-////
+The default messages for the Uptime monitor status rule and Synthetics monitor status rule are different,
+but you can recreate similar messages using Synthetics monitor status rule action variables.
+
+// Not sure if this is actually helpful AND not sure if there are equivalents for
+// availability checks
+
+// :hardbreaks-option:
+
+// |===
+// | Description | Uptime | Synthetics equivalent
+
+// | Link to the alert troubleshooting
+// view for further context and
+// details.
+// | `context.alertDetailsUrl`
+// // Is there an equivalent?
+// | N/A
+
+// |  Timestamp of the monitor run.
+// | `context.checkedAt`
+// | `context.checkedAt`
+
+// | Config ID of the monitor.
+// | `context.configId`
+// // Is there an equivalent?
+// | N/A
+
+// | Monitor last error message.
+// | `context.latestErrorMessage`
+// | `context.latestErrorMessage`
+
+// | A generated message summarizing
+// the status of monitors currently
+// down.
+// | `context.message`
+// | `context.message`
+
+// | ID of the monitor.
+// | `context.monitorId`
+// | `context.monitorId`
+
+// | Name of the monitor.
+// | `context.monitorName`
+// | `context.monitorName`
+
+// | Tags associated with the monitor.
+// | `context.monitorTags`
+// | `context.monitorTags`
+
+// | Type (for example, HTTP/TCP) of
+// the monitor.
+// | `context.monitorType`
+// | `context.monitorType`
+
+// | URL of the monitor.
+// | `context.monitorUrl`
+// | `context.monitorUrl`
+
+// | Hostname of the location from which
+// the check is performed.
+// | `context.observerHostname`
+// | `context.hostName`
+
+// | Location name from which the check
+// is performed.
+// | `context.observerLocation`
+// | `context.locationName`
+
+// | A concise description of the reason
+// for the alert.
+// | `context.reason`
+// | `context.reason`
+
+// | Monitor status (for example, "down").
+// | `context.statusMessage`
+// | `context.status`
+
+// | Open alert details and context in
+// Uptime/Synthetics.
+// | `context.viewInAppUrl`
+// | `context.viewInAppUrl`
+
+// |===
+
+// :!hardbreaks-option:
+
+[discrete]
+[[migrate-monitor-rule-synthetics-sli]]
+=== Uptime availability check to Synthetics availability SLI
+
+SLOs allow you to set clear, measurable targets for your service performance, based on factors like availability.
+The <<synthetics-availability-sli,Synthetics availability SLI>> is a service-level indicator (SLI) based on the
+availability of your synthetic monitors.
+
+[discrete]
+==== Filters
+
+The KQL syntax that you used in the Uptime monitor status rule is also valid in the *Query filter*
+field of the Synthetics availability SLI.
+
+[discrete]
+==== Conditions
+
+Use the following Synthetics availability SLI fields to replace the Uptime monitor status rule's
+availability conditions:
 
 |===
 | | Uptime | Synthetics equivalent
@@ -290,99 +401,21 @@ Should this use a custom threshold rule instead?
 a| `ANY MONITOR IS UP IN <` `{percent}` of checks
 
 *Example*: `ANY MONITOR IS UP IN <` `90%` of checks
-a| `IS DOWN` `{number}` times `WITHIN THE LAST` `{number}` checks
+a| *Target / SLO (%)* field
 
-*Example*: `IS DOWN` `1` times `WITHIN THE LAST` `10` checks
+*Example*: `90%`
 
 | *Timeframe*
-| `WITHIN THE LAST` `{number}` `{time range unit}`
+a| `WITHIN THE LAST` `{number}` `{time range unit}`
 
 *Example*: `WITHIN THE LAST` `30` `days`
-| ??
+a| *Time window* and *Duration* fields
 
+*Example*: Time window: `Rolling`, Duration: `30 days`
 |===
 
 [discrete]
-=== Action variables
+==== Actions
 
-The default messages for the Uptime monitor status rule and Synthetics monitor status rule are different, but you can recreate similar messages using the equivalent Synthetics monitor status rule action variables.
-
-:hardbreaks-option:
-
-|===
-| Description | Uptime | Synthetics equivalent
-
-| Link to the alert troubleshooting
-view for further context and
-details.
-| `context.alertDetailsUrl`
-// Is there an equivalent?
-| N/A
-
-|  Timestamp of the monitor run.
-| `context.checkedAt`
-| `context.checkedAt`
-
-| Config ID of the monitor.
-| `context.configId`
-// Is there an equivalent?
-| N/A
-
-| Monitor last error message.
-| `context.latestErrorMessage`
-| `context.latestErrorMessage`
-
-| A generated message summarizing
-the status of monitors currently
-down.
-| `context.message`
-| `context.message`
-
-| ID of the monitor.
-| `context.monitorId`
-| `context.monitorId`
-
-| Name of the monitor.
-| `context.monitorName`
-| `context.monitorName`
-
-| Tags associated with the monitor.
-| `context.monitorTags`
-| `context.monitorTags`
-
-| Type (for example, HTTP/TCP) of
-the monitor.
-| `context.monitorType`
-| `context.monitorType`
-
-| URL of the monitor.
-| `context.monitorUrl`
-| `context.monitorUrl`
-
-| Hostname of the location from which
-the check is performed.
-| `context.observerHostname`
-| `context.hostName`
-
-| Location name from which the check
-is performed.
-| `context.observerLocation`
-| `context.locationName`
-
-| A concise description of the reason
-for the alert.
-| `context.reason`
-| `context.reason`
-
-| Monitor status (for example, "down").
-| `context.statusMessage`
-| `context.status`
-
-| Open alert details and context in
-Uptime/Synthetics.
-| `context.viewInAppUrl`
-| `context.viewInAppUrl`
-
-|===
-
-:!hardbreaks-option:
+After creating a new SLO using the Synthetics availability SLI, you can use the SLO burn rate rule.
+For more information about configuring the rule, see <<slo-burn-rate-alert,Create an SLO burn rate rule>>.
