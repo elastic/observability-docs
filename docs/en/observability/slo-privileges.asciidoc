@@ -7,10 +7,21 @@
 
 IMPORTANT: To create and manage SLOs, you need an {subscriptions}[appropriate license].
 
-You can create the following roles for your SLOs:
+You can enable access to SLOs in two different ways:
 
-* <<slo-all-access,*SLO All*>> — Create, edit, and manage SLOs and their historical summaries.
-* <<slo-read-access,*SLO Read*>> — See SLOs and their historical summaries.
+* Creating the following roles, depending on the type of access needed:
+** <<slo-all-access,*SLO Editor*>> — Create, edit, and manage SLOs and their historical summaries.
+** <<slo-read-access,*SLO Viewer*>> — Check SLOs and their historical summaries.
+
+* Using the `editor` {ref}/built-in-roles.html[built-in role]. This role grants full access to all features in {kib} (including the {observability} solution)
+and read-only access to data indices. Users assigned to this role can create, edit, and manage SLOs.
++
+[NOTE]
+====
+The `editor` {ref}/built-in-roles.html[built-in role] grants write access
+to _all_ {kib} apps. If you want to limit access to the SLOs only, you have
+to manually create and assign the mentioned roles.
+====
 
 To create a role:
 
@@ -20,37 +31,38 @@ To create a role:
 
 [discrete]
 [[slo-all-access]]
-== Create an SLO All role
+== Create an SLO Editor role
 
-Set the following privileges for the SLO All role:
+Set the following privileges for the SLO Editor role:
 
-. Under *Cluster privileges* in the *Elasticsearch* section, add `manage_transform` and `manage_ingest_pipelines`.
-. Under *Index privileges*, add `.slo-*` to the *Indices* field and `all` to the *Privileges* field.
+. Under *Index privileges* in the *Elasticsearch* section, add `.slo-observability-*` to the *Indices* field and `read`, `view_index_metadata`, `write`, and `manage` to the *Privileges* field.
 . Click *Add index privilege*.
-. Add indices you plan to create SLOs for to the *Indices* field, and add *read* and *view_index_metadata* to the *Privileges* field. The following example shows `logs-*`, but you can specify any indices.
+. In the *Indices* field, add the indices for which you plan to create SLOs. Then, add `read` and `view_index_metadata` to the *Privileges* field. The following example shows `logs-*`, but you can specify any indices.
 +
 [role="screenshot"]
-image::images/slo-es-priv-all.png[Cluster and index privileges for SLO All role]
+image::images/slo-es-priv-editor.png[Cluster and index privileges for SLO Editor role]
 . In the *Kibana* section, click *Add Kibana privilege*.
 . From the *Spaces* dropdown, either select any specific spaces you want the role to apply to, or select *All Spaces*.
 . Set *Observability → SLOs* to `All`.
 +
 [role="screenshot"]
 image::images/slo-kibana-priv-all.png[SLO Kibana all privileges,75%]
+. Click *Create Role* at the bottom of the page and assign the role to the relevant users.
 
 [discrete]
 [[slo-read-access]]
-== Create an SLO Read role
+== Create an SLO Viewer role
 
 Set the following privileges for the SLO Read role:
 
-. Under *Index privileges* in the *Elasticsearch* section, add `.slo-*` to the *Indices* field and `read` to the *Privileges* field.
+. Under *Index privileges* in the *Elasticsearch* section, add `.slo-observability-*` to the *Indices* field and `read` and `view_index_metadata` to the *Privileges* field.
 +
 [role="screenshot"]
-image::images/slo-es-priv-read.png[Index privileges for SLO Read role]
+image::images/slo-es-priv-viewer.png[Index privileges for SLO Viewer role]
 . In the *Kibana* section, click *Add Kibana privilege*.
 . From the *Spaces* dropdown, either select any specific spaces you want the role to apply to, or select *All Spaces*.
 . Set *Observability → SLOs* to `Read`.
 +
 [role="screenshot"]
 image::images/slo-kibana-priv-read.png[SLO Kibana read privileges,75%]
+. Click *Create Role* at the bottom of the page and assign the role to the relevant users.
