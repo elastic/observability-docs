@@ -8,19 +8,20 @@
 :append-legacy:
 // tag::ilm-integration[]
 
-// Should we mention DSL here, too?
-// Should we establish the relationship between ILM and DSL?
-Index lifecycle policies allow you to automate the
-lifecycle of your APM indices as they grow and age.
-A default policy is applied to each APM data stream,
-but can be customized depending on your business needs.
-
-// Should we link to https://www.elastic.co/guide/en/elasticsearch/reference/current/data-stream-lifecycle.html ?
-See {ref}/index-lifecycle-management.html[{ilm-init}: Manage the index lifecycle] to learn more.
+Lifecycle policies allow you to automate the lifecycle of your APM indices as they grow and age.
+A default policy is applied to each APM data stream, but can be customized depending on your business needs.
 
 [discrete]
 [id="index-lifecycle-policies-default{append-legacy}"]
 == Default policies
+
+[NOTE]
+====
+As of 8.15, by default new clusters use {ref}/data-stream-lifecycle.html[data stream lifecycle (DSL)] to provide data retention settings for APM data.
+
+Before 8.15, APM used {ref}/index-lifecycle-management.html[index lifecycle management (ILM)] by default.
+If you prefer to continue using ILM in 8.15 and later, follow the steps in this guide to create a custom ILM policy and add it to `@custom` component template.
+====
 
 // Is this right?
 The table below describes the default data stream lifecycle policy applied to each APM data stream.
@@ -132,14 +133,13 @@ Each policy includes a rollover and delete definition:
 
 |===
 
-// Is this right?
-// Does where they go in the UI change?
-The APM data stream lifecycle policies can be viewed in {kib}.
-Navigate to *{stack-manage-app}* / *Index Lifecycle Management*, and search for `apm`.
+The APM data stream lifecycle policies can be viewed in {kib}:
 
-// Is this right?
-TIP: Default data stream lifecycle policies can change between minor versions.
-This is not considered a breaking change as index management should continually improve and adapt to new features.
+. Navigate to *{stack-manage-app}* → *Index Management* → *Component Templates*.
+. Search for `apm`.
+. Look for templates with `@lifecycle` suffix.
+
+TIP: Default lifecycle policies can change between minor versions. This is not considered a breaking change as index management should continually improve and adapt to new features.
 
 [discrete]
 [id="apm-data-streams-custom-policy{append-legacy}"]
