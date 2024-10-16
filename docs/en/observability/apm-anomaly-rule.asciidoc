@@ -9,17 +9,26 @@ APM Anomaly rules trigger when the latency, throughput, or failed transaction ra
 
 Because some parts of an application may be more important than others, you might have a different tolerance
 for abnormal performance across services in your application. You can filter the services in your application to
-apply an APM Anomaly rule to one or more specific services (`SERVICE`), all services of one or more types (`TYPE`),
-and all services in one or more environment (`ENVIRONMENT`). Then, you can specify which conditions should result in
-an alert. This includes specifying:
+apply an APM Anomaly rule to specific services (`SERVICE`), transaction types (`TYPE`), and environments (`ENVIRONMENT`).
+
+Then, you can specify which conditions should result in an alert. This includes specifying:
 
 * The types of anomalies that are detected (`DETECTOR TYPES`): `latency`, `throughput`, and/or `failed transaction rate`.
 * The severity level (`HAS ANOMALY WITH SEVERITY`): `critical`, `major`, `minor`, `warning`.
 
+.Example
+****
 This example creates a rule for all production services that would result in an alert when a critical latency
 anomaly is detected:
 
 image::apm-anomaly-rule-filters-conditions.png[width=600]
+****
+
+// [discrete]
+// == Rule schedule?
+
+// [discrete]
+// == Advanced options?
 
 [discrete]
 == Actions
@@ -31,23 +40,24 @@ Extend your rules by connecting them to actions that use built-in integrations.
 
 Supported built-in integrations include:
 
-include::../shared/alerting-connectors.asciidoc[]
+include::../shared/alerting-and-rules/alerting-connectors.asciidoc[]
 
 [discrete]
-[[apm-anomaly-rule-action-frequency]]
 === Action frequency
 
-After you select a connector, you must set the action frequency. You can choose to create a summary of alerts on each check interval or on a custom interval. For example, send email notifications that summarize the new, ongoing, and recovered alerts each hour:
+include::../shared/alerting-and-rules/generic-apm-action-frequency.asciidoc[]
 
 // TO DO: add image?
-
-// Any alternatives...
 
 [discrete]
 [[apm-anomaly-rule-action-variables]]
 === Action variables
 
-Use the default notification message or customize it. You can add more context to the message by clicking the icon above the message text box and selecting from a list of available variables.
+A default message is provided as a starting point for your alert.
+If you want to customize the message, add more context to the message by clicking the icon above
+the message text box and selecting from a list of available variables.
+
+TIP: To add variables to alert messages, use https://mustache.github.io/[Mustache] template syntax, for example `{{variable.name}}`.
 
 image::apm-anomaly-rule-action-variables.png[width=600]
 

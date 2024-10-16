@@ -8,24 +8,46 @@ environment level, service level, and error group level.
 [[apm-error-count-threshold-rule-filters-conditions]]
 == Filters and conditions
 
-// TO DO: Write this section...
-Filters:
+// TO DO: Should we explain what an error grouping key is?
+// I couldn't find a good explanation anywhere else...
+Filter the errors coming from your application to apply an Error count threshold rule to a specific
+service (`SERVICE`), environment (`ENVIRONMENT`) or error grouping key (`ERROR GROUPING KEY`).
+Alternatively, you can use a {kibana-ref}/kuery-query.html[KQL filter] to limit the scope of the alert
+by toggling on the *Use KQL Filter* option.
 
-* Service
-* Environment
-* Error grouping key
+Then, you can specify which conditions should result in an alert. This includes specifying:
 
-Conditions:
+* The number of errors that occurred (`IS ABOVE`).
+* The timeframe in which the errors must occur (`FOR THE LAST`) in seconds, minutes, hours, or days.
 
-* is above XX errors
-* for the last X minutes
+.Example
+****
+This example creates a rule for all production services that would result in an alert when there are 25 errors
+in the last five minutes:
+
+image::apm-error-count-rule-filters-conditions.png[width=600]
+
+Alternatively, you can use a KQL filter to limit the scope of the alert:
+
+. Toggle on *Use KQL Filter*.
+. Add a filter:
++
+[source,txt]
+------
+service.environment:"Production"
+------
+****
 
 [discrete]
-[[apm-error-count-threshold-rule-groups]]
 == Groups
 
-// TO DO: Write this section...
-Create an alert for every unique value. For example: "transaction.name". By default, alert is created for every unique service.name and service.environment.
+include::../shared/alerting-and-rules/generic-apm-group-by.asciidoc[]
+
+// [discrete]
+// == Rule schedule?
+
+// [discrete]
+// == Advanced options?
 
 [discrete]
 == Actions
@@ -37,14 +59,25 @@ Extend your rules by connecting them to actions that use built-in integrations.
 
 Supported built-in integrations include:
 
-include::../shared/alerting-connectors.asciidoc[]
+include::../shared/alerting-and-rules/alerting-connectors.asciidoc[]
+
+[discrete]
+=== Action frequency
+
+include::../shared/alerting-and-rules/generic-apm-action-frequency.asciidoc[]
+
+// TO DO: add image?
 
 [discrete]
 === Action variables
 
-Use the default notification message or customize it. You can add more context to the message by clicking the icon above the message text box and selecting from a list of available variables.
+A default message is provided as a starting point for your alert.
+If you want to customize the message, add more context to the message by clicking the icon above
+the message text box and selecting from a list of available variables.
 
-// TO DO: add image?
+TIP: To add variables to alert messages, use https://mustache.github.io/[Mustache] template syntax, for example `{{variable.name}}`.
+
+image::apm-error-count-rule-action-variables.png[width=600]
 
 The following variables are specific to this rule type.
 You an also specify {kibana-ref}/rule-action-variables.html[variables common to all rules].
@@ -81,65 +114,3 @@ The value that breached the threshold and triggered the alert
 
 `context.viewInAppUrl`::
 Link to the alert source
-
-// TO DO: Should we show examples for all APM rules?
-
-// [discrete]
-// [[apm-create-error-alert]]
-// === Example
-
-// The error count threshold alert triggers when the number of errors in a service exceeds a defined threshold.
-// Because some errors are more important than others, this guide will focus a specific error group ID.
-
-// Before continuing, identify the service name, environment name, and error group ID that you'd like to create a latency anomaly rule for.
-// The easiest way to find an error group ID is to select the service that you're interested in and navigating to the **Errors** tab.
-
-// This guide will create an alert for an error group ID based on the following criteria:
-
-// * Service: `{your_service.name}`
-// * Environment: `{your_service.environment}`
-// * Error Grouping Key: `{your_error.ID}`
-// * Error rate is above 25 errors for the last five minutes
-// * Group alerts by `service.name` and `service.environment`
-// * Check every 1 minute
-// * Send the alert via email to the site reliability team
-
-// From any page in the APM UI, select **Alerts and rules** → **Create error count rule**.
-// Change the name of the alert, but do not edit the tags.
-
-// Based on the criteria above, define the following rule details:
-
-// * **Service**: `{your_service.name}`
-// * **Environment**: `{your_service.environment}`
-// * **Error Grouping Key**: `{your_error.ID}`
-// * **Is above** - `25 errors`
-// * **For the last** - `5 minutes`
-// * **Group alerts by** - `service.name` `service.environment`
-// * **Check every** - `1 minute`
-
-// [NOTE]
-// ====
-// Alternatively, you can use a KQL filter to limit the scope of the alert:
-
-// . Toggle on *Use KQL Filter*.
-// . Add a filter, for example to achieve the same effect as the example above:
-// +
-// [source,txt]
-// ------
-// service.name:"{your_service.name}" and service.environment:"{your_service.environment}" and error.grouping_key:"{your_error.ID}"
-// ------
-
-// Using a KQL Filter to limit the scope is available for _Latency threshold_, _Failed transaction rate threshold_, and
-// _Error count threshold_ rules.
-// ====
-
-// Select the **Email** connector and click **Create a connector**.
-// Fill out the required details: sender, host, port, etc., and click **save**.
-
-// A default message is provided as a starting point for your alert.
-// You can use the https://mustache.github.io/[Mustache] template syntax, i.e., `{{variable}}`
-// to pass additional alert values at the time a condition is detected to an action.
-// A list of available variables can be accessed by selecting the
-// **add variable** button image:./images/add-variable.png[add variable button].
-
-// Click **Save**. The alert has been created and is now active!

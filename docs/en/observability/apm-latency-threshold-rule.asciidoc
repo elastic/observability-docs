@@ -7,39 +7,75 @@ Threshold rules can be as broad or as granular as you'd like, enabling you to de
 [discrete]
 == Filter and conditions
 
-// TO DO: Write this section...
-Filters:
+Filter the transactions coming from your application to apply an Latency threshold rule to specific
+services (`SERVICE`), environments (`ENVIRONMENT`), transaction types (`TYPE`), or transaction names (`NAME`).
+Alternatively, you can use a {kibana-ref}/kuery-query.html[KQL filter] to limit the scope of the alert
+by toggling on the *Use KQL Filter* option.
 
-* Service
-* Type
-* Environment
-* Name
+Then, you can specify which conditions should result in an alert. This includes specifying:
 
-Conditions:
+* Which latency measurement to evaluate against (`WHEN`): average, 95th percentile, or 99th percentile.
+* The minimum value of the chosen latency measurement (`IS ABOVE`) in milliseconds.
+* The timeframe in which the failures must occur (`FOR THE LAST`) in seconds, minutes, hours, or days.
 
-* When {avg|95th percentile|99th percentile}
-* is above XXXXms
-* for the last X minutes
+.Example
+****
+This example creates a rule for all `request` transactions coming from production that would result in
+an alert when the average latency is above 1 second (1000ms) for the last 30 minutes:
+
+image::apm-latency-threshold-rule-filters-conditions.png[width=600]
+
+Alternatively, you can use a KQL filter to limit the scope of the alert:
+
+. Toggle on *Use KQL Filter*.
+. Add a filter:
++
+[source,txt]
+------
+service.environment:"Production" and transaction.type:"request"
+------
+****
+
+// [discrete]
+// == Rule schedule?
+
+// [discrete]
+// == Advanced options?
 
 [discrete]
-== Group
+== Groups
 
-// TO DO: Write this section...
-Create an alert for every unique value. For example: "transaction.name". By default, alert is created for every unique service.name, service.environment and transaction.type.
+include::../shared/alerting-and-rules/generic-apm-group-by.asciidoc[]
 
 [discrete]
-== Action types
+== Actions
+
+Extend your rules by connecting them to actions that use built-in integrations.
+
+[discrete]
+=== Action types
 
 Extend your rules by connecting them to actions that use the following supported built-in integrations.
 
-include::../shared/alerting-connectors.asciidoc[]
+include::../shared/alerting-and-rules/alerting-connectors.asciidoc[]
+
+[discrete]
+=== Action frequency
+
+include::../shared/alerting-and-rules/generic-apm-action-frequency.asciidoc[]
+
+// TO DO: add image?
 
 [discrete]
 === Action variables
 
-Use the default notification message or customize it. You can add more context to the message by clicking the icon above the message text box and selecting from a list of available variables.
+A default message is provided as a starting point for your alert.
+If you want to customize the message, add more context to the message by clicking the icon above
+the message text box and selecting from a list of available variables.
 
-// TO DO: add image?
+TIP: To add variables to alert messages, use https://mustache.github.io/[Mustache] template syntax, for example `{{variable.name}}`.
+
+image::apm-latency-threshold-rule-action-variables.png[width=600]
 
 The following variables are specific to this rule type.
 You an also specify {kibana-ref}/rule-action-variables.html[variables common to all rules].
