@@ -40,7 +40,6 @@ update-labels:
 	echo '  - name: backport patches to $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch' >> ../.mergify.yml
 	echo '    conditions:'                                                          >> ../.mergify.yml
 	echo '      - merged'                                                           >> ../.mergify.yml
-	echo '      - base=main'                                                        >> ../.mergify.yml
 	echo '      - label=backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)' >> ../.mergify.yml
 	echo '    actions:'                                                            	>>	../.mergify.yml
 	echo '      backport:'                                                          >>	../.mergify.yml
