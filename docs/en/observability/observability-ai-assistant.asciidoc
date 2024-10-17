@@ -39,6 +39,10 @@ The AI assistant requires the following:
 ** OpenAI `gpt-4`+.
 ** Azure OpenAI Service `gpt-4`(0613) or `gpt-4-32k`(0613) with API version `2023-07-01-preview` or more recent.
 ** AWS Bedrock, specifically the Anthropic Claude models.
+<<<<<<< HEAD
+=======
+* An {enterprise-search-ref}/server.html[Enterprise Search] server if {ref}/es-connectors.html[search connectors] are used to populate external data into the knowledge base.
+>>>>>>> 51803967 (Update links to search connectors docs (#4389))
 * The knowledge base requires a 4 GB {ml} node.
 
 [IMPORTANT]
@@ -144,6 +148,7 @@ To add external data to the knowledge base in {kib}:
 ** `user.name` — (can be `null`) if defined, restricts the internal document's availability to a specific user.
 ** You can add a query filter to index specific documents.
 
+<<<<<<< HEAD
 [source,console]
 ----
 POST _reindex
@@ -168,6 +173,46 @@ POST _reindex
     }
 }
 ----
+=======
+{enterprise-search-ref}/connectors.html[Connectors] allow you to index content from external sources thereby making it available for the AI Assistant. This can greatly improve the relevance of the AI Assistant’s responses. Data can be integrated from sources such as GitHub, Confluence, Google Drive, Jira, AWS S3, Microsoft Teams, Slack, and more.
+
+These connectors are managed under *Search* -> *Content* -> *Connectors* in {kib}, they are outside of the {observability} Solution, and they require an {enterprise-search-ref}/server.html[Enterprise Search] server connected to the Elastic Stack.
+
+By default, the AI Assistant queries all search connector indices. To override this behavior and customize which indices are queried, adjust the *Search connector index pattern* setting on the <<obs-ai-settings>> page. This allows precise control over which data sources are included in AI Assistant knowledge base.
+
+To create a connector and make its content available to the AI Assistant knowledge base, follow these steps:
+
+. In {kib} UI, go to *Search* -> *Content* -> *Connectors* and follow the instructions to create a new connector.
++
+[NOTE]
+====
+If your {kib} Space doesn't include the `Search` solution you will have to create the connector from a different space or change your space *Solution view* setting to `Classic`.
+====
++
+For example, if you create a {ref}/es-connectors-github.html[GitHub connector] you have to set a `name`, attach it to a new or existing `index`, add your `personal access token` and include the `list of repositories` to synchronize.
++
+Learn more about configuring and {ref}/es-connectors-usage.html[using connectors] in the Elasticsearch documentation.
++
+. Create a pipeline and process the data with ELSER.
++
+To create the embeddings needed by the AI Assistant (weights and tokens into a sparse vector field), you have to create an *ML Inference Pipeline*:
++
+.. Open the previously created connector and select the *Pipelines* tab.
+.. Select *Copy and customize* button at the `Unlock your custom pipelines` box.
+.. Select *Add Inference Pipeline* button at the `Machine Learning Inference Pipelines` box.
+.. Select *ELSER (Elastic Learned Sparse EncodeR)* ML model to add the necessary embeddings to the data.
+.. Select the fields that need to be evaluated as part of the inference pipeline.
+.. Test and save the inference pipeline and the overall pipeline.
+. Sync the data.
++
+Once the pipeline is set up, perform a *Full Content Sync* of the connector. The inference pipeline will process the data as follows:
++
+* As data comes in, ELSER is applied to the data, and embeddings (weights and tokens into a sparse vector field) are added to capture semantic meaning and context of the data.
+* When you look at the documents that are ingested, you can see how the weights and token are added to the `predicted_value` field in the documents.
+. Check if AI Assistant can use the index (optional).
++
+Ask something to the AI Assistant related with the indexed data.
+>>>>>>> 51803967 (Update links to search connectors docs (#4389))
 
 [discrete]
 [[obs-ai-interact]]
