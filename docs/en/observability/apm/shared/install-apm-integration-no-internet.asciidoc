@@ -1,0 +1,32 @@
+[%collapsible]
+.**If you don't have an internet connection**
+====
+If your environment has network traffic restrictions, there are other ways to install the APM integration.
+See {fleet-guide}/air-gapped.html[Air-gapped environments] for more information.
+
+Option 1: Update `kibana.yml`::
++
+Update `kibana.yml` to include the following, then restart {kib}.
++
+[source,yaml]
+----
+xpack.fleet.packages:
+- name: apm
+  version: latest
+----
++
+See {kibana-ref}/settings.html[Configure Kibana] to learn more about how to edit the Kibana configuration file.
+
+Option 2: Use the {fleet} API::
++
+Use the {fleet} API to install the APM integration. To be successful, this needs to be run against the {kib}
+API, not the {es} API.
++
+["source","yaml",subs="attributes"]
+----
+POST kbn:/api/fleet/epm/packages/apm/{apm_server_version}
+{ "force": true }
+----
++
+See {kibana-ref}/api.html[Kibana API] to learn more about how to use the Kibana APIs.
+====
