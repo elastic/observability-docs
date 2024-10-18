@@ -9,6 +9,7 @@ Learn about key host metrics displayed in the {infrastructure-app}:
 * <<key-metrics-log,Log>>
 * <<key-metrics-network,Network>>
 * <<key-metrics-network,Disk>>
+* <<legacy-metrics,Legacy metrics>>
 
 
 [discrete]
@@ -34,11 +35,11 @@ Learn about key host metrics displayed in the {infrastructure-app}:
 |===
 | Metric                      | Description
 
-| **CPU Usage (%)**          | Percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. This includes both time spent on user space and kernel space.
+| **CPU Usage (%)**          |  Average of percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. Includes both time spent on user space and kernel space. 100% means all CPUs of the host are busy.
 
-100% means all CPUs of the host are busy.
+**Field Calculation**: `average(system.cpu.total.norm.pct)`
 
-**Field Calculation:** `(average(system.cpu.user.pct) + average(system.cpu.system.pct)) / max(system.cpu.cores)`
+For legacy metric calculations, refer to <<legacy-metrics>>.
 
 | **CPU Usage - iowait (%)** | The percentage of CPU time spent in wait (on disk).
 
@@ -159,12 +160,15 @@ A high level indicates a situation of memory saturation for the host. For exampl
 
 | **Network Inbound (RX)**           | Number of bytes that have been received per second on the public interfaces of the hosts.
 
-**Field Calculation:**  `average(host.network.ingress.bytes) * 8 / (max(metricset.period, kql='host.network.ingress.bytes: *') / 1000)`
+**Field Calculation**: `sum(host.network.ingress.bytes) * 8 / 1000`
 
-| **Network Inbound (TX)**            | Number of bytes that have been sent per second on the public interfaces of the hosts.
+For legacy metric calculations, refer to <<legacy-metrics>>.
 
-**Field Calculation:**  `average(host.network.egress.bytes) * 8 / (max(metricset.period, kql='host.network.egress.bytes: *') / 1000)`
+| **Network Outbound (TX)**            | Number of bytes that have been sent per second on the public interfaces of the hosts.
 
+**Field Calculation**: `sum(host.network.egress.bytes) * 8 / 1000`
+
+For legacy metric calculations, refer to <<legacy-metrics>>.
 |===
 
 [discrete]
@@ -203,4 +207,32 @@ A high level indicates a situation of memory saturation for the host. For exampl
 
 **Field Calculation:**  `counter_rate(max(system.diskio.write.bytes), kql='system.diskio.write.bytes: *')`
 
+|===
+
+[discrete]
+[[legacy-metrics]]
+== Legacy metrics
+
+Over time, we may change the formula used to calculate a specific metric.
+To avoid affecting your existing rules, instead of changing the actual metric definition,
+we create a new metric and refer to the old one as "legacy."
+
+The UI and any new rules you create will use the new metric definition.
+However, any alerts that use the old definition will refer to the metric as "legacy."
+
+[options="header"]
+|===
+| Metric                            | Description
+
+| **CPU Usage (legacy)**          | Percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. This includes both time spent on user space and kernel space. 100% means all CPUs of the host are busy.
+
+**Field Calculation:** `(average(system.cpu.user.pct) + average(system.cpu.system.pct)) / max(system.cpu.cores)`
+
+| **Network Inbound (RX) (legacy)**           | Number of bytes that have been received per second on the public interfaces of the hosts.
+
+**Field Calculation:**  `average(host.network.ingress.bytes) * 8 / (max(metricset.period, kql='host.network.ingress.bytes: *') / 1000)`
+
+| **Network Outbound (TX) (legacy)**            | Number of bytes that have been sent per second on the public interfaces of the hosts.
+
+**Field Calculation:**  `average(host.network.egress.bytes) * 8 / (max(metricset.period, kql='host.network.egress.bytes: *') / 1000)`
 |===
