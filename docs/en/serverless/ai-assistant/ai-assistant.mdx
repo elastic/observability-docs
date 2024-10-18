@@ -19,6 +19,7 @@ The AI Assistant integrates with your large language model (LLM) provider throug
 
 * [OpenAI connector](((kibana-ref))/openai-action-type.html) for OpenAI or Azure OpenAI Service.
 * [Amazon Bedrock connector](((kibana-ref))/bedrock-action-type.html) for Amazon Bedrock, specifically for the Claude models.
+* [Google Gemini connector](((kibana-ref))/gemini-action-type.html) for Google Gemini.
 
 <DocCallOut title="Important" color="warning">
 The AI Assistant is powered by an integration with your large language model (LLM) provider.
@@ -35,10 +36,10 @@ Also, the data you provide to the Observability AI assistant is _not_ anonymized
 
 The AI assistant requires the following:
 
-* An account with a third-party generative AI provider that supports function calling. The Observability AI Assistant supports the following providers:
-    * OpenAI `gpt-4`+.
-    * Azure OpenAI Service `gpt-4`(0613) or `gpt-4-32k`(0613) with API version `2023-07-01-preview` or more recent.
-    * AWS Bedrock, specifically the Anthropic Claude models.
+* An account with a third-party generative AI provider that preferably supports function calling.
+If your AI provider does not support function calling, you can configure AI Assistant settings under **Project settings** → **Management** → **AI Assistant for Observability Settings** to simulate function calling, but this might affect performance.
+
+    Refer to the [connector documentation](((kibana-ref))/action-types.html) for your provider to learn about supported and default models.
 * The knowledge base requires a 4 GB ((ml)) node.
 
 <DocCallOut color="warning" title="Important">
@@ -62,10 +63,14 @@ To set up the AI Assistant:
     * [OpenAI API keys](https://platform.openai.com/docs/api-reference)
     * [Azure OpenAI Service API keys](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference)
     * [Amazon Bedrock authentication keys and secrets](https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html)
-1. From **Project settings** → **Management** → **Connectors**, create an [OpenAI](((kibana-ref))/openai-action-type.html) or [Amazon Bedrock](((kibana-ref))/bedrock-action-type.html) connector.
+    * [Google Gemini service account keys](https://cloud.google.com/iam/docs/keys-list-get)
+1. From **Project settings** → **Management** → **Connectors**, create a connector for your AI provider:
+    * [OpenAI](((kibana-ref))/openai-action-type.html)
+    * [Amazon Bedrock](((kibana-ref))/bedrock-action-type.html)
+    * [Google Gemini](((kibana-ref))/gemini-action-type.html)
 1. Authenticate communication between ((observability)) and the AI provider by providing the following information:
     1. In the **URL** field, enter the AI provider's API endpoint URL.
-    1. Under **Authentication**, enter the API key or access key/secret you created in the previous step.
+    1. Under **Authentication**, enter the key or secret you created in the previous step.
 
 ## Add data to the AI Assistant knowledge base
 
@@ -314,5 +319,3 @@ When you reach the token limit, the LLM will throw an error, and Elastic will di
 The exact number of tokens that the LLM can support depends on the LLM provider and model you're using.
 If you are using an OpenAI connector, you can monitor token usage in **OpenAI Token Usage** dashboard.
 For more information, refer to the [OpenAI Connector documentation](((kibana-ref))/openai-action-type.html#openai-connector-token-dashboard).
-
-<span id="hello-world"></span>
