@@ -37,20 +37,20 @@ create-next-release: prepare-next-release create-prs-next-release
 ## Update the references on the github labels using major.minor format. INTERNAL
 .PHONY: update-labels
 update-labels:
-	echo '  - name: backport patches to $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch' >> .mergify.yml
-	echo '    conditions:'                  >> .mergify.yml
-	echo '      - merged'                   >> .mergify.yml
-	echo '      - base=main'                >> .mergify.yml
+	echo '  - name: backport patches to $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch' >> ../.mergify.yml
+	echo '    conditions:'                  >> ../.mergify.yml
+	echo '      - merged'                   >> ../.mergify.yml
+	echo '      - base=main'                >> ../.mergify.yml
 	echo '      - label=backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)' >> .mergify.yml
-	echo '    actions:'                     >>	.mergify.yml
-	echo '      backport:'                  >>	.mergify.yml
-	echo '        assignees:'               >>	.mergify.yml
-	echo '          - "{{ author }}"'       >>	.mergify.yml
-	echo '        labels:'                  >>	.mergify.yml
-	echo '          - "backport"'           >>	.mergify.yml
-	echo '        branches:'                >>	.mergify.yml
-	echo '          - "$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)"' >>	.mergify.yml
-	echo '        title: "[{{ destination_branch }}](backport #{{ number }}) {{ title }}"' >> .mergify.yml
+	echo '    actions:'                     >>	../.mergify.yml
+	echo '      backport:'                  >>	../.mergify.yml
+	echo '        assignees:'               >>	../.mergify.yml
+	echo '          - "{{ author }}"'       >>	../.mergify.yml
+	echo '        labels:'                  >>	../.mergify.yml
+	echo '          - "backport"'           >>	../.mergify.yml
+	echo '        branches:'                >>	../.mergify.yml
+	echo '          - "$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)"' >>	../.mergify.yml
+	echo '        title: "[{{ destination_branch }}](backport #{{ number }}) {{ title }}"' >> ../.mergify.yml
 
 ## @help:prepare-major-minor-release:Prepare a major/minor release by creating a new branch reference.
 .PHONY: prepare-major-minor-release
@@ -85,7 +85,7 @@ create-prs-next-release:
 	gh pr create \
 		--title "backport: Add backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) label" \
 		--body "Merge as soon as $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch was created." \
-		--base main \
+		--base 8.x \
 		--label 'Team:Automation' || echo "There are no changes"
 
 ## Diff output
