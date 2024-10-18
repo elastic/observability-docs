@@ -1,0 +1,416 @@
+---
+slug: /serverless/observability/host-metrics
+title: Host metrics
+description: Learn about key host metrics used for host monitoring.
+tags: [ 'serverless', 'observability', 'reference' ]
+---
+
+<p><DocBadge template="technical preview" /></p>
+
+<div id="host-metrics"></div>
+
+Learn about key host metrics displayed in the Infrastructure UI:
+
+* <DocLink slug="/serverless/observability/host-metrics" section="hosts-metrics">Hosts</DocLink>
+* <DocLink slug="/serverless/observability/host-metrics" section="cpu-usage-metrics">CPU usage</DocLink>
+* <DocLink slug="/serverless/observability/host-metrics" section="memory-metrics">Memory</DocLink>
+* <DocLink slug="/serverless/observability/host-metrics" section="log-metrics">Log</DocLink>
+* <DocLink slug="/serverless/observability/host-metrics" section="network-metrics">Network</DocLink>
+* <DocLink slug="/serverless/observability/host-metrics" section="network-metrics">Disk</DocLink>
+* <DocLink slug="/serverless/observability/host-metrics" section="legacy-metrics">Legacy</DocLink>
+
+<div id="key-metrics-hosts"></div>
+
+## Hosts metrics
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**Hosts**                </DocCell>
+    <DocCell>
+       Number of hosts returned by your search criteria.
+
+       **Field Calculation**: `count(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+<div id="key-metrics-cpu"></div>
+
+## CPU usage metrics
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**CPU Usage (%)**</DocCell>
+    <DocCell>
+      Average of percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. Includes both time spent on user space and kernel space. 100% means all CPUs of the host are busy.
+
+      **Field Calculation**: `average(system.cpu.total.norm.pct)`
+
+      For legacy metric calculations, refer to <DocLink slug="/serverless/observability/host-metrics" section="legacy-metrics">Legacy metrics</DocLink>.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**CPU Usage - iowait (%)**</DocCell>
+    <DocCell>
+       The percentage of CPU time spent in wait (on disk).
+
+       **Field Calculation**: `average(system.cpu.iowait.pct) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**CPU Usage - irq (%)**    </DocCell>
+    <DocCell>
+       The percentage of CPU time spent servicing and handling hardware interrupts.
+
+       **Field Calculation**: `average(system.cpu.irq.pct) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**CPU Usage - nice (%)**  </DocCell>
+    <DocCell>
+       The percentage of CPU time spent on low-priority processes.
+
+      **Field Calculation**: `average(system.cpu.nice.pct) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**CPU Usage - softirq (%)**</DocCell>
+    <DocCell>
+       The percentage of CPU time spent servicing and handling software interrupts.
+
+       **Field Calculation**: `average(system.cpu.softirq.pct) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**CPU Usage - steal (%)**  </DocCell>
+    <DocCell>
+       The percentage of CPU time spent in involuntary wait by the virtual CPU while the hypervisor was servicing another processor. Available only on Unix.
+
+       **Field Calculation**: `average(system.cpu.steal.pct) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**CPU Usage - system (%)** </DocCell>
+    <DocCell>
+       The percentage of CPU time spent in kernel space.
+
+       **Field Calculation**: `average(system.cpu.system.pct) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**CPU Usage - user (%)**   </DocCell>
+    <DocCell>
+       The percentage of CPU time spent in user space. On multi-core systems, you can have percentages that are greater than 100%. For example, if 3 cores are at 60% use, then the system.cpu.user.pct will be 180%.
+
+       **Field Calculation**: `average(system.cpu.user.pct) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Load (1m)**             </DocCell>
+    <DocCell>
+      1 minute load average.
+
+      Load average gives an indication of the number of threads that are runnable (either busy running on CPU, waiting to run, or waiting for a blocking IO operation to complete).
+
+      **Field Calculation**: `average(system.load.1)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Load (5m)**             </DocCell>
+    <DocCell>
+      5 minute load average.
+
+      Load average gives an indication of the number of threads that are runnable (either busy running on CPU, waiting to run, or waiting for a blocking IO operation to complete).
+
+      **Field Calculation**: `average(system.load.5)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Load (15m)**            </DocCell>
+    <DocCell>
+      15 minute load average.
+
+      Load average gives an indication of the number of threads that are runnable (either busy running on CPU, waiting to run, or waiting for a blocking IO operation to complete).
+
+      **Field Calculation**: `average(system.load.15)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Normalized Load**       </DocCell>
+    <DocCell>
+      1 minute load average normalized by the number of CPU cores.
+
+      Load average gives an indication of the number of threads that are runnable (either busy running on CPU, waiting to run, or waiting for a blocking IO operation to complete).
+
+      100% means the 1 minute load average is equal to the number of CPU cores of the host.
+
+      Taking the example of a 32 CPU cores host, if the 1 minute load average is 32, the value reported here is 100%. If the 1 minute load average is 48, the value reported here is 150%.
+
+      **Field Calculation**: `average(system.load.1) / max(system.load.cores)`
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+<div id="key-metrics-memory"></div>
+
+## Memory metrics
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**Memory Cache**                </DocCell>
+    <DocCell>
+       Memory (page) cache.
+
+       **Field Calculation**: `average(system.memory.used.bytes ) - average(system.memory.actual.used.bytes)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Memory Free**                 </DocCell>
+    <DocCell>
+       Total available memory.
+
+      **Field Calculation**: `max(system.memory.total) - average(system.memory.actual.used.bytes)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Memory Free (excluding cache)**</DocCell>
+    <DocCell>
+       Total available memory excluding the page cache.
+
+       **Field Calculation**: `system.memory.free`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Memory Total**   </DocCell>
+    <DocCell>
+       Total memory capacity.
+
+      **Field Calculation**: `avg(system.memory.total)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Memory Usage (%)**      </DocCell>
+    <DocCell>
+      Percentage of main memory usage excluding page cache.
+
+      This includes resident memory for all processes plus memory used by the kernel structures and code apart from the page cache.
+
+      A high level indicates a situation of memory saturation for the host. For example, 100% means the main memory is entirely filled with memory that can't be reclaimed, except by swapping out.
+
+      **Field Calculation**: `average(system.memory.actual.used.pct)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Memory Used**            </DocCell>
+    <DocCell>
+       Main memory usage excluding page cache.
+
+       **Field Calculation**: `average(system.memory.actual.used.bytes)`
+  </DocCell>
+  </DocRow>
+</DocTable>
+
+<div id="key-metrics-log"></div>
+
+## Log metrics
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**Log Rate**                </DocCell>
+    <DocCell>
+       Derivative of the cumulative sum of the document count scaled to a 1 second rate. This metric relies on the same indices as the logs.
+
+       **Field Calculation**: `cumulative_sum(doc_count)`
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+<div id="key-metrics-network"></div>
+
+## Network metrics
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**Network Inbound (RX)**                </DocCell>
+    <DocCell>
+      Number of bytes that have been received per second on the public interfaces of the hosts.
+
+      **Field Calculation**: `sum(host.network.ingress.bytes) * 8 / 1000`
+
+      For legacy metric calculations, refer to <DocLink slug="/serverless/observability/host-metrics" section="legacy-metrics">Legacy metrics</DocLink>.
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Network Outbound (TX)**                </DocCell>
+    <DocCell>
+      Number of bytes that have been sent per second on the public interfaces of the hosts.
+
+      **Field Calculation**: `sum(host.network.egress.bytes) * 8 / 1000`
+
+      For legacy metric calculations, refer to <DocLink slug="/serverless/observability/host-metrics" section="legacy-metrics">Legacy metrics</DocLink>.
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+## Disk metrics
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**Disk Latency**                </DocCell>
+    <DocCell>
+      Time spent to service disk requests.
+
+      **Field Calculation**: `average(system.diskio.read.time + system.diskio.write.time) / (system.diskio.read.count + system.diskio.write.count)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Disk Read IOPS**                </DocCell>
+    <DocCell>
+      Average count of read operations from the device per second.
+
+      **Field Calculation**: `counter_rate(max(system.diskio.read.count), kql='system.diskio.read.count: *')`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Disk Read Throughput**                </DocCell>
+    <DocCell>
+      Average number of bytes read from the device per second.
+
+      **Field Calculation**: `counter_rate(max(system.diskio.read.bytes), kql='system.diskio.read.bytes: *')`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Disk Usage - Available (%)**                </DocCell>
+    <DocCell>
+      Percentage of disk space available.
+
+      **Field Calculation**: `1-average(system.filesystem.used.pct)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Disk Usage - Max (%)**                </DocCell>
+    <DocCell>
+      Percentage of disk space used.  A high percentage indicates that a partition on a disk is running out of space.
+
+      **Field Calculation**: `max(system.filesystem.used.pct)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Disk Write IOPS**                </DocCell>
+    <DocCell>
+      Average count of write operations from the device per second.
+
+      **Field Calculation**: `counter_rate(max(system.diskio.write.count), kql='system.diskio.write.count: *')`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Disk Write Throughput**                </DocCell>
+    <DocCell>
+      Average number of bytes written from the device per second.
+
+      **Field Calculation**: `counter_rate(max(system.diskio.write.bytes), kql='system.diskio.write.bytes: *')`
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+<div id="legacy-metrics"></div>
+
+## Legacy metrics
+
+Over time, we may change the formula used to calculate a specific metric.
+To avoid affecting your existing rules, instead of changing the actual metric definition,
+we create a new metric and refer to the old one as "legacy."
+
+The UI and any new rules you create will use the new metric definition.
+However, any alerts that use the old definition will refer to the metric as "legacy."
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**CPU Usage (legacy)**</DocCell>
+    <DocCell>
+      Percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. This includes both time spent on user space and kernel space.
+      100% means all CPUs of the host are busy.
+
+      **Field Calculation**: `(average(system.cpu.user.pct) + average(system.cpu.system.pct)) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Network Inbound (RX) (legacy)**                </DocCell>
+    <DocCell>
+      Number of bytes that have been received per second on the public interfaces of the hosts.
+
+      **Field Calculation**: `average(host.network.ingress.bytes) * 8 / (max(metricset.period, kql='host.network.ingress.bytes: *') / 1000)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Network Outbound (TX) (legacy)**                </DocCell>
+    <DocCell>
+      Number of bytes that have been sent per second on the public interfaces of the hosts.
+
+      **Field Calculation**: `average(host.network.egress.bytes) * 8 / (max(metricset.period, kql='host.network.egress.bytes: *') / 1000)`
+    </DocCell>
+  </DocRow>
+</DocTable>
