@@ -17,6 +17,7 @@ Learn about key host metrics displayed in the Infrastructure UI:
 * <DocLink slug="/serverless/observability/host-metrics" section="log-metrics">Log</DocLink>
 * <DocLink slug="/serverless/observability/host-metrics" section="network-metrics">Network</DocLink>
 * <DocLink slug="/serverless/observability/host-metrics" section="network-metrics">Disk</DocLink>
+* <DocLink slug="/serverless/observability/host-metrics" section="legacy-metrics">Legacy</DocLink>
 
 <div id="key-metrics-hosts"></div>
 
@@ -57,20 +58,20 @@ Learn about key host metrics displayed in the Infrastructure UI:
   }
 ]}>
   <DocRow>
-    <DocCell>**CPU Usage (%)**         </DocCell>
+    <DocCell>**CPU Usage (%)**</DocCell>
     <DocCell>
-      Percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. This includes both time spent on user space and kernel space.
+      Average of percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. Includes both time spent on user space and kernel space. 100% means all CPUs of the host are busy.
 
-      100% means all CPUs of the host are busy.
-      
-      **Field Calculation**: `(average(system.cpu.user.pct) + average(system.cpu.system.pct)) / max(system.cpu.cores)`
+      **Field Calculation**: `average(system.cpu.total.norm.pct)`
+
+      For legacy metric calculations, refer to <DocLink slug="/serverless/observability/host-metrics" section="legacy-metrics">Legacy metrics</DocLink>.
     </DocCell>
   </DocRow>
   <DocRow>
     <DocCell>**CPU Usage - iowait (%)**</DocCell>
     <DocCell>
        The percentage of CPU time spent in wait (on disk).
-    
+
        **Field Calculation**: `average(system.cpu.iowait.pct) / max(system.cpu.cores)`
     </DocCell>
   </DocRow>
@@ -78,7 +79,7 @@ Learn about key host metrics displayed in the Infrastructure UI:
     <DocCell>**CPU Usage - irq (%)**    </DocCell>
     <DocCell>
        The percentage of CPU time spent servicing and handling hardware interrupts.
-    
+
        **Field Calculation**: `average(system.cpu.irq.pct) / max(system.cpu.cores)`
     </DocCell>
   </DocRow>
@@ -86,7 +87,7 @@ Learn about key host metrics displayed in the Infrastructure UI:
     <DocCell>**CPU Usage - nice (%)**  </DocCell>
     <DocCell>
        The percentage of CPU time spent on low-priority processes.
-       
+
       **Field Calculation**: `average(system.cpu.nice.pct) / max(system.cpu.cores)`
     </DocCell>
   </DocRow>
@@ -94,7 +95,7 @@ Learn about key host metrics displayed in the Infrastructure UI:
     <DocCell>**CPU Usage - softirq (%)**</DocCell>
     <DocCell>
        The percentage of CPU time spent servicing and handling software interrupts.
-       
+
        **Field Calculation**: `average(system.cpu.softirq.pct) / max(system.cpu.cores)`
     </DocCell>
   </DocRow>
@@ -102,7 +103,7 @@ Learn about key host metrics displayed in the Infrastructure UI:
     <DocCell>**CPU Usage - steal (%)**  </DocCell>
     <DocCell>
        The percentage of CPU time spent in involuntary wait by the virtual CPU while the hypervisor was servicing another processor. Available only on Unix.
-       
+
        **Field Calculation**: `average(system.cpu.steal.pct) / max(system.cpu.cores)`
     </DocCell>
   </DocRow>
@@ -110,7 +111,7 @@ Learn about key host metrics displayed in the Infrastructure UI:
     <DocCell>**CPU Usage - system (%)** </DocCell>
     <DocCell>
        The percentage of CPU time spent in kernel space.
-    
+
        **Field Calculation**: `average(system.cpu.system.pct) / max(system.cpu.cores)`
     </DocCell>
   </DocRow>
@@ -118,7 +119,7 @@ Learn about key host metrics displayed in the Infrastructure UI:
     <DocCell>**CPU Usage - user (%)**   </DocCell>
     <DocCell>
        The percentage of CPU time spent in user space. On multi-core systems, you can have percentages that are greater than 100%. For example, if 3 cores are at 60% use, then the system.cpu.user.pct will be 180%.
-    
+
        **Field Calculation**: `average(system.cpu.user.pct) / max(system.cpu.cores)`
     </DocCell>
   </DocRow>
@@ -202,18 +203,18 @@ Learn about key host metrics displayed in the Infrastructure UI:
     <DocCell>**Memory Free (excluding cache)**</DocCell>
     <DocCell>
        Total available memory excluding the page cache.
-    
+
        **Field Calculation**: `system.memory.free`
     </DocCell>
-  </DocRow> 
+  </DocRow>
   <DocRow>
     <DocCell>**Memory Total**   </DocCell>
     <DocCell>
        Total memory capacity.
-    
+
       **Field Calculation**: `avg(system.memory.total)`
     </DocCell>
-  </DocRow> 
+  </DocRow>
   <DocRow>
     <DocCell>**Memory Usage (%)**      </DocCell>
     <DocCell>
@@ -225,12 +226,12 @@ Learn about key host metrics displayed in the Infrastructure UI:
 
       **Field Calculation**: `average(system.memory.actual.used.pct)`
     </DocCell>
-  </DocRow> 
+  </DocRow>
   <DocRow>
     <DocCell>**Memory Used**            </DocCell>
     <DocCell>
        Main memory usage excluding page cache.
-       
+
        **Field Calculation**: `average(system.memory.actual.used.bytes)`
   </DocCell>
   </DocRow>
@@ -279,15 +280,19 @@ Learn about key host metrics displayed in the Infrastructure UI:
     <DocCell>
       Number of bytes that have been received per second on the public interfaces of the hosts.
 
-      **Field Calculation**: `average(host.network.ingress.bytes) * 8 / (max(metricset.period, kql='host.network.ingress.bytes: *') / 1000)`
+      **Field Calculation**: `sum(host.network.ingress.bytes) * 8 / 1000`
+
+      For legacy metric calculations, refer to <DocLink slug="/serverless/observability/host-metrics" section="legacy-metrics">Legacy metrics</DocLink>.
     </DocCell>
   </DocRow>
   <DocRow>
-    <DocCell>**Network Inbound (TX)**                </DocCell>
+    <DocCell>**Network Outbound (TX)**                </DocCell>
     <DocCell>
       Number of bytes that have been sent per second on the public interfaces of the hosts.
 
-      **Field Calculation**: `average(host.network.egress.bytes) * 8 / (max(metricset.period, kql='host.network.egress.bytes: *') / 1000)`
+      **Field Calculation**: `sum(host.network.egress.bytes) * 8 / 1000`
+
+      For legacy metric calculations, refer to <DocLink slug="/serverless/observability/host-metrics" section="legacy-metrics">Legacy metrics</DocLink>.
     </DocCell>
   </DocRow>
 </DocTable>
@@ -358,6 +363,54 @@ Learn about key host metrics displayed in the Infrastructure UI:
       Average number of bytes written from the device per second.
 
       **Field Calculation**: `counter_rate(max(system.diskio.write.bytes), kql='system.diskio.write.bytes: *')`
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+<div id="legacy-metrics"></div>
+
+## Legacy metrics
+
+Over time, we may change the formula used to calculate a specific metric.
+To avoid affecting your existing rules, instead of changing the actual metric definition,
+we create a new metric and refer to the old one as "legacy."
+
+The UI and any new rules you create will use the new metric definition.
+However, any alerts that use the old definition will refer to the metric as "legacy."
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**CPU Usage (legacy)**</DocCell>
+    <DocCell>
+      Percentage of CPU time spent in states other than Idle and IOWait, normalized by the number of CPU cores. This includes both time spent on user space and kernel space.
+      100% means all CPUs of the host are busy.
+
+      **Field Calculation**: `(average(system.cpu.user.pct) + average(system.cpu.system.pct)) / max(system.cpu.cores)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Network Inbound (RX) (legacy)**                </DocCell>
+    <DocCell>
+      Number of bytes that have been received per second on the public interfaces of the hosts.
+
+      **Field Calculation**: `average(host.network.ingress.bytes) * 8 / (max(metricset.period, kql='host.network.ingress.bytes: *') / 1000)`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Network Outbound (TX) (legacy)**                </DocCell>
+    <DocCell>
+      Number of bytes that have been sent per second on the public interfaces of the hosts.
+
+      **Field Calculation**: `average(host.network.egress.bytes) * 8 / (max(metricset.period, kql='host.network.egress.bytes: *') / 1000)`
     </DocCell>
   </DocRow>
 </DocTable>
