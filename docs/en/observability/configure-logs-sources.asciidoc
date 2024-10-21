@@ -4,9 +4,8 @@
 Specify the source configuration for logs in the
 {kibana-ref}/logs-ui-settings-kb.html[{logs-app} settings] in the
 {kibana-ref}/settings.html[{kib} configuration file].
-By default, the configuration uses the `filebeat-*` index pattern to query the data.
-The configuration also defines field settings for things like timestamps
-and container names, and the default columns displayed in the logs stream.
+By default, the configuration uses the index patterns stored in the {kib} log sources advanced setting to query the data.
+The configuration also defines the default columns displayed in the logs stream.
 
 If your logs have custom index patterns, use non-default field settings, or contain
 parsed fields that you want to expose as individual columns, you can override the
@@ -20,32 +19,22 @@ default configuration settings.
 +
 . Click *Settings*.
 +
-|=== 
+|===
 
-| *Name* | Name of the source configuration. 
+| *Name* | Name of the source configuration.
 
-| *{ipm-cap}* | {kib} index patterns or index name patterns in the {es} indices
-to read log data from.
+| *{kib} log sources advanced setting* | Use index patterns stored in the {kib} *log sources* advanced setting, which provides a centralized place to store and query log index patterns.
+Update this setting by going to *Stack Management* → *Advanced Settings* and searching for _logs sources_.
 
-Each log source now integrates with {kib} index patterns which support creating and
-querying {kibana-ref}/managing-data-views.html[runtime fields]. You can continue
-to use log sources configured to use an index name pattern, such as `filebeat-*`,
-instead of a {kib} index pattern. However, some features like those depending on
-runtime fields may not be available.
-
-Instead of entering an index pattern name,
-click *Use {kib} index patterns* and select the `filebeat-*` log index pattern.
-
-| *{data-source-cap}* | This is a new configuration option that can be used
-instead of index pattern. The Logs UI can now integrate with {data-sources} to
+| *{data-source-cap} (deprecated)* | The Logs UI integrates with {data-sources} to
 configure the used indices by clicking *Use {data-sources}*.
 
-| *Fields* | Configuring fields input has been deprecated. You should adjust your indexing using the
-<<logs-app-fields,{logs-app} fields>>, which use the {ecs-ref}/index.html[Elastic Common Schema (ECS) specification].
+| *Log indices (deprecated)* | {kib} index patterns or index name patterns in the {es} indices
+to read log data from.
 
 | *Log columns* | Columns that are displayed in the logs *Stream* page.
 
-|=== 
+|===
 +
 . When you have completed your changes, click *Apply*.
 
@@ -63,16 +52,16 @@ with other data source configurations.
 
 By default, the *Stream* page within the {logs-app} displays the following columns.
 
-|=== 
+|===
 
-| *Timestamp* | The timestamp of the log entry from the `timestamp` field. 
+| *Timestamp* | The timestamp of the log entry from the `timestamp` field.
 
 | *Message* | The message extracted from the document.
 The content of this field depends on the type of log message.
 If no special log message type is detected, the {ecs-ref}/ecs-base.html[Elastic Common Schema (ECS)]
 base field, `message`, is used.
 
-|=== 
+|===
 
 1. To add a new column to the logs stream, select *Settings > Add column*.
 2. In the list of available fields, select the field you want to add.
