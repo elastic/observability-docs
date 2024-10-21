@@ -85,11 +85,49 @@ These are the key metrics displayed for Docker containers.
 ]}>
   <DocRow>
     <DocCell>**Inbound Traffic (RX)**</DocCell>
-    <DocCell>Derivative of the maximum of `docker.network.in.bytes` scaled to a 1 second rate.</DocCell>
+    <DocCell>
+      Derivative of the maximum of `docker.network.in.bytes` scaled to a 1 second rate.
+
+      **Field Calculation:** `average(docker.network.inbound.bytes) * 8 / (max(metricset.period, kql='docker.network.inbound.bytes: *') / 1000)`
+    </DocCell>
   </DocRow>
   <DocRow>
     <DocCell>**Outbound Traffic (TX)**</DocCell>
-    <DocCell>Derivative of the maximum of `docker.network.out.bytes` scaled to a 1 second rate.</DocCell>
+    <DocCell>
+      Derivative of the maximum of `docker.network.out.bytes` scaled to a 1 second rate.
+
+      **Field Calculation:** `average(docker.network.outbound.bytes) * 8 / (max(metricset.period, kql='docker.network.outbound.bytes: *') / 1000)`
+    </DocCell>
+  </DocRow>
+</DocTable>
+
+### Disk metrics
+
+<DocTable columns={[
+  {
+    "title": "Metric",
+    "width": "30%"
+  },
+  {
+    "title": "Description",
+    "width": "70%"
+  }
+]}>
+  <DocRow>
+    <DocCell>**Disk Read IOPS**</DocCell>
+    <DocCell>
+      Average count of read operations from the device per second.
+
+      **Field Calculation:**  `counter_rate(max(docker.diskio.read.ops), kql='docker.diskio.read.ops: *')`
+    </DocCell>
+  </DocRow>
+  <DocRow>
+    <DocCell>**Disk Write IOPS**</DocCell>
+    <DocCell>
+      Average count of write operations from the device per second.
+
+      **Field Calculation:**  `counter_rate(max(docker.diskio.write.ops), kql='docker.diskio.write.ops: *')`
+    </DocCell>
   </DocRow>
 </DocTable>
 
