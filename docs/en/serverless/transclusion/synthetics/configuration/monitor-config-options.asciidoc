@@ -1,0 +1,69 @@
+`id` (`string`)::
+A unique identifier for this monitor.
+
+[[monitor-name]]`name` (`string`)::
+A human readable name for the monitor.
+
+[[monitor-tags]]`tags` (`Array<string>`)::
+A list of tags that will be sent with the monitor event. Tags are displayed in the Synthetics UI and allow you to search monitors by tag.
+
+`schedule` (`number`)::
+The interval (in minutes) at which the monitor should run.
+
+`enabled` (`boolean`)::
+Enable or disable the monitor from running without deleting and recreating it.
+
+`locations` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/locations/public-locations.ts#L28-L37[`Array<SyntheticsLocationsType>`])::
+Where to deploy the monitor. Monitors can be deployed in multiple locations so that you can detect differences in availability and response times across those locations.
++
+To list available locations you can:
++
+* Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>>.
+* Go to **Synthetics** → **Management** and click **Create monitor**.
+Locations will be listed in _Locations_.
+
+`privateLocations` (`Array<string>`)::
+The <<synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas
+`locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
++
+To list available {private-location}s you can:
++
+* Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>>
+with the URL for the Observability project from which to fetch available locations.
+* Go to **Synthetics** → **Management** and click **Create monitor**.
+{private-location}s will be listed in _Locations_.
+
+`throttling` (`boolean` | https://github.com/elastic/synthetics/blob/{synthetics_version}/src/common_types.ts#L194-L198[`ThrottlingOptions`])::
+Control the monitor's download speeds, upload speeds, and latency to simulate your application's behavior on slower or laggier networks. Set to `false` to disable throttling altogether.
+
+`screenshot` (https://github.com/elastic/synthetics/blob/{synthetics_version}/src/common_types.ts#L192[`ScreenshotOptions`])::
+Control whether or not to capture screenshots. Options include `'on'`, `'off'`, or `'only-on-failure'`.
+
+`alert.status.enabled` (`boolean`)::
+Enable or disable monitor status alerts. Read more about alerts in <<synthetics-settings-alerting,Alerting>>.
+
+`retestOnFailure` (`boolean`)::
+Enable or disable retesting when a monitor fails. Default is `true`.
++
+By default, monitors are automatically retested if the monitor goes from "up" to "down".
+If the result of the retest is also "down", an error will be created, and if configured, an alert sent.
+Then the monitor will resume running according to the defined schedule.
++
+Using `retestOnFailure` can reduce noise related to transient problems.
+
+`fields` (`object`)::
+A list of key-value pairs that will be sent with each monitor event.
+The `fields` are appended to {es} documents as `labels`,
+and those labels are displayed in {kib} in the _Monitor details_ panel in the
+<<synthetics-analyze-individual-monitors-overview,individual monitor's _Overview_ tab>>.
++
+For example:
++
+[source,js]
+----
+fields: {
+  foo: 'bar',
+  team: 'synthetics',
+}
+----
+

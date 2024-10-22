@@ -1,0 +1,142 @@
+[[create-manage-rules]]
+= Create and manage rules
+
+:description: Create and manage rules for alerting when conditions are met.
+:keywords: serverless, observability, how-to
+
+preview:[]
+
+:role: Editor
+:goal: create and manage rules for alerting
+include::../partials/roles.asciidoc[]
+:role!:
+
+:goal!:
+
+Alerting enables you to define _rules_, which detect complex conditions within different apps and trigger actions when those conditions are met. Alerting provides a set of built-in connectors and rules for you to use.
+
+[discrete]
+[[create-manage-rules-observability-rules]]
+== Observability rules
+
+Learn more about Observability rules and how to create them:
+
+|===
+| Rule type | Name | Detects when...
+
+| AIOps
+| <<create-anomaly-alert-rule,Anomaly detection>>
+| Anomalies match specific conditions.
+
+| APM
+| <<create-anomaly-alert-rule,APM anomaly>>
+| The latency, throughput, or failed transaction rate of a service is abnormal.
+
+| Observability
+| <<create-anomaly-alert-rule,Custom threshold>>
+| An Observability data type reaches or exceeds a given value.
+
+| Stack
+| <<create-elasticsearch-query-rule,{es} query>>
+| Matches are found during the latest query run.
+
+| APM
+| <<create-error-count-threshold-alert-rule,Error count threshold>>
+| The number of errors in a service exceeds a defined threshold.
+
+| APM
+| <<create-failed-transaction-rate-threshold-alert-rule,Failed transaction rate threshold>>
+| The rate of transaction errors in a service exceeds a defined threshold.
+
+| Metrics
+| <<create-inventory-threshold-alert-rule,Inventory>>
+| The infrastructure inventory exceeds a defined threshold.
+
+| APM
+| <<create-latency-threshold-alert-rule,Latency threshold>>
+| The latency of a specific transaction type in a service exceeds a defined threshold.
+
+| SLO
+| <<create-slo-burn-rate-alert-rule,SLO burn rate rule>>
+| The burn rate is above a defined threshold.
+|===
+
+[discrete]
+[[create-manage-rules-creating-rules-and-alerts]]
+== Creating rules and alerts
+
+You start by defining the rule and how often it should be evaluated. You can extend these rules by adding an appropriate action (for example, send an email or create an issue) to be triggered when the rule conditions are met. These actions are defined within each rule and implemented by the appropriate connector for that action e.g. Slack, Jira. You can create any rules from scratch using the **Manage Rules** page, or you can create specific rule types from their respective UIs and benefit from some of the details being pre-filled (for example, Name and Tags).
+
+* For APM alert types, you can select **Alerts and rules** and create rules directly from the **Services**, **Traces**, and **Dependencies** UIs.
+* For SLO alert types, from the **SLOs** page open the **More actions** menu image:images/icons/boxesHorizontal.svg[action menu] for an SLO and select **Create new alert rule**. Alternatively, when you create a new SLO, the **Create new SLO burn rate alert rule** checkbox is enabled by default and will prompt you to <<create-slo-burn-rate-alert-rule,Create SLO burn rate rule>> upon saving the SLO.
+
+////
+/*
+Clarify available Logs rule
+*/
+////
+
+After a rule is created, you can open the **More actions** menu image:images/icons/boxesHorizontal.svg[More actions] and select **Edit rule** to check or change the definition, and/or add or modify actions.
+
+[role="screenshot"]
+image::images/alerts-edit-rule.png[Edit rule (failed transaction rate)]
+
+From the action menu you can also:
+
+* Disable or delete rule
+* Clone rule
+* Snooze rule notifications
+* Run rule (without waiting for next scheduled check)
+* Update API keys
+
+[discrete]
+[[create-manage-rules-view-rule-details]]
+== View rule details
+
+Click on an individual rule on the **{rules-app}** page to view details including the rule name, status, definition, execution history, related alerts, and more.
+
+[role="screenshot"]
+image::images/alerts-detail-apm-anomaly.png[Rule details (APM anomaly)]
+
+A rule can have one of the following responses:
+
+`failed`::
+The rule ran with errors.
+
+`succeeded`::
+The rule ran without errors.
+
+`warning`::
+The rule ran with some non-critical errors.
+
+[discrete]
+[[create-manage-rules-snooze-and-disable-rules]]
+== Snooze and disable rules
+
+The rule listing enables you to quickly snooze, disable, enable, or delete individual rules.
+
+// ![Use the rule status dropdown to enable or disable an individual rule](images/create-and-manage-rules/user-alerting-individual-enable-disable.png)
+
+When you snooze a rule, the rule checks continue to run on a schedule but the
+alert will not trigger any actions. You can snooze for a specified period of
+time, indefinitely, or schedule single or recurring downtimes.
+
+// ![Snooze notifications for a rule](images/create-and-manage-rules/user-alerting-snooze-panel.png)
+
+When a rule is in a snoozed state, you can cancel or change the duration of
+this state.
+
+preview:[] To temporarily suppress notifications for _all_ rules, create a https://www.elastic.co/docs/current/serverless/maintenance-windows[maintenance window].
+
+// Remove tech preview?
+
+[discrete]
+[[create-manage-rules-import-and-export-rules]]
+== Import and export rules
+
+To import and export rules, use https://www.elastic.co/docs/current/serverless/saved-objects[{saved-objects-app}].
+
+Rules are disabled on export.
+You are prompted to re-enable the rule on successful import.
+
+// Can you import / export rules?

@@ -1,0 +1,20 @@
+. Start a transaction with {apm-node-ref}/agent-api.html#apm-start-transaction[`apm.startTransaction()`],
+or a span with {apm-node-ref}/agent-api.html#apm-start-span[`apm.startSpan()`].
+. Get the serialized `traceparent` string of the started transaction/span with
+{apm-node-ref}/agent-api.html#apm-current-traceparent[`currentTraceparent`].
+. Encode the `traceparent` and send it to the receiving service inside your regular request.
+
+Example using raw UDP to communicate between two services, A and B:
+
+[source,js]
+----
+agent.startTransaction('my-service-a-transaction');   <1>
+const traceparent = agent.currentTraceparent;   <2>
+sendMetadata(`traceparent: ${traceparent}\n`);   <3>
+----
+
+<1> Start a transaction
+
+<2> Get the current `traceparent`
+
+<3> Send the `traceparent` as a header to service B.

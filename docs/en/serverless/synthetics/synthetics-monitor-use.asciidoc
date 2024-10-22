@@ -1,0 +1,61 @@
+[[synthetics-monitor-use]]
+= Configure individual browser monitors
+
+++++
+<titleabbrev>Configure individual monitors</titleabbrev>
+++++
+
+preview:[]
+
+[NOTE]
+====
+This is only relevant for monitors that are created and managed using a <<synthetics-get-started-synthetics-project,Synthetics project>>.
+For more information on configuring browser monitors added in the UI,
+refer to <<synthetics-get-started-ui,Create monitors in the Synthetics UI>>.
+====
+
+After <<synthetics-create-test,writing synthetic journeys>>, you can use `monitor.use`
+to configure the browser monitors that will run your tests.
+
+You'll need to set a few configuration options:
+
+* **Give your monitor a name.** Provide a human readable name and a unique ID for the monitor. This will appear in your Observability project where you can view and manage monitors after they're created.
+* **Set the schedule.** Specify the interval at which your tests will run.
+* **Specify where the monitors should run.** You can run monitors on Elastic's global managed testing infrastructure
+or <<synthetics-private-location,create a {private-location}>> to run monitors from your own premises.
+* **Set other options as needed.** There are several other options you can set to customize your implementation including params, tags, screenshot options, throttling options, and more.
+
+Configure each monitor directly in your `journey` code using `monitor.use`.
+The `monitor` API allows you to set unique options for each journey's monitor directly through code.
+For example:
+
+[source,js]
+----
+import { journey, step, monitor, expect } from '@elastic/synthetics';
+
+journey('Ensure placeholder is correct', ({ page, params }) => {
+  monitor.use({
+    id: 'example-monitor',
+    schedule: 10,
+    throttling: {
+      download: 10,
+      upload: 5,
+      latency: 100,
+    },
+  });
+  step('Load the demo page', async () => {
+    await page.goto('https://elastic.github.io/synthetics-demo/');
+  });
+  step('Assert placeholder text', async () => {
+    const placeholderValue = await page.getAttribute(
+      'input.new-todo',
+      'placeholder'
+    );
+    expect(placeholderValue).toBe('What needs to be done?');
+  });
+});
+----
+
+For each journey, you can specify its `schedule` and the `locations` in which it runs.
+When those options are not set, Synthetics will use the default values in the global configuration file.
+For more details, refer to <<synthetics-configuration,Configure a Synthetics project>>.
