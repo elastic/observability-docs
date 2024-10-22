@@ -17,10 +17,19 @@ A default policy is applied to each APM data stream, but can be customized depen
 
 [NOTE]
 ====
-As of 8.15, by default new clusters use {ref}/data-stream-lifecycle.html[data stream lifecycle (DSL)] to provide data retention settings for APM data.
+// Explain what changed
+// Before
+Before 8.15, clusters used {ref}/index-lifecycle-management.html[index lifecycle management (ILM)] to provide the default data retention settings for APM data.
+// After
+As of 8.15, new clusters use {ref}/data-stream-lifecycle.html[data stream lifecycle (DSL)] to provide default data retention settings, but the customization for lifecycle is still performed using ILM policies, which are now configured to override the default DSL polices.
 
-Before 8.15, APM used {ref}/index-lifecycle-management.html[index lifecycle management (ILM)] by default.
-If you prefer to continue using ILM in 8.15 and later, follow the steps in this guide to create a custom ILM policy and add it to `*@custom` component template for each data stream.
+// What this means for existing clusters that are upgraded
+For _existing_ clusters upgrading to 8.15, the default ILM policies should still work as expected.
+You can can continue using ILM or switch the default to DSL explicitly using the {ref}/data-stream-apis.html[data stream API].
+
+// What this means for new clusters that are created
+For _new_ clusters created in 8.15 or later, if you prefer to continue using ILM,
+follow the steps in this guide to create a custom ILM policy and add it to the `*@custom` component template for each data stream.
 ====
 
 Each APM data stream has its own default lifecycle policy including a delete definition and a rollover definition.
@@ -124,7 +133,8 @@ TIP: Default lifecycle policies can change between minor versions. This is not c
 [id="apm-data-streams-custom-policy{append-legacy}"]
 == Configure a custom index lifecycle policy
 
-The {es} apm-data plugin creates a default `*@custom` component template for each data stream.
+Mappings and settings for data streams can be customized through the creation of `*@custom` component templates,
+which are referenced by the index templates created by the {es} apm-data plugin.
 The easiest way to configure a custom index lifecycle policy per data stream is to edit this template.
 
 This tutorial explains how to apply a custom index lifecycle policy to the `traces-apm` data stream.
@@ -134,9 +144,9 @@ This tutorial explains how to apply a custom index lifecycle policy to the `trac
 == Step 1: View data streams
 
 The **Data Streams** view in {kib} shows you data streams,
-index templates, and index lifecycle policies:
+index templates, and lifecycle policies:
 
-. Navigate to **{stack-manage-app}** > **Index Management** > **Data Streams**.
+. Navigate to **{stack-manage-app}** → **Index Management** → **Data Streams**.
 . Search for `traces-apm` to see all data streams associated with APM trace data.
 . In this example, I only have one data stream because I'm only using the `default` namespace.
 You may have more if your setup includes multiple namespaces.
@@ -148,7 +158,7 @@ image::images/data-stream-overview.png[Data streams info]
 [id="apm-data-streams-custom-two{append-legacy}"]
 == Step 2: Create an index lifecycle policy
 
-. Navigate to **{stack-manage-app}** > **Index Lifecycle Policies**.
+. Navigate to **{stack-manage-app}** → **Index Lifecycle Policies**.
 . Click **Create policy**.
 
 Name your new policy; For this tutorial, I've chosen `custom-traces-apm-policy`.
@@ -162,7 +172,7 @@ To apply your new index lifecycle policy to the `traces-apm-*` data stream,
 edit the `<data-stream-name>@custom` component template.
 
 . Click on the **Component Template** tab and search for `traces-apm`.
-. Select the `traces-apm@custom` template and click **Manage** > **Edit**.
+. Select the `traces-apm@custom` template and click **Manage** → **Edit**.
 . Under **Index settings**, set the {ilm-init} policy name created in the previous step:
 +
 [source,json]
