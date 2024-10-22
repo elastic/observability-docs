@@ -29,6 +29,7 @@ The type of SLI to use depends on the location of your data:
 * <<timeslice-metric-sli, Timeslice metric>> — create an SLI based on a custom equation that uses multiple aggregations.
 * <<histogram-metric-sli, Histogram metric>> — create an SLI based on histogram metrics.
 * <<apm-latency-and-availability-sli, APM latency and APM availability>> — create an SLI based on services using application performance monitoring (APM).
+* <<synthetics-availability-sli>> — create an SLI based on the availability of your synthetic monitors.
 
 [discrete]
 [[custom-kql-sli]]
@@ -160,6 +161,28 @@ When defining an APM latency or APM availability SLI, set the following fields:
 * *Transaction name* — Either `all` or the specific transaction name.
 * *Threshold (APM latency only)* — The latency threshold in milliseconds (ms) to consider the request as good.
 * *Query filter* — An optional query filter on the APM data.
+
+[discrete]
+[[synthetics-availability-sli]]
+== Synthetics availability
+
+Create an indicator based on the availability of your synthetic monitors.
+Availability is determined by calculating the percentage of checks that are successful (`monitor.status : "up"`)
+out of the total number of checks.
+
+*Example*: You can define an indicator based on a HTTP monitor being "up" for at least 99% of the time.
+
+When defining a Synthetics availability SLI, set the following fields:
+
+* *Monitor name* — The name of one or more <<synthetics-configuration-monitor-name,synthetic monitors>>.
+* *Project* — The ID of one or more <<synthetics-configuration-project,projects>> containing synthetic monitors.
+* *Tags* — One or more <<synthetics-configuration-monitor-tags,tags>> assigned to synthetic monitors.
+* *Query filter* — An optional KQL query used to filter the Synthetics checks on some relevant criteria.
+
+[NOTE]
+====
+Synthetics availability SLIs are automatically grouped by monitor and location.
+====
 
 [discrete]
 [[set-slo]]
