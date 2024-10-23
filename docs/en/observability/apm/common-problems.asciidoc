@@ -18,57 +18,6 @@ If no data shows up in {es}, first make sure that your APM components are proper
 
 include::{observability-docs-root}/docs/en/observability/apm/tab-widgets/no-data-indexed-widget.asciidoc[]
 
-[[apm-data-indexed-no-apm]]
-[float]
-=== Data is indexed but doesn't appear in the APM UI
-
-The APM UI relies on index mappings to query and display data.
-If your APM data isn't showing up in the APM UI, but is elsewhere in {kib}, like the Discover app,
-you may have a missing index mapping.
-
-You can determine if a field was mapped correctly with the `_mapping` API.
-For example, run the following command in the {kib} {kibana-ref}/console-kibana.html[console].
-This will display the field data type of the `service.name` field.
-
-[source,curl]
-----
-GET *apm*/_mapping/field/service.name
-----
-
-If the `mapping.name.type` is `"text"`, your APM indices were not set up correctly.
-
-[source,yml]
-----
-".ds-metrics-apm.transaction.1m-default-2023.04.12-000038": {
-   "mappings": {
-      "service.name": {
-         "full_name": "service.name",
-         "mapping": {
-            "name": {
-               "type": "text" <1>
-            }
-         }
-      }
-   }
-}
-----
-<1> The `service.name` `mapping.name.type` would be `"keyword"` if this field had been set up correctly.
-
-To fix this problem, install the APM integration by following these steps:
-
---
-include::{observability-docs-root}/docs/en/observability/apm/getting-started-apm-server.asciidoc[tag=install-apm-integration]
---
-
-This will reinstall the APM index templates and trigger a data stream index rollover.
-
-You can verify the correct index templates were installed by running the following command in the {kib} console:
-
-[source,curl]
-----
-GET /_index_template/traces-apm
-----
-
 [float]
 [[apm-common-ssl-problems]]
 === Common SSL-related problems

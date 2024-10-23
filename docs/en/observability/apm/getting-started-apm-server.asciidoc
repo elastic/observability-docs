@@ -306,72 +306,6 @@ See <<apm-running-on-docker, Running on Docker>> for deploying Docker containers
 [[apm-server-configuration]]
 ==== Step 2: Set up and configure
 
-<<<<<<< HEAD:docs/en/observability/apm/getting-started-apm-server.asciidoc
-// This content is reused in the upgrading guide
-// tag::why-apm-integration[]
-Starting in version 8.0.0, {fleet} uses the APM integration to set up and manage APM index templates,
-{ilm-init} policies, and ingest pipelines. APM Server will only send data to {es} _after_ the APM integration has been installed.
-// end::why-apm-integration[]
-
-[float]
-===== Install the APM integration
-
-// This content is reused in the upgrading guide
-// tag::install-apm-integration[]
-[%collapsible%open]
-.**If you have an internet connection**
-====
-An internet connection is required to install the APM integration via the {fleet} UI in {kib}.
-
-// lint ignore elastic-agent
-. Open {kib} and select **Add integrations** > **Elastic APM**.
-. Click **APM integration**.
-. Click **Add Elastic APM**.
-. Click **Save and continue**.
-. Click **Add Elastic Agent later**. You do not need to run an {agent} to complete the setup.
-====
-
-// tag::install-apm-integration-no-internet[]
-[%collapsible]
-.**If you don't have an internet connection**
-====
-If your environment has network traffic restrictions, there are other ways to install the APM integration.
-See {fleet-guide}/air-gapped.html[Air-gapped environments] for more information.
-
-Option 1: Update `kibana.yml`::
-+
-Update `kibana.yml` to include the following, then restart {kib}.
-+
-[source,yaml]
-----
-xpack.fleet.packages:
-- name: apm
-  version: latest
-----
-+
-See {kibana-ref}/settings.html[Configure Kibana] to learn more about how to edit the Kibana configuration file.
-
-Option 2: Use the {fleet} API::
-+
-Use the {fleet} API to install the APM integration. To be successful, this needs to be run against the {kib}
-API, not the {es} API.
-+
-["source","yaml",subs="attributes"]
-----
-POST kbn:/api/fleet/epm/packages/apm/{apm_server_version}
-{ "force": true }
-----
-+
-See {kibana-ref}/api.html[Kibana API] to learn more about how to use the Kibana APIs.
-====
-// end::install-apm-integration-no-internet[]
-// end::install-apm-integration[]
-
-[float]
-===== Configure APM
-
-=======
->>>>>>> 27fc737c ([apm] Update APM docs to reflect changes related to the Elasticsearch apm-data plugin (#4333)):docs/en/observability/apm/getting-started-apm/get-started-with-apm-server-binary.asciidoc
 Configure APM by editing the `apm-server.yml` configuration file.
 The location of this file varies by platform--see the <<apm-directory-layout>> for help locating it.
 
@@ -509,7 +443,7 @@ include::{observability-docs-root}/docs/en/observability/tab-widgets/add-apm-int
 An internet connection is required to install the APM integration via the Fleet UI in Kibana.
 
 --
-include::{observability-docs-root}/docs/en/observability/apm/getting-started-apm-server.asciidoc[tag=install-apm-integration-no-internet]
+include::{observability-docs-root}/docs/en/observability/apm/shared/install-apm-integration-no-internet.asciidoc[]
 --
 ****
 
