@@ -107,7 +107,40 @@ If the `Host A, Architecture A` group matches the rule conditions, but the `Host
 If you select one field—for example, `host.name`—and `Host A` matches the conditions but `Host B` doesn't, one alert is triggered for `Host A`.
 If both groups match the conditions, alerts are triggered for both groups.
 
-When you select *Alert me if a group stops reporting data*, the rule is triggered if a group that previously reported metrics does not report them again over the expected time period.
+[discrete]
+[[trigger-alert-when-no-data]]
+== Trigger "no data" alerts (optional)
+
+Optionally configure the rule to trigger an alert when:
+
+* there is no data, or
+* a group that was previously detected stops reporting data.
+
+To do this, select **Alert me if there's no data**.
+
+The behavior of the alert depends on whether any **group alerts by** fields are specified:
+
+* **No "group alerts by" fields**: (Default) A "no data" alert is triggered if the condition fails to report data over the expected time period, or the rule fails to query {es}. This alert means that something is wrong and there is not enough data to evaluate the related threshold.
+
+* **Has "group alerts by" fields**: If a previously detected group stops reporting data, a "no data" alert is triggered for the missing group.
++
+For example, consider a scenario where `host.name` is the **group alerts by** field for CPU usage above 80%. The first time the rule runs, two hosts report data: `host-1` and `host-2`. The second time the rule runs, `host-1` does not report any data, so a "no data" alert is triggered for `host-1`. When the rule runs again, if `host-1` starts reporting data again, there are a couple possible scenarios:
++
+--
+* If `host-1` reports data for CPU usage and it is above the threshold of 80%, no new alert is triggered.
+Instead the existing alert changes from "no data" to a triggered alert that breaches the threshold.
+Keep in mind that no notifications are sent in this case because there is still an ongoing issue.
+* If `host-1` reports CPU usage below the threshold of 80%, the alert status is changed to recovered.
+--
+
+****
+**How to untrack decommissioned hosts**
+
+If a host (for example, `host-1`) is decommissioned, you probably no longer want to see "no data" alerts about it.
+To mark an alert as untracked:
+
+Go to the Alerts table, click the image:images/icons/boxesHorizontal.svg[More actions] icon to expand the "More actions" menu, and click *Mark as untracked*.
+****
 
 [discrete]
 [[custom-threshold-role-visibility]]
