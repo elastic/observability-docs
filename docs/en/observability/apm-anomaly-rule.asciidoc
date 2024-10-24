@@ -1,0 +1,91 @@
+[[apm-anomaly-rule]]
+= APM Anomaly rule
+
+APM Anomaly rules trigger when the latency, throughput, or failed transaction rate of a service is abnormal.
+
+[discrete]
+[[apm-anomaly-rule-filters-conditions]]
+== Filters and conditions
+
+Because some parts of an application may be more important than others, you might have a different tolerance
+for abnormal performance across services in your application. You can filter the services in your application to
+apply an APM Anomaly rule to specific services (`SERVICE`), transaction types (`TYPE`), and environments (`ENVIRONMENT`).
+
+Then, you can specify which conditions should result in an alert. This includes specifying:
+
+* The types of anomalies that are detected (`DETECTOR TYPES`): `latency`, `throughput`, and/or `failed transaction rate`.
+* The severity level (`HAS ANOMALY WITH SEVERITY`): `critical`, `major`, `minor`, `warning`.
+
+.Example
+****
+This example creates a rule for all production services that would result in an alert when a critical latency
+anomaly is detected:
+
+image::apm-anomaly-rule-filters-conditions.png[width=600]
+****
+
+[discrete]
+== Rule schedule
+
+include::../shared/alerting-and-rules/generic-apm-rule-schedule.asciidoc[]
+
+[discrete]
+== Advanced options
+
+include::../shared/alerting-and-rules/generic-apm-advanced-options.asciidoc[]
+
+[discrete]
+== Actions
+
+Extend your rules by connecting them to actions that use built-in integrations.
+
+[discrete]
+=== Action types
+
+Supported built-in integrations include:
+
+include::../shared/alerting-and-rules/alerting-connectors.asciidoc[]
+
+[discrete]
+=== Action frequency
+
+include::../shared/alerting-and-rules/generic-apm-action-frequency.asciidoc[]
+
+[discrete]
+[[apm-anomaly-rule-action-variables]]
+=== Action variables
+
+A default message is provided as a starting point for your alert.
+If you want to customize the message, add more context to the message by clicking the icon above
+the message text box and selecting from a list of available variables.
+
+TIP: To add variables to alert messages, use https://mustache.github.io/[Mustache] template syntax, for example `{{variable.name}}`.
+
+image::apm-anomaly-rule-action-variables.png[width=600]
+
+The following variables are specific to this rule type.
+You an also specify {kibana-ref}/rule-action-variables.html[variables common to all rules].
+
+`context.alertDetailsUrl`::
+Link to the alert troubleshooting view for further context and details. This will be an empty string if the server.publicBaseUrl is not configured.
+
+`context.environment`::
+The transaction type the alert is created for.
+
+`context.reason`::
+A concise description of the reason for the alert.
+
+`context.serviceName`::
+The service the alert is created for.
+
+`context.threshold`::
+Any trigger value above this value will cause the alert to fire.
+
+`context.transactionType`::
+The transaction type the alert is created for.
+
+`context.triggerValue`::
+The value that breached the threshold and triggered the alert.
+
+`context.viewInAppUrl`::
+Link to the alert source.
