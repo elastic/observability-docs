@@ -1,0 +1,62 @@
+[[collect-data-with-aws-firehose]]
+= Quickstart: Collect data with AWS Firehose
+
+preview::[]
+
+In this quickstart guide, you'll learn how to send logs and metrics to Elastic using AWS Firehose.
+
+The AWS Firehose receiver is based on a CloudFormation template that can collect all available CloudWatch logs and metrics for your AWS account.
+
+This approach requires minimal configuration as the CloudFormation template has the default settings that are required to proceed with the installation. Optionally, you can download the CloudFormation template and customize it for your specific use cases. 
+
+Data collection with AWS Firehose is supported on ESS deployments in AWS, Azure and GCP. 
+
+[discrete]
+== Prerequisites
+
+* A deployment using our hosted {ess} on {ess-trial}[{ecloud}]. The deployment includes an {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data.
+* A user with the `superuser` {ref}/built-in-roles.html[built-in role] or the privileges required to onboard data.
++ 
+[%collapsible]
+.Expand to view required privileges
+====
+* {ref}/security-privileges.html#privileges-list-cluster[**Cluster**]: `['monitor', 'manage_own_api_key']`
+* {ref}/security-privileges.html#privileges-list-indices[**Index**]: `{ names: ['logs-*-*', 'metrics-*-*'], privileges: ['auto_configure', 'create_doc'] }`
+* {kibana-ref}/kibana-privileges.html[**Kibana**]: `{ spaces: ['*'], feature: { fleet: ['all'], fleetv2: ['all'] } }`
+====
+* An active AWS account and the necessary permissions to create delivery streams.
+
+[discrete]
+== Limitations
+
+The AWS Firehose receiver has the following limitations:
+
+* It does not support AWS PrivateLink.
+* It is not available for on-premise Elastic Stack deployments. 
+
+[discrete]
+== Collect your data
+
+. In {kib}, go to **Observability** and click **Add Data**.
+
+. Select **Cloud**, **AWS**, and then select **AWS Firehose**.
++
+[role="screenshot"]
+image::images/quickstart-aws-firehose-entry-point.png[AWS Firehose entry point]
+
+. Click **Create Firehose Stream in AWS** to create a CloudFormation stack from the CloudFormation template.
++
+NOTE: Optionally, you can download the CloudFormation template to review and modify the default settings.
+
+. Go back to the **Add Observability Data** page.
+
+[discrete]
+== Visualize your data
+
+After installation is complete and all relevant data is flowing into Elastic,
+the **Visualize your data** section allows you to access the different dashboards for the various services.
+
+[role="screenshot"]
+image::images/quickstart-aws-firehose-dashboards.png[AWS Firehose dashboards]
+
+Refer to <<observability-introduction>> for a description of other useful features.
