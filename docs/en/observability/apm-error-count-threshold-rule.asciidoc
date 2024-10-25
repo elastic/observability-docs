@@ -1,0 +1,121 @@
+[[apm-error-count-threshold-rule]]
+= Error count threshold rule
+
+Alert when the number of errors in a service exceeds a defined threshold. Error count rules can be set at the
+environment level, service level, and error group level.
+
+[discrete]
+[[apm-error-count-threshold-rule-filters-conditions]]
+== Filters and conditions
+
+Filter the errors coming from your application to apply an Error count threshold rule to a specific
+service (`SERVICE`), environment (`ENVIRONMENT`) or error grouping key (`ERROR GROUPING KEY`).
+Alternatively, you can use a {kibana-ref}/kuery-query.html[KQL filter] to limit the scope of the alert
+by toggling on the *Use KQL Filter* option.
+
+[TIP]
+====
+Similar errors are grouped together to make it easy to quickly see which errors are affecting your services and to take actions to rectify them. Each group of errors has a unique _error grouping key_ — a hash of the stack trace and other properties.
+====
+
+Then, you can specify which conditions should result in an alert. This includes specifying:
+
+* The number of errors that occurred (`IS ABOVE`).
+* The timeframe in which the errors must occur (`FOR THE LAST`) in seconds, minutes, hours, or days.
+
+.Example
+****
+This example creates a rule for all production services that would result in an alert when there are 25 errors
+in the last five minutes:
+
+image::apm-error-count-rule-filters-conditions.png[width=600]
+
+Alternatively, you can use a KQL filter to limit the scope of the alert:
+
+. Toggle on *Use KQL Filter*.
+. Add a filter:
++
+[source,txt]
+------
+service.environment:"Production"
+------
+****
+
+[discrete]
+== Groups
+
+include::../shared/alerting-and-rules/generic-apm-group-by.asciidoc[]
+
+[discrete]
+== Rule schedule
+
+include::../shared/alerting-and-rules/generic-apm-rule-schedule.asciidoc[]
+
+[discrete]
+== Advanced options
+
+include::../shared/alerting-and-rules/generic-apm-advanced-options.asciidoc[]
+
+[discrete]
+== Actions
+
+Extend your rules by connecting them to actions that use built-in integrations.
+
+[discrete]
+=== Action types
+
+Supported built-in integrations include:
+
+include::../shared/alerting-and-rules/alerting-connectors.asciidoc[]
+
+[discrete]
+=== Action frequency
+
+include::../shared/alerting-and-rules/generic-apm-action-frequency.asciidoc[]
+
+[discrete]
+=== Action variables
+
+A default message is provided as a starting point for your alert.
+If you want to customize the message, add more context to the message by clicking the icon above
+the message text box and selecting from a list of available variables.
+
+TIP: To add variables to alert messages, use https://mustache.github.io/[Mustache] template syntax, for example `{{variable.name}}`.
+
+image::apm-error-count-rule-action-variables.png[width=600]
+
+The following variables are specific to this rule type.
+You an also specify {kibana-ref}/rule-action-variables.html[variables common to all rules].
+
+`context.alertDetailsUrl`::
+Link to the alert troubleshooting view for further context and details. This will be an empty string if the server.publicBaseUrl is not configured.
+
+`context.environment`::
+The transaction type the alert is created for
+
+`context.errorGroupingKey`::
+The error grouping key the alert is created for
+
+`context.errorGroupingName`::
+The error grouping name the alert is created for
+
+`context.interval`::
+The length and unit of the time period where the alert conditions were met
+
+`context.reason`::
+A concise description of the reason for the alert
+
+`context.serviceName`::
+The service the alert is created for
+
+`context.threshold`::
+Any trigger value above this value will cause the alert to fir
+
+`context.transactionName`::
+The transaction name the alert is created for
+
+`context.triggerValue`::
+The value that breached the threshold and triggered the alert
+
+`context.viewInAppUrl`::
+Link to the alert source
