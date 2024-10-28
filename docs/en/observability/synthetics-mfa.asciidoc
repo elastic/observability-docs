@@ -1,0 +1,60 @@
+[[synthetics-mfa]]
+= Multi-factor Authentication (MFA) for browser monitors
+
+++++
+<titleabbrev>Multi-factor Authentication</titleabbrev>
+++++
+
+Multi-factor Authentication (MFA) adds an essential layer of security to
+applications login processes, protecting against unauthorized access. A very
+common usecase in Synthetics is testing user journeys that involves websites
+behind protected behind MFA.
+
+Synthetics supports testing websites secured by Time-based One-Time Password
+(TOTP), a common MFA method that provides short lived One Time tokens that are
+desirable for enhancing security.
+
+== Configuring using TOTP
+
+To test a browser journey that uses TOTP for MFA, you need to first configure the
+Synthetics authenticator token in the target application. To do that, you can generate a One
+Time Password (OTP) using the Synthetics CLI, refer to <<elastic-synthetics-totp-command>>.
+
+```sh
+npx @elastic/synthetics totp <secret>
+
+// prints
+OTP Token: 123456
+```
+
+== Using TOTP token inside the journeys
+
+Once the Synhetics TOTP Authentication is configured in your application, you
+can now use the OTP token in the synthetics browser journeys using the `mfa`
+object imported from `@elastic/synthetics`.
+
+```ts
+import { journey, step, mfa} from '@elastic/synthetics';
+
+journey('MFA Test', ({ page, params }) => {
+  step('Login using TOTP token', async () => {
+    // login using username and pass and go to 2FA in next page
+    const token = mfa.token(params.MFA_GH_SECRET);
+    await page.getByPlaceholder("token-input").fill(token)
+  });
+});
+```
+
+For monitors that are created from the Synthetics UI using the Script editor, `mfa` object can be accessed as shown below:
+
+```ts
+step('Login using 2FA', async () => {
+  const token = mfa.token(params.MFA_GH_SECRET);
+  await page.getByPlaceholder("token-input").fill(token)
+});
+```
+
+[NOTE]
+====
+`params.MFA_GH_SECRET` would be the encoded secret that was used for registering the Synthetics Authentication in your web application.
+====
