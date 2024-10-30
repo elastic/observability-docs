@@ -1,4 +1,4 @@
-[[apm-transaction-sampling]]
+[[observability-apm-transaction-sampling]]
 = Transaction sampling
 
 :description: Reduce data storage, costs, and noise by ingesting only a percentage of all traces that you can extrapolate from in your analysis.
@@ -6,14 +6,14 @@
 
 preview:[]
 
-<<apm-distributed-tracing,Distributed tracing>> can
+<<observability-apm-distributed-tracing,Distributed tracing>> can
 generate a substantial amount of data. More data can mean higher costs and more noise.
 Sampling aims to lower the amount of data ingested and the effort required to analyze that data —
 all while still making it easy to find anomalous patterns in your applications, detect outages, track errors,
 and lower mean time to recovery (MTTR).
 
 [discrete]
-[[apm-transaction-sampling-head-based-sampling]]
+[[observability-apm-transaction-sampling-head-based-sampling]]
 == Head-based sampling
 
 In head-based sampling, the sampling decision for each trace is made when the trace is initiated.
@@ -28,7 +28,7 @@ Its downside is that it's entirely random — interesting
 data might be discarded purely due to chance.
 
 [discrete]
-[[apm-transaction-sampling-distributed-tracing]]
+[[observability-apm-transaction-sampling-distributed-tracing]]
 === Distributed tracing
 
 In a _distributed_ trace, the sampling decision is still made when the trace is initiated.
@@ -54,14 +54,14 @@ be `1` (`100%`).
 image::images/apm-dt-sampling-example-2.png[Distributed tracing and head based sampling example two]
 
 [discrete]
-[[apm-transaction-sampling-trace-continuation-strategies-with-distributed-tracing]]
+[[observability-apm-transaction-sampling-trace-continuation-strategies-with-distributed-tracing]]
 === Trace continuation strategies with distributed tracing
 
 In addition to setting the sample rate, you can also specify which _trace continuation strategy_ to use.
 There are three trace continuation strategies: `continue`, `restart`, and `restart_external`.
 
 The **`continue`** trace continuation strategy is the default and will behave similar to the examples in
-the <<apm-transaction-sampling-distributed-tracing,Distributed tracing section>>.
+the <<observability-apm-transaction-sampling-distributed-tracing,Distributed tracing section>>.
 
 Use the **`restart_external`** trace continuation strategy on an Elastic-monitored service to start
 a new trace if the previous service did not have a `traceparent` header with `es` vendor data.
@@ -98,7 +98,7 @@ traces will be sampled as new traces in `Service C`. The end result will be five
 image::images/apm-dt-sampling-continuation-strategy-restart.png[Distributed tracing and head based sampling with restart continuation strategy]
 
 [discrete]
-[[apm-transaction-sampling-opentelemetry]]
+[[observability-apm-transaction-sampling-opentelemetry]]
 === OpenTelemetry
 
 Head-based sampling is implemented directly in the APM agents and SDKs.
@@ -117,20 +117,20 @@ OpenTelemetry does not offer consistent probability samplers in all languages. R
 ====
 
 [discrete]
-[[apm-transaction-sampling-sampled-data-and-visualizations]]
+[[observability-apm-transaction-sampling-sampled-data-and-visualizations]]
 == Sampled data and visualizations
 
 A sampled trace retains all data associated with it.
-A non-sampled trace drops all <<apm-data-types,span>> and <<apm-data-types,transaction>> data.
-Regardless of the sampling decision, all traces retain <<apm-data-types,error>> data.
+A non-sampled trace drops all <<observability-apm-data-types,span>> and <<observability-apm-data-types,transaction>> data.
+Regardless of the sampling decision, all traces retain <<observability-apm-data-types,error>> data.
 
-Some visualizations in the Applications UI, like latency, are powered by aggregated transaction and span <<apm-data-types,metrics>>.
+Some visualizations in the Applications UI, like latency, are powered by aggregated transaction and span <<observability-apm-data-types,metrics>>.
 Metrics are based on sampled traces and weighted by the inverse sampling rate.
 For example, if you sample at 5%, each trace is counted as 20.
 As a result, as the variance of latency increases, or the sampling rate decreases, your level of error will increase.
 
 [discrete]
-[[apm-transaction-sampling-sample-rates]]
+[[observability-apm-transaction-sampling-sample-rates]]
 == Sample rates
 
 What's the best sampling rate? Unfortunately, there isn't one.
@@ -147,7 +147,7 @@ Here are some examples:
 Regardless of the above, cost conscious customers are likely to be fine with a lower sample rate.
 
 [discrete]
-[[apm-transaction-sampling-configure-head-based-sampling]]
+[[observability-apm-transaction-sampling-configure-head-based-sampling]]
 == Configure head-based sampling
 
 include::./apm-transaction-sampling/configure-head-based-sampling.asciidoc[]

@@ -1,4 +1,4 @@
-[[ecs-application-logs]]
+[[observability-ecs-application-logs]]
 = ECS formatted application logs
 
 :description: Use an ECS logger or an {apm-agent} to format your logs in ECS format.
@@ -10,11 +10,11 @@ Logs formatted in Elastic Common Schema (ECS) don't require manual parsing, and 
 
 You can format your logs in ECS format the following ways:
 
-* <<ecs-application-logs-ecs-loggers,**ECS loggers:**>> plugins for your logging libraries that reformat your logs into ECS format.
+* <<observability-ecs-application-logs-ecs-loggers,**ECS loggers:**>> plugins for your logging libraries that reformat your logs into ECS format.
 * <<reformatting-logs,**{apm-agent} ECS reformatting:**>> Java, Ruby, and Python {apm-agent}s automatically reformat application logs to ECS format without a logger.
 
 [discrete]
-[[ecs-application-logs-ecs-loggers]]
+[[observability-ecs-application-logs-ecs-loggers]]
 == ECS loggers
 
 ECS loggers reformat your application logs into ECS-compatible JSON, removing the need for manual parsing.
@@ -22,7 +22,7 @@ ECS loggers require {filebeat} or {agent} configured to monitor and capture appl
 In addition, pairing ECS loggers with your framework's {apm-agent} allows you to correlate logs to easily view logs that belong to a particular trace.
 
 [discrete]
-[[ecs-application-logs-get-started]]
+[[observability-ecs-application-logs-get-started]]
 === Get started
 
 For more information on adding an ECS logger to your application, refer to the guide for your framework:
@@ -43,12 +43,12 @@ Java, Ruby, and Python {apm-agent}s can automatically reformat application logs 
 
 To set up log ECS reformatting:
 
-. <<ecs-application-logs-enable-log-ecs-reformatting,Enable {apm-agent} reformatting>>
-. <<ecs-application-logs-ingest-logs,Ingest logs with {filebeat} or {agent}.>>
-. <<ecs-application-logs-view-logs,View logs in Logs Explorer>>
+. <<observability-ecs-application-logs-enable-log-ecs-reformatting,Enable {apm-agent} reformatting>>
+. <<observability-ecs-application-logs-ingest-logs,Ingest logs with {filebeat} or {agent}.>>
+. <<observability-ecs-application-logs-view-logs,View logs in Logs Explorer>>
 
 [discrete]
-[[ecs-application-logs-enable-log-ecs-reformatting]]
+[[observability-ecs-application-logs-enable-log-ecs-reformatting]]
 === Enable log ECS reformatting
 
 Log ECS reformatting is controlled by the `log_ecs_reformatting` configuration option, and is disabled by default. Refer to the guide for your framework for information on enabling:
@@ -58,16 +58,16 @@ Log ECS reformatting is controlled by the `log_ecs_reformatting` configuration o
 * {apm-py-ref}/configuration.html#config-log_ecs_reformatting[Python]
 
 [discrete]
-[[ecs-application-logs-ingest-logs]]
+[[observability-ecs-application-logs-ingest-logs]]
 === Ingest logs
 
 After enabling log ECS reformatting, send your application logs to your project using one of the following shipping tools:
 
-* <<ecs-application-logs-ingest-logs-with-filebeat,**{filebeat}:**>> A lightweight data shipper that sends log data to your project.
-* <<ecs-application-logs-ingest-logs-with-agent,**{agent}:**>> A single agent for logs, metrics, security data, and threat prevention. With Fleet, you can centrally manage {agent} policies and lifecycles directly from your project.
+* <<observability-ecs-application-logs-ingest-logs-with-filebeat,**{filebeat}:**>> A lightweight data shipper that sends log data to your project.
+* <<observability-ecs-application-logs-ingest-logs-with-agent,**{agent}:**>> A single agent for logs, metrics, security data, and threat prevention. With Fleet, you can centrally manage {agent} policies and lifecycles directly from your project.
 
 [discrete]
-[[ecs-application-logs-ingest-logs-with-filebeat]]
+[[observability-ecs-application-logs-ingest-logs-with-filebeat]]
 === Ingest logs with {filebeat}
 
 [IMPORTANT]
@@ -78,7 +78,7 @@ Use {filebeat} version 8.11+ for the best experience when ingesting logs with {f
 Follow these steps to ingest application logs with {filebeat}.
 
 [discrete]
-[[ecs-application-logs-step-1-install-filebeat]]
+[[observability-ecs-application-logs-step-1-install-filebeat]]
 ==== Step 1: Install {filebeat}
 
 Install {filebeat} on the server you want to monitor by running the commands that align with your system:
@@ -86,7 +86,7 @@ Install {filebeat} on the server you want to monitor by running the commands tha
 include::../transclusion/observability/tab-widgets/filebeat-install/widget.asciidoc[]
 
 [discrete]
-[[ecs-application-logs-step-2-connect-to-your-project]]
+[[observability-ecs-application-logs-step-2-connect-to-your-project]]
 ==== Step 2: Connect to your project
 
 Connect to your project using an API key to set up {filebeat}. Set the following information in the `filebeat.yml` file:
@@ -123,7 +123,7 @@ POST /_security/api_key
 Refer to {filebeat-ref}/beats-api-keys.html[Grant access using API keys] for more information.
 
 [discrete]
-[[ecs-application-logs-step-3-configure-filebeat]]
+[[observability-ecs-application-logs-step-3-configure-filebeat]]
 ==== Step 3: Configure {filebeat}
 
 Add the following configuration to your `filebeat.yaml` file to start collecting log data.
@@ -133,7 +133,7 @@ include::../transclusion/observability/tab-widgets/filebeat-logs/widget.asciidoc
 :ecs_logs!:
 
 [discrete]
-[[ecs-application-logs-step-4-set-up-and-start-filebeat]]
+[[observability-ecs-application-logs-step-4-set-up-and-start-filebeat]]
 ==== Step 4: Set up and start {filebeat}
 
 From the {filebeat} installation directory, set the {ref}/index-templates.html[index template] by running the command that aligns with your system:
@@ -145,13 +145,13 @@ From the {filebeat} installation directory, start filebeat by running the comman
 include::../transclusion/observability/tab-widgets/filebeat-start/widget.asciidoc[]
 
 [discrete]
-[[ecs-application-logs-ingest-logs-with-agent]]
+[[observability-ecs-application-logs-ingest-logs-with-agent]]
 === Ingest logs with {agent}
 
 Add the custom logs integration to ingest and centrally manage your logs using {agent} and {fleet}:
 
 [discrete]
-[[ecs-application-logs-step-1-add-the-custom-logs-integration-to-your-project]]
+[[observability-ecs-application-logs-step-1-add-the-custom-logs-integration-to-your-project]]
 ==== Step 1: Add the custom logs integration to your project
 
 To add the custom logs integration to your project:
@@ -202,12 +202,12 @@ fields:
 +
 <5> When set to `true`, custom fields are stored as top-level fields in the output document instead of being grouped under a fields sub-dictionary.
 +
-<6> The `service.name` (required), `service.version` (optional), and `service.environment` (optional) of the service you're collecting logs from, used for <<correlate-application-logs-log-correlation,Log correlation>>.
+<6> The `service.name` (required), `service.version` (optional), and `service.environment` (optional) of the service you're collecting logs from, used for <<observability-correlate-application-logs-log-correlation,Log correlation>>.
 . An agent policy is created that defines the data your {agent} collects. If you've previously installed an {agent} on the host you're collecting logs from, you can select the **Existing hosts** tab and use an existing agent policy.
 . Click **Save and continue**.
 
 [discrete]
-[[ecs-application-logs-view-logs]]
+[[observability-ecs-application-logs-view-logs]]
 == View logs
 
-Use <<discover-and-explore-logs,Logs Explorer>> to search, filter, and visualize your logs. Refer to the <<filter-and-aggregate-logs,filter and aggregate logs>> documentation for more information.
+Use <<observability-discover-and-explore-logs,Logs Explorer>> to search, filter, and visualize your logs. Refer to the <<observability-filter-and-aggregate-logs,filter and aggregate logs>> documentation for more information.

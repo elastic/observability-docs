@@ -1,4 +1,4 @@
-[[parse-log-data]]
+[[observability-parse-log-data]]
 = Parse and route logs
 
 :keywords: serverless, observability, how-to
@@ -18,11 +18,11 @@ After parsing, you can use the structured fields to further organize your logs b
 
 Refer to the following sections for more on parsing and organizing your log data:
 
-* <<parse-log-data-extract-structured-fields,Extract structured fields>>: Extract structured fields like timestamps, log levels, or IP addresses to make querying and filtering your data easier.
-* <<parse-log-data-reroute-log-data-to-specific-data-streams,Reroute log data to specific data streams>>: Route data from the generic data stream to a target data stream for more granular control over data retention, permissions, and processing.
+* <<observability-parse-log-data-extract-structured-fields,Extract structured fields>>: Extract structured fields like timestamps, log levels, or IP addresses to make querying and filtering your data easier.
+* <<observability-parse-log-data-reroute-log-data-to-specific-data-streams,Reroute log data to specific data streams>>: Route data from the generic data stream to a target data stream for more granular control over data retention, permissions, and processing.
 
 [discrete]
-[[parse-log-data-extract-structured-fields]]
+[[observability-parse-log-data-extract-structured-fields]]
 == Extract structured fields
 
 Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data.
@@ -106,7 +106,7 @@ These fields are part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema 
 ====
 
 [discrete]
-[[parse-log-data-extract-the-timestamp-field]]
+[[observability-parse-log-data-extract-the-timestamp-field]]
 === Extract the `@timestamp` field
 
 When you added the log to your project in the previous section, the `@timestamp` field showed when the log was added. The timestamp showing when the log actually occurred was in the unstructured `message` field:
@@ -128,13 +128,13 @@ When you added the log to your project in the previous section, the `@timestamp`
 When looking into issues, you want to filter for logs by when the issue occurred not when the log was added to your project.
 To do this, extract the timestamp from the unstructured `message` field to the structured `@timestamp` field by completing the following:
 
-. <<parse-log-data-use-an-ingest-pipeline-to-extract-the-timestamp-field,Use an ingest pipeline to extract the `@timestamp` field>>
-. <<parse-log-data-test-the-pipeline-with-the-simulate-pipeline-api,Test the pipeline with the simulate pipeline API>>
-. <<parse-log-data-configure-a-data-stream-with-an-index-template,Configure a data stream with an index template>>
-. <<parse-log-data-create-a-data-stream,Create a data stream>>
+. <<observability-parse-log-data-use-an-ingest-pipeline-to-extract-the-timestamp-field,Use an ingest pipeline to extract the `@timestamp` field>>
+. <<observability-parse-log-data-test-the-pipeline-with-the-simulate-pipeline-api,Test the pipeline with the simulate pipeline API>>
+. <<observability-parse-log-data-configure-a-data-stream-with-an-index-template,Configure a data stream with an index template>>
+. <<observability-parse-log-data-create-a-data-stream,Create a data stream>>
 
 [discrete]
-[[parse-log-data-use-an-ingest-pipeline-to-extract-the-timestamp-field]]
+[[observability-parse-log-data-use-an-ingest-pipeline-to-extract-the-timestamp-field]]
 ==== Use an ingest pipeline to extract the `@timestamp` field
 
 Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed.
@@ -170,7 +170,7 @@ The previous command sets the following values for your ingest pipeline:
 * `pattern`: The pattern of the elements in your log data. The `%{@timestamp} %{message}` pattern extracts the timestamp, `2023-08-08T13:45:12.123Z`, to the `@timestamp` field, while the rest of the message, `WARN 192.168.1.101 Disk usage exceeds 90%.`, stays in the `message` field. The dissect processor looks for the space as a separator defined by the pattern.
 
 [discrete]
-[[parse-log-data-test-the-pipeline-with-the-simulate-pipeline-api]]
+[[observability-parse-log-data-test-the-pipeline-with-the-simulate-pipeline-api]]
 ==== Test the pipeline with the simulate pipeline API
 
 The {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API] runs the ingest pipeline without storing any documents.
@@ -220,7 +220,7 @@ Make sure you've created the ingest pipeline using the `PUT` command in the prev
 ====
 
 [discrete]
-[[parse-log-data-configure-a-data-stream-with-an-index-template]]
+[[observability-parse-log-data-configure-a-data-stream-with-an-index-template]]
 ==== Configure a data stream with an index template
 
 After creating your ingest pipeline, run the following command to create an index template to configure your data stream's backing indices:
@@ -267,7 +267,7 @@ The example index template above sets the following component templates:
 ** `ecs@mappings`: dynamic templates that automatically ensure your data stream mappings comply with the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)].
 
 [discrete]
-[[parse-log-data-create-a-data-stream]]
+[[observability-parse-log-data-create-a-data-stream]]
 ==== Create a data stream
 
 Create your data stream using the {fleet-guide}/data-streams.html#data-streams-naming-scheme[data stream naming scheme]. Name your data stream to match the name of your ingest pipeline, `logs-example-default` in this case. Post the example log to your data stream with this command:
@@ -318,7 +318,7 @@ You should see the pipeline has extracted the `@timestamp` field:
 You can now use the `@timestamp` field to sort your logs by the date and time they happened.
 
 [discrete]
-[[parse-log-data-troubleshoot-the-timestamp-field]]
+[[observability-parse-log-data-troubleshoot-the-timestamp-field]]
 ==== Troubleshoot the `@timestamp` field
 
 Check the following common issues and solutions with timestamps:
@@ -328,7 +328,7 @@ Check the following common issues and solutions with timestamps:
 * **Incorrect timestamp format:** Your timestamp can be a Java time pattern or one of the following formats: ISO8601, UNIX, UNIX_MS, or TAI64N. For more information on timestamp formats, refer to the {ref}/mapping-date-format.html[mapping date format].
 
 [discrete]
-[[parse-log-data-extract-the-loglevel-field]]
+[[observability-parse-log-data-extract-the-loglevel-field]]
 === Extract the `log.level` field
 
 Extracting the `log.level` field lets you filter by severity and focus on critical issues. This section shows you how to extract the `log.level` field from this example log:
@@ -340,15 +340,15 @@ Extracting the `log.level` field lets you filter by severity and focus on critic
 
 To extract and use the `log.level` field:
 
-. <<parse-log-data-add-loglevel-to-your-ingest-pipeline,Add the `log.level` field to the dissect processor pattern in your ingest pipeline.>>
-. <<parse-log-data-test-the-pipeline-with-the-simulate-api,Test the pipeline with the simulate API.>>
-. <<parse-log-data-query-logs-based-on-loglevel,Query your logs based on the `log.level` field.>>
+. <<observability-parse-log-data-add-loglevel-to-your-ingest-pipeline,Add the `log.level` field to the dissect processor pattern in your ingest pipeline.>>
+. <<observability-parse-log-data-test-the-pipeline-with-the-simulate-api,Test the pipeline with the simulate API.>>
+. <<observability-parse-log-data-query-logs-based-on-loglevel,Query your logs based on the `log.level` field.>>
 
 [discrete]
-[[parse-log-data-add-loglevel-to-your-ingest-pipeline]]
+[[observability-parse-log-data-add-loglevel-to-your-ingest-pipeline]]
 ==== Add `log.level` to your ingest pipeline
 
-Add the `%{log.level}` option to the dissect processor pattern in the ingest pipeline you created in the <<parse-log-data-use-an-ingest-pipeline-to-extract-the-timestamp-field,Extract the `@timestamp` field>> section with this command:
+Add the `%{log.level}` option to the dissect processor pattern in the ingest pipeline you created in the <<observability-parse-log-data-use-an-ingest-pipeline-to-extract-the-timestamp-field,Extract the `@timestamp` field>> section with this command:
 
 [source,console]
 ----
@@ -372,10 +372,10 @@ Now your pipeline will extract these fields:
 * The `log.level` field: `WARN`
 * The `message` field: `192.168.1.101 Disk usage exceeds 90%.`
 
-In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <<parse-log-data-configure-a-data-stream-with-an-index-template,Extract the `@timestamp` field>> section.
+In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <<observability-parse-log-data-configure-a-data-stream-with-an-index-template,Extract the `@timestamp` field>> section.
 
 [discrete]
-[[parse-log-data-test-the-pipeline-with-the-simulate-api]]
+[[observability-parse-log-data-test-the-pipeline-with-the-simulate-api]]
 ==== Test the pipeline with the simulate API
 
 Test that your ingest pipeline works as expected with the {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API]:
@@ -420,7 +420,7 @@ The results should show the `@timestamp` and the `log.level` fields extracted fr
 ----
 
 [discrete]
-[[parse-log-data-query-logs-based-on-loglevel]]
+[[observability-parse-log-data-query-logs-based-on-loglevel]]
 ==== Query logs based on `log.level`
 
 Once you've extracted the `log.level` field, you can query for high-severity logs like `WARN` and `ERROR`, which may need immediate attention, and filter out less critical `INFO` and `DEBUG` logs.
@@ -504,7 +504,7 @@ The results should show only the high-severity logs:
 ----
 
 [discrete]
-[[parse-log-data-extract-the-hostip-field]]
+[[observability-parse-log-data-extract-the-hostip-field]]
 === Extract the `host.ip` field
 
 Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you're having issues with or find disparities between hosts.
@@ -523,15 +523,15 @@ This section shows you how to extract the `host.ip` field from the following exa
 
 To extract and use the `host.ip` field:
 
-. <<parse-log-data-add-hostip-to-your-ingest-pipeline,Add the `host.ip` field to your dissect processor in your ingest pipeline.>>
-. <<parse-log-data-test-the-pipeline-with-the-simulate-api,Test the pipeline with the simulate API.>>
-. <<parse-log-data-query-logs-based-on-hostip,Query your logs based on the `host.ip` field.>>
+. <<observability-parse-log-data-add-hostip-to-your-ingest-pipeline,Add the `host.ip` field to your dissect processor in your ingest pipeline.>>
+. <<observability-parse-log-data-test-the-pipeline-with-the-simulate-api,Test the pipeline with the simulate API.>>
+. <<observability-parse-log-data-query-logs-based-on-hostip,Query your logs based on the `host.ip` field.>>
 
 [discrete]
-[[parse-log-data-add-hostip-to-your-ingest-pipeline]]
+[[observability-parse-log-data-add-hostip-to-your-ingest-pipeline]]
 ==== Add `host.ip` to your ingest pipeline
 
-Add the `%{host.ip}` option to the dissect processor pattern in the ingest pipeline you created in the <<parse-log-data-use-an-ingest-pipeline-to-extract-the-timestamp-field,Extract the `@timestamp` field>> section:
+Add the `%{host.ip}` option to the dissect processor pattern in the ingest pipeline you created in the <<observability-parse-log-data-use-an-ingest-pipeline-to-extract-the-timestamp-field,Extract the `@timestamp` field>> section:
 
 [source,console]
 ----
@@ -556,10 +556,10 @@ Your pipeline will extract these fields:
 * The `host.ip` field: `192.168.1.101`
 * The `message` field: `Disk usage exceeds 90%.`
 
-In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <<parse-log-data-configure-a-data-stream-with-an-index-template,Extract the `@timestamp` field>> section.
+In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <<observability-parse-log-data-configure-a-data-stream-with-an-index-template,Extract the `@timestamp` field>> section.
 
 [discrete]
-[[parse-log-data-test-the-pipeline-with-the-simulate-api-1]]
+[[observability-parse-log-data-test-the-pipeline-with-the-simulate-api-1]]
 ==== Test the pipeline with the simulate API
 
 Test that your ingest pipeline works as expected with the {ref}/simulate-pipeline-api.html#ingest-verbose-param[simulate pipeline API]:
@@ -605,7 +605,7 @@ The results should show the `host.ip`, `@timestamp`, and `log.level` fields extr
 ----
 
 [discrete]
-[[parse-log-data-query-logs-based-on-hostip]]
+[[observability-parse-log-data-query-logs-based-on-hostip]]
 ==== Query logs based on `host.ip`
 
 You can query your logs based on the `host.ip` field in different ways, including using CIDR notation and range queries.
@@ -626,7 +626,7 @@ POST logs-example-default/_bulk
 ----
 
 [discrete]
-[[parse-log-data-cidr-notation]]
+[[observability-parse-log-data-cidr-notation]]
 ===== CIDR notation
 
 You can use https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation[CIDR notation] to query your log data using a block of IP addresses that fall within a certain network segment. CIDR notations uses the format of `[IP address]/[prefix length]`. The following command queries IP addresses in the `192.168.1.0/24` subnet meaning IP addresses from `192.168.1.0` to `192.168.1.255`.
@@ -718,7 +718,7 @@ Because all of the example logs are in this range, you'll get the following resu
 ----
 
 [discrete]
-[[parse-log-data-range-queries]]
+[[observability-parse-log-data-range-queries]]
 ===== Range queries
 
 Use {ref}/query-dsl-range-query.html[range queries] to query logs in a specific range.
@@ -789,7 +789,7 @@ You'll get the following results only showing logs in the range you've set:
 ----
 
 [discrete]
-[[parse-log-data-reroute-log-data-to-specific-data-streams]]
+[[observability-parse-log-data-reroute-log-data-to-specific-data-streams]]
 == Reroute log data to specific data streams
 
 By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization.
@@ -811,12 +811,12 @@ When routing data to different data streams, we recommend picking a field with a
 
 To use a reroute processor:
 
-. <<parse-log-data-add-a-reroute-processor-to-the-ingest-pipeline,Add a reroute processor to your ingest pipeline.>>
-. <<parse-log-data-add-logs-to-a-data-stream,Add the example logs to your data stream.>>
-. <<parse-log-data-verify-the-reroute-processor-worked,Query your logs and verify the high-severity logs were routed to the new data stream.>>
+. <<observability-parse-log-data-add-a-reroute-processor-to-the-ingest-pipeline,Add a reroute processor to your ingest pipeline.>>
+. <<observability-parse-log-data-add-logs-to-a-data-stream,Add the example logs to your data stream.>>
+. <<observability-parse-log-data-verify-the-reroute-processor-worked,Query your logs and verify the high-severity logs were routed to the new data stream.>>
 
 [discrete]
-[[parse-log-data-add-a-reroute-processor-to-the-ingest-pipeline]]
+[[observability-parse-log-data-add-a-reroute-processor-to-the-ingest-pipeline]]
 === Add a reroute processor to the ingest pipeline
 
 Add a reroute processor to your ingest pipeline with the following command:
@@ -850,10 +850,10 @@ The previous command sets the following values for your reroute processor:
 * `if`: Conditionally runs the processor. In the example, `"ctx.log?.level == 'WARN' || ctx.log?.level == 'ERROR'",` means the processor runs when the `log.level` field is `WARN` or `ERROR`.
 * `dataset`: the data stream dataset to route your document to if the previous condition is `true`. In the example, logs with a `log.level` of `WARN` or `ERROR` are routed to the `logs-critical-default` data stream.
 
-In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <<parse-log-data-configure-a-data-stream-with-an-index-template,Extract the `@timestamp` field>> section.
+In addition to setting an ingest pipeline, you need to set an index template. Use the index template created in the <<observability-parse-log-data-configure-a-data-stream-with-an-index-template,Extract the `@timestamp` field>> section.
 
 [discrete]
-[[parse-log-data-add-logs-to-a-data-stream]]
+[[observability-parse-log-data-add-logs-to-a-data-stream]]
 === Add logs to a data stream
 
 Add the example logs to your data stream with this command:
@@ -872,7 +872,7 @@ POST logs-example-default/_bulk
 ----
 
 [discrete]
-[[parse-log-data-verify-the-reroute-processor-worked]]
+[[observability-parse-log-data-verify-the-reroute-processor-worked]]
 === Verify the reroute processor worked
 
 The reroute processor should route any logs with a `log.level` of `WARN` or `ERROR` to the `logs-critical-default` data stream. Query the data stream using the following command to verify the log data was routed as intended:

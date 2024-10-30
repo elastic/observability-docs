@@ -1,14 +1,14 @@
 |===
 | Option (type) | Description
 
-| [[common-monitor-type]]**`type`** (`"http"`, `"icmp"`, or `"tcp"`)
+| [[monitor-type]]**`type`** (`"http"`, `"icmp"`, or `"tcp"`)
 a| **Required**. The type of monitor to run. One of:
 
 * `http`: Connects via HTTP and optionally verifies that the host returns the expected response.
 * `icmp`: Uses an ICMP (v4 and v6) Echo Request to ping the configured hosts. Requires special permissions or root access.
 * `tcp`: Connects via TCP and optionally verifies the endpoint by sending and/or receiving a custom payload.
 
-| [[common-monitor-id]]**`id`**
+| [[monitor-id]]**`id`**
 (<<synthetics-lightweight-data-string,string>>)
 a| **Required**. A unique identifier for this configuration. This should not change with edits to the monitor configuration regardless of changes to any config fields.
 
@@ -47,11 +47,11 @@ name: Uploader service
 name: Example website
 ----
 
-| [[common-monitor-service_name]]**`service.name`**
+| [[monitor-service_name]]**`service.name`**
 (<<synthetics-lightweight-data-string,string>>)
 | APM service name for this monitor. Corresponds to the `service.name` ECS field. Set this when monitoring an app that is also using APM to enable integrations between Synthetics and APM data in your Observability project.
 
-| [[common-monitor-enabled]]**`enabled`**
+| [[monitor-enabled]]**`enabled`**
 (<<synthetics-lightweight-data-bool,boolean>>)
 a| Whether the monitor is enabled.
 
@@ -64,7 +64,7 @@ a| Whether the monitor is enabled.
 enabled: false
 ----
 
-| [[common-monitor-schedule]]**`schedule`**
+| [[monitor-schedule]]**`schedule`**
 (<<synthetics-lightweight-data-duration,duration>>)
 a| **Required**. The task schedule.
 
@@ -81,7 +81,7 @@ Run the task every 5 minutes from the time the monitor was started.
 schedule: @every 5m
 ----
 
-| [[common-monitor-timeout]]**`timeout`**
+| [[monitor-timeout]]**`timeout`**
 (<<synthetics-lightweight-data-duration,duration>>)
 a| The total running time for each ping test. This is the total time allowed for testing the connection and exchanging data.
 
@@ -112,8 +112,8 @@ tags:
 tags: ["tag one", "tag two"]
 ----
 
-| [[common-monitor-mode]]**`mode`**
-(`"any"` \| `"all"`)
+| [[monitor-mode]]**`mode`**
+(`"any"` or `"all"`)
 a| One of two modes in which to run the monitor:
 
 * `any`: The monitor pings only one IP address for a hostname.
@@ -124,7 +124,7 @@ a| One of two modes in which to run the monitor:
 **Example**:
 If you're using a DNS-load balancer and want to ping every IP address for the specified hostname, you should use `all`.
 
-| [[common-monitor-ipv4]]**`ipv4`**
+| [[monitor-ipv4]]**`ipv4`**
 (<<synthetics-lightweight-data-bool,boolean>>)
 a| Whether to ping using the ipv4 protocol if hostnames are configured.
 
@@ -137,7 +137,7 @@ a| Whether to ping using the ipv4 protocol if hostnames are configured.
 ipv4: false
 ----
 
-| [[common-monitor-ipv6]]**`ipv6`**
+| [[monitor-ipv6]]**`ipv6`**
 (<<synthetics-lightweight-data-bool,boolean>>)
 a| Whether to ping using the ipv6 protocol if hostnames are configured.
 
@@ -150,7 +150,7 @@ a| Whether to ping using the ipv6 protocol if hostnames are configured.
 ipv6: false
 ----
 
-| [[common-monitor-alert]]**`alert`**
+| [[monitor-alert]]**`alert`**
 a| Enable or disable alerts on this monitor. Read more about alerts in <<synthetics-settings-alerting,Alerting>>.
 
 **`status.enabled`** (<<synthetics-lightweight-data-bool,boolean>>)::
@@ -177,7 +177,7 @@ Enable TLS certificate alerts on this monitor.
 alert.tls.enabled: true
 ----
 
-| [[common-monitor-retest_on_failure]]**`retest_on_failure`**
+| [[monitor-retest_on_failure]]**`retest_on_failure`**
 (<<synthetics-lightweight-data-bool,boolean>>)
 a| Enable or disable retesting when a monitor fails. Default is `true`.
 
@@ -190,7 +190,7 @@ By default, monitors are automatically retested if the monitor goes from "up" to
 retest_on_failure: false
 ----
 
-| [[common-monitor-locations]]**`locations`**
+| [[monitor-locations]]**`locations`**
 (list of https://github.com/elastic/synthetics/blob/{synthetics_version}/src/locations/public-locations.ts#L28-L37[`SyntheticsLocationsType`])
 a| Where to deploy the monitor. You can deploy monitors in multiple locations to detect differences in availability and response times across those locations.
 
@@ -223,9 +223,9 @@ The value defined via the CLI takes precedence over the value defined in the lig
 and the value defined in the lightweight monitor configuration takes precedence over the value defined in Synthetics project configuration file.
 ====
 
-| [[common-monitor-private_locations]]**`private_locations`**
+| [[monitor-private_locations]]**`private_locations`**
 (list of <<synthetics-lightweight-data-string,string>>s)
-a| The <<synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas  `locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
+a| The <<observability-synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas  `locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
 
 To list available {private-location}s you can:
 
@@ -256,7 +256,7 @@ The value defined via the CLI takes precedence over the value defined in the lig
 and the value defined in the lightweight monitor configuration takes precedence over the value defined in Synthetics project configuration file.
 ====
 
-| [[common-monitor-fields]]**`fields`**
+| [[monitor-fields]]**`fields`**
 a| A list of key-value pairs that will be sent with each monitor event.
 The `fields` are appended to {es} documents as `labels`,
 and those labels are displayed in {kib} in the _Monitor details_ panel in the
