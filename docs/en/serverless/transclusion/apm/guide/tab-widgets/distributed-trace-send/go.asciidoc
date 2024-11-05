@@ -1,0 +1,23 @@
+. Start a transaction with
+{apm-go-ref}/api.html#tracer-api-start-transaction[`StartTransaction`] or a span with
+{apm-go-ref}/api.html#transaction-start-span[`StartSpan`].
+. Get the active `TraceContext`.
+. Send the `TraceContext` to the receiving service.
+
+Example:
+
+[source,go]
+----
+transaction := apm.DefaultTracer.StartTransaction("GET /", "request")   <1>
+traceContext := transaction.TraceContext()   <2>
+
+// Send TraceContext to receiving service
+traceparent := apmhttp.FormatTraceparentHeader(traceContext))   <3>
+tracestate := traceContext.State.String()
+----
+
+<1> Start a transaction
+
+<2> Get `TraceContext` from current Transaction
+
+<3> Format the `TraceContext` or `tracestate` as a `traceparent` header.

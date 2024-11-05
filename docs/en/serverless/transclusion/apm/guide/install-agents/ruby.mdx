@@ -10,68 +10,64 @@ gem 'elastic-apm'
 
 **2. Configure the agent**
 
-<DocTabs>
-  <DocTab name="Ruby on Rails">
-    APM is automatically started when your app boots.
-    Configure the agent by creating the config file `config/elastic_apm.yml`:
+_Ruby on Rails_
 
-    ```ruby
-    # config/elastic_apm.yml:
+APM is automatically started when your app boots.
+Configure the agent by creating the config file `config/elastic_apm.yml`:
 
-    # Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
-    # Defaults to the name of your Rails app
-    service_name: 'my-service'
+```ruby
+# config/elastic_apm.yml:
 
-    # Use if APM integration requires a token
-    secret_token: ''
+# Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
+# Defaults to the name of your Rails app
+service_name: 'my-service'
 
-    # Set custom APM integration host and port (default: http://localhost:8200)
-    server_url: 'http://localhost:8200'
-    ```
+# Use if APM integration requires a token
+secret_token: ''
 
-  </DocTab>
-  <DocTab name="Rack">
-    For Rack or a compatible framework, like Sinatra, include the middleware in your app and start the agent.
+# Set custom APM integration host and port (default: http://localhost:8200)
+server_url: 'http://localhost:8200'
+```
 
-    ```ruby
-    # config.ru
+_Rack_
 
-    app = lambda do |env|
-      [200, {'Content-Type' => 'text/plain'}, ['ok']]
-    end
+For Rack or a compatible framework, like Sinatra, include the middleware in your app and start the agent.
 
-    # Wraps all requests in transactions and reports exceptions
-    use ElasticAPM::Middleware
+```ruby
+# config.ru
 
-    # Start an instance of the Agent
-    ElasticAPM.start(service_name: 'NothingButRack')
+app = lambda do |env|
+  [200, {'Content-Type' => 'text/plain'}, ['ok']]
+end
 
-    run app
+# Wraps all requests in transactions and reports exceptions
+use ElasticAPM::Middleware
 
-    # Gracefully stop the agent when process exits.
-    # Makes sure any pending transactions are sent.
-    at_exit { ElasticAPM.stop }
-    ```
+# Start an instance of the Agent
+ElasticAPM.start(service_name: 'NothingButRack')
 
-    Create a config file `config/elastic_apm.yml`:
+run app
 
-    ```ruby
-    # config/elastic_apm.yml:
+# Gracefully stop the agent when process exits.
+# Makes sure any pending transactions are sent.
+at_exit { ElasticAPM.stop }
+```
 
-    # Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
-    # Defaults to the name of your Rack app's class.
-    service_name: 'my-service'
+Create a config file `config/elastic_apm.yml`:
 
-    # Use if APM integration requires a token
-    secret_token: ''
+```ruby
+# config/elastic_apm.yml:
 
-    # Set custom APM integration host and port (default: http://localhost:8200)
-    server_url: 'http://localhost:8200'
-    ```
+# Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
+# Defaults to the name of your Rack app's class.
+service_name: 'my-service'
 
-  </DocTab>
-</DocTabs>
+# Use if APM integration requires a token
+secret_token: ''
 
+# Set custom APM integration host and port (default: http://localhost:8200)
+server_url: 'http://localhost:8200'
+```
 
 **Learn more in the ((apm-agent)) reference**
 
