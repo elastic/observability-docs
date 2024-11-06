@@ -10,7 +10,7 @@ Within this repo, the `/docs/en/` directory is structured as follows:
 | --------------------- | ----------- |
 | __integrations__      | Contains the source files for the [Integrations Developer Guide](https://www.elastic.co/guide/en/integrations-developer/current/index.html).
 | __observability__     | Contains the source files for the [Observability Guide](https://www.elastic.co/guide/en/observability/current/index.html), which includes content for APM, Logs, Metrics, Synthetics, User experience, and Uptime.|
-| __serverless__ | Contains the source files for the [Elastic Observability Serverless docs](https://docs.elastic.co/serverless/observability/what-is-observability-serverless).
+| __serverless__ | Contains the source files for the [Elastic Observability Serverless docs](https://www.elastic.co/docs/current/serverless/observability/what-is-observability-serverless).
 | __shared__ | Contains the source files for shared Observability content.|
 | __templates__ | Contains content templates.|
 
@@ -38,7 +38,19 @@ If you prefer to use aliases, you can load the [elastic/docs/doc_build_aliases.s
 
 ### Elastic Observability Serverless docs
 
-The Elastic Observability Serverless docs use a custom syntax written in [MDX](https://mdxjs.com/). In many cases, you only need to know plain Markdown to contribute. We'll add a public component reference and additional contribution guidelines in future. Elasticians can refer to our [internal syntax reference](https://docs.elastic.dev/docsmobile/syntax).
+The source files for the Serverless docs are written in [AsciiDoc](https://docs.asciidoctor.org/asciidoc/latest/) and are built using [elastic/docs](https://github.com/elastic/docs).
+
+To build the docs locally:
+
+1. Check out the `elastic/docs` repository, along with any repositories that contain source files.
+2. Run the `build_docs` script, passing in the path to the `index.asciidoc` and resource paths to other repos that contain source files. For example, to build the Observability Guide and open it in the browser, run:
+    ```
+    ../docs/build_docs --doc ../docs-content/serverless/index.asciidoc --chunk 5 --open --resource ./docs/en/serverless --resource ../security-docs/docs/serverless --resource ../docs-content/serverless
+    ```
+
+The above command assumes that this repo, [elastic/docs](https://github.com/elastic/docs), [elastic/observability-docs](https://github.com/elastic/observability-docs), [elastic/security-docs](https://github.com/elastic/security-docs), and [elastic/docs-content](https://github.com/elastic/docs-content) are checked out into the same parent directory.
+
+If you prefer to use aliases, you can load the [elastic/docs/doc_build_aliases.sh file](https://github.com/elastic/docs/blob/master/doc_build_aliases.sh), which has the resources defined for you.
 
 ### Integrations Developer Guide
 

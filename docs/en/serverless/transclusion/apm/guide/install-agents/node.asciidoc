@@ -1,0 +1,45 @@
+// Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/node.mdx
+
+**1. Install the {apm-agent}**
+
+Install the {apm-agent} for Node.js as a dependency to your application.
+
+[source,js]
+----
+npm install elastic-apm-node --save
+----
+
+**2. Initialization**
+
+It's important that the agent is started before you require _any_ other modules in your Node.js application - i.e. before `http` and before your router etc.
+
+This means that you should probably require and start the agent in your application's main file (usually `index.js`, `server.js` or `app.js`).
+
+Here's a simple example of how Elastic APM is normally required and started:
+
+[source,js]
+----
+// Add this to the VERY top of the first file loaded in your app
+var apm = require('elastic-apm-node').start({
+  // Override service name from package.json
+  // Allowed characters: a-z, A-Z, 0-9, -, _, and space
+  serviceName: '',
+
+  // Use if APM integration requires a token
+  secretToken: '',
+
+  // Use if APM integration uses API keys for authentication
+  apiKey: '',
+
+  // Set custom APM integration host and port (default: http://127.0.0.1:8200)
+  serverUrl: '',
+})
+----
+
+The agent will now monitor the performance of your application and record any uncaught exceptions.
+
+**Learn more in the {apm-agent} reference**
+
+* {apm-node-ref}/supported-technologies.html[Supported technologies]
+* {apm-node-ref}/advanced-setup.html[Babel/ES Modules]
+* {apm-node-ref}/configuring-the-agent.html[Advanced configuration]

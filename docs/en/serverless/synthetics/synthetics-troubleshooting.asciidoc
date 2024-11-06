@@ -1,0 +1,133 @@
+[[observability-synthetics-troubleshooting]]
+= Troubleshooting Synthetics
+
+++++
+<titleabbrev>Troubleshooting</titleabbrev>
+++++
+
+preview:[]
+
+[discrete]
+[[synthetics-troubleshooting-local-debugging]]
+== Local debugging
+
+For debugging synthetic tests locally, you can set an environment variable,
+`DEBUG=synthetics`, to capture Synthetics agent logs when using the
+<<observability-synthetics-command-reference,Synthetics CLI>>.
+
+[discrete]
+[[synthetics-troubleshooting-common-issues]]
+== Common issues
+
+[discrete]
+[[synthetics-troubleshooting-no-agent-running]]
+=== No results from a monitor configured to run on a {private-location}
+
+If you have created a {private-location} and configured a monitor to run on that {private-location},
+but don't see any results for that monitor in the Synthetics UI, make sure there is an agent
+configured to run against the agent policy.
+
+[NOTE]
+====
+If you attempt to assign an agent policy to a {private-location} _before_ configuring an agent to run
+against the agent policy, you will see a note in the Synthetics UI that the selected agent policy
+has no agents.
+====
+
+When creating a {private-location}, you have to:
+
+. <<synthetics-private-location-fleet-agent,Set up {agent}>>.
+. <<synthetics-private-location-connect,Connect {fleet} to your Observability project>> and enroll an {agent} in {fleet}.
+. <<synthetics-private-location-add,Add a {private-location}>> in the Synthetics UI.
+
+If you do not complete the second item, no agents will be configured to run against the agent policy, and
+any monitors configured to run on that {private-location} won't be able to run so there will be no results
+in the Synthetics UI.
+
+To fix this, make sure there is an agent configured to run against the agent policy.
+
+[discrete]
+[[synthetics-troubleshooting-no-direct-es-connection]]
+=== No results from a monitor
+
+If you have configured a monitor but don't see any results for that monitor in the Synthetics UI, whether running them from Elastic's global managed testing infrastructure or from {private-location}s, ensure Synthetics has a direct connection to {es}.
+
+Do not configure any ingest pipelines or output via Logstash as this will prevent Synthetics from working properly and is not supported.
+
+[discrete]
+[[synthetics-troubleshooting-missing-browser-schedules]]
+=== Browser monitor configured to run on a {private-location} not running to schedule
+
+If you have browser monitors configured to run on a {private-location} but notice one or more of them are not running as scheduled, this could be because:
+
+* The time it takes for your monitor to run is longer than the frequency you have set
+* There may be too many monitors trying to run concurrently, causing some of them to skip their scheduled run
+
+You may also see a message in the logs such as `2 tasks have missed their schedule deadlines by more than 1 second in the last 15s`. These will be visible from inside the Agent diagnostic ZIP file, and the numbers and time periods may be different in your logs.
+
+Start by identifying the cause of the issue. First, check if the time it takes the monitor to run is less than the scheduled frequency:
+
+. Go to the Synthetics UI.
+. Click the monitor, then click **Go to monitor**.
+. Go to the <<synthetics-analyze-overview,Overview tab>> to see the _Avg. duration_. You can also view the duration for individual runs in the <<synthetics-analyze-individual-monitors-history,History tab>>.
+. Compare the duration to the scheduled frequency. If the duration is _greater than_ the scheduled frequency, for example if the monitor that takes 90 seconds to run and its scheduled frequency is 1 minute, the next scheduled run will not occur because the current one is still running so you may see results for every other scheduled run.
++
+To fix this, you can either:
+
+* Change the frequency so the monitor runs less often.
+* Refactor the monitor so it can run in a shorter amount of time.
+
+If the duration is _less than_ the scheduled frequency or the suggestion above does not fix the issue, then there may be too many browser monitors attempting to run on the {private-location}. Due to the additional hardware overhead of running browser monitors, we limit each {private-location} to only run two browser monitors at the same time. Depending on how many browser monitors you have configured to run on the {private-location} and their schedule, the {private-location} may not be able to run them all because it would require more than two browser tests to be running simultaneously.
+
+To fix this issue, you can either:
+
+* Increase the number of concurrent browser monitors allowed (as described in <<synthetics-private-location-scaling,Scaling Private Locations>>), paying attention to the scaling and hardware requirements documented.
+* Create multiple {private-location}s and spread your browser monitors across them more evenly (effectively horizontally scaling your {private-location}s).
+
+[discrete]
+[[synthetics-troubleshooting-no-locations]]
+=== No locations are available
+
+When using {ecloud}, if there are no options available in the _Locations_ dropdown when you
+try to create a monitor in the Synthetics UI _or_ if no locations are listed when using the
+<<elastic-synthetics-locations-command,`location` command>>, it might be because you do not have permission to
+use Elastic managed locations _and_ there are no <<monitor-via-private-agent,Private Locations>>
+available yet.
+
+There are a few ways to fix this:
+
+* If you have <<observability-synthetics-feature-roles,Editor>> access, you can <<monitor-via-private-agent,create a new Private Location>>. Then try creating the monitor again.
+* If you do _not_ have the right privileges to create a Private Location, you can ask an <<observability-synthetics-feature-roles,Admin>> to create a Private Location or give you the necessary privileges so you can <<monitor-via-private-agent,create a new Private Location>>. Then try creating the monitor again.
+
+// * If you want to create a monitor to run on Elastic's global managed infrastructure, ask an <DocLink slug="/serverless/observability/synthetics-feature-roles">Admin</DocLink> to update <DocLink slug="/serverless/observability/synthetics-feature-roles" section="to-restrict-using-elastics-global-managed-infrastructure">`Synthetics and Uptime` sub-feature privileges</DocLink> for the role you're currently assigned. Then try creating the monitor again.
+
+////
+/* ### You do not have permission to use Elastic managed locations
+
+If you try to create or edit a monitor hosted on Elastic's global managed infrastructure but see a note that you do not have permission to use Elastic managed locations, an administrator has restricted the use of public locations.
+
+To fix this you can either:
+
+* Ask an <DocLink slug="/serverless/observability/synthetics-feature-roles">Admin</DocLink> to update
+  <DocLink slug="/serverless/observability/synthetics-feature-roles" section="to-restrict-using-elastics-global-managed-infrastructure">`Synthetics and Uptime` sub-feature privileges</DocLink> for the role you're
+  currently assigned or assign you a role that allows using Elastic's global managed infrastructure.
+
+* Use a <DocLink slug="/serverless/observability/synthetics-private-location" section="monitor-via-a-private-agent">Private Location</DocLink>. */
+////
+
+[discrete]
+[[synthetics-troubleshooting-get-help]]
+== Get help
+
+[discrete]
+[[synthetics-troubleshooting-support]]
+=== Elastic Support
+
+include::../transclusion/support.asciidoc[]
+
+[discrete]
+[[synthetics-troubleshooting-discussion]]
+=== Discussion forum
+
+For other questions and feature requests, visit our
+{forum}/c/observability/synthetics/75[discussion forum].

@@ -1,0 +1,166 @@
+[[observability-view-infrastructure-metrics]]
+= View infrastructure metrics by resource type
+
+// :description: Get a metrics-driven view of your infrastructure grouped by resource type.
+// :keywords: serverless, observability, how to
+
+preview:[]
+
+<<<<<<< HEAD:docs/en/serverless/infra-monitoring/view-infrastructure-metrics.mdx
+import ContainerDetails from '../transclusion/container-details.mdx'
+
+<div id="view-infrastructure-metrics"></div>
+
+=======
+>>>>>>> origin/main:docs/en/serverless/infra-monitoring/view-infrastructure-metrics.asciidoc
+The **Infrastructure Inventory** page provides a metrics-driven view of your entire infrastructure grouped by
+the resources you are monitoring. All monitored resources emitting
+a core set of infrastructure metrics are displayed to give you a quick view of the overall health
+of your infrastructure.
+
+<<<<<<< HEAD:docs/en/serverless/infra-monitoring/view-infrastructure-metrics.mdx
+To access the **Infrastructure Inventory** page, in your ((observability)) project,
+=======
+To access the **Infrastructure Inventory** page, in your {observability} project,
+>>>>>>> origin/main:docs/en/serverless/infra-monitoring/view-infrastructure-metrics.asciidoc
+go to **Infrastructure inventory**.
+
+[role="screenshot"]
+image::images/metrics-app.png[Infrastructure UI in {kib}]
+
+To learn more about the metrics shown on this page, refer to the <<observability-metrics-reference>>.
+
+.Don't see any metrics?
+[NOTE]
+====
+If you haven't added data yet, click **Add data** to search for and install an Elastic integration.
+
+Need help getting started? Follow the steps in
+<<observability-get-started-with-metrics,Get started with system metrics>>.
+====
+
+[discrete]
+[[filter-resources]]
+== Filter the Inventory view
+
+To get started with your analysis, select the type of resources you want to show
+in the high-level view. From the **Show** menu, select one of the following:
+
+* **Hosts** — the default
+* **Kubernetes Pods**
+* **Docker Containers** — shows _all_ containers, not just Docker
+* **AWS** — includes EC2 instances, S3 buckets, RDS databases, and SQS queues
+
+When you hover over each resource in the waffle map, the metrics specific to
+that resource are displayed.
+
+You can sort by resource, group the resource by specific fields related to it, and sort by
+either name or metric value. For example, you can filter the view to display the memory usage
+of your Kubernetes pods, grouped by namespace, and sorted by the memory usage value.
+
+[role="screenshot"]
+image::images/kubernetes-filter.png[Kubernetes pod filtering]
+
+You can also use the search bar to create structured queries using {kibana-ref}/kuery-query.html[{kib} Query Language].
+For example, enter `host.hostname : "host1"` to view only the information for `host1`.
+
+To examine the metrics for a specific time, use the time filter to select the date and time.
+
+[discrete]
+[[analyze-hosts-inventory]]
+== View host metrics
+
+<<<<<<< HEAD:docs/en/serverless/infra-monitoring/view-infrastructure-metrics.mdx
+## View host metrics
+
+=======
+>>>>>>> origin/main:docs/en/serverless/infra-monitoring/view-infrastructure-metrics.asciidoc
+By default the **Infrastructure Inventory** page displays a waffle map that shows the hosts you
+are monitoring and the current CPU usage for each host.
+Alternatively, you can click the **Table view** icon image:images/table-view-icon.png[Table view icon]
+to switch to a table view.
+
+Without leaving the **Infrastructure Inventory** page, you can view enhanced metrics relating to each host
+running in your infrastructure. On the waffle map, select a host to display the host details
+overlay.
+
+[TIP]
+====
+To expand the overlay and view more detail, click **Open as page** in the upper-right corner.
+====
+
+The host details overlay contains the following tabs:
+
+include::../transclusion/host-details.asciidoc[]
+
+[NOTE]
+====
+These metrics are also available when viewing hosts on the **Hosts**
+page.
+====
+
+[discrete]
+[[analyze-containers-inventory]]
+== View container metrics
+
+When you select **Docker containers**, the **Inventory** page displays a waffle map that shows the containers you
+are monitoring and the current CPU usage for each container.
+Alternatively, you can click the **Table view** icon image:images/table-view-icon.png[Table view icon]
+to switch to a table view.
+
+Without leaving the **Inventory** page, you can view enhanced metrics relating to each container
+running in your infrastructure.
+
+.Why do some containers report 0% or null (-) values in the waffle map?
+[NOTE]
+====
+The waffle map shows _all_ monitored containers, including containerd,
+provided that the data collected from the container has the `container.id` field.
+However, the waffle map currently only displays metrics for Docker fields.
+This display problem will be resolved in a future release.
+====
+
+On the waffle map, select a container to display the container details
+overlay.
+
+[TIP]
+====
+To expand the overlay and view more detail, click **Open as page** in the upper-right corner.
+====
+
+The container details overlay contains the following tabs:
+
+include::../transclusion/container-details.asciidoc[]
+
+[discrete]
+[[analyze-resource-metrics]]
+== View metrics for other resources
+
+When you have searched and filtered for a specific resource, you can drill down to analyze the
+metrics relating to it. For example, when viewing Kubernetes Pods in the high-level view,
+click the Pod you want to analyze and select **Kubernetes Pod metrics** to see detailed metrics:
+
+[role="screenshot"]
+image::images/pod-metrics.png[Kubernetes pod metrics]
+
+[discrete]
+[[custom-metrics]]
+== Add custom metrics
+
+If the predefined metrics displayed on the Inventory page for each resource are not
+sufficient for your specific use case, you can add and define custom metrics.
+
+Select your resource, and from the **Metric** filter menu, click **Add metric**.
+
+[role="screenshot"]
+image::images/add-custom-metric.png[Add custom metrics]
+
+[discrete]
+[[apm-uptime-integration]]
+== Integrate with Logs and APM
+
+Depending on the features you have installed and configured, you can view logs or traces relating to a specific resource.
+For example, in the high-level view, when you click a Kubernetes Pod resource, you can choose:
+
+* **Kubernetes Pod logs** to <<observability-log-monitoring,view corresponding logs>> in the {logs-app}.
+* **Kubernetes Pod APM traces** to <<observability-apm,view corresponding APM traces>> in the {apm-app}.
