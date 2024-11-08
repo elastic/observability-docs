@@ -1,0 +1,186 @@
+[[observability-apm-get-started]]
+= Get started with traces and APM
+
+// :description: Learn how to collect Application Performance Monitoring (APM) data and visualize it in real time.
+// :keywords: serverless, observability, how-to
+
+preview:[]
+
+:role: Admin
+:goal: send APM data to Elastic
+include::../partials/roles.asciidoc[]
+:role!:
+
+:goal!:
+
+In this guide you'll learn how to collect and send Application Performance Monitoring (APM) data
+to Elastic, then explore and visualize the data in real time.
+
+[discrete]
+[[add-apm-integration-agents]]
+== Step 1: Add data
+
+You'll use APM agents to send APM data from your application to Elastic. Elastic offers APM agents
+written in several languages and supports OpenTelemetry. Which agent you'll use depends on the language used in your service.
+
+To send APM data to Elastic, you must install an APM agent and configure it to send data to
+your project:
+
+. <<observability-create-an-observability-project,Create a new {obs-serverless} project>>, or open an existing one.
+. To install and configure one or more APM agents, do one of following:
++
+** In your Observability project, go to **Add data** → **Monitor my application performance** → **Elastic APM** and follow the prompts.
+** Use the following instructions:
++
+--
+++++
+<div class="tabs" data-tab-group="apm-apm-get-started">
+  <div role="tablist" aria-label="apm-apm-get-started">
+    <button role="tab" aria-selected="true" aria-controls="apm-apm-get-started-go-panel" id="apm-apm-get-started-go-button">
+      Go
+    </button>
+    <button role="tab" aria-selected="false" aria-controls="apm-apm-get-started-java-panel" id="apm-apm-get-started-java-button" tabindex="-1">
+      Java
+    </button>
+    <button role="tab" aria-selected="false" aria-controls="apm-apm-get-started-net-panel" id="apm-apm-get-started-net-button" tabindex="-1">
+      .NET
+    </button>
+    <button role="tab" aria-selected="false" aria-controls="apm-apm-get-started-nodejs-panel" id="apm-apm-get-started-nodejs-button" tabindex="-1">
+      Node.js
+    </button>
+    <button role="tab" aria-selected="false" aria-controls="apm-apm-get-started-php-panel" id="apm-apm-get-started-php-button" tabindex="-1">
+      PHP
+    </button>
+    <button role="tab" aria-selected="false" aria-controls="apm-apm-get-started-python-panel" id="apm-apm-get-started-python-button" tabindex="-1">
+      Python
+    </button>
+    <button role="tab" aria-selected="false" aria-controls="apm-apm-get-started-ruby-panel" id="apm-apm-get-started-ruby-button" tabindex="-1">
+      Ruby
+    </button>
+    <button role="tab" aria-selected="false" aria-controls="apm-apm-get-started-opentelemetry-panel" id="apm-apm-get-started-opentelemetry-button" tabindex="-1">
+      OpenTelemetry
+    </button>
+  </div>
+  <div tabindex="0" role="tabpanel" id="apm-apm-get-started-go-panel" aria-labelledby="apm-apm-get-started-go-button">
+++++
+include::../transclusion/apm/guide/install-agents/go.asciidoc[]
+
+++++
+  </div>
+  <div tabindex="0" role="tabpanel" id="apm-apm-get-started-java-panel" aria-labelledby="apm-apm-get-started-java-button" hidden="">
+++++
+include::../transclusion/apm/guide/install-agents/java.asciidoc[]
+
+++++
+  </div>
+  <div tabindex="0" role="tabpanel" id="apm-apm-get-started-net-panel" aria-labelledby="apm-apm-get-started-net-button" hidden="">
+++++
+include::../transclusion/apm/guide/install-agents/net.asciidoc[]
+
+++++
+  </div>
+  <div tabindex="0" role="tabpanel" id="apm-apm-get-started-nodejs-panel" aria-labelledby="apm-apm-get-started-nodejs-button" hidden="">
+++++
+include::../transclusion/apm/guide/install-agents/node.asciidoc[]
+
+++++
+  </div>
+  <div tabindex="0" role="tabpanel" id="apm-apm-get-started-php-panel" aria-labelledby="apm-apm-get-started-php-button" hidden="">
+++++
+include::../transclusion/apm/guide/install-agents/php.asciidoc[]
+
+++++
+  </div>
+  <div tabindex="0" role="tabpanel" id="apm-apm-get-started-python-panel" aria-labelledby="apm-apm-get-started-python-button" hidden="">
+++++
+include::../transclusion/apm/guide/install-agents/python.asciidoc[]
+
+++++
+  </div>
+  <div tabindex="0" role="tabpanel" id="apm-apm-get-started-ruby-panel" aria-labelledby="apm-apm-get-started-ruby-button" hidden="">
+++++
+include::../transclusion/apm/guide/install-agents/ruby.asciidoc[]
+
+++++
+  </div>
+  <div tabindex="0" role="tabpanel" id="apm-apm-get-started-opentelemetry-panel" aria-labelledby="apm-apm-get-started-opentelemetry-button" hidden="">
+++++
+include::../transclusion/apm/guide/open-telemetry/otel-get-started.asciidoc[]
+
+++++
+  </div>
+</div>
+++++
+--
++
+While there are many configuration options, all APM agents require:
++
+|===
+| Option | Description
+
+| **Service name**
+a| The APM integration maps an instrumented service's name — defined in
+each {apm-agent}'s configuration — to the index where its data is stored.
+Service names are case-insensitive and must be unique.
+
+For example, you cannot have a service named `Foo` and another named `foo`.
+Special characters will be removed from service names and replaced with underscores (`_`).
+
+| **Server URL**
+a| The host and port that the managed intake service listens for events on.
+
+To find the URL for your project:
+
+. Go to the https://cloud.elastic.co/[Cloud console].
+. Next to your project, select **Manage**.
+. Next to _Endpoints_, select **View**.
+. Copy the _APM endpoint_.
+
+| **API key**
+a| Authentication method for communication between {apm-agent} and the managed intake service.
+
+You can create and delete API keys in Applications Settings:
+
+. Go to any page in the _Applications_ section of the main menu.
+. Click **Settings** in the top bar.
+. Go to the **Agent keys** tab.
+
+| **Environment**
+a| The name of the environment this service is deployed in, for example "production" or "staging".
+
+Environments allow you to easily filter data on a global level in the UI.
+It's important to be consistent when naming environments across agents.
+|===
+. If you're using the step-by-step instructions in the UI, after you've installed and configured an agent,
+you can click **Check Agent Status** to verify that the agent is sending data.
+
+To learn more about APM agents, including how to fine-tune how agents send traces to Elastic,
+refer to <<observability-apm-send-data-to-elastic>>.
+
+[discrete]
+[[view-apm-integration-data]]
+== Step 2: View your data
+
+After one or more APM agents are installed and successfully sending data, you can view
+application performance monitoring data in the UI.
+
+In the _Applications_ section of the main menu, select **Service Inventory**.
+This will show a high-level overview of the health and general performance of all your services.
+
+Learn more about visualizing APM data in <<observability-apm-view-and-analyze-traces>>.
+
+// TO DO: ADD SCREENSHOT
+
+[TIP]
+====
+Not seeing any data? Find helpful tips in <<observability-apm-troubleshooting,Troubleshooting>>.
+====
+
+[discrete]
+[[observability-apm-get-started-next-steps]]
+== Next steps
+
+Now that data is streaming into your project, take your investigation to a
+deeper level. Learn how to use <<observability-apm-view-and-analyze-traces,Elastic's built-in visualizations for APM data>>,
+<<observability-alerting,alert on APM data>>,
+or <<observability-apm-send-data-to-elastic,fine-tune how agents send traces to Elastic>>.
