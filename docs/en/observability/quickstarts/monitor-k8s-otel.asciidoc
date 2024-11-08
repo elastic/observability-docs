@@ -21,7 +21,7 @@ For a more detailed description of the components and advanced configuration ref
 * A running Kubernetes cluster (v1.23 or newer).
 * https://kubernetes.io/docs/reference/kubectl/[Kubectl].
 * https://helm.sh/docs/intro/install/[Helm].
-* (optional) https://cert-manager.io/docs/installation/[Cert-manager], if you opt for automatic generation and renewal of TLS certificates.
+* (optionally) https://cert-manager.io/docs/installation/[Cert-manager], if you opt for automatic generation and renewal of TLS certificates.
 
 [discrete]
 == Collect your data
@@ -40,12 +40,13 @@ image::images/quickstart-k8s-otel-entry-point.png[Kubernetes-OTel entry point]
 The default installation deploys the OpenTelemetry Operator with a self-signed TLS certificate valid for 365 days. This certificate **won't be renewed** unless the Helm Chart release is manually updated. Refer to the https://github.com/elastic/opentelemetry/blob/main/docs/kubernetes/operator/README.md#cert-manager[cert-manager integrated installation] guide to enable automatic certificate generation and renewal using https://cert-manager.io/docs/installation/[cert-manager].
 ====
 +
-Install the OpenTelemetry Operator using the kube-stack Helm chart and the provided values file. You will run a few commands to:
+Deploy the OpenTelemetry Operator and EDOT Collectors using the kube-stack Helm chart with the provided `values.yaml` file. You will run a few commands to:
 + 
  * Add the helm chart repository needed for the installation.
  * Create a namespace.
  * Create a secret with an API Key and the {es} endpoint to be used by the collectors.
- * Deploy the `opentelemetry-kube-stack` helm chart with the provided `values.yaml`.
+ * Install the `opentelemetry-kube-stack` helm chart with the provided `values.yaml`.
+ * Optionally, for instrumenting applications, apply the corresponding `annotations` as showed in {kib}.
 
 [discrete]
 == Visualize your data
@@ -60,6 +61,6 @@ image::images/quickstart-k8s-otel-dashboard.png[Kubernetes overview dashboard]
 == Troubleshooting and more
 
 * For troubleshooting deployment and installation, refer to https://github.com/elastic/opentelemetry/tree/main/docs/kubernetes/operator#installation-verification[installation verification].
-* For applications instrumentation, refer to https://github.com/elastic/opentelemetry/blob/main/docs/kubernetes/operator/instrumenting-applications.md[Instrumenting applications with EDOT SDKs on Kubernetes].
+* For applications instrumentation details, refer to https://github.com/elastic/opentelemetry/blob/main/docs/kubernetes/operator/instrumenting-applications.md[Instrumenting applications with EDOT SDKs on Kubernetes].
 * For customizing the configuration, refer to https://github.com/elastic/opentelemetry/tree/main/docs/kubernetes/operator#custom-configuration[custom configuration].
 * Refer to <<observability-introduction>> for a description of other useful features.
