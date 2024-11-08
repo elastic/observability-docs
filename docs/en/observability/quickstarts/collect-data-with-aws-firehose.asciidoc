@@ -8,7 +8,44 @@ In this quickstart guide, you'll learn how to use AWS Firehose to send logs and 
 The AWS Firehose streams are created using a CloudFormation template, which can collect all available CloudWatch logs and metrics for your AWS account.
 
 This approach requires minimal configuration as the CloudFormation template creates a Firehose stream, enables CloudWatch metrics collection across all namespaces, and sets up an account-level subscription filter for CloudWatch log groups to send logs to Elastic via Firehose.
-Optionally, you can use an AWS CLI command or upload the template to the AWS CloudFormation portal to customize parameter values.
+You can use an AWS CLI command or upload the template to the AWS CloudFormation portal to customize the following parameter values:
+
+[%collapsible]
+.Required Input Parameters
+====
+* `ElasticEndpointURL`: Elastic endpoint URL.
+* `ElasticAPIKey`: Elastic API Key.
+====
+
+[%collapsible]
+.Optional Input Parameters
+====
+* `HttpBufferInterval`: The Kinesis Firehose HTTP buffer interval, in seconds. Default is `60`.
+* `HttpBufferSize`: The Kinesis Firehose HTTP buffer size, in MiB. Default is `1`.
+* `S3BackupMode`: Source record backup in Amazon S3, failed data only or all data. Default is `FailedDataOnly`.
+* `S3BufferInterval`: The Kinesis Firehose S3 buffer interval, in seconds. Default is `300`.
+* `S3BufferSize`: The Kinesis Firehose S3 buffer size, in MiB. Default is `5`.
+* `S3BackupBucketARN`: By default, an S3 bucket for backup will be created. You can override this behaviour by providing an ARN of an existing S3 bucket that ensures the data can be recovered if record processing transformation does not produce the desired results.
+* `Attributes`: List of attribute name-value pairs for HTTP endpoint separated by commas. For example "name1=value1,name2=value2".
+====
+
+[%collapsible]
+.Optional Input Parameters Specific for Metrics
+====
+* `EnableCloudWatchMetrics`: Enable CloudWatch Metrics collection. Default is `true`. When CloudWatch metrics collection is enabled, by default a metric stream will be created with metrics from all namespaces.
+* `FirehoseStreamNameForMetrics`: Name for Amazon Data Firehose Stream for collecting CloudWatch metrics. Default is `elastic-firehose-metrics`.
+* `IncludeOrExclude`: Select the metrics you want to stream. You can include or exclude specific namespaces and metrics. If no filter namespace is given, then default to all namespaces. Default is `Include`.
+* `MetricNameFilters`: Comma-delimited list of namespace-metric names pairs to use for filtering metrics from the stream. If no metric name filter is given, then default to all namespaces and all metrics. For example "AWS/EC2:CPUUtilization|NetworkIn|NetworkOut,AWS/RDS,AWS/S3:AllRequests".
+* `IncludeLinkedAccountsMetrics`: If you are creating a metric stream in a monitoring account, specify `true` to include metrics from source accounts that are linked to this monitoring account, in the metric stream. Default is `false`.
+* `Tags`: Comma-delimited list of tags to apply to the metric stream. For example "org:eng,project:firehose".
+====
+
+[%collapsible]
+.Optional Input Parameters Specific for Logs
+====
+* `EnableCloudWatchLogs`: Enable CloudWatch Logs collection. Default is `true`. When CloudWatch logs collection is enabled, an account-level subscription filter policy is created for all CloudWatch log groups (except the log groups created for Firehose logs).
+* `FirehoseStreamNameForLogs`: Name for Amazon Data Firehose Stream for collecting CloudWatch logs. Default is `elastic-firehose-logs`.
+====
 
 IMPORTANT: Some AWS services need additional manual configuration to properly ingest logs and metrics. For more information, check the 
 link:https://www.elastic.co/docs/current/integrations/aws[AWS integration] documentation.
