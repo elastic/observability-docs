@@ -173,6 +173,72 @@ This endpoint is configured through the application's `host` configuration optio
 For example, if the collector is configured with the default value `host: 0.0.0.0:8260`, you can check the health of the application by running `curl -i localhost:8260/live` and `curl -i localhost:8260/ready`.
 
 [discrete]
+[[profiling-scaling-external-telemetry]]
+== Profiling agent telemetry data
+
+The Universal Profiling collector receives from profiling agent a set of telemetry data that is used to debug the operations performed by the agent,
+as well as collecting product usage statistics.
+We use the data collected to understand the demographics of the profiled machines and to perform investigations when problems are reported to our customer service.
+
+By default, telemetry data collected by all profiling agents are sent to the collector then forwarded via the internet to an Elastic endpoint.
+It is possible to opt-out by configuring the `agent_metrics` stanza in the collector configuration YAML file.
+When opting-out, troubleshooting Universal Profiling agent issues by our customer service will require extracting and providing the telemetry data manually.
+
+The content of the <<profiling-self-managed-running-linux-configfile-collector, "Collector configuration file">>
+provides a way to configure if telemetry data should be forwarded to Elastic, collected internally, or discarded.
+If you are running the collector in a network that has no internet access, the telemetry data will not be forwarded to Elastic.
+
+Below are some examples of configurations to adopt for each case.
+
+**Forward telemetry data to Elastic**
+
+This is the default configuration.
+When the `agent_metrics` stanza is not present in the collector configuration file, the collector forwards telemetry data to Elastic.
+
+Enabling it explicitly has no difference in behavior.
+
+[source,yaml]
+----
+agent_metrics:
+  disabled: false
+----
+
+**Collect telemetry data internally as well as send them to Elastic**
+
+In this configuration the same telemetry data gathered by the profiling agent are sent to Elastic and stored internally.
+The telemetry data are stored in the `profiling-metrics*` indices in the same Elasticsearch cluster storing Universal Profiling data,
+and they are subject to the same data retention policies.
+
+[source,yaml]
+----
+agent_metrics:
+  disabled: false
+  write_all: true
+----
+
+**Collect telemetry data only internally**
+
+To collect telemetry data but not forward it to Elastic, configure the collector to store the telemetry data internally.
+It is possible to customize the Elasticsearch deployment storing the telemetry data by providing a list of Elasticsearch
+hosts and an API key to authenticate the requests.
+
+[source,yaml]
+----
+agent_metrics:
+  disabled: false
+  addresses: ["https://internal-telemetry-endpoint.es.company.org:9200"]
+  api_key: "internal-telemetry-api-key"
+----
+
+**Disable telemetry data collection entirely**
+
+[source,yaml]
+----
+agent_metrics:
+  disabled: true
+----
+
+[discrete]
 [[profiling-scaling-backend-resources]]
 == Scale resources
 
