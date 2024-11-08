@@ -243,10 +243,10 @@ agent_metrics:
 == Scale resources
 
 In the <<profiling-self-managed-ops-sizing-guidance, resource guidance table>>, no options use more than one replica for the symbolizer.
-We do not recommend scaling the number of symbolizer replicas because of the technical limitations of the current implementation.
-We recommend scaling the symbolizer vertically, by increasing the memory and CPU cores it uses to process data.
+This is due to how multiple symbolizer replicas have to synchronize over identical frame records to be processed.
+While it still possible to scale horizontally, we recommend scaling the symbolizer vertically first, by increasing the memory and CPU cores it uses to process data.
 
-You can increase the number of collector replicas at will, keeping their vertical sizing smaller, if this is more convenient for your deployment use case.
+You can increase the number of collector replicas at will, keeping their vertical sizing smaller if this is more convenient for your deployment use case.
 The collector has a linear increase in memory usage and CPU threads with the number of Universal Profiling Agents that it serves.
 Keep in mind that since the Universal Profiling Agent/collector communication happens via gRPC, there may be long-lived TCP sessions that are bound to a single collector replica.
 When scaling out the number of replicas, depending on the load balancer that you have in place fronting the collector's endpoint, you may want to shut down the older replicas after adding new replicas.
