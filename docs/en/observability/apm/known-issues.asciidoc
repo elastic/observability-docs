@@ -89,60 +89,21 @@ indices created in version 8.15.0 would remain unmanaged if the default ILM poli
 used. One of the following approaches can be adopted to fix the unmanaged indices:
 
 . Manually delete the indices when they are no longer needed.
-. Explicitly configure APM data streams with the default data stream lifecycle config.
-Using this approach would migrate all data streams to use data stream lifecycles,
-which should be equivalent to the default ILM policies. Note that if you have a custom
-lifecycle policy in place for any of the datastreams then you don't need to do anything
-for those datastreams as they are not affected by this bug. Going forward, for using
-custom ILM policies with new datastreams, please consult the {ref}/apm-ilm-how-to.html[updated guide].
+. Explicitly configure APM data streams with the default data stream lifecycle config
+for the data streams configured to use default ILM policies. Using this approach would
+migrate all affected data streams to use data stream lifecycles, which should be equivalent
+to the default ILM policies. Note that the fix should be applied only to data streams that
+are resulting in unmanaged indices due to default ILM policies.
 +
 [source,txt]
 ----
-PUT _data_stream/traces-apm-*/_lifecycle
+PUT _data_stream/{{data_stream_name}}-{{data_stream_namespace}}/_lifecycle
 {
-  "data_retention": "10d"
-}
-
-PUT _data_stream/traces-apm.rum*/_lifecycle
-{
-  "data_retention": "90d"
-}
-
-PUT _data_stream/traces-apm.sampled*/_lifecycle
-{
-  "data_retention": "1h"
-}
-
-PUT _data_stream/metrics-apm.*.1m-*/_lifecycle
-{
-  "data_retention": "90d"
-}
-
-PUT _data_stream/metrics-apm.*.10m-*/_lifecycle
-{
-  "data_retention": "180d"
-}
-
-PUT _data_stream/metrics-apm.*.60m-*/_lifecycle
-{
-  "data_retention": "390d"
-}
-
-PUT _data_stream/metrics-apm.internal-*/_lifecycle
-{
-  "data_retention": "90d"
-}
-
-PUT _data_stream/metrics-apm.app.*/_lifecycle
-{
-  "data_retention": "90d"
-}
-
-PUT _data_stream/logs-apm.*/_lifecycle
-{
-  "data_retention": "10d"
+  "data_retention": <data_retention_period>
 }
 ----
+
+Default `<data_retention_period>` for each data stream is available in {observability-guide}/apm-ilm-how-to.html[this guide].
 
 // Link to fix if it exists
 This issue is fixed in 8.15.1 (https://github.com/elastic/elasticsearch/pull/112432[elastic/elasticsearch#112432]).
