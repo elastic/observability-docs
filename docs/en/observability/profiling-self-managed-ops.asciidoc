@@ -173,14 +173,79 @@ This endpoint is configured through the application's `host` configuration optio
 For example, if the collector is configured with the default value `host: 0.0.0.0:8260`, you can check the health of the application by running `curl -i localhost:8260/live` and `curl -i localhost:8260/ready`.
 
 [discrete]
+[[profiling-scaling-external-telemetry]]
+== Profiling agent telemetry data
+
+The Universal Profiling collector receives telemetry data from profiling agents to help debug agent operations and gather product usage statistics.
+This data enables us to understand the demographics of profiled machines and aids in investigations when customers report issues.
+
+By default, telemetry data collected by all profiling agents is sent to the collector, which then forwards it to an Elastic endpoint over the internet.
+You can opt out by configuring the `agent_metrics` stanza in the collector configuration YAML file.
+If you opt out, any troubleshooting by customer service will require manually extracting and providing the telemetry data.
+
+The <<profiling-self-managed-running-linux-configfile-collector,"Collector configuration file">>
+allows you to configure whether telemetry data is forwarded to Elastic, stored internally, or discarded.
+If the collector is deployed in a network without internet access, telemetry data will not be forwarded to Elastic.
+
+Below are examples of configurations for each option:
+
+**Forward telemetry data to Elastic**
+
+This is the default configuration.
+When the `agent_metrics` stanza is absent from the collector configuration file, the collector forwards telemetry data to Elastic.
+
+Explicitly enabling it does not alter the default behavior.
+
+[source,yaml]
+----
+agent_metrics:
+  disabled: false
+----
+
+**Collect telemetry data internally and send it to Elastic**
+
+In this configuration, telemetry data from profiling agents is sent to Elastic **and** stored internally.
+The data is stored in the `profiling-metrics*` indices within the same Elasticsearch cluster as Universal Profiling data
+and follows the same data retention policies.
+
+[source,yaml]
+----
+agent_metrics:
+  disabled: false
+  write_all: true
+----
+
+**Collect telemetry data only internally**
+
+To collect telemetry data without forwarding it to Elastic, configure the collector to store the data internally.
+You can specify the Elasticsearch deployment for storing telemetry data by providing a list of Elasticsearch
+hosts and an API key for authentication.
+
+[source,yaml]
+----
+agent_metrics:
+  disabled: false
+  addresses: ["https://internal-telemetry-endpoint.es.company.org:9200"]
+  api_key: "internal-telemetry-api-key"
+----
+
+**Disable telemetry data collection entirely**
+
+[source,yaml]
+----
+agent_metrics:
+  disabled: true
+----
+
+[discrete]
 [[profiling-scaling-backend-resources]]
 == Scale resources
 
 In the <<profiling-self-managed-ops-sizing-guidance, resource guidance table>>, no options use more than one replica for the symbolizer.
-We do not recommend scaling the number of symbolizer replicas because of the technical limitations of the current implementation.
-We recommend scaling the symbolizer vertically, by increasing the memory and CPU cores it uses to process data.
+This is due to how multiple symbolizer replicas have to synchronize over identical frame records to be processed.
+While it still possible to scale horizontally, we recommend scaling the symbolizer vertically first, by increasing the memory and CPU cores it uses to process data.
 
-You can increase the number of collector replicas at will, keeping their vertical sizing smaller, if this is more convenient for your deployment use case.
+You can increase the number of collector replicas at will, keeping their vertical sizing smaller if this is more convenient for your deployment use case.
 The collector has a linear increase in memory usage and CPU threads with the number of Universal Profiling Agents that it serves.
 Keep in mind that since the Universal Profiling Agent/collector communication happens via gRPC, there may be long-lived TCP sessions that are bound to a single collector replica.
 When scaling out the number of replicas, depending on the load balancer that you have in place fronting the collector's endpoint, you may want to shut down the older replicas after adding new replicas.
