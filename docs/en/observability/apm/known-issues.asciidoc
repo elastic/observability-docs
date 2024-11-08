@@ -22,6 +22,28 @@ _Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
 ////
 
 [discrete]
+== `prefer_ilm` required in component templates to create custom lifecycle policies
+
+_Elastic Stack versions: 8.15.1+_
+    
+// The conditions in which this issue occurs
+The issue occurs when creating a _new_ cluster using version 8.15.1+.
+The issue occurs for any APM data streams created in 8.15.1+.
+The issue does _not_ occur if custom component template has been created in or before version 8.15.0.
+
+// Describe why it happens
+In 8.15.0, APM Server began using the https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data[apm-data plugin] 
+to manage data streams, ingest pipelines, lifecycle policies, and more. In 8.15.1, a fix was introduced to address 
+unmanaged indices in older clusters using default ILM policies. This fix added a fallback to the default ILM policy 
+(if it exists) and set the `prefer_ilm` configuration to `false`. This setting impacts clusters where both ILM and 
+data stream lifecycles (DSL) are in effect—such as when configuring custom ILM policies using `@custom` component 
+templates, under the conditions mentioned above.
+
+// How to fix it
+To override ILM policies for these new clusters using component template, set the `prefer_ilm` configuration
+to `true` by following the {observability-guide}/apm-ilm-how-to.html[updated guide to customize ILM].
+
+[discrete]
 == Upgrading to v8.15.x may cause ingestion to fail
 
 _Elastic Stack versions: 8.15.0+_
