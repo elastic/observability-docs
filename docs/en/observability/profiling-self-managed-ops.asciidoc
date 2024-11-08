@@ -176,26 +176,25 @@ For example, if the collector is configured with the default value `host: 0.0.0.
 [[profiling-scaling-external-telemetry]]
 == Profiling agent telemetry data
 
-The Universal Profiling collector receives from profiling agent a set of telemetry data that is used to debug the operations performed by the agent,
-as well as collecting product usage statistics.
-We use the data collected to understand the demographics of the profiled machines and to perform investigations when problems are reported to our customer service.
+The Universal Profiling collector receives telemetry data from profiling agents to help debug agent operations and gather product usage statistics.
+This data enables us to understand the demographics of profiled machines and aids in investigations when customers report issues.
 
-By default, telemetry data collected by all profiling agents are sent to the collector then forwarded via the internet to an Elastic endpoint.
-It is possible to opt-out by configuring the `agent_metrics` stanza in the collector configuration YAML file.
-When opting-out, troubleshooting Universal Profiling agent issues by our customer service will require extracting and providing the telemetry data manually.
+By default, telemetry data collected by all profiling agents is sent to the collector, which then forwards it to an Elastic endpoint over the internet.
+You can opt out by configuring the `agent_metrics` stanza in the collector configuration YAML file.
+If you opt out, any troubleshooting by customer service will require manually extracting and providing the telemetry data.
 
-The content of the <<profiling-self-managed-running-linux-configfile-collector, "Collector configuration file">>
-provides a way to configure if telemetry data should be forwarded to Elastic, collected internally, or discarded.
-If you are running the collector in a network that has no internet access, the telemetry data will not be forwarded to Elastic.
+The <<profiling-self-managed-running-linux-configfile-collector,"Collector configuration file">>
+allows you to configure whether telemetry data is forwarded to Elastic, stored internally, or discarded.
+If the collector is deployed in a network without internet access, telemetry data will not be forwarded to Elastic.
 
-Below are some examples of configurations to adopt for each case.
+Below are examples of configurations for each option:
 
 **Forward telemetry data to Elastic**
 
 This is the default configuration.
-When the `agent_metrics` stanza is not present in the collector configuration file, the collector forwards telemetry data to Elastic.
+When the `agent_metrics` stanza is absent from the collector configuration file, the collector forwards telemetry data to Elastic.
 
-Enabling it explicitly has no difference in behavior.
+Explicitly enabling it does not alter the default behavior.
 
 [source,yaml]
 ----
@@ -203,11 +202,11 @@ agent_metrics:
   disabled: false
 ----
 
-**Collect telemetry data internally as well as send them to Elastic**
+**Collect telemetry data internally and send it to Elastic**
 
-In this configuration the same telemetry data gathered by the profiling agent are sent to Elastic and stored internally.
-The telemetry data are stored in the `profiling-metrics*` indices in the same Elasticsearch cluster storing Universal Profiling data,
-and they are subject to the same data retention policies.
+In this configuration, telemetry data from profiling agents is sent to Elastic **and** stored internally.
+The data is stored in the `profiling-metrics*` indices within the same Elasticsearch cluster as Universal Profiling data
+and follows the same data retention policies.
 
 [source,yaml]
 ----
@@ -218,9 +217,9 @@ agent_metrics:
 
 **Collect telemetry data only internally**
 
-To collect telemetry data but not forward it to Elastic, configure the collector to store the telemetry data internally.
-It is possible to customize the Elasticsearch deployment storing the telemetry data by providing a list of Elasticsearch
-hosts and an API key to authenticate the requests.
+To collect telemetry data without forwarding it to Elastic, configure the collector to store the data internally.
+You can specify the Elasticsearch deployment for storing telemetry data by providing a list of Elasticsearch
+hosts and an API key for authentication.
 
 [source,yaml]
 ----
