@@ -1,0 +1,16 @@
+. Decode and store the `traceparent` in the receiving service.
+. Pass in the `traceparent` as the `childOf` option to manually start a new transaction
+as a child of the received `traceparent` with
+{apm-node-ref}/agent-api.html#apm-start-transaction[`apm.startTransaction()`].
+
+Example receiving a `traceparent` over raw UDP:
+
+[source,js]
+----
+const traceparent = readTraceparentFromUDPPacket()   <1>
+agent.startTransaction('my-service-b-transaction', { childOf: traceparent })   <2>
+----
+
+<1> Read the `traceparent` from the incoming request.
+
+<2> Use the `traceparent` to initialize a new transaction that is a child of the original `traceparent`.

@@ -1,0 +1,79 @@
+// Comes from sandbox.elastic.dev/test-books/apm/guide/transclusion/tab-widgets/install-agents/ruby.mdx
+
+**1. Install the {apm-agent}**
+
+Add the agent to your Gemfile.
+
+[source,ruby]
+----
+gem 'elastic-apm'
+----
+
+**2. Configure the agent**
+
+_Ruby on Rails_
+
+APM is automatically started when your app boots.
+Configure the agent by creating the config file `config/elastic_apm.yml`:
+
+[source,ruby]
+----
+# config/elastic_apm.yml:
+
+# Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
+# Defaults to the name of your Rails app
+service_name: 'my-service'
+
+# API keys are used to authorize requests to the APM integration
+api_key: ''
+
+# Set custom APM integration host and port (default: http://localhost:8200)
+server_url: 'http://localhost:8200'
+----
+
+_Rack_
+
+For Rack or a compatible framework, like Sinatra, include the middleware in your app and start the agent.
+
+[source,ruby]
+----
+# config.ru
+
+app = lambda do |env|
+  [200, {'Content-Type' => 'text/plain'}, ['ok']]
+end
+
+# Wraps all requests in transactions and reports exceptions
+use ElasticAPM::Middleware
+
+# Start an instance of the Agent
+ElasticAPM.start(service_name: 'NothingButRack')
+
+run app
+
+# Gracefully stop the agent when process exits.
+# Makes sure any pending transactions are sent.
+at_exit { ElasticAPM.stop }
+----
+
+Create a config file `config/elastic_apm.yml`:
+
+[source,ruby]
+----
+# config/elastic_apm.yml:
+
+# Set service name - allowed characters: a-z, A-Z, 0-9, -, _ and space
+# Defaults to the name of your Rack app's class.
+service_name: 'my-service'
+
+# API keys are used to authorize requests to the APM integration
+api_key: ''
+
+# Set custom APM integration host and port (default: http://localhost:8200)
+server_url: 'http://localhost:8200'
+----
+
+**Learn more in the {apm-agent} reference**
+
+* {apm-ruby-ref}/supported-technologies.html[Supported technologies]
+* {apm-ruby-ref}/configuration.html[Advanced configuration]

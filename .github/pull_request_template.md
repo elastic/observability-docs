@@ -19,14 +19,13 @@ Closes # <!-- Add the issue this PR closes here -->
 Add labels to:
 1. Backport to other versions (`backport-*`):
     - `backport-8.x` to backport to the latest minor
-    - `backport-skip` to not backport (for example, for serverless docs) 
+    - `backport-skip` to not backport (for example, for serverless docs)
     - `backport-main` to "backport" to `main` if the target branch is _not_ `main`
     - Individual `backport-*` labels to target specific minor versions
 2. Surface blocking reviews (`needs-*-review`):
     - `needs-writer-review` for codeowners
     - `needs-dev-review` for dev team
     - `needs-product-review` for PM review
-3. Build serverless preview docs: `ci:doc-build`
 -->
 
 - [ ] Product/Engineering Review
