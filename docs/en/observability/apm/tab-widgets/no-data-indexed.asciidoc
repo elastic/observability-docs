@@ -6,16 +6,16 @@ confirm that its status is **Healthy**.
 If it isn't, check the {agent} logs to diagnose potential causes.
 See {fleet-guide}/monitor-elastic-agent.html[Monitor {agent}s] to learn more.
 
-**Is APM Server happy?**
+**Is {apm-server} happy?**
 
 In {kib}, open **{fleet}** and select the host that is running the APM integration.
 Open the **Logs** tab and select the `elastic_agent.apm_server` dataset.
-Look for any APM Server errors that could help diagnose the problem.
+Look for any {apm-server} errors that could help diagnose the problem.
 
-**Can the {apm-agent} connect to APM Server**
+**Can the {apm-agent} connect to {apm-server}**
 
-To determine if the {apm-agent} can connect to the APM Server, send requests to the instrumented service and look for lines
-containing `[request]` in the APM Server logs.
+To determine if the {apm-agent} can connect to the {apm-server}, send requests to the instrumented service and look for lines
+containing `[request]` in the {apm-server} logs.
 
 If no requests are logged, confirm that:
 
@@ -23,7 +23,7 @@ If no requests are logged, confirm that:
 . The host is correct. For example, if you're using Docker, ensure a bind to the right interface (for example, set
 `apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the {apm-agent} accordingly.
 
-If you see requests coming through the APM Server but they are not accepted (a response code other than `202`),
+If you see requests coming through the {apm-server} but they are not accepted (a response code other than `202`),
 see <<apm-common-response-codes>> to narrow down the possible causes.
 
 **Instrumentation gaps**
@@ -36,7 +36,7 @@ Reference the relevant {apm-agents-ref}/index.html[{apm-agent} documentation] fo
 // tag::binary[]
 If no data shows up in {es}, first check that the APM components are properly connected.
 
-To ensure that APM Server configuration is valid and it can connect to the configured output, {es} by default,
+To ensure that {apm-server} configuration is valid and it can connect to the configured output, {es} by default,
 run the following commands:
 
 ["source","sh"]
@@ -45,19 +45,19 @@ apm-server test config
 apm-server test output
 ------------------------------------------------------------
 
-To see if the agent can connect to the APM Server, send requests to the instrumented service and look for lines
-containing `[request]` in the APM Server logs.
+To see if the agent can connect to the {apm-server}, send requests to the instrumented service and look for lines
+containing `[request]` in the {apm-server} logs.
 
 If no requests are logged, it might be that SSL is <<apm-ssl-client-fails, misconfigured>> or that the host is wrong.
 Particularly, if you are using Docker, ensure to bind to the right interface (for example, set
 `apm-server.host = 0.0.0.0:8200` to match any IP) and set the `SERVER_URL` setting in the agent accordingly.
 
-If you see requests coming through the APM Server but they are not accepted (response code other than `202`), consider
+If you see requests coming through the {apm-server} but they are not accepted (response code other than `202`), consider
 the response code to narrow down the possible causes (see sections below).
 
 Another reason for data not showing up is that the agent is not auto-instrumenting something you were expecting, check
 the {apm-agents-ref}/index.html[agent documentation] for details on what is automatically instrumented.
 
-APM Server currently relies on {es} to create indices that do not exist.
+{apm-server} currently relies on {es} to create indices that do not exist.
 As a result, {es} must be configured to allow {ref}/docs-index_.html#index-creation[automatic index creation] for APM indices.
 // end::binary[]

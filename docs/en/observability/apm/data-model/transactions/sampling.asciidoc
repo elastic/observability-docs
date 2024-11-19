@@ -1,6 +1,11 @@
 [[apm-sampling]]
 = Transaction sampling
 
+status_badge::[serverless, ga]
+status_badge::[stack, ga]
+
+include::{observability-docs-root}/docs/en/observability/partials/apm-server-vs-mis.asciidoc[]
+
 Distributed tracing can generate a substantial amount of data.
 More data can mean higher costs and more noise.
 Sampling aims to lower the amount of data ingested and the effort required to analyze that data --
@@ -113,7 +118,7 @@ Refer to the documentation of your favorite OpenTelemetry agent or SDK for more 
 
 [float]
 [[apm-tail-based-sampling]]
-== Tail-based sampling
+== Tail-based sampling status_badge::[serverless, unavailable]
 
 In tail-based sampling, the sampling decision for each trace is made after the trace has completed.
 This means all traces will be analyzed against a set of rules, or policies, which will determine the rate at which they are sampled.
@@ -122,10 +127,10 @@ Unlike head-based sampling, each trace does not have an equal probability of bei
 Because slower traces are more interesting than faster ones, tail-based sampling uses weighted random sampling -- so
 traces with a longer root transaction duration are more likely to be sampled than traces with a fast root transaction duration.
 
-A downside of tail-based sampling is that it results in more data being sent from APM agents to the APM Server.
-The APM Server will therefore use more CPU, memory, and disk than with head-based sampling.
-However, because the tail-based sampling decision happens in APM Server, there is less data to transfer from APM Server to {es}.
-So running APM Server close to your instrumented services can reduce any increase in transfer costs that tail-based sampling brings.
+A downside of tail-based sampling is that it results in more data being sent from APM agents to the {apm-server}.
+The {apm-server} will therefore use more CPU, memory, and disk than with head-based sampling.
+However, because the tail-based sampling decision happens in {apm-server}, there is less data to transfer from {apm-server} to {es}.
+So running {apm-server} close to your instrumented services can reduce any increase in transfer costs that tail-based sampling brings.
 
 See <<apm-configure-tail-based-sampling>> to get started.
 
@@ -144,10 +149,10 @@ image::./images/dt-sampling-example-3.png[Distributed tracing and tail based sam
 [float]
 === OpenTelemetry with tail-based sampling
 
-Tail-based sampling is implemented entirely in APM Server,
+Tail-based sampling is implemented entirely in {apm-server},
 and will work with traces sent by either Elastic APM agents or OpenTelemetry SDKs.
 
-Due to <<apm-open-telemetry-tbs,OpenTelemetry tail-based sampling limitations>> when using https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor[tailsamplingprocessor], we recommend using APM Server tail-based sampling instead.
+Due to <<apm-open-telemetry-tbs,OpenTelemetry tail-based sampling limitations>> when using https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/tailsamplingprocessor[tailsamplingprocessor], we recommend using {apm-server} tail-based sampling instead.
 
 [float]
 == Sampled data and visualizations
@@ -161,9 +166,9 @@ The way these metrics are calculated depends on the sampling method used:
 
 * **Head-based sampling**: Metrics are calculated based on all sampled events.
 
-* **Tail-based sampling**: Metrics are calculated based on all events, regardless of whether they are ultimately sampled or not.
+* status_badge::[serverless, unavailable] **Tail-based sampling**: Metrics are calculated based on all events, regardless of whether they are ultimately sampled or not.
 
-* **Both head and tail-based sampling**: When both methods are used together, metrics are calculated based on all events that were sampled by the head-based sampling policy.
+* status_badge::[serverless, unavailable] **Both head and tail-based sampling**: When both methods are used together, metrics are calculated based on all events that were sampled by the head-based sampling policy.
 
 For all sampling methods, metrics are weighted by the inverse sampling rate of the head-based sampling policy to provide an estimate of the total population.
 For example, if your head-based sampling rate is 5%, each sampled trace is counted as 20.
@@ -226,7 +231,7 @@ See the relevant agent's documentation for more details:
 
 [float]
 [[apm-configure-tail-based-sampling]]
-== Configure tail-based sampling
+== Configure tail-based sampling status_badge::[serverless, unavailable]
 
 Enable tail-based sampling with <<sampling-tail-enabled-ref>>.
 When enabled, trace events are mapped to sampling policies.
@@ -238,9 +243,9 @@ Each policy list must conclude with a default policy -- one that only specifies 
 This default policy is used to catch remaining trace events that don't match a stricter policy.
 Requiring this default policy ensures that traces are only dropped intentionally.
 If you enable tail-based sampling and send a transaction that does not match any of the policies,
-APM Server will reject the transaction with the error `no matching policy`.
+{apm-server} will reject the transaction with the error `no matching policy`.
 
-IMPORTANT: Please note that from version `8.3.1` APM Server implements a default storage limit of 3GB,
+IMPORTANT: Please note that from version `8.3.1` {apm-server} implements a default storage limit of 3GB,
 but, due to how the limit is calculated and enforced the actual disk space may still grow slightly
 over the limit.
 

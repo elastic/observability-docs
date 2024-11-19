@@ -1,15 +1,18 @@
 [[apm-monitoring-metricbeat-collection]]
 = Use {metricbeat} to send monitoring data
 
+status_badge::[stack, ga]
+status_badge::[serverless, unavailable]
+
 [subs="attributes"]
 ++++
 <titleabbrev>Use {metricbeat} collection</titleabbrev>
 ++++
 
-In 7.3 and later, you can use {metricbeat} to collect data about APM Server
+In 7.3 and later, you can use {metricbeat} to collect data about {apm-server}
 and ship it to the monitoring cluster. The benefit of using {metricbeat} instead
 of internal collection is that the monitoring agent remains active even if the
-APM Server instance dies.
+{apm-server} instance dies.
 
 //Commenting out this link temporarily until the general monitoring docs can be
 //updated.
@@ -32,7 +35,7 @@ To collect and ship monitoring data:
 +
 --
 // tag::enable-http-endpoint[]
-Add the following setting in the APM Server configuration file
+Add the following setting in the {apm-server} configuration file
 (+apm-server.yml+):
 
 [source,yaml]
@@ -51,11 +54,11 @@ http.port: 5067
 // end::enable-http-endpoint[]
 --
 
-. Disable the default collection of APM Server monitoring metrics. +
+. Disable the default collection of {apm-server} monitoring metrics. +
 +
 --
 // tag::disable-beat-collection[]
-Add the following setting in the APM Server configuration file
+Add the following setting in the {apm-server} configuration file
 (+apm-server.yml+):
 
 [source,yaml]
@@ -72,7 +75,7 @@ For more information, see
 +
 --
 // tag::set-http-host[]
-If you intend to get metrics using {metricbeat} installed on another server, you need to bind the APM Server to host's IP:
+If you intend to get metrics using {metricbeat} installed on another server, you need to bind the {apm-server} to host's IP:
 
 [source,yaml]
 ----------------------------------
@@ -85,7 +88,7 @@ http.host: xxx.xxx.xxx.xxx
 +
 --
 // tag::set-cluster-uuid[]
-To see the {beats} monitoring section in {kib} if you have a cluster, you need to associate the APM Server with cluster UUID:
+To see the {beats} monitoring section in {kib} if you have a cluster, you need to associate the {apm-server} with cluster UUID:
 
 [source,yaml]
 ----------------------------------
@@ -95,14 +98,14 @@ monitoring.cluster_uuid: "cluster-uuid"
 --
 
 ifndef::serverless[]
-. Start APM Server.
+. Start {apm-server}.
 endif::[]
 
 [float]
 [[apm-configure-metricbeat]]
 == Install and configure {metricbeat} to collect monitoring data
 
-. Install {metricbeat} on the same server as APM Server. To learn how, see
+. Install {metricbeat} on the same server as {apm-server}. To learn how, see
 {metricbeat-ref}/metricbeat-installation-configuration.html[Get started with {metricbeat}].
 If you already have {metricbeat} installed on the server, skip this step.
 
@@ -147,7 +150,7 @@ Set the `hosts`, `username`, and `password` settings as required by your
 environment. For other module settings, it's recommended that you accept the
 defaults.
 
-By default, the module collects APM Server monitoring data from
+By default, the module collects {apm-server} monitoring data from
 `localhost:5066`. If you exposed the metrics on a different host or port when
 you enabled the HTTP endpoint, update the `hosts` setting.
 
@@ -156,7 +159,7 @@ ifndef::apm-server[]
 {beats} agents,
 endif::[]
 ifdef::apm-server[]
-APM Server instances,
+{apm-server} instances,
 endif::[]
 specify a list of hosts, for example:
 
@@ -165,7 +168,7 @@ specify a list of hosts, for example:
 hosts: ["http://localhost:5066","http://localhost:5067","http://localhost:5068"]
 ----------------------------------
 
-If you configured APM Server to use encrypted communications, you must access
+If you configured {apm-server} to use encrypted communications, you must access
 it via HTTPS. For example, use a `hosts` setting like `https://localhost:5066`.
 // end::configure-beat-module[]
 

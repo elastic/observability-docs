@@ -2,26 +2,26 @@
 [[apm-configuring-ssl-logstash]]
 == Secure communication with {ls}
 
-You can use SSL mutual authentication to secure connections between APM Server and {ls}. This ensures that
-APM Server sends encrypted data to trusted {ls} servers only, and that the {ls} server receives data from
-trusted APM Server clients only.
+You can use SSL mutual authentication to secure connections between {apm-server} and {ls}. This ensures that
+{apm-server} sends encrypted data to trusted {ls} servers only, and that the {ls} server receives data from
+trusted {apm-server} clients only.
 
 To use SSL mutual authentication:
 
 . Create a certificate authority (CA) and use it to sign the certificates that you plan to use for
-APM Server and {ls}. Creating a correct SSL/TLS infrastructure is outside the scope of this
+{apm-server} and {ls}. Creating a correct SSL/TLS infrastructure is outside the scope of this
 document. There are many online resources available that describe how to create certificates.
 +
 TIP: If you are using {security-features}, you can use the
 {ref}/certutil.html[`elasticsearch-certutil` tool] to generate certificates.
 
-. Configure APM Server to use SSL. In the +apm-server.yml+ config file, specify the following settings under
+. Configure {apm-server} to use SSL. In the +apm-server.yml+ config file, specify the following settings under
 `ssl`:
 +
-* `certificate_authorities`: Configures APM Server to trust any certificates signed by the specified CA. If
+* `certificate_authorities`: Configures {apm-server} to trust any certificates signed by the specified CA. If
 `certificate_authorities` is empty or not set, the trusted certificate authorities of the host system are used.
 
-* `certificate` and `key`: Specifies the certificate and key that APM Server uses to authenticate with
+* `certificate` and `key`: Specifies the certificate and key that {apm-server} uses to authenticate with
 {ls}.
 +
 For example:
@@ -44,7 +44,7 @@ For more information about these configuration options, see <<apm-configuration-
 * `ssl_certificate` and `ssl_key`: Specify the certificate and key that {ls} uses to authenticate with the client.
 * `ssl_verify_mode`: Specifies whether the {ls} server verifies the client certificate against the CA. You
 need to specify either `peer` or `force_peer` to make the server ask for the certificate and validate it. If you
-specify `force_peer`, and APM Server doesn't provide a certificate, the {ls} connection will be closed. If you choose not to use {ref}/certutil.html[`certutil`], the certificates that you obtain must allow for both `clientAuth` and `serverAuth` if the extended key usage extension is present.
+specify `force_peer`, and {apm-server} doesn't provide a certificate, the {ls} connection will be closed. If you choose not to use {ref}/certutil.html[`certutil`], the certificates that you obtain must allow for both `clientAuth` and `serverAuth` if the extended key usage extension is present.
 +
 For example:
 +
@@ -69,7 +69,7 @@ For more information about these options, see the
 [[apm-testing-ssl-logstash]]
 === Validate the {ls} server's certificate
 
-Before running APM Server, you should validate the {ls} server's certificate. You can use `curl` to validate the certificate even though the protocol used to communicate with {ls} is not based on HTTP. For example:
+Before running {apm-server}, you should validate the {ls} server's certificate. You can use `curl` to validate the certificate even though the protocol used to communicate with {ls} is not based on HTTP. For example:
 
 [source,shell]
 ------------------------------------------------------------------------------
@@ -119,9 +119,9 @@ curl: (51) SSL: certificate verification failed (result: 5)
 See the <<apm-ssl-client-fails,troubleshooting docs>> for info about resolving this issue.
 
 [float]
-=== Test the APM Server to {ls} connection
+=== Test the {apm-server} to {ls} connection
 
-If you have APM Server running as a service, first stop the service. Then test your setup by running APM Server in
+If you have {apm-server} running as a service, first stop the service. Then test your setup by running {apm-server} in
 the foreground so you can quickly see any errors that occur:
 
 ["source","sh",subs="attributes,callouts"]

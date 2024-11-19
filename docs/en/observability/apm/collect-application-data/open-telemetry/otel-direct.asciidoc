@@ -1,6 +1,12 @@
 [[apm-open-telemetry-direct]]
 = Upstream OpenTelemetry Collectors and language SDKs
 
+status_badge::[serverless, ga]
+status_badge::[stack, ga]
+
+// TO DO: Figure out if all mentions of APM Server also apply to the managed intake service.
+// If yes, should the example use an API key instead of a secret token?
+
 [NOTE]
 ====
 This is one of <<apm-open-telemetry,several approaches>> you can use to integrate Elastic with OpenTelemetry.
@@ -8,12 +14,12 @@ This is one of <<apm-open-telemetry,several approaches>> you can use to integrat
 *To compare approaches and choose the best approach for your use case, refer to <<apm-open-telemetry,Use OpenTelemetry with APM>>.*
 ====
 
-The {stack} natively supports the OpenTelemetry protocol (OTLP).
+Elastic natively supports the OpenTelemetry protocol (OTLP).
 This means trace data and metrics collected from your applications and infrastructure can
-be sent directly to the {stack}.
+be sent directly to Elastic.
 
-* Send data to the {stack} from an upstream <<apm-connect-open-telemetry-collector,OpenTelemetry Collector>>
-* Send data to the {stack} from an upstream <<apm-instrument-apps-otel,OpenTelemetry language SDK>>
+* Send data to Elastic from an upstream <<apm-connect-open-telemetry-collector,OpenTelemetry Collector>>
+* Send data to Elastic from an upstream <<apm-instrument-apps-otel,OpenTelemetry language SDK>>
 
 [discrete]
 [[apm-connect-open-telemetry-collector]]
@@ -42,11 +48,11 @@ exporters:
   debug:
     verbosity: detailed <3>
   otlp: <4>
-    # Elastic APM server https endpoint without the "https://" prefix
+    # Elastic APM server or managed intake service https endpoint without the "https://" prefix
     endpoint: "${env:ELASTIC_APM_SERVER_ENDPOINT}" <5> <7>
     headers:
-      # Elastic APM Server secret token
-      Authorization: "Bearer ${env:ELASTIC_APM_SECRET_TOKEN}" <6> <7>
+      # Elastic API key
+      Authorization: "ApiKey ${env:ELASTIC_APM_API_KEY}" <6> <7>
 
 service:
   pipelines:
@@ -75,14 +81,16 @@ https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otl
 https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlpexporter[OTLP/gRPC exporter].
 When adding an endpoint to an existing configuration an optional name component can be added, like `otlp/elastic`, to distinguish endpoints as described in the https://opentelemetry.io/docs/collector/configuration/#basics[OpenTelemetry Collector Configuration Basics].
 <5> Hostname and port of the APM Server endpoint. For example, `elastic-apm-server:8200`.
-<6> Credential for Elastic APM <<apm-secret-token,secret token authorization>> (`Authorization: "Bearer a_secret_token"`) or <<apm-api-key,API key authorization>> (`Authorization: "ApiKey an_api_key"`).
+<6> Credential for Elastic APM:
+* <<apm-api-key,API key authorization>> (`Authorization: "ApiKey an_api_key"`)
+* <<apm-secret-token,secret token authorization>> (`Authorization: "Bearer a_secret_token"`) status_badge::[serverless, unavailable]
 <7> Environment-specific configuration parameters can be conveniently passed in as environment variables documented https://opentelemetry.io/docs/collector/configuration/#environment-variables[here] (e.g. `ELASTIC_APM_SERVER_ENDPOINT` and `ELASTIC_APM_SECRET_TOKEN`).
 <8>  preview:[] To send OpenTelemetry logs to {stack} version 8.0+, declare a `logs` pipeline.
 
 You're now ready to export traces and metrics from your services and applications.
 
 TIP: When using the OpenTelemetry Collector, you should always prefer sending data via the https://github.com/open-telemetry/opentelemetry-collector/tree/main/exporter/otlphttpexporter[`OTLP` exporter] to an Elastic APM Server.
-Other methods, like using the https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter[`elasticsearch` exporter] to send data directly to {es} will send data to the {stack},
+Other methods, like using the https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/exporter/elasticsearchexporter[`elasticsearch` exporter] to send data directly to {es} will send data to Elastic,
 but will bypass all of the validation and data processing that the APM Server performs.
 In addition, your data will not be viewable in the {kib} {observability} apps if you use the `elasticsearch` exporter.
 

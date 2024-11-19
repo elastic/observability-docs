@@ -1,6 +1,9 @@
 [[apm-configuration-logging]]
 = Configure logging
 
+status_badge::[stack, ga]
+status_badge::[serverless, unavailable]
+
 ++++
 <titleabbrev>Logging</titleabbrev>
 ++++
@@ -9,7 +12,7 @@
 
 image:./binary-yes-fm-no.svg[supported deployment methods]
 
-These configuration options are only relevant to APM Server binary users.
+These configuration options are only relevant to {apm-server} binary users.
 Fleet-managed users should see {fleet-guide}/monitor-elastic-agent.html[View {agent} logs]
 to learn how to view logs and change the logging level of {agent}.
 ****
@@ -37,7 +40,7 @@ TIP: In addition to setting logging options in the config file, you can modify
 the logging output configuration from the command line. See
 <<apm-command-line-options>>.
 
-WARNING: When APM Server is running on a Linux system with systemd, it uses
+WARNING: When {apm-server} is running on a Linux system with systemd, it uses
 by default the `-e` command line option, that makes it write all the logging output
 to stderr so it can be captured by journald. Other outputs are disabled. See
 <<apm-running-with-systemd>> to know more and learn how to change this.
@@ -73,7 +76,7 @@ When true, writes all logging output to the Windows Event Log.
 When true, writes all logging output to files. The log files are automatically
 rotated when the log file size limit is reached.
 
-NOTE: APM Server only creates a log file if there is logging output. For
+NOTE: {apm-server} only creates a log file if there is logging output. For
 example, if you set the log <<apm-level,`level`>> to `error` and there are no
 errors, there will be no log file in the directory specified for logs.
 endif::serverless[]
@@ -103,7 +106,7 @@ published. Also logs any warnings, errors, or critical errors.
 [[apm-selectors]]
 === `logging.selectors`
 
-The list of debugging-only selector tags used by different APM Server components.
+The list of debugging-only selector tags used by different {apm-server} components.
 Use `*` to enable debug output for all components. Use `publisher` to display
 debug messages related to event publishing.
 
@@ -112,7 +115,7 @@ debug messages related to event publishing.
 The list of available selectors may change between releases, so avoid creating
 tests that depend on specific selectors.
 
-To see which selectors are available, run APM Server in debug mode
+To see which selectors are available, run {apm-server} in debug mode
 (set `logging.level: debug` in the configuration). The selector name appears
 after the log level and is enclosed in brackets.
 =====
@@ -131,7 +134,7 @@ endif::serverless[]
 [float]
 === `logging.metrics.enabled`
 
-By default, APM Server periodically logs its internal metrics that have
+By default, {apm-server} periodically logs its internal metrics that have
 changed in the last period. For each metric that changed, the delta from the
 value at the beginning of the period is logged. Also, the total values for all
 non-zero internal metrics are logged on shutdown. Set this to false to disable
@@ -214,9 +217,9 @@ ifndef::serverless[]
 [float]
 === `logging.files.redirect_stderr` experimental[]
 
-When true, diagnostic messages printed to APM Server's standard error output
+When true, diagnostic messages printed to {apm-server}'s standard error output
 will also be logged to the log file. This can be helpful in situations were
-APM Server terminates unexpectedly because an error has been detected by
+{apm-server} terminates unexpectedly because an error has been detected by
 Go's runtime but diagnostic information is not present in the log file.
 This feature is only available when logging to files (`logging.to_files` is true).
 Disabled by default.

@@ -1,6 +1,9 @@
 [[apm-configuration-anonymous]]
 = Configure anonymous authentication
 
+status_badge::[stack, ga]
+status_badge::[serverless, unavailable]
+
 ++++
 <titleabbrev>Anonymous authentication</titleabbrev>
 ++++
@@ -8,15 +11,15 @@
 ****
 image:./binary-yes-fm-yes.svg[supported deployment methods]
 
-Most options on this page are supported by all APM Server deployment methods.
+Most options on this page are supported by all {apm-server} deployment methods.
 ****
 
-Elastic APM agents can send unauthenticated (anonymous) events to the APM Server.
+Elastic APM agents can send unauthenticated (anonymous) events to the {apm-server}.
 An event is considered to be anonymous if no authentication token can be extracted from the incoming request.
 This is useful for agents that run on clients, like the Real User Monitoring (RUM)
 agent running in a browser, or the Android or iOS/Swift agent running in a user application.
 
-Enable anonymous authentication in the APM Server to allow the
+Enable anonymous authentication in the {apm-server} to allow the
 ingestion of unauthenticated client-side APM data while still requiring authentication for server-side services.
 
 include::./tab-widgets/anon-auth-widget.asciidoc[]
@@ -42,12 +45,12 @@ See <<apm-configuration-rum>> for additional RUM configuration options.
 === Mitigating malicious requests
 
 There are a few configuration variables that can mitigate the impact of malicious requests to an
-unauthenticated APM Server endpoint.
+unauthenticated {apm-server} endpoint.
 
 Use the <<apm-config-auth-anon-allow-agent>> and <<apm-config-auth-anon-allow-service>> configs to ensure that the
 `agent.name` and `service.name` of each incoming request match a specified list.
 
-Additionally, the APM Server can rate-limit unauthenticated requests based on the client IP address
+Additionally, the {apm-server} can rate-limit unauthenticated requests based on the client IP address
 (`client.ip`) of the request with <<apm-config-auth-anon-event-limit>>.
 This allows you to specify the maximum number of requests allowed per unique IP address, per second.
 
@@ -57,7 +60,7 @@ This allows you to specify the maximum number of requests allowed per unique IP 
 
 The remote IP address of an incoming request might be different
 from the end-user's actual IP address, for example, because of a proxy. For this reason,
-the APM Server attempts to derive the IP address of an incoming request from HTTP headers.
+the {apm-server} attempts to derive the IP address of an incoming request from HTTP headers.
 The supported headers are parsed in the following order:
 
 1. `Forwarded`
@@ -74,12 +77,12 @@ HTTP headers are easily modified;
 it's possible for anyone to spoof the derived `client.ip` value by changing or setting,
 for example, the value of the `X-Forwarded-For` header.
 For this reason, if any of your clients are not trusted,
-we recommend setting up a reverse proxy or load balancer in front of the APM Server.
+we recommend setting up a reverse proxy or load balancer in front of the {apm-server}.
 
 Using a proxy allows you to clear any existing IP-forwarding HTTP headers,
 and replace them with one set by the proxy.
 This prevents malicious users from cycling spoofed IP addresses to bypass the
-APM Server's rate limiting feature.
+{apm-server}'s rate limiting feature.
 
 [float]
 [[apm-config-auth-anon]]
@@ -93,7 +96,7 @@ Enable or disable anonymous authentication.
 Default: `false` (disabled). (bool)
 
 |====
-| APM Server binary | `apm-server.auth.anonymous.enabled`
+| {apm-server} binary | `apm-server.auth.anonymous.enabled`
 | Fleet-managed     | `Anonymous Agent access`
 |====
 
@@ -105,7 +108,7 @@ Names in this list must match the agent's `agent.name`.
 Default: `[rum-js, js-base]` (only RUM agent events are accepted). (array)
 
 |====
-| APM Server binary | `apm-server.auth.anonymous.allow_agent`
+| {apm-server} binary | `apm-server.auth.anonymous.allow_agent`
 | Fleet-managed     | `Allowed Anonymous agents`
 |====
 
@@ -118,7 +121,7 @@ This can be used to limit the number of service-specific indices or data streams
 Default: Not set (any service name is accepted). (array)
 
 |====
-| APM Server binary | `apm-server.auth.anonymous.allow_service`
+| {apm-server} binary | `apm-server.auth.anonymous.allow_service`
 | Fleet-managed     | `Allowed Anonymous services`
 |====
 
@@ -131,7 +134,7 @@ Consider increasing this default if your application has many concurrent clients
 Default: `1000`. (int)
 
 |====
-| APM Server binary | `apm-server.auth.anonymous.rate_limit.ip_limit`
+| {apm-server} binary | `apm-server.auth.anonymous.rate_limit.ip_limit`
 | Fleet-managed     | `Anonymous Rate limit (IP limit)`
 |====
 
@@ -142,6 +145,6 @@ The maximum number of events allowed per second, per agent IP address.
 Default: `300`. (int)
 
 |====
-| APM Server binary | `apm-server.auth.anonymous.rate_limit.event_limit`
+| {apm-server} binary | `apm-server.auth.anonymous.rate_limit.event_limit`
 | Fleet-managed     | `Anonymous Event rate limit (event limit)`
 |====

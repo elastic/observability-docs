@@ -1,6 +1,9 @@
 [[apm-open-telemetry-collect-metrics]]
 = Collect metrics
 
+status_badge::[serverless, ga]
+status_badge::[stack, ga]
+
 IMPORTANT: When collecting metrics, please note that the https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/DoubleValueRecorder.html[`DoubleValueRecorder`]
 and https://www.javadoc.io/doc/io.opentelemetry/opentelemetry-api/latest/io/opentelemetry/api/metrics/LongValueObserver.html[`LongValueRecorder`] metrics are not yet supported.
 
@@ -28,7 +31,11 @@ for more information.
 [[apm-open-telemetry-verify-metrics]]
 == Verify OpenTelemetry metrics data
 
-Use *Discover* to validate that metrics are successfully reported to {kib}.
+Use *Discover* to validate that metrics are successfully reported to Elastic.
+
+[float]
+[[apm-open-telemetry-verify-metrics-kibana]]
+=== Elasticsearch Service status_badge::[stack, ga]
 
 . Launch {kib}:
 +
@@ -43,8 +50,19 @@ include::{observability-docs-root}/docs/en/observability/apm/tab-widgets/open-ki
 only OpenTelemetry metrics documents.
 
 [float]
+[[apm-open-telemetry-verify-metrics-serverless]]
+=== Elastic Cloud Serverless status_badge::[serverless, ga]
+
+. Open your Observability project.
+. In your {obs-serverless} project, go to **Discover**, and select the **Logs Explorer** tab.
+. Click **All logs** → **Data Views** then select **APM**.
+. Filter the data to only show documents with metrics: `processor.name :"metric"`
+. Narrow your search with a known OpenTelemetry field. For example, if you have an `order_value` field, add `order_value: *` to your search to return
+only OpenTelemetry metrics documents.
+
+[float]
 [[apm-open-telemetry-visualize]]
-== Visualize in {kib}
+== Visualize data
 
 Use *Lens* to create visualizations for OpenTelemetry metrics. Lens enables you to build visualizations by dragging and dropping data fields. It makes smart visualization suggestions for your data, allowing you to switch between visualization types.
 

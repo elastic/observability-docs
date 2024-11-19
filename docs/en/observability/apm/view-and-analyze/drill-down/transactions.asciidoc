@@ -1,28 +1,31 @@
 [[apm-transactions]]
 = Transactions
 
-TIP: A {apm-guide-ref}/data-model-transactions.html[transaction] describes an event captured by an Elastic APM agent instrumenting a service.
+status_badge::[stack, ga]
+status_badge::[serverless, ga]
+
+A <<apm-data-model-transactions,transaction>> describes an event captured by an Elastic APM agent instrumenting a service.
 APM agents automatically collect performance metrics on HTTP requests, database queries, and much more.
 
 [role="screenshot"]
-image::./images/apm-transactions-overview.png[Example view of transactions table in the Applications UI in Kibana]
+image::./images/apm-transactions-overview.png[Example view of transactions table in the Applications UI]
 
 The *Latency*, *Throughput*, *Failed transaction rate*, *Time spent by span type*, and *Cold start rate*
 charts display information on all transactions associated with the selected service:
 
-*Latency*::
+Latency::
 Response times for the service. Options include average, 95th, and 99th percentile.
 If there's a weird spike that you'd like to investigate,
 you can simply zoom in on the graph - this will adjust the specific time range,
 and all of the data on the page will update accordingly.
 
-*Throughput*::
-Visualize response codes: `2xx`, `3xx`, `4xx`, etc.
+Throughput::
+Visualize response codes: `2xx`, `3xx`, `4xx`, and so on.
 Useful for determining if more responses than usual are being served with a particular response code.
 Like in the latency graph, you can zoom in on anomalies to further investigate them.
 
 [[transaction-error-rate]]
-*Failed transaction rate*::
+Failed transaction rate::
 The failed transaction rate represents the percentage of failed transactions from the perspective of the selected service.
 It's useful for visualizing unexpected increases, decreases, or irregular patterns in a service's transactions.
 +
@@ -37,7 +40,7 @@ These spans will set `event.outcome=failure` and increase the failed transaction
 If there is no HTTP status, both transactions and spans are considered successful unless an error is reported.
 ====
 
-*Time spent by span type*::
+Time spent by span type::
 Visualize where your application is spending most of its time.
 For example, is your app spending time in external calls, database processing, or application code execution?
 +
@@ -47,7 +50,7 @@ This could be a sign that the APM agent does not have auto-instrumentation for w
 +
 It's important to note that if you have asynchronous spans, the sum of all span times may exceed the duration of the transaction.
 
-*Cold start rate*::
+Cold start rate::
 Only applicable to serverless transactions, this chart displays the percentage of requests that trigger a cold start of a serverless function.
 See <<apm-lambda-cold-start-info>> for more information.
 
@@ -60,7 +63,7 @@ In other words, this view groups all transactions of the same name together,
 and only displays one entry for each group.
 
 [role="screenshot"]
-image::./images/apm-transactions-table.png[Example view of the transactions table in the Applications UI in Kibana]
+image::./images/apm-transactions-table.png[Example view of the transactions table in the Applications UI]
 
 By default, transaction groups are sorted by _Impact_.
 Impact helps show the most used and slowest endpoints in your service - in other words,
@@ -78,7 +81,7 @@ refer to the documentation for each {apm-agents-ref}[APM Agent] you've implement
 
 [discrete]
 [[rum-transaction-overview]]
-== RUM Transaction overview
+== RUM Transaction overview status_badge::[serverless, unavailable]
 
 The transaction overview page is customized for the JavaScript RUM agent.
 Specifically, the page highlights *page load times* for your service:
@@ -145,15 +148,15 @@ NOTE: More information on timeline waterfalls is available in <<apm-spans, spans
 
 Learn more about a trace sample in the *Metadata* tab:
 
-* Labels - Custom labels added by APM agents
+* Labels: Custom labels added by APM agents
 * HTTP request/response information
 * Host information
 * Container information
-* Service - The service/application runtime, APM agent, name, etc..
-* Process - The process id that served up the request.
+* Service: The service/application runtime, APM agent, name, etc.
+* Process: The process id that served up the request.
 * APM agent information
 * URL
-* User - Requires additional configuration, but allows you to see which user experienced the current transaction.
+* User: Requires additional configuration, but allows you to see which user experienced the current transaction.
 * FaaS information, like cold start, AWS request ID, trigger type, and trigger request ID
 
 TIP: All of this data is stored in documents in Elasticsearch.

@@ -1,9 +1,12 @@
 [[apm-common-problems]]
 = Common problems
 
-This section describes common problems you might encounter when using APM Server and the Applications UI in {kib}.
+status_badge::[stack, ga]
+status_badge::[serverless, ga]
 
-*APM Server*:
+This section describes common problems you might encounter when using {apm-server-or-mis} and the Applications UI in {kib}.
+
+*{apm-server-or-mis}*:
 
 * <<apm-no-data-indexed>>
 * <<apm-common-ssl-problems>>
@@ -20,7 +23,7 @@ This section describes common problems you might encounter when using APM Server
 
 [float]
 [[apm-no-data-indexed]]
-== No data is indexed
+== No data is indexed status_badge::[serverless, unavailable]
 
 If no data shows up in {es}, first make sure that your APM components are properly connected.
 
@@ -29,7 +32,7 @@ include::{observability-docs-root}/docs/en/observability/apm/tab-widgets/no-data
 
 [float]
 [[apm-common-ssl-problems]]
-== Common SSL-related problems
+== Common SSL-related problems status_badge::[serverless, unavailable]
 
 * <<apm-ssl-client-fails,SSL client fails to connect>>
 * <<apm-cannot-validate-certificate,x509: cannot validate certificate>>
@@ -45,8 +48,8 @@ include::{observability-docs-root}/docs/en/observability/apm/tab-widgets/no-data
 The target host might be unreachable or the certificate may not be valid.
 To fix this problem:
 
-. Make sure that the APM Server process on the target host is running and you can connect to it.
-Try to ping the target host to verify that you can reach it from the host running APM Server.
+. Make sure that the {apm-server} process on the target host is running and you can connect to it.
+Try to ping the target host to verify that you can reach it from the host running {apm-server}.
 Then use either `nc` or `telnet` to make sure that the port is available. For example:
 +
 [source,shell]
@@ -93,12 +96,12 @@ destination host.
 
 [[apm-io-timeout]]
 [float]
-== I/O Timeout
+== I/O Timeout status_badge::[serverless, unavailable]
 
 I/O Timeouts can occur when your timeout settings across the stack are not configured correctly,
 especially when using a load balancer.
 
-You may see an error like the one below in the {apm-agent} logs, and/or a similar error on the APM Server side:
+You may see an error like the one below in the {apm-agent} logs, and/or a similar error on the {apm-server} side:
 
 [source,logs]
 ----
@@ -107,7 +110,7 @@ You may see an error like the one below in the {apm-agent} logs, and/or a simila
 ----
 
 To fix this, ensure timeouts are incrementing from the {apm-agent},
-through your load balancer, to the APM Server.
+through your load balancer, to the {apm-server}.
 
 By default, the agent timeouts are set at 10 seconds, and the server timeout is set at 3600 seconds.
 Your load balancer should be set somewhere between these numbers.
@@ -120,7 +123,7 @@ APM agent --> Load Balancer  --> APM Server
    10s            15s               3600s
 ----
 
-The APM Server timeout can be configured by updating the
+The {apm-server} timeout can be configured by updating the
 <<apm-read_timeout,maximum duration for reading an entire request>>.
 
 [[apm-field-limit-exceeded]]
@@ -140,7 +143,7 @@ The symptom of a mapping explosion is that transactions and spans are not indexe
 the spans and transactions will be indexed again because a new index is created each day.
 But as soon as the field limit is reached, indexing stops again.
 
-In the agent logs, you won't see a sign of failures as the APM server asynchronously sends the data it received from the agents to {es}. However, the APM server and {es} log a warning like this:
+In the agent logs, you won't see a sign of failures as the {apm-server-or-mis} asynchronously sends the data it received from the agents to {es}. However, the {apm-server-or-mis} and {es} log a warning like this:
 
 [source,logs]
 ----
@@ -149,7 +152,7 @@ In the agent logs, you won't see a sign of failures as the APM server asynchrono
 
 [[apm-tail-based-sampling-memory-disk-io]]
 [float]
-== Tail-based sampling causing high system memory usage and high disk IO
+== Tail-based sampling causing high system memory usage and high disk IO status_badge::[serverless, unavailable]
 
 Tail-based sampling requires minimal memory to run, and there should not be a noticeable increase in RSS memory usage.
 However, since tail-based sampling writes data to disk,
@@ -174,6 +177,7 @@ To do this, ensure you are **not** naming based on parameters that can change.
 For example, user ids, product ids, order numbers, query parameters, etc.,
 should be stripped away, and commonality should be found between your unique URLs.
 
+// TO DO: Use a non-RUM example?
 Let's look at an example from the RUM agent documentation. Here are a few URLs you might find on Elastic.co:
 
 [source,yml]
@@ -202,9 +206,9 @@ You can always add additional metadata to your transactions using {apm-guide-ref
 After ensuring you've correctly named your transactions,
 you might still see errors in the Applications UI related to transaction group limit reached:
 
-`The number of transaction groups has been reached. Current APM server capacity for handling unique transaction groups has been reached. There are at least X transactions missing in this list. Please decrease the number of transaction groups in your service or increase the memory allocated to APM server.`
++The number of transaction groups has been reached. Current {apm-server} capacity for handling unique transaction groups has been reached. There are at least X transactions missing in this list. Please decrease the number of transaction groups in your service or increase the memory allocated to {apm-server}.+
 
-You will see this warning if an agent is creating too many transaction groups. This could indicate incorrect instrumentation which will have to be fixed in your application. Alternatively you can increase the memory of the APM server.
+You will see this warning if an agent is creating too many transaction groups. This could indicate incorrect instrumentation which will have to be fixed in your application. Alternatively you can increase the memory of the {apm-server}.
 
 `Number of transaction groups exceed the allowed maximum(1,000) that are displayed. The maximum number of transaction groups displayed in Kibana has been reached. Try narrowing down results by using the query bar..`
 

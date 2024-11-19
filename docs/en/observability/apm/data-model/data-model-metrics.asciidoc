@@ -1,6 +1,11 @@
 [[apm-data-model-metrics]]
 = Metrics
 
+status_badge::[serverless, ga]
+status_badge::[stack, ga]
+
+include::{observability-docs-root}/docs/en/observability/partials/apm-server-vs-mis.asciidoc[]
+
 **Metrics** measure the state of a system by gathering information on a regular interval. There are two types of APM metrics:
 
 * **System metrics**: Basic infrastructure and application metrics.
@@ -45,16 +50,17 @@ and contains two related metrics: `jvm.gc.time` and `jvm.gc.count`. These are ac
 the environment in which the metrics were captured: service name, host name, Kubernetes pod UID, container ID, process ID, and more.
 These fields make it possible to search and aggregate across various dimensions, such as by service, host, and Kubernetes pod.
 
-[source,json]
-----
-include::{apm-server-root}/docs/data/elasticsearch/metricset.json[]
-----
+// Temporarily remove for status-badge test
+// [source,json]
+// ----
+// include::{apm-server-root}/docs/data/elasticsearch/metricset.json[]
+// ----
 ====
 
 [float]
 == Calculated metrics
 
-APM agents and APM Server calculate metrics from trace events to power visualizations in the Applications UI.
+APM agents and either {apm-server-or-mis} calculate metrics from trace events to power visualizations in the Applications UI.
 
 Calculated metrics are an implementation detail and while we aim for stability for these data models,
 the dimensions and concrete limits for aggregations are subject to change within minor version updates.
@@ -95,17 +101,18 @@ This example shows what breakdown metric documents can look like when indexed in
 .Expand {es} document
 ====
 
-[source,json]
-----
-include::{apm-server-root}/docs/data/elasticsearch/span_breakdown.json[]
-----
+// Temporarily remove for status-badge test
+// [source,json]
+// ----
+// include::{apm-server-root}/docs/data/elasticsearch/span_breakdown.json[]
+// ----
 ====
 
 [float]
 === Transaction metrics
 
 To power <<apm-ui,{kib} Applications UI>> visualizations,
-APM Server aggregates transaction events into latency distribution metrics.
+{apm-server-or-mis} aggregates transaction events into latency distribution metrics.
 
 *`transaction.duration.summary`* and *`transaction.duration.histogram`*::
 +
@@ -166,17 +173,18 @@ This example shows what transaction documents can look like when indexed in {es}
 .Expand {es} document
 ====
 
-[source,json]
-----
-include::{apm-server-root}/docs/data/elasticsearch/transaction_metric.json[]
-----
+// Temporarily remove for status-badge test
+// [source,json]
+// ----
+// include::{apm-server-root}/docs/data/elasticsearch/transaction_metric.json[]
+// ----
 ====
 
 [float]
 === Service-transaction metrics
 
 To power <<apm-ui,{kib} Applications UI>> visualizations,
-APM Server aggregates transaction events into service-transaction metrics.
+{apm-server-or-mis} aggregates transaction events into service-transaction metrics.
 Service-transaction metrics are similar to transaction metrics, but they usually
 have a much lower cardinality as they have significantly fewer dimensions.
 The UI uses them when fewer details of the transactions are needed.
@@ -212,17 +220,18 @@ This example shows what service-transaction documents can look like when indexed
 .Expand {es} document
 ====
 
-[source,json]
-----
-include::{apm-server-root}/docs/data/elasticsearch/service_transaction_metric.json[]
-----
+// Temporarily remove for status-badge test
+// [source,json]
+// ----
+// include::{apm-server-root}/docs/data/elasticsearch/service_transaction_metric.json[]
+// ----
 ====
 
 [float]
 === Service-destination metrics
 
 To power <<apm-ui,{kib} Applications UI>> visualizations,
-APM Server aggregates span events into service-destination metrics.
+{apm-server-or-mis} aggregates span events into service-destination metrics.
 
 *`span.destination.service.response_time.count`* and *`span.destination.service.response_time.sum.us`*::
 +
@@ -260,17 +269,18 @@ This example shows what service-destination documents can look like when indexed
 .Expand {es} document
 ====
 
-[source,json]
-----
-include::{apm-server-root}/docs/data/elasticsearch/service_destination_metric.json[]
-----
+// Temporarily remove for status-badge test
+// [source,json]
+// ----
+// include::{apm-server-root}/docs/data/elasticsearch/service_destination_metric.json[]
+// ----
 ====
 
 [float]
 === Service-summary metrics
 
 To power <<apm-ui,{kib} Applications UI>> visualizations,
-APM Server aggregates transaction, error, log, and metric events into service-summary metrics.
+{apm-server-or-mis} aggregates transaction, error, log, and metric events into service-summary metrics.
 
 These metric documents can be identified by searching for `metricset.name: service_summary`.
 
@@ -295,10 +305,11 @@ This example shows what service-summary documents can look like when indexed in 
 .Expand {es} document
 ====
 
-[source,json]
-----
-include::{apm-server-root}/docs/data/elasticsearch/service_summary_metric.json[]
-----
+// Temporarily remove for status-badge test
+// [source,json]
+// ----
+// include::{apm-server-root}/docs/data/elasticsearch/service_summary_metric.json[]
+// ----
 ====
 
 [float]
@@ -316,6 +327,7 @@ See <<apm-data-streams>> to learn more.
 For all aggregated metrics, namely transaction, service-transaction, service-destination, and service-summary metrics,
 there are limits on the number of unique groups tracked at any given time.
 
+// Do these limits apply to the managed intake service on serverless?
 [float]
 === Limits
 
@@ -346,6 +358,7 @@ For example, when `transaction.name` has a lot of unique values and reaches the 
 of unique transaction groups tracked, any transactions with new `transaction.name` will be aggregated under
 `transaction.name`: `_other`.
 
+// Does this apply to the managed intake service?
 Another example of how the transaction group limit may be reached is if `transaction.name` contains just a few unique values,
 but the service is deployed on a lot of different hosts. As `host.name` is part of the aggregation key for transaction metrics,
 the max transaction group limit is reached for a service that has 100 instances, 10 different transaction names, and
@@ -353,8 +366,9 @@ the max transaction group limit is reached for a service that has 100 instances,
 Once this limit is reached, any new combinations of `transaction.name`, `transaction.result`, and
 `host.name` for that service will be aggregated under `transaction.name`: `_other`.
 
+// Does this apply to the managed intake service?
 This issue can be resolved by increasing memory available to APM Server, or by ensuring that the dimensions do not use values
 that are based on parameters that can change. For example, user ids, product ids, order numbers, query parameters, etc.,
 should be stripped away from the dimensions. For the same reason, avoid high cardinality global labels (`labels.\*` and `numeric_labels.*`).
 
-Aggregated metrics do not consider global labels from RUM agents in order to protect APM server from using too much memory.
+Aggregated metrics do not consider global labels from RUM agents in order to protect {apm-server} from using too much memory.

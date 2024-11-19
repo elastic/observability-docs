@@ -1,6 +1,9 @@
 [[apm-upgrading-to-8.x]]
 === Upgrade to version {version}
 
+status_badge::[stack, ga]
+status_badge::[serverless, unavailable]
+
 This guide explains the upgrade process for version {version}.
 For a detailed look at what's new, see:
 
@@ -11,17 +14,18 @@ For a detailed look at what's new, see:
 [float]
 === Notable APM changes
 
-* All index management has been removed from APM Server;
+* All index management has been removed from {apm-server};
 the built-in {es} apm-data plugin is entirely responsible for setting up index templates, index lifecycle polices,
 and index pipelines.
-* APM Server now only writes to well-defined data streams;
+* {apm-server} now only writes to well-defined data streams;
 writing to classic indices is no longer supported.
-* APM Server has a new {es} output implementation with defaults that should be sufficient for
+* {apm-server} has a new {es} output implementation with defaults that should be sufficient for
 most use cases.
 
-As a result of the above changes,
-a number of index management and index tuning configuration variables have been removed.
-See the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>> for full details.
+// Temporarily remove for status-badge test
+// As a result of the above changes,
+// a number of index management and index tuning configuration variables have been removed.
+// See the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>> for full details.
 
 [float]
 === Find your upgrade guide
@@ -29,7 +33,7 @@ See the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes
 Starting in version 7.14, there are two ways to run Elastic APM.
 Determine which method you're using, then use the links below to find the correct upgrading guide.
 
-* **Standalone**: Users in this mode run and configure the APM Server binary.
+* **Standalone**: Users in this mode run and configure the {apm-server} binary.
 * **{fleet} and the APM integration**: Users in this mode run and configure {fleet} and the Elastic APM integration.
 
 **Self-installation (non-{ecloud} users) upgrade guides**
@@ -45,60 +49,61 @@ Determine which method you're using, then use the links below to find the correc
 // ********************************************************
 
 [[apm-upgrade-8.0-self-standalone]]
-==== Upgrade a self-installation of APM Server standalone to {version}
+==== Upgrade a self-installation of {apm-server} standalone to {version}
 
 ++++
 <titleabbrev>Self-installation standalone</titleabbrev>
 ++++
 
-This upgrade guide is for the standalone method of running APM Server.
+This upgrade guide is for the standalone method of running {apm-server}.
 Only use this guide if both of the following are true:
 
 * You have a self-installation of the {stack}, i.e. you're not using {ecloud}.
-* You're running the APM Server binary, i.e. you haven't switched to the Elastic APM integration.
+* You're running the {apm-server} binary, i.e. you haven't switched to the Elastic APM integration.
 
 [float]
 ==== Prerequisites
 
 . Prior to upgrading to version {version}, {es}, {kib},
-and APM Server must be upgraded to version 7.17.
+and {apm-server} must be upgraded to version 7.17.
 ** To upgrade {es} and {kib},
 see the https://www.elastic.co/guide/en/elastic-stack/7.17/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide]
-** To upgrade APM Server to version 7.17, see
+** To upgrade {apm-server} to version 7.17, see
 {apm-guide-7x}/upgrading-to-717.html[upgrade to version 7.17].
 
-. Review the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and {observability} {observability-guide}/whats-new.html[What's new] content.
+// Temporarily remove for status-badge test
+// . Review the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+// and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 [float]
 ==== Upgrade steps
 
 . **Upgrade the {stack} to version {version}**
 +
-The {stack} ({es} and {kib}) must be upgraded before APM Server.
+The {stack} ({es} and {kib}) must be upgraded before {apm-server}.
 See the {stack-ref}/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide] for guidance.
 
-. **Install the {version} APM Server release**
+. **Install the {version} {apm-server} release**
 +
 See <<apm-installing,install>> to find the command that works with your system.
 
 . **Review your configuration file**
 +
 Some settings have been removed or changed. You may need to update your `apm-server.yml` configuration
-file prior to starting the APM Server.
+file prior to starting the {apm-server}.
 See <<apm-directory-layout>> for help in locating this file,
 and <<apm-configuring-howto-apm-server>> for a list of all available configuration options.
 
-. **Start the APM Server**
+. **Start the {apm-server}**
 +
-To start the APM Server, run:
+To start the {apm-server}, run:
 +
 [source,bash]
 ----
 ./apm-server -e
 ----
 +
-Additional details are available in <<apm-server-starting,start the APM Server>>.
+Additional details are available in <<apm-server-starting,start the {apm-server}>>.
 
 . **(Optional) Upgrade to the APM integration**
 +
@@ -127,8 +132,9 @@ Only use this guide if both of the following are true:
 must be upgraded to version 7.17. To upgrade {es} and {kib},
 see the https://www.elastic.co/guide/en/elastic-stack/7.17/upgrading-elastic-stack.html[{stack} Installation and Upgrade Guide]
 
-. Review the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and {observability} {observability-guide}/whats-new.html[What's new] content.
+// Temporarily remove for status-badge test
+// . Review the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+// and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 [float]
 ==== Upgrade steps
@@ -157,22 +163,23 @@ For more details, or for bulk upgrade instructions, see
 // ********************************************************
 
 [[apm-upgrade-8.0-cloud-standalone]]
-==== Upgrade {ecloud} APM Server standalone to {version}
+==== Upgrade {ecloud} {apm-server} standalone to {version}
 
 ++++
 <titleabbrev>{ecloud} standalone</titleabbrev>
 ++++
 
-This upgrade guide is for the standalone method of running APM Server.
+This upgrade guide is for the standalone method of running {apm-server}.
 Only use this guide if both of the following are true:
 
 * You're using {ecloud}.
-* You're using the APM Server binary, i.e. you haven't switched to the Elastic APM integration.
+* You're using the {apm-server} binary, i.e. you haven't switched to the Elastic APM integration.
 
 Follow these steps to upgrade:
 
-. Review the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and {observability} {observability-guide}/whats-new.html[What's new] content.
+// Temporarily remove for status-badge test
+// . Review the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+// and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 . Upgrade {ecloud} to {version},
 See {cloud}/ec-upgrade-deployment.html[Upgrade versions] for instructions.
@@ -198,8 +205,9 @@ Only use this guide if both of the following are true:
 
 Follow these steps to upgrade:
 
-. Review the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>>,
-and {observability} {observability-guide}/whats-new.html[What's new] content.
+// Temporarily remove for status-badge test
+// . Review the APM <<apm-release-notes,release notes>>, <<apm-breaking,breaking changes>>,
+// and {observability} {observability-guide}/whats-new.html[What's new] content.
 
 . Upgrade your {ecloud} instance to {version}.
 See {cloud}/ec-upgrade-deployment.html[Upgrade versions] for details.

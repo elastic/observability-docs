@@ -1,6 +1,9 @@
 [[apm-known-issues]]
 = Known issues
 
+status_badge::[stack, ga]
+status_badge::[serverless, unavailable]
+
 APM has the following known issues:
 ////
 TEMPLATE
@@ -25,18 +28,18 @@ _Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
 == `prefer_ilm` required in component templates to create custom lifecycle policies
 
 _Elastic Stack versions: 8.15.1+_
-    
+
 // The conditions in which this issue occurs
 The issue occurs when creating a _new_ cluster using version 8.15.1+.
 The issue occurs for any APM data streams created in 8.15.1+.
 The issue does _not_ occur if custom component template has been created in or before version 8.15.0.
 
 // Describe why it happens
-In 8.15.0, APM Server began using the https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data[apm-data plugin] 
-to manage data streams, ingest pipelines, lifecycle policies, and more. In 8.15.1, a fix was introduced to address 
-unmanaged indices in older clusters using default ILM policies. This fix added a fallback to the default ILM policy 
-(if it exists) and set the `prefer_ilm` configuration to `false`. This setting impacts clusters where both ILM and 
-data stream lifecycles (DSL) are in effect—such as when configuring custom ILM policies using `@custom` component 
+In 8.15.0, {apm-server} began using the https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data[apm-data plugin]
+to manage data streams, ingest pipelines, lifecycle policies, and more. In 8.15.1, a fix was introduced to address
+unmanaged indices in older clusters using default ILM policies. This fix added a fallback to the default ILM policy
+(if it exists) and set the `prefer_ilm` configuration to `false`. This setting impacts clusters where both ILM and
+data stream lifecycles (DSL) are in effect—such as when configuring custom ILM policies using `@custom` component
 templates, under the conditions mentioned above.
 
 // How to fix it
@@ -48,17 +51,17 @@ to `true` by following the {observability-guide}/apm-ilm-how-to.html[updated gui
 
 _Elastic Stack versions: 8.15.0, 8.15.1, 8.15.2, 8.15.3_ +
 _Fixed in Elastic Stack version 8.15.4_
-    
+
 // The conditions in which this issue occurs
 The issue only occurs when _upgrading_ the {stack} from 8.12.2 or lower directly to any 8.15.x version prior to 8.15.4.
 The issue does _not_ occur when creating a _new_ cluster using any 8.15.x version, or when upgrading
 from 8.12.2 to 8.13.x or 8.14.x and then to 8.15.x.
 
 // Describe why it happens
-In APM Servers versions prior to 8.13.0, an ingestion pipeline exists to perform a check on the version.
-The version check would fail any APM document produced with a different version of APM server compared to the version of the installed APM’s ingest pipeline.
+In {apm-server}s versions prior to 8.13.0, an ingestion pipeline exists to perform a check on the version.
+The version check would fail any APM document produced with a different version of {apm-server} compared to the version of the installed APM’s ingest pipeline.
 In 8.13.0 the version check in the ingest pipeline was removed.
-Due to the combination of an internal change in how apm data management assets are set up from 8.15 onwards and a bug in Elasticsearch, 
+Due to the combination of an internal change in how apm data management assets are set up from 8.15 onwards and a bug in Elasticsearch,
 related to https://github.com/elastic/elasticsearch/issues/112781[lazy rollover of data streams], the ingestion pipeline conducting the version check is not removed on upgrade and prevents the ingestion of data.
 
 // How to fix it
@@ -100,7 +103,7 @@ The issue does _not_ occur when creating a _new_ cluster using 8.15.0.
 The issue also does not occur if a custom ILM policy is configured using a custom component template.
 
 // Describe why it happens
-In 8.15.0, APM Server switched to use data stream lifecycle to manage data retention
+In 8.15.0, {apm-server} switched to use data stream lifecycle to manage data retention
 for APM indices for new deployments as well as for upgraded deployments with default lifecycle
 configurations. Unfortunately, since any data stream created before 8.15.0 does not have a data
 stream lifecycle configuration, such existing data streams become unmanaged for default
@@ -262,24 +265,24 @@ Once the PUT request executes successfully, the rule will no longer be broken.
 
 [discrete]
 [[apm-empty-metricset-values]]
-== Upgrading APM Server to 8.11+ might break event intake from older APM Java agents
+== Upgrading {apm-server} to 8.11+ might break event intake from older APM Java agents
 
-_APM Server versions: >=8.11.0_ +
+_{apm-server} versions: >=8.11.0_ +
 _Elastic APM Java agent versions: < 1.43.0_
 
 // Describe the conditions in which this issue occurs
-If you are using APM Server (> v8.11.0) and the Elastic APM Java agent (< v1.43.0),
+If you are using {apm-server} (> v8.11.0) and the Elastic APM Java agent (< v1.43.0),
 // Describe the behavior of the issue
 the agent may be sending empty histogram metricsets.
 
 // Describe why it happens
-In previous APM Server versions some data validation was not properly applied,
-leading the APM Server to accept empty histogram metricsets where it shouldn't.
-This bug was fixed in the APM Server in 8.11.0.
+In previous {apm-server} versions some data validation was not properly applied,
+leading the {apm-server} to accept empty histogram metricsets where it shouldn't.
+This bug was fixed in the {apm-server} in 8.11.0.
 
 The APM Java agent (< v1.43.0) was sending this kind of invalid data under certain circumstances.
-If you upgrade the APM Server to v8.11.0+ _without_ upgrading the APM Java agent version,
-metricsets can be rejected by the APM Server and can result in additional error logs in the Java agent.
+If you upgrade the {apm-server} to v8.11.0+ _without_ upgrading the APM Java agent version,
+metricsets can be rejected by the {apm-server} and can result in additional error logs in the Java agent.
 
 // Include exact error messages linked to this issue
 // so users searching for the error message end up here.
@@ -292,10 +295,10 @@ Find details in https://github.com/elastic/apm-data/pull/157[elastic/apm-data#15
 [discrete]
 == traces-apm@custom ingest pipeline applied to certain data streams unintentionally
 
-_APM Server versions: 8.12.0_ +
+_{apm-server} versions: 8.12.0_ +
 
 // Describe the conditions in which this issue occurs
-If you're using the Elastic APM Server v8.12.0,
+If you're using the Elastic {apm-server} v8.12.0,
 // Describe the behavior of the issue
 the `traces-apm@custom` ingest pipeline is now additionally applied to data streams `traces-apm.sampled-*`
 and `traces-apm.rum-*`, and applied twice for `traces-apm-*`. This bug impacts users with a non-empty `traces-apm@custom` ingest pipeline.
@@ -314,11 +317,11 @@ A fix was released in 8.12.1: https://github.com/elastic/kibana/pull/175448[elas
 [discrete]
 == Ingesting new JVM metrics in 8.9 and 8.10 breaks upgrade to 8.11 and stops ingestion
 
-_APM Server versions: 8.11.0, 8.11.1_ +
+_{apm-server} versions: 8.11.0, 8.11.1_ +
 _Elastic APM Java agent versions: 1.39.0+_
 
 // Describe the conditions in which this issue occurs
-If you're using the Elastic APM Java agent v1.39.0+ to send new JVM metrics to APM Server v8.9.x and v8.10.x,
+If you're using the Elastic APM Java agent v1.39.0+ to send new JVM metrics to {apm-server} v8.9.x and v8.10.x,
 // Describe the behavior of the issue
 upgrading to 8.11.0 or 8.11.1 will silently fail and stop ingesting APM metrics.
 // Describe why it happens
@@ -328,11 +331,11 @@ upgrading to 8.11.0 or 8.11.1 will silently fail and stop ingesting APM metrics.
 // so users searching for the error message end up here.
 After upgrading, you will see the following errors:
 
-* APM Server error logs:
+* {apm-server} error logs:
 +
 [source,txt]
 ----
-failed to index document in 'metrics-apm.internal-default' (fail_processor_exception): Document produced by APM Server v8.11.1, which is newer than the installed APM integration (v8.10.3-preview-1695284222). The APM integration must be upgraded.
+failed to index document in 'metrics-apm.internal-default' (fail_processor_exception): Document produced by {apm-server} v8.11.1, which is newer than the installed APM integration (v8.10.3-preview-1695284222). The APM integration must be upgraded.
 ----
 
 * Fleet error on integration package upgrade:
@@ -351,7 +354,7 @@ A fix was released in 8.11.2: https://github.com/elastic/kibana/pull/171712[elas
 [discrete]
 == APM integration package upgrade through Fleet causes excessive data stream rollovers
 
-_APM Server versions: \<= 8.12.1 +_
+_{apm-server} versions: \<= 8.12.1 +_
 
 // Describe the conditions in which this issue occurs
 If you're upgrading APM integration package to any versions \<= 8.12.1,
@@ -383,23 +386,23 @@ A fix was released in 8.12.2: https://github.com/elastic/apm-server/pull/12219[e
 [discrete]
 == Performance regression: APM issues too many small bulk requests for Elasticsearch output
 
-_APM Server versions: >=8.13.0, \<= 8.14.2_ +
+_{apm-server} versions: >=8.13.0, \<= 8.14.2_ +
 
 // Describe the conditions in which this issue occurs
-If you're on APM server version >=8.13.0, \<= 8.14.2_, using Elasticsearch output,
+If you're on {apm-server} version >=8.13.0, \<= 8.14.2_, using Elasticsearch output,
 do not specify any `output.elasticsearch.flush_bytes`,
 and do not disable compression explicitly by setting `output.elasticsearch.compression_level` to `0`,
 // Describe the behavior of the issue
-APM server will issue smaller bulk requests of 24KB size,
+{apm-server} will issue smaller bulk requests of 24KB size,
 and more bulk requests will need to be made to maintain the original throughput.
 This causes Elasticsearch to experience higher load,
-and APM server may exhibit Elasticsearch backpressure symptoms.
+and {apm-server} may exhibit Elasticsearch backpressure symptoms.
 
 // Describe why it happens
 This happens because a performance regression was introduced, such that the default value of bulk indexer flush bytes
 was reduced from 1MB to 24KB.
 
-Affected APM servers will emit the following log:
+Affected {apm-server}s will emit the following log:
 
 [source,txt]
 ----
@@ -408,7 +411,7 @@ flush_bytes config value is too small (0) and might be ignored by the indexer, i
 
 To workaround the issue, modify the Elasticsearch output configuration in APM.
 
-* For APM Server binary
+* For {apm-server} binary
 ** In `apm-server.yml`, set `output.elasticsearch.flush_bytes: 1mib`
 * For Fleet-managed APM (non-Elastic Cloud)
 ** In Fleet, open the Settings tab.
