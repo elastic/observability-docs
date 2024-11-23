@@ -26,75 +26,9 @@ image::images/log-copy-es-endpoint.png[Copy a project's Elasticsearch endpoint]
 
 This guide shows you how to send a log file to your Observability project using a standalone {agent} and configure the {agent} and your data streams using the `elastic-agent.yml` file, and query your logs using the data streams you've set up.
 
-The quickest way to get started is to:
-
-. Open your Observability project. If you don't have one, <<observability-create-an-observability-project,create an observability project>>.
-. Go to **Add Data**.
-. Under **Collect and analyze logs**, click **Stream log files**.
-
-This will kick off a set of guided instructions that walk you through configuring the standalone {agent} and sending log data to your project.
+The quickest way to get started is using the **Monitor hosts with {agent}** quickstart. Refer to the <<observability-quickstarts-monitor-hosts-with-elastic-agent,quickstart documentation>> for more information.
 
 To install and configure the {agent} manually, refer to <<manually-install-agent-logs,Manually install and configure the standalone {agent}>>.
-
-[discrete]
-[[observability-stream-log-files-configure-inputs-and-integration]]
-== Configure inputs and integration
-
-Enter a few configuration details in the guided instructions.
-
-// Do we want to include a screenshot or will it be too difficult to maintain?
-
-[role="screenshot"]
-image::images/logs-stream-logs-config.png[Configure inputs and integration in the Stream log files guided instructions]
-
-**Configure inputs**
-
-* **Log file path**: The path to your log files.
-You can also use a pattern like `/var/log/your-logs.log*`.
-Click **Add row** to add more log file paths.
-+
-This will be passed to the `paths` field in the generated `elastic-agent.yml` file in a future step.
-+
-* **Service name**: Provide a service name to allow for distributed services running on
-multiple hosts to correlate the related instances.
-
-// Advanced settings?
-
-**Configure integration**
-
-Elastic creates an integration to streamline connecting your log data to Elastic.
-
-* **Integration name**: Give your integration a name.
-This is a unique identifier for your stream of log data that you can later use to filter data in Logs Explorer.
-The value must be unique within your project, all lowercase, and max 100 chars. Special characters will be replaced with `_`.
-+
-This will be passed to the `streams.id` field in the generated `elastic-agent.yml` file in a future step.
-+
-The integration name will be used in Logs Explorer.
-It will appear in the "All logs" dropdown menu.
-+
-[role="screenshot"]
-image:images/logs-stream-logs-service-name.png[All logs dropdown menu on Logs Explorer page]
-+
-* **Dataset name**: Give your integration's dataset a name.
-The name for your dataset data stream. Name this data stream anything that signifies the source of the data.
-The value must be all lowercase and max 100 chars. Special characters will be replaced with `_`.
-+
-This will be passed to the `data_stream.dataset` field in the generated `elastic-agent.yml` file in a future step.
-
-[discrete]
-[[observability-stream-log-files-install-the-agent]]
-== Install the {agent}
-
-After configuring the inputs and integration, you'll continue in the guided instructions to
-install and configure the standalone {agent}.
-
-Run the command under **Install the {agent}** that corresponds with your system to download, extract, and install the {agent}.
-Turning on **Automatically download the agent's config** includes your updated {agent} configuration file in the download.
-
-If you do not want to automatically download the configuration, click **Download config file** to download it manually and
-add it to `/opt/Elastic/Agent/elastic-agent.yml` on the host where you installed the {agent}.
-The values you provided in <<observability-stream-log-files-configure-inputs-and-integration,Configure inputs and integration>> will be prepopulated in the generated configuration file.
 
 [discrete]
 [[manually-install-agent-logs]]
@@ -244,20 +178,11 @@ image::images/logs-stream-logs-api-key-beats.png[]
 | `streams.id`
 a| A unique identifier for your stream of log data.
 
-If you're following the guided instructions in your project, this will be prepopulated with
-the value you specified in <<observability-stream-log-files-configure-inputs-and-integration,Configure inputs and integration>>.
-
 | `data_stream.dataset`
 a| The name for your dataset data stream. Name this data stream anything that signifies the source of the data. In this configuration, the dataset is set to `example`. The default value is `generic`.
 
-If you're following the guided instructions in your project, this will be prepopulated with
-the value you specified in <<observability-stream-log-files-configure-inputs-and-integration,Configure inputs and integration>>.
-
 | `paths`
 a| The path to your log files. You can also use a pattern like `/var/log/your-logs.log*`.
-
-If you're following the guided instructions in your project, this will be prepopulated with
-the value you specified in <<observability-stream-log-files-configure-inputs-and-integration,Configure inputs and integration>>.
 |===
 
 [discrete]
