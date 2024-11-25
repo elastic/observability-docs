@@ -21,6 +21,7 @@ This document provides an overview of common issues encountered when working wit
 * <<slo-understanding-slos>>
 * <<slo-common-problems>>
 * <<slo-troubleshoot-actions>>
+* <<slo-troubleshoot-beta>>
 
 [discrete]
 [[slo-understanding-slos]]
@@ -41,8 +42,6 @@ An SLO is represented by several system resources:
 ** *Summarizing ingest pipeline*: `slo-observability.summary.pipeline-{slo.id}-{slo.revision}`, used by the summarizing transform.
 
 * *Additional resources*: {kib} also installs and manages shared resources to the SLOs, including index templates, indices, and ingest pipelines, among others.
-
-The rollup documents are stored in an index named `.slo-observability.sli-v3` (index split per month through an ingest pipeline) while summary documents are stored in `.slo-observability.summary-v3`.
 
 Each time an SLO is updated, the associated assets (transforms & ingest pipelines) are updated with a new `{slo.revision}`.
 
@@ -189,6 +188,12 @@ POST kbn:/api/observability/slos/{sloId}∫/_reset
 Where `sloId` can be obtained from the <<slo-troubleshoot-inspect>> action.
 
 [discrete]
+[[slo-api-calls]]
+=== Using API calls to retrieve SLO details
+
+Refer to https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-findslosop[SLO API calls] as an alternative to <<slo-troubleshoot-inspect,using SLO Inspect>>.
+
+[discrete]
 [[slo-troubleshoot-beta]]
 == Upgrade from beta to GA
 
@@ -207,7 +212,7 @@ If you have a large number of SLO definitions, it is possible to automate this p
 To do this, you'll need to use two Elastic APIs:
 
 * https://github.com/elastic/kibana/blob/9cb830fe9a021cda1d091effbe3e0cd300220969/x-pack/plugins/observability/docs/openapi/slo/bundled.yaml#L453-L514[SLO Definitions Find API] (`/api/observability/slos/_definitions`)
-* https://github.com/elastic/kibana/blob/9cb830fe9a021cda1d091effbe3e0cd300220969/x-pack/plugins/observability/docs/openapi/slo/bundled.yaml#L368-L410[SLO Reset API] (`/api/observability/slos/${id}/_reset`)
+* https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-resetsloop[SLO Reset API]
 
 Pass in `includeOutdatedOnly=1` as a query parameter to the Definitions Find API.
 This will display your outdated SLO definitions.
@@ -251,9 +256,3 @@ DELETE _transform/slo-summary-timeslices-weekly-aligned?force=true
 
 Do not delete any new summary transforms used by your migrated SLOs.
 ====
-
-[discrete]
-[[slo-api-calls]]
-== Using API calls to retrieve SLO details
-
-Refer to https://www.elastic.co/docs/api/doc/kibana/v8/operation/operation-findslosop[SLO API calls] as an alternative to <<slo-troubleshoot-inspect,using SLO Inspect>>.
