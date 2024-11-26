@@ -1,6 +1,10 @@
 [[synthetics-command-reference]]
 = Use the Synthetics CLI
 
+status_badge::[cloud_serverless, ga]
+status_badge::[cloud_hosted, ga, 8.8.0]
+status_badge::[cloud_hosted, beta, 8.0.0]
+
 ++++
 <titleabbrev>Use the CLI</titleabbrev>
 ++++
@@ -9,10 +13,10 @@
 [[elastic-synthetics-command]]
 = `@elastic/synthetics`
 
-The {synthetics-app} uses the
+The Synthetics UI uses the
 https://www.npmjs.com/package/@elastic/synthetics[@elastic/synthetics] Node.js
 library to run synthetic browser tests and report the test results.
-The library also provides a CLI to help you scaffold, develop/run tests locally, and push tests to {kib}.
+The library also provides a CLI to help you scaffold, develop/run tests locally, and push tests Elastic.
 
 [source,sh]
 ----
@@ -20,14 +24,14 @@ npx @elastic/synthetics [options] [files] [dir]
 ----
 
 You will not need to use most command line flags -- they have been implemented
-purely to interact with the {synthetics-app}.
+purely to interact with the Synthetics UI.
 However, there are some you may find useful:
 
 `--match <string>`::
-run tests with a name or tags that match the given glob pattern.
+Run tests with a name or tags that match the given glob pattern.
 
 `--tags Array<string>`::
-run tests with the given tags that match the given glob pattern.
+Run tests with the given tags that match the given glob pattern.
 
 `--pattern <string>`::
 RegExp pattern to match journey files in the current working directory. Defaults
@@ -62,10 +66,10 @@ The value defined via the CLI will take precedence.
 Path to the configuration file. By default, test runner looks for a
 `synthetics.config.(js|ts)` file in the current directory. Synthetics
 configuration provides options to configure how your tests are run and pushed to
-{kib}. Allowed options are described in the <<synthetics-config-file,configuration file>>.
+Elastic. Allowed options are described in the <<synthetics-config-file,configuration file>>.
 
 `--reporter <json|junit|buildkite-cli|default>`::
-One of `json`, `junit`, `buildkite-cli`, or `default`. Use the JUnit or Buildkite
+One of `json`, `junit`, `buildkite-cli` status_badge::[synthetics_cli, added, 1.6.0], or `default`. Use the JUnit or Buildkite
 reporter to provide easily parsed output to CI systems.
 
 `--inline`::
@@ -119,7 +123,7 @@ Scaffold a new project using Elastic Synthetics.
 
 This will create a template Node.js project that includes the synthetics agent, required dependencies,
 a synthetics configuration file, and example browser and lightweight monitor files.
-These files can be edited and then pushed to {kib} to create monitors.
+These files can be edited and then pushed to Elastic to create monitors.
 
 [source,sh]
 ----
@@ -132,7 +136,7 @@ Read more about what's included in a template project in <<synthetics-get-starte
 [[elastic-synthetics-push-command]]
 = `@elastic/synthetics push`
 
-Create monitors in {kib} by using your local journeys. By default, running
+Create monitors in Elastic by using your local journeys. By default, running
 `push` command will use the `project` settings field from the `synthetics.config.ts`
 file, which is set up using the `init` command. However, you can override these
 settings using the CLI flags.
@@ -163,18 +167,25 @@ If the journey contains external NPM packages other than the `@elastic/synthetic
 those packages will be bundled along with the journey code when the `push` command is invoked.
 However there are some limitations when using external packages:
 
-* Bundled journeys after compression should not be more than 1500 Kilobytes.
+* Bundled journeys after compression should not be more than:
+** 1500 Kilobytes status_badge::[synthetics_cli, added, 1.7.0]
+** 800 Kilobytes status_badge::[synthetics_cli, deprecated, 1.7.0]
 * Native node modules will not work as expected due to platform inconsistency.
 * Uploading files in journey scripts(via locator.setInputFiles) is not supported.
 ====
 
 `--auth <string>`::
-API key used for {kibana-ref}/api-keys.html[{kib} authentication]. You can also set the API key via the `SYNTHETICS_API_KEY` environment variable.
+API key used for {kibana-ref}/api-keys.html[authentication]. You can also set the API key via the `SYNTHETICS_API_KEY` environment variable.
 +
-If you are pushing to a <<private-locations,{private-location}>>, you must use an API key generated in 8.4 or higher.
+To create an API key, you must be logged into Elastic as a user with the privileges described in either:
 +
-To create an API key, you must be logged into {kib} as a user with the privileges described in
-<<synthetics-role-write>>.
+--
+* *Elastic Cloud Serverless*: <<cloud-serverless-feature-roles,Editor>>
+* *Elastic Cloud Hosted*: <<synthetics-role-write>>
++
+NOTE: If you are pushing to a <<private-locations,{private-location}>>, you must use an API key generated in 8.4 or higher.
+
+--
 
 `--id <string>`::
 A unique id associated with your project.
@@ -187,14 +198,14 @@ This can also be set in the configuration file using
 The value defined via the CLI will take precedence.
 
 `--url <string>`::
-The {kib} URL for the deployment to which you want to upload the monitors.
+The URL for the deployment or serverless project to which you want to upload the monitors.
 +
 This can also be set in the configuration file using
 <<synthetics-configuration-project,`project.url`>>.
 The value defined via the CLI will take precedence.
 
-`--space <string>`::
-The identifier of the target {kibana-ref}/xpack-spaces.html[{kib} space] for the pushed monitors.
+`--space <string>` status_badge::[cloud_serverless, unavailable]::
+The identifier of the target {kibana-ref}/xpack-spaces.html[Kibana space] for the pushed monitors.
 Spaces help you organize pushed monitors.
 Pushes to the "default" space if not specified.
 +
@@ -228,10 +239,10 @@ This can also be set in the configuration file using
 <<synthetics-configuration-monitor,`monitor.privateLocations` in the configuration file>>.
 The value defined via the CLI will take precedence.
 
-`--fields <string>`::
+`--fields <string>` status_badge::[cloud_hosted, added, 8.16.0] status_badge::[synthetics_cli, added, 1.15.0]::
 A list of key-value pairs that will be sent with each monitor event.
 The `fields` are appended to {es} documents as `labels`,
-and those labels are displayed in {kib} in the _Monitor details_ panel in the
+and those labels are displayed in the _Monitor details_ panel in the
 <<synthetics-analyze-individual-monitors-overview,individual monitor's _Overview_ tab>>.
 +
 Example: `--fields '{ "foo": bar", "team": "synthetics" }'`
@@ -253,10 +264,10 @@ project.
 
 [discrete]
 [[tagging-and-filtering]]
-= Tagging and Filtering monitors
+== Tagging and Filtering monitors
 
 Synthetics journeys can be tagged with one or more tags. Use tags to
-filter journeys when running tests locally or pushing them to {kib}.
+filter journeys when running tests locally or pushing them to Elastic.
 
 To add tags to a single journey, add the `tags` parameter to the `journey` function or
 use the `monitor.use` method.
@@ -283,9 +294,9 @@ tags:
 To apply tags to all browser and lightweight monitors, configure using <<synthetics-configuration-monitor,`monitor.tags`>> field in the `synthetics.config.ts` file.
 
 [discrete]
-== Filtering monitors
+=== Filtering monitors
 
-When running the `npx @elastic/synthetics push` command, you can filter the monitors that are pushed to {kib} using the following flags:
+When running the `npx @elastic/synthetics push` command, you can filter the monitors that are pushed to Elastic using the following flags:
 
 `--tags Array<string>`::
 Push monitors with the given tags that match the glob pattern.
@@ -299,9 +310,9 @@ Defaults to `/*.journey.(ts|js)$/`, for browser monitors and `/.(yml|yaml)$/` fo
 lightweight monitors.
 
 You can combine these techniques and push the monitors to different Kibana
-clusters/space based on the tags by using multiple configuration files.
+clusters or spaces or Serverless projects based on the tags by using multiple configuration files.
 
-[source, sh]
+[source,sh]
 ----
 npx @elastic/synthetics push --config synthetics.qa.config.ts --tags env:qa
 npx @elastic/synthetics push --config synthetics.prod.config.ts --tags env:prod
@@ -323,24 +334,27 @@ Run `npx @elastic/synthetics locations` with no flags to list all the available 
 To list both locations on Elastic's global managed infrastructure and {private-locations}, include:
 
 `--url <string>`::
-The {kib} URL for the deployment from which to fetch all available public and {private-location}s.
+The URL for the deployment or Serverless project from which to fetch all available public and {private-location}s.
 
 `--auth <string>`::
-API key used for {kibana-ref}/api-keys.html[{kib} authentication].
+API key used for {kibana-ref}/api-keys.html[authentication].
 
-NOTE: If an administrator has disabled Elastic managed locations for the role you are assigned
+[NOTE]
+====
+If an administrator has disabled Elastic managed locations for the role you are assigned
 and you do _not_ include `--url` and `--auth`, all global locations managed by Elastic will be listed.
 However, you will not be able to push to these locations with your API key and will see an error:
 _You don't have permission to use Elastic managed global locations_. For more details, refer to the
 <<synthetics-troubleshooting-public-locations-disabled,troubleshooting docs>>.
+====
 
 [discrete]
 [[elastic-synthetics-totp-command]]
-= `@elastic/synthetics totp <secret>`
+= `@elastic/synthetics totp <secret>` status_badge::[cloud_hosted, added, 8.16.0] status_badge::[synthetics_cli, added, 1.16.0]
 
 Generate a Time-based One-Time Password (TOTP) for multifactor authentication (MFA) in Synthetics.
 
-[source, sh]
+[source,sh]
 ----
 npx @elastic/synthetics totp <secret>
 npx @elastic/synthetics totp <secret> --issuer <string> --label <string>
