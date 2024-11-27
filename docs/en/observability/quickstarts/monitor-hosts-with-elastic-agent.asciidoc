@@ -1,8 +1,6 @@
 [[quickstart-monitor-hosts-with-elastic-agent]]
 = Quickstart: Monitor hosts with {agent}
 
-preview::[]
-
 In this quickstart guide, you'll learn how to scan your host to detect and collect logs and metrics,
 then navigate to dashboards to further analyze and explore your observability data.
 You'll also learn how to get value out of your observability data.
@@ -15,7 +13,7 @@ The script also generates an {agent} configuration file that you can use with yo
 [discrete]
 == Prerequisites
 
-* A deployment using our hosted {ess} on {ess-trial}[{ecloud}]. The deployment includes an {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data.
+* An {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data. This quickstart is available for all Elastic deployment models. To get started quickly, try out our hosted {ess} on {ess-trial}[{ecloud}].
 * A user with the `superuser` {ref}/built-in-roles.html[built-in role] or the privileges required to onboard data.
 +
 [%collapsible]
@@ -30,8 +28,6 @@ The script also generates an {agent} configuration file that you can use with yo
 [discrete]
 == Limitations
 
-* The auto-detection script currently scans for metrics and logs from Apache, Docker, Nginx, and the host system.
-   It also scans for custom log files.
 * The auto-detection script works on Linux and MacOS only. Support for the `lsof` command is also required if you want to detect custom log files.
 * If you've installed Apache or Nginx in a non-standard location, you'll need to specify log file paths manually when you run the scan.
 * Because Docker Desktop runs in a VM, its logs are not auto-detected.
@@ -39,14 +35,14 @@ The script also generates an {agent} configuration file that you can use with yo
 [discrete]
 == Collect your data
 
-. Go to the **Observability** UI and click **Add Data**.
-. Select **Collect and analyze logs**, and then select **Auto-detect logs and metrics**.
-. Copy the command that's shown. For example:
+. In {kib}, go to the **Observability** UI and click **Add Data**.
+. Under **What do you want to monitor?** select **Host**, and then select **Elastic Agent: Logs & Metrics**.
 +
 [role="screenshot"]
-image::images/quickstart-autodetection-command.png[Quick start showing command for running auto-detection]
+image::images/quickstart-monitor-hosts-entry-point.png[Host monitoring entry point]
+. Copy the install command.
 +
-You'll run this command to download the auto-detection script and scan your system for observability data.
+You'll run this command to download the auto-detection script, scan your system for observability data, and install {agent}.
 . Open a terminal on the host you want to scan, and run the command.
 . Review the list of log files:
     * Enter `Y` to ingest all the log files listed.
@@ -59,6 +55,7 @@ There might be a slight delay before logs and other data are ingested.
 *****
 **Need to scan your host again?**
 
+The auto-detection script (`auto_detect.sh`) is downloaded to the directory where you ran the installation command.
 You can re-run the script on the same host to detect additional logs.
 The script will scan the host and reconfigure {agent} with any additional logs that are found.
 If the script misses any custom logs, you can add them manually by entering `n` after the script has finished scanning the host.
@@ -75,23 +72,27 @@ the page may link to the following integration assets:
 |====
 | Integration asset | Description
 
-| **System**
-| Prebuilt dashboard for monitoring host status and health using system metrics.
-
 | **Apache**
 | Prebuilt dashboard for monitoring Apache HTTP server health using error and access log data.
 
+| **Custom .log files**
+| Logs Explorer for analyzing custom logs.
 
 | **Docker**
 | Prebuilt dashboard for monitoring the status and health of Docker containers.
 
+| **MySQL**
+| Prebuilt dashboard for monitoring MySQl server health using error and access log data.
 
 | **Nginx**
 | Prebuilt dashboard for monitoring Nginx server health using error and access log data.
 
+| **System**
+| Prebuilt dashboard for monitoring host status and health using system metrics.
 
-| **Custom .log files**
-| Logs Explorer for analyzing custom logs.
+| **Other prebuilt dashboards**
+| Prebuilt dashboards are also available for systems and services not described here,
+including PostgreSQL, Redis, HAProxy, Kafka, RabbitMQ, Prometheus, Apache Tomcat, and MongoDB.
 |====
 
 For example, you can navigate the **Host overview** dashboard to explore detailed metrics about system usage and throughput.
