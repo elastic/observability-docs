@@ -1,8 +1,8 @@
-[[synthetics-mfa]]
+[[observability-synthetics-mfa]]
 = Multi-factor Authentication (MFA) for browser monitors
 
 ++++
-<titleabbrev>Multi-factor Authentication</titleabbrev>
+<titleabbrev>Multifactor Authentication for browser monitors</titleabbrev>
 ++++
 
 Multi-factor Authentication (MFA) adds an essential layer of security to
@@ -15,46 +15,50 @@ Synthetics supports testing websites secured by Time-based One-Time Password
 enhance security.
 
 [discrete]
+[[observability-synthetics-mfa-configuring-totp-for-mfa]]
 == Configuring TOTP for MFA
 
 To test a browser journey that uses TOTP for MFA, first configure the
 Synthetics authenticator token in the target application. To do this, generate a One-Time
-Password (OTP) using the Synthetics CLI; refer to <<elastic-synthetics-totp-command>>.
+Password (OTP) using the Synthetics CLI; refer to <<observability-synthetics-command-reference,`@elastic/synthetics totp <secret>`>>.
 
-```sh
+[source,sh]
+----
 npx @elastic/synthetics totp <secret>
 
 // prints
 OTP Token: 123456
-```
+----
 
 [discrete]
+[[observability-synthetics-mfa-applying-the-totp-token-in-browser-journeys]]
 == Applying the TOTP Token in Browser Journeys
 
-Once the Synthetics TOTP Authentication is configured in your application, you
-can now use the OTP token in the synthetics browser journeys using the `mfa`
-object imported from `@elastic/synthetics`.
+Once the Synthetics TOTP Authentication is configured in your application, you can now use the OTP token in the synthetics browser
+journeys using the `mfa` object imported from `@elastic/synthetics`.
 
-```ts
-import { journey, step, mfa} from '@elastic/synthetics';
+[source,ts]
+----
+import { journey, step, mfa } from "@elastic/synthetics";
 
-journey('MFA Test', ({ page, params }) => {
-  step('Login using TOTP token', async () => {
+journey("MFA Test", ({ page, params }) => {
+  step("Login using TOTP token", async () => {
     // login using username and pass and go to 2FA in next page
     const token = mfa.totp(params.MFA_SECRET);
-    await page.getByPlaceholder("token-input").fill(token)
+    await page.getByPlaceholder("token-input").fill(token);
   });
 });
-```
+----
 
 For monitors created in the Synthetics UI using the Script editor, the `mfa` object can be accessed as shown below:
 
-```ts
-step('Login using 2FA', async () => {
+[source,ts]
+----
+step("Login using 2FA", async () => {
   const token = mfa.totp(params.MFA_SECRET);
-  await page.getByPlaceholder("token-input").fill(token)
+  await page.getByPlaceholder("token-input").fill(token);
 });
-```
+----
 
 [NOTE]
 ====
