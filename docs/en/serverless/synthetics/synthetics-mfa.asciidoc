@@ -44,7 +44,7 @@ import { journey, step, mfa } from "@elastic/synthetics";
 journey("MFA Test", ({ page, params }) => {
   step("Login using TOTP token", async () => {
     // login using username and pass and go to 2FA in next page
-    const token = mfa.token(params.MFA_GH_SECRET);
+    const token = mfa.totp(params.MFA_SECRET);
     await page.getByPlaceholder("token-input").fill(token);
   });
 });
@@ -55,12 +55,12 @@ For monitors created in the Synthetics UI using the Script editor, the `mfa` obj
 [source,ts]
 ----
 step("Login using 2FA", async () => {
-  const token = mfa.token(params.MFA_GH_SECRET);
+  const token = mfa.totp(params.MFA_SECRET);
   await page.getByPlaceholder("token-input").fill(token);
 });
 ----
 
 [NOTE]
 ====
-`params.MFA_GH_SECRET` would be the encoded secret that was used for registering the Synthetics Authentication in your web application.
+`params.MFA_SECRET` would be the encoded secret that was used for registering the Synthetics Authentication in your web application.
 ====
