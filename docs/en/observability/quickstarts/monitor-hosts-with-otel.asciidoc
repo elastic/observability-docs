@@ -1,0 +1,64 @@
+[[quickstart-monitor-hosts-with-otel]]
+= Quickstart: Monitor hosts with OpenTelemetry
+
+preview::[]
+
+In this quickstart guide, you'll learn how to collect logs and metrics using the Elastic Distribution of OpenTelemetry (EDOT) Collector.
+You'll also learn how to get value out of your observability data after collecting it.
+
+[discrete]
+== Prerequisites
+
+* A deployment using our hosted {ess} on {ess-trial}[{ecloud}]. The deployment includes an {es} cluster for storing and searching your data, and {kib} for visualizing and managing your data.
+* A user with the **Admin** role or higher—required to onboard system logs and metrics. To learn more, refer to {cloud}/ec-user-privileges.html[User roles and privileges].
+* Root privileges on the host are required to run the OpenTelemetry collector.
+* The quickstart only provides out-of-the-box deployment and configurations for Kubernetes, Linux, and MacOS systems.
+
+[discrete]
+== Limitations
+Refer to https://github.com/elastic/opentelemetry/blob/main/docs/collector-limitations.md[Elastic OpenTelemetry Collector limitations] for known limitations when using the EDOT Collector.
+
+[discrete]
+== Collect your data
+
+Follow these steps to collect logs and metrics using the EDOT Collector:
+
+. Open an [Elastic Cloud](https://cloud.elastic.co) deployment.
+. To open the quickstart, either open Kibana, and go to **Observability** → **Add Data**.
+. Select **Collect and analyze logs**, and then select **OpenTelemetry**.
+. Select the appropriate platform, and complete the following:
+   . For **MacOS and Linux**, copy the command, open a terminal on your host, and run the command to download and configure the OpenTelemetry collector.
+   . For **Kubernetes**, download the manifest.
+. Copy the command under Step 2:
+   . For **MacOS and Linux**, run the command in your terminal to start the EDOT Collector.
+   . For **Kubernetes**, run the command from the directory where you downloaded the manifest to install the EDOT Collector on every node of your cluster.
+
+Logs are collected from setup onward, so you won't see logs that occurred before starting the EDOT Collector.
+The default log path is `/var/log/*`. To update the path, modify `otel.yml`.
+
+Under **Visualize your data**, you'll see links to **Logs Explorer** to view your logs and **Hosts** to view your host metrics.
+
+[discrete]
+== Get value out of your data
+
+After using the Hosts page and Logs Explorer to confirm you've ingested all the host logs and metrics you want to monitor,
+you can use Elastic {observability} to gain deeper insight into your data.
+
+For host monitoring, the following capabilities and features are recommended:
+
+* In the <<analyze-metrics,Infrastructure UI>>, analyze and compare data collected from your hosts.
+You can also:
+** <<inspect-metric-anomalies,Detect anomalies>> for memory usage and network traffic on hosts.
+** <<create-alerts,Create alerts>> that notify you when an anomaly is detected or a metric exceeds a given value.
+* In the <<explore-logs,Logs Explorer>>, search and filter your log data,
+get information about the structure of log fields, and display your findings in a visualization.
+You can also:
+** <<monitor-datasets,Monitor log data set quality>> to find degraded documents.
+** {kibana-ref}/xpack-ml-aiops.html#log-pattern-analysis[Run a pattern analysis] to find patterns in unstructured log messages.
+** <<create-alerts,Create alerts>> that notify you when an Observability data type reaches or exceeds a given value.
+* Use {kibana-ref}/xpack-ml.html[machine learning] to apply predictive analytics to your data:
+** {kibana-ref}/xpack-ml-anomalies.html[Detect anomalies] by comparing real-time and historical data from different sources to look for unusual, problematic patterns.
+** {kibana-ref}/xpack-ml-aiops.html#log-rate-analysis[Analyze log spikes and drops].
+** {kibana-ref}/xpack-ml-aiops.html#change-point-detection[Detect change points] in your time series data.
+
+Refer to the <<observability-introduction>> for a description of other useful features.
