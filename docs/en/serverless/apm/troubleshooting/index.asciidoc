@@ -1,0 +1,81 @@
+[[observability-apm-troubleshooting]]
+= Troubleshooting
+
+// :keywords: serverless, observability, reference
+
+This section provides solutions to common questions and problems.
+
+[discrete]
+[[observability-apm-troubleshooting-common-problems]]
+== Common problems
+
+[discrete]
+[[field-limit-exceeded-legacy]]
+=== Field limit exceeded
+
+When adding too many distinct tag keys on a transaction or span,
+you risk creating a {ref}/mapping.html#mapping-limit-settings[mapping explosion].
+
+For example, you should avoid that user-specified data,
+like URL parameters, is used as a tag key.
+Likewise, using the current timestamp or a user ID as a tag key is not a good idea.
+However, tag **values** with a high cardinality are not a problem.
+Just try to keep the number of distinct tag keys at a minimum.
+
+The symptom of a mapping explosion is that transactions and spans are not indexed anymore after a certain time. Usually, on the next day,
+the spans and transactions will be indexed again because a new index is created each day.
+But as soon as the field limit is reached, indexing stops again.
+
+[discrete]
+[[observability-apm-troubleshooting-common-response-codes]]
+== Common response codes
+
+[discrete]
+[[bad-request]]
+=== HTTP 400: Data decoding error / Data validation error
+
+The most likely cause for this error is using an incompatible version of an {apm-agent}.
+See <<observability-apm-agents-elastic-apm-agents-minimum-supported-versions,minimum supported APM agent versions>> to verify compatibility.
+
+[discrete]
+[[event-too-large]]
+=== HTTP 400: Event too large
+
+APM agents communicate with the Managed intake service by sending events in an HTTP request. Each event is sent as its own line in the HTTP request body. If events are too large, you can reduce the size of the events that your APM agents send by: <<observability-apm-compress-spans,enabling span compression>> or <<observability-apm-reduce-stacktrace,reducing collected stack trace information>>.
+
+[discrete]
+[[unauthorized]]
+=== HTTP 401: Invalid token
+
+The API key is invalid.
+
+[discrete]
+[[observability-apm-troubleshooting-related-troubleshooting-resources]]
+== Related troubleshooting resources
+
+For additional help with other APM components, see the links below.
+{agent} and each {apm-agent} has its own troubleshooting guide:
+
+* {fleet-guide}/troubleshooting-intro.html[{fleet} and {agent} troubleshooting]
+* {apm-dotnet-ref}/troubleshooting.html[.NET agent troubleshooting]
+* {apm-go-ref}/troubleshooting.html[Go agent troubleshooting]
+* {apm-java-ref}/trouble-shooting.html[Java agent troubleshooting]
+* {apm-node-ref}/troubleshooting.html[Node.js agent troubleshooting]
+* {apm-php-ref}/troubleshooting.html[PHP agent troubleshooting]
+* {apm-py-ref}/troubleshooting.html[Python agent troubleshooting]
+* {apm-ruby-ref}/debugging.html[Ruby agent troubleshooting]
+
+[discrete]
+[[observability-apm-troubleshooting-elastic-support]]
+== Elastic Support
+
+We offer a support experience unlike any other.
+Our team of professionals 'speak human and code' and love making your day.
+https://www.elastic.co/subscriptions[Learn more about subscriptions].
+
+////
+/* ### Discussion forum
+
+For additional questions and feature requests,
+visit our [discussion forum](https://discuss.elastic.co/c/apm). */
+////
