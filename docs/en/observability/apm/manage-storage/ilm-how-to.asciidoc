@@ -18,18 +18,15 @@ A default policy is applied to each APM data stream, but can be customized depen
 [NOTE]
 ====
 // Explain what changed
-// Before
-Before 8.15, clusters used {ref}/index-lifecycle-management.html[index lifecycle management (ILM)] to provide the default data retention settings for APM data.
-// After
-As of 8.15, new clusters use {ref}/data-stream-lifecycle.html[data stream lifecycle (DSL)] to provide default data retention settings, but the customization for lifecycle is still performed using ILM policies, which are now configured to override the default DSL polices.
+Clusters are managed by {ref}/index-lifecycle-management.html[index lifecycle management (ILM)] to provide the default data retention settings for APM data. as well as allow customization for lifecycle.
+
+New clusters created in 8.15 and 8.16 will use {ref}/data-stream-lifecycle.html[data stream lifecycle (DSL)] to provide default data retention settings, but the customization for lifecycle is still performed using ILM policies, which are configured to override the default DSL polices. When these clusters are upgraded to 8.17 the default will revert back to ILM, however, the indices created will continue to use DSL. The changes only affect default lifecycle policies, so, if you have custom ILM policies configured then there are expected to be no changes and the custom ILM policy will continue to be used.
 
 // What this means for existing clusters that are upgraded
-For _existing_ clusters upgrading to 8.15, the default ILM policies should still work as expected.
-You can can continue using ILM or switch the default to DSL explicitly using the {ref}/data-stream-apis.html[data stream API].
+On upgrade to 8.17, _all_ APM indicies will be managed by ILM. This includes the clusters upgrading from 8.15 and 8.16, however, the indicies created during 8.15 and 8.16 will continue to use DSL. If you have custom ILM policies configured, then, there are expected to be NO changes and the custom ILM policies will continue to manage the APM indicies.
 
 // What this means for new clusters that are created
-For _new_ clusters created in 8.15 or later, if you prefer to continue using ILM,
-follow the steps in this guide to create a custom ILM policy and add it to the `*@custom` component template for each data stream.
+To customize ILM policies follow the steps in this guide to create a custom ILM policy and add it to the `*@custom` component template for each data stream.
 ====
 
 Each APM data stream has its own default lifecycle policy including a delete definition and a rollover definition.
@@ -119,14 +116,6 @@ The delete phase permanently removes the index after a time threshold is met.
 
 Rollover (writing to a new index) prevents a single index from growing too large and optimizes indexing and search performance.
 Rollover occurs after either an age or size metric is met.
-The default rollover definition for each APM data stream is applied based on {ref}/data-stream-lifecycle-settings.html#cluster-lifecycle-default-rollover[`cluster.lifecycle.default.rollover`].
-
-The APM data stream lifecycle policies can be viewed in {kib}:
-
-. To open **Index Management**, find **Stack Management** in the main menu or use the {kibana-ref}/introduction.html#kibana-navigation-search[global search field].
-. Select **Component Templates**.
-. Search for `apm`.
-. Look for templates with `@lifecycle` suffix.
 
 TIP: Default lifecycle policies can change between minor versions. This is not considered a breaking change as index management should continually improve and adapt to new features.
 
