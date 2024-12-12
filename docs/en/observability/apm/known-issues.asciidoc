@@ -22,6 +22,73 @@ _Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
 ////
 
 [discrete]
+== `prefer_ilm` required in component templates to create custom lifecycle policies
+
+_Elastic Stack versions: 8.15.1+_
+    
+// The conditions in which this issue occurs
+The issue occurs when creating a _new_ cluster using version 8.15.1+.
+The issue occurs for any APM data streams created in 8.15.1+.
+The issue does _not_ occur if custom component template has been created in or before version 8.15.0.
+
+// Describe why it happens
+In 8.15.0, APM Server began using the https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data[apm-data plugin] 
+to manage data streams, ingest pipelines, lifecycle policies, and more. In 8.15.1, a fix was introduced to address 
+unmanaged indices in older clusters using default ILM policies. This fix added a fallback to the default ILM policy 
+(if it exists) and set the `prefer_ilm` configuration to `false`. This setting impacts clusters where both ILM and 
+data stream lifecycles (DSL) are in effect—such as when configuring custom ILM policies using `@custom` component 
+templates, under the conditions mentioned above.
+
+// How to fix it
+To override ILM policies for these new clusters using component template, set the `prefer_ilm` configuration
+to `true` by following the {observability-guide}/apm-ilm-how-to.html[updated guide to customize ILM].
+
+[discrete]
+== Upgrading to v8.15.x may cause ingestion to fail
+
+_Elastic Stack versions: 8.15.0, 8.15.1, 8.15.2, 8.15.3_ +
+_Fixed in Elastic Stack version 8.15.4_
+    
+// The conditions in which this issue occurs
+The issue only occurs when _upgrading_ the {stack} from 8.12.2 or lower directly to any 8.15.x version prior to 8.15.4.
+The issue does _not_ occur when creating a _new_ cluster using any 8.15.x version, or when upgrading
+from 8.12.2 to 8.13.x or 8.14.x and then to 8.15.x.
+
+// Describe why it happens
+In APM Servers versions prior to 8.13.0, an ingestion pipeline exists to perform a check on the version.
+The version check would fail any APM document produced with a different version of APM server compared to the version of the installed APM’s ingest pipeline.
+In 8.13.0 the version check in the ingest pipeline was removed.
+Due to the combination of an internal change in how apm data management assets are set up from 8.15 onwards and a bug in Elasticsearch, 
+related to https://github.com/elastic/elasticsearch/issues/112781[lazy rollover of data streams], the ingestion pipeline conducting the version check is not removed on upgrade and prevents the ingestion of data.
+
+// How to fix it
+If the deployment is running 8.15.0, upgrade the deployment to 8.15.1 or above.
+A manual rollover of all APM data streams is required to pick up the new index templates and remove the faulty ingest pipeline version check.
+Perform the following requests to Elasticsearch (they are assuming the `default` namespace is used, adjust if necessary):
+
+[source,txt]
+----
+POST /traces-apm-default/_rollover
+POST /traces-apm.rum-default/_rollover
+POST /logs-apm.error-default/_rollover
+POST /logs-apm.app-default/_rollover
+POST /metrics-apm.app-default/_rollover
+POST /metrics-apm.internal-default/_rollover
+POST /metrics-apm.service_destination.1m-default/_rollover
+POST /metrics-apm.service_destination.10m-default/_rollover
+POST /metrics-apm.service_destination.60m-default/_rollover
+POST /metrics-apm.service_summary.1m-default/_rollover
+POST /metrics-apm.service_summary.10m-default/_rollover
+POST /metrics-apm.service_summary.60m-default/_rollover
+POST /metrics-apm.service_transaction.1m-default/_rollover
+POST /metrics-apm.service_transaction.10m-default/_rollover
+POST /metrics-apm.service_transaction.60m-default/_rollover
+POST /metrics-apm.transaction.1m-default/_rollover
+POST /metrics-apm.transaction.10m-default/_rollover
+POST /metrics-apm.transaction.60m-default/_rollover
+----
+
+[discrete]
 == Upgrading to v8.15.0 may cause APM indices to lose their lifecycle policy
 
 _Elastic Stack versions: 8.15.0_ +
@@ -40,62 +107,25 @@ stream lifecycle configuration, such existing data streams become unmanaged for 
 lifecycle configurations.
 
 // How to fix it
-Upgrading to 8.15.1 should fix any new indices created for the data stream. However,
-indices created in version 8.15.0 would remain unmanaged if the default ILM policy is
-used. One of the following approaches can be adopted to fix the unmanaged indices:
+Upgrading to 8.15.1 resolves the lifecycle issue for any new indices created for APM data streams.
+However, indices created in version 8.15.0 will remain unmanaged if the default ILM policy is in place.
+To fix these unmanaged indices, consider one of the following approaches:
 
-. Manually delete the indices when they are no longer needed.
-. Explicitly configure APM data streams with the default data stream lifecycle config.
-Using this approach would migrate all data streams to use data stream lifecycles,
-which should be equivalent to the default ILM policies:
+. Manually delete the unmanaged indices when they are no longer needed.
+. Explicitly configure APM data streams to use the default data stream lifecycle configuration.
+This approach migrates all affected data streams to use data stream lifecycles,
+maintaining behavior equivalent to the default ILM policies.
+Apply this fix only to data streams that have unmanaged indices due to missing default ILM policies.
 +
 [source,txt]
 ----
-PUT _data_stream/traces-apm-*/_lifecycle
+PUT _data_stream/{{data_stream_name}}-{{data_stream_namespace}}/_lifecycle
 {
-  "data_retention": "10d"
-}
-
-PUT _data_stream/traces-apm.rum*/_lifecycle
-{
-  "data_retention": "90d"
-}
-
-PUT _data_stream/traces-apm.sampled*/_lifecycle
-{
-  "data_retention": "1h"
-}
-
-PUT _data_stream/metrics-apm.*.1m-*/_lifecycle
-{
-  "data_retention": "90d"
-}
-
-PUT _data_stream/metrics-apm.*.10m-*/_lifecycle
-{
-  "data_retention": "180d"
-}
-
-PUT _data_stream/metrics-apm.*.60m-*/_lifecycle
-{
-  "data_retention": "390d"
-}
-
-PUT _data_stream/metrics-apm.internal-*/_lifecycle
-{
-  "data_retention": "90d"
-}
-
-PUT _data_stream/metrics-apm.app.*/_lifecycle
-{
-  "data_retention": "90d"
-}
-
-PUT _data_stream/logs-apm.*/_lifecycle
-{
-  "data_retention": "10d"
+  "data_retention": <data_retention_period>
 }
 ----
+
+Default `<data_retention_period>` for each data stream is available in {observability-guide}/apm-ilm-how-to.html[this guide].
 
 // Link to fix if it exists
 This issue is fixed in 8.15.1 (https://github.com/elastic/elasticsearch/pull/112432[elastic/elasticsearch#112432]).

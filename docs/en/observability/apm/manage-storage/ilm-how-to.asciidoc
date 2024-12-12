@@ -11,26 +11,20 @@
 Lifecycle policies allow you to automate the lifecycle of your APM indices as they grow and age.
 A default policy is applied to each APM data stream, but can be customized depending on your business needs.
 
-[discrete]
-[id="index-lifecycle-policies-default{append-legacy}"]
-== Default policies
+In the latest version of Elastic APM, clusters are managed by
+{ref}/index-lifecycle-management.html[index lifecycle management (ILM)]
+to provide the default data retention settings for APM data as well as allow
+customization for lifecycle.
 
 [NOTE]
 ====
-// Explain what changed
-// Before
-Before 8.15, clusters used {ref}/index-lifecycle-management.html[index lifecycle management (ILM)] to provide the default data retention settings for APM data.
-// After
-As of 8.15, new clusters use {ref}/data-stream-lifecycle.html[data stream lifecycle (DSL)] to provide default data retention settings, but the customization for lifecycle is still performed using ILM policies, which are now configured to override the default DSL polices.
-
-// What this means for existing clusters that are upgraded
-For _existing_ clusters upgrading to 8.15, the default ILM policies should still work as expected.
-You can can continue using ILM or switch the default to DSL explicitly using the {ref}/data-stream-apis.html[data stream API].
-
-// What this means for new clusters that are created
-For _new_ clusters created in 8.15 or later, if you prefer to continue using ILM,
-follow the steps in this guide to create a custom ILM policy and add it to the `*@custom` component template for each data stream.
+Some older indices might be managed by {ref}/data-stream-lifecycle.html[data stream lifecycle (DSL)] if a cluster is upgraded to 8.17.
+More details are available in <<apm-release-notes-8.17>>.
 ====
+
+[discrete]
+[id="index-lifecycle-policies-default{append-legacy}"]
+== Default policies
 
 Each APM data stream has its own default lifecycle policy including a delete definition and a rollover definition.
 
@@ -119,13 +113,6 @@ The delete phase permanently removes the index after a time threshold is met.
 
 Rollover (writing to a new index) prevents a single index from growing too large and optimizes indexing and search performance.
 Rollover occurs after either an age or size metric is met.
-The default rollover definition for each APM data stream is applied based on {ref}/data-stream-lifecycle-settings.html#cluster-lifecycle-default-rollover[`cluster.lifecycle.default.rollover`].
-
-The APM data stream lifecycle policies can be viewed in {kib}:
-
-. Navigate to *{stack-manage-app}* → *Index Management* → *Component Templates*.
-. Search for `apm`.
-. Look for templates with `@lifecycle` suffix.
 
 TIP: Default lifecycle policies can change between minor versions. This is not considered a breaking change as index management should continually improve and adapt to new features.
 
@@ -146,7 +133,8 @@ This tutorial explains how to apply a custom index lifecycle policy to the `trac
 The **Data Streams** view in {kib} shows you data streams,
 index templates, and lifecycle policies:
 
-. Navigate to **{stack-manage-app}** → **Index Management** → **Data Streams**.
+. To open **Index Management**, find **Stack Management** in the main menu or use the {kibana-ref}/introduction.html#kibana-navigation-search[global search field].
+. Select **Data Streams**.
 . Search for `traces-apm` to see all data streams associated with APM trace data.
 . In this example, I only have one data stream because I'm only using the `default` namespace.
 You may have more if your setup includes multiple namespaces.
@@ -158,7 +146,7 @@ image::images/data-stream-overview.png[Data streams info]
 [id="apm-data-streams-custom-two{append-legacy}"]
 == Step 2: Create an index lifecycle policy
 
-. Navigate to **{stack-manage-app}** → **Index Lifecycle Policies**.
+. To open **Lifecycle Policies**, find **Stack Management** in the main menu or use the {kibana-ref}/introduction.html#kibana-navigation-search[global search field].
 . Click **Create policy**.
 
 Name your new policy; For this tutorial, I've chosen `custom-traces-apm-policy`.

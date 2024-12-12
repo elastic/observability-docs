@@ -1,0 +1,279 @@
+|===
+| Option (type) | Description
+
+| [[monitor-type]]**`type`** (`"http"`, `"icmp"`, or `"tcp"`)
+a| **Required**. The type of monitor to run. One of:
+
+* `http`: Connects via HTTP and optionally verifies that the host returns the expected response.
+* `icmp`: Uses an ICMP (v4 and v6) Echo Request to ping the configured hosts. Requires special permissions or root access.
+* `tcp`: Connects via TCP and optionally verifies the endpoint by sending and/or receiving a custom payload.
+
+| [[monitor-id]]**`id`**
+(<<synthetics-lightweight-data-string,string>>)
+a| **Required**. A unique identifier for this configuration. This should not change with edits to the monitor configuration regardless of changes to any config fields.
+
+**Examples**:
+
+[source,yaml]
+----
+id: uploader-service
+----
+
+[source,yaml]
+----
+id: http://example.net
+----
+
+[NOTE]
+====
+When querying against indexed monitor data this is the field you will be aggregating with. It appears in the exported fields as `monitor.id`.
+
+If you do not set an `id` explicitly, the monitor's config will be hashed and a generated value will be used. This value will change with any options change to this monitor making aggregations over time between changes impossible. For this reason, it's recommended that you set this manually.
+====
+
+| [[common-monitor-name]]**`name`**
+(<<synthetics-lightweight-data-string,string>>)
+a| Human readable name for this monitor.
+
+**Examples**:
+
+[source,yaml]
+----
+name: Uploader service
+----
+
+[source,yaml]
+----
+name: Example website
+----
+
+| [[monitor-service_name]]**`service.name`**
+(<<synthetics-lightweight-data-string,string>>)
+| APM service name for this monitor. Corresponds to the `service.name` ECS field. Set this when monitoring an app that is also using APM to enable integrations between Synthetics and APM data in your Observability project.
+
+| [[monitor-enabled]]**`enabled`**
+(<<synthetics-lightweight-data-bool,boolean>>)
+a| Whether the monitor is enabled.
+
+**Default**: `true`
+
+**Example**:
+
+[source,yaml]
+----
+enabled: false
+----
+
+| [[monitor-schedule]]**`schedule`**
+(<<synthetics-lightweight-data-duration,duration>>)
+a| **Required**. The task schedule.
+
+[NOTE]
+====
+Schedules with less than 1 minute resolution will be saved to the nearest minute. For example, `@every 5s` will be changed to `@every 60s` when the monitor is pushed using the CLI.
+====
+
+**Example**:
+Run the task every 5 minutes from the time the monitor was started.
+
+[source,yaml]
+----
+schedule: @every 5m
+----
+
+| [[monitor-timeout]]**`timeout`**
+(<<synthetics-lightweight-data-duration,duration>>)
+a| The total running time for each ping test. This is the total time allowed for testing the connection and exchanging data.
+
+**Default**: `16s`
+
+**Example**:
+
+[source,yaml]
+----
+timeout: 2m
+----
+
+| [[common-monitor-tags]]**`tags`**
+(list of <<synthetics-lightweight-data-string,string>>s)
+a| A list of tags that will be sent with the monitor event.
+
+**Examples**:
+
+[source,yaml]
+----
+tags:
+  - tag one
+  - tag two
+----
+
+[source,yaml]
+----
+tags: ["tag one", "tag two"]
+----
+
+| [[monitor-mode]]**`mode`**
+(`"any"` or `"all"`)
+a| One of two modes in which to run the monitor:
+
+* `any`: The monitor pings only one IP address for a hostname.
+* `all`: The monitor pings all resolvable IPs for a hostname.
+
+**Default**: `any`
+
+**Example**:
+If you're using a DNS-load balancer and want to ping every IP address for the specified hostname, you should use `all`.
+
+| [[monitor-ipv4]]**`ipv4`**
+(<<synthetics-lightweight-data-bool,boolean>>)
+a| Whether to ping using the ipv4 protocol if hostnames are configured.
+
+**Default**: `true`
+
+**Example**:
+
+[source,yaml]
+----
+ipv4: false
+----
+
+| [[monitor-ipv6]]**`ipv6`**
+(<<synthetics-lightweight-data-bool,boolean>>)
+a| Whether to ping using the ipv6 protocol if hostnames are configured.
+
+**Default**: `true`
+
+**Example**:
+
+[source,yaml]
+----
+ipv6: false
+----
+
+| [[monitor-alert]]**`alert`**
+a| Enable or disable alerts on this monitor. Read more about alerts in <<synthetics-settings-alerting,Alerting>>.
+
+**`status.enabled`** (<<synthetics-lightweight-data-bool,boolean>>)::
+Enable monitor status alerts on this monitor.
++
+**Default**: `true`
++
+**Example**:
++
+[source,yaml]
+----
+alert.status.enabled: true
+----
+
+**`tls.enabled`** (<<synthetics-lightweight-data-bool,boolean>>)::
+Enable TLS certificate alerts on this monitor.
++
+**Default**: `true`
++
+**Example**:
++
+[source,yaml]
+----
+alert.tls.enabled: true
+----
+
+| [[monitor-retest_on_failure]]**`retest_on_failure`**
+(<<synthetics-lightweight-data-bool,boolean>>)
+a| Enable or disable retesting when a monitor fails. Default is `true`.
+
+By default, monitors are automatically retested if the monitor goes from "up" to "down". If the result of the retest is also "down", an error will be created, and if configured, an alert sent. Then the monitor will resume running according to the defined schedule. Using `retestOnFailure` can reduce noise related to transient problems.
+
+**Example**:
+
+[source,yaml]
+----
+retest_on_failure: false
+----
+
+| [[monitor-locations]]**`locations`**
+(list of https://github.com/elastic/synthetics/blob/{synthetics_version}/src/locations/public-locations.ts#L28-L37[`SyntheticsLocationsType`])
+a| Where to deploy the monitor. You can deploy monitors in multiple locations to detect differences in availability and response times across those locations.
+
+To list available locations you can:
+
+* Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>>.
+* Go to **Synthetics** → **Management** and click **Create monitor**. Locations will be listed in _Locations_.
+
+**Examples**:
+
+[source,yaml]
+----
+locations: ["japan", "india"]
+----
+
+[source,yaml]
+----
+locations:
+  - japan
+  - india
+----
+
+[NOTE]
+====
+This can also be set using
+<<synthetics-configuration-monitor,`monitor.locations` in the Synthetics project configuration file>>
+or via the CLI using the <<elastic-synthetics-push-command,`--location` flag on `push`>>.
+
+The value defined via the CLI takes precedence over the value defined in the lightweight monitor configuration,
+and the value defined in the lightweight monitor configuration takes precedence over the value defined in Synthetics project configuration file.
+====
+
+| [[monitor-private_locations]]**`private_locations`**
+(list of <<synthetics-lightweight-data-string,string>>s)
+a| The <<observability-synthetics-private-location,{private-location}s>> to which the monitors will be deployed. These {private-location}s refer to locations hosted and managed by you, whereas  `locations` are hosted by Elastic. You can specify a {private-location} using the location's name.
+
+To list available {private-location}s you can:
+
+* Run the <<elastic-synthetics-locations-command,`elastic-synthetics locations` command>> and specify the URL of the Observability project. This will fetch all available private locations associated with the deployment.
+* Go to **Synthetics** → **Management** and click **Create monitor**. {private-location}s will be listed in _Locations_.
+
+**Examples**:
+
+[source,yaml]
+----
+private_locations: ["Private Location 1", "Private Location 2"]
+----
+
+[source,yaml]
+----
+private_locations:
+  - Private Location 1
+  - Private Location 2
+----
+
+[NOTE]
+====
+This can also be set using
+<<synthetics-configuration-monitor,`monitor.privateLocations` in the Synthetics project configuration file>>
+or via the CLI using the <<elastic-synthetics-push-command,`--privateLocations` flag on `push`>>.
+
+The value defined via the CLI takes precedence over the value defined in the lightweight monitor configuration,
+and the value defined in the lightweight monitor configuration takes precedence over the value defined in Synthetics project configuration file.
+====
+
+| [[monitor-fields]]**`fields`**
+a| A list of key-value pairs that will be sent with each monitor event.
+The `fields` are appended to {es} documents as `labels`,
+and those labels are displayed in {kib} in the _Monitor details_ panel in the
+<<synthetics-analyze-individual-monitors-overview,individual monitor's _Overview_ tab>>.
+
+**Examples**:
+
+[source,yaml]
+----
+fields:
+  foo: bar
+  team: synthetics
+----
+
+[source,yaml]
+----
+fields.foo: bar
+fields.team: synthetics
+----
+|===

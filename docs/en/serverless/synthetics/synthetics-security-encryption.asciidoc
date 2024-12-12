@@ -1,0 +1,27 @@
+[[observability-synthetics-security-encryption]]
+= Synthetics Encryption and Security
+
+Elastic Synthetics was designed with security in mind encrypting both persisted and transmitted data.
+This page catalogs the points within Elastic Synthetics where data is either stored or transmitted in an encrypted fashion.
+
+[discrete]
+[[observability-synthetics-security-encryption-synthetics-ui]]
+== Synthetics UI
+
+Data is stored in {kibana-ref}/xpack-security-secure-saved-objects.html[Kibana Secure Saved Objects],
+with sensitive fields encrypted. These fields include your script source, params, and global params.
+
+[discrete]
+[[synthetics_service]]
+== Synthetics Service
+
+The Global Elastic Synthetics Service performs all communication of sensitive data (both internally, and with Kibana) over encrypted connections
+and encrypts all data persisted to disk as well.
+
+[discrete]
+[[synthetics_private_locations]]
+== Synthetics Private Locations
+
+In Kibana configuration for private locations is stored in two places, Synthetics saved objects which always encrypt sensitive fields using {kibana-ref}/xpack-security-secure-saved-objects.html[Kibana Secure Saved Objects] and also in Fleet, which uses unencrypted saved objects restricted by user permissions. For Elastic Cloud customers all data is secured on disk regardless of whether additional saved object encryption is present. See our https://www.elastic.co/cloud/security[Cloud Security Statement] for more information. We recommend that self-managed customers encrypt disks for their Elasticsearch instances if this is a concern.
+
+All data is encrypted in transit. See {fleet-guide}/_elastic_agent_configuration_encryption.html[Elastic Agent configuration encryption] for more details.

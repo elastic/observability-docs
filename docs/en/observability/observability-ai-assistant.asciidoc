@@ -1,13 +1,15 @@
 [[obs-ai-assistant]]
 = Observability AI Assistant
 
+IMPORTANT: To run the Observability AI Assistant on self-hosted Elastic stack, you need an {subscriptions}[appropriate license].
+
 The AI Assistant uses generative AI to provide:
 
 * *Contextual insights* — open prompts throughout {observability} that explain errors and messages and suggest remediation.
 * *Chat* —  have conversations with the AI Assistant. Chat uses function calling to request, analyze, and visualize your data.
 
 [role="screenshot"]
-image::images/obs-assistant2.gif[Observability AI assistant preview]
+image::images/obs-assistant2.gif[Observability AI assistant preview, 60%]
 
 The AI Assistant integrates with your large language model (LLM) provider through our supported Elastic connectors:
 
@@ -35,7 +37,6 @@ Also, the data you provide to the Observability AI assistant is _not_ anonymized
 The AI assistant requires the following:
 
 * {stack} version 8.9 and later.
-* An https://www.elastic.co/pricing[Enterprise subscription].
 * An account with a third-party generative AI provider that supports function calling. The Observability AI Assistant supports the following providers:
 ** OpenAI `gpt-4`+.
 ** Azure OpenAI Service `gpt-4`(0613) or `gpt-4-32k`(0613) with API version `2023-07-01-preview` or more recent.
@@ -86,7 +87,7 @@ To set up the AI Assistant:
 * https://docs.aws.amazon.com/bedrock/latest/userguide/security-iam.html[Amazon Bedrock authentication keys and secrets]
 * https://cloud.google.com/iam/docs/keys-list-get[Google Gemini service account keys]
 
-. From *{stack-manage-app}* -> *{connectors-ui}* in {kib}, create a connector for your AI provider:
+. Create a connector for your AI provider. Refer to the connector documentation to learn how:
 * {kibana-ref}/openai-action-type.html[OpenAI]
 * {kibana-ref}/bedrock-action-type.html[Amazon Bedrock]
 * {kibana-ref}/gemini-action-type.html[Google Gemini]
@@ -127,9 +128,8 @@ You can also add information to the knowledge base by asking the AI Assistant to
 
 To add external data to the knowledge base in {kib}:
 
-. Go to *Stack Management*.
-. In the _Kibana_ section, click *AI Assistants*.
-. Then select the *Elastic AI Assistant for Observability*.
+. To open AI Assistant settings, find `AI Assistants` in the {kibana-ref}/introduction.html#kibana-navigation-search[global search field].
+. Under *Elastic AI Assistant for Observability*, click **Manage settings**.
 . Switch to the *Knowledge base* tab.
 . Click the *New entry* button, and choose either:
 +
@@ -150,24 +150,25 @@ To add external data to the knowledge base in {kib}:
 
 [TIP]
 ====
-The {enterprise-search-ref}/connectors.html[search connectors] described in this section differ from the {kibana-ref}/action-types.html[Stack management -> Connectors] configured during the <<obs-ai-set-up, AI Assistant setup>>.
+The {ref}/es-connectors.html[search connectors] described in this section differ from the {kibana-ref}/action-types.html[Stack management -> Connectors] configured during the <<obs-ai-set-up, AI Assistant setup>>.
 Search connectors are only needed when importing external data into the Knowledge base of the AI Assistant, while the stack connector to the LLM is required for the AI Assistant to work.
 ====
 
-{enterprise-search-ref}/connectors.html[Connectors] allow you to index content from external sources thereby making it available for the AI Assistant. This can greatly improve the relevance of the AI Assistant’s responses. Data can be integrated from sources such as GitHub, Confluence, Google Drive, Jira, AWS S3, Microsoft Teams, Slack, and more.
+{ref}/es-connectors.html[Connectors] allow you to index content from external sources thereby making it available for the AI Assistant. This can greatly improve the relevance of the AI Assistant’s responses. Data can be integrated from sources such as GitHub, Confluence, Google Drive, Jira, AWS S3, Microsoft Teams, Slack, and more.
 
-These connectors are managed under *Search* -> *Content* -> *Connectors* in {kib}, they are outside of the {observability} Solution, and they require an {enterprise-search-ref}/server.html[Enterprise Search] server connected to the Elastic Stack.
+These connectors are managed under the Search Solution in {kib}, and they require an {enterprise-search-ref}/server.html[Enterprise Search] server connected to the Elastic Stack.
 
 By default, the AI Assistant queries all search connector indices. To override this behavior and customize which indices are queried, adjust the *Search connector index pattern* setting on the <<obs-ai-settings>> page. This allows precise control over which data sources are included in AI Assistant knowledge base.
 
 To create a connector and make its content available to the AI Assistant knowledge base, follow these steps:
 
-. In {kib} UI, go to *Search* -> *Content* -> *Connectors* and follow the instructions to create a new connector.
+. To open **Connectors**, find `Content / Connectors` in the {kibana-ref}/introduction.html#kibana-navigation-search[global search field].
 +
 [NOTE]
 ====
-If your {kib} Space doesn't include the `Search` solution you will have to create the connector from a different space or change your space *Solution view* setting to `Classic`.
+If your {kib} Space doesn't include the Search solution you will have to create the connector from a different space or change your space *Solution view* setting to `Classic`.
 ====
+. Follow the instructions to create a new connector.
 +
 For example, if you create a {ref}/es-connectors-github.html[GitHub connector] you have to set a `name`, attach it to a new or existing `index`, add your `personal access token` and include the `list of repositories` to synchronize.
 +
@@ -207,7 +208,7 @@ Your feedback helps us improve the AI Assistant!
 [[obs-ai-chat]]
 === Chat with the assistant
 
-Select the *AI Assistant* icon (image:images/icons/ai-assistant.svg[AI Assistant icon]) at the upper-right corner of any {observability} application to start the chat:
+Select the *AI Assistant* icon (image:images/ai-assistant-icon.png[AI Assistant icon]) at the upper-right corner of any {observability} application to start the chat.
 
 This opens the AI Assistant flyout, where you can ask the assistant questions about your instance:
 
@@ -264,12 +265,12 @@ AI Assistant contextual prompts throughout {observability} provide the following
 For example, in the log details, you'll see prompts for *What's this message?* and *How do I find similar log messages?*:
 
 [role="screenshot"]
-image::images/obs-ai-logs-prompts.png[]
+image::images/obs-ai-logs-prompts.png[Observability AI assistant logs prompts, 60%]
 
 Clicking a prompt generates a message specific to that log entry:
 
 [role="screenshot"]
-image::images/obs-ai-logs.gif[Observability AI assistant example, 75%]
+image::images/obs-ai-logs.gif[Observability AI assistant example, 60%]
 
 Continue a conversation from a contextual prompt by clicking *Start chat* to open the AI Assistant chat.
 
@@ -331,15 +332,15 @@ To learn more about alerting, actions, and connectors, refer to <<create-alerts>
 [[obs-ai-settings]]
 == AI Assistant Settings
 
-You can access the AI Assistant Settings page:
+To access the AI Assistant Settings page, you can:
 
-* From *{stack-manage-app}* -> *Kibana* -> *AI Assistants* -> *Elastic AI Assistant for Observability*.
-* From the *More actions* menu inside the AI Assistant window.
+* Find `AI Assistants` in the {kibana-ref}/introduction.html#kibana-navigation-search[global search field].
+* Use the *More actions* menu inside the AI Assistant window.
 
 The AI Assistant Settings page contains the following tabs:
 
 * *Settings*: Configures the main AI Assistant settings, which are explained directly within the interface.
-* *Knowledge base*: Manages <<obs-ai-kb-ui,knowledge base entries>>. 
+* *Knowledge base*: Manages <<obs-ai-kb-ui,knowledge base entries>>.
 * *Search Connectors*: Provides a link to {kib} *Search* -> *Content* -> *Connectors* UI for connectors configuration.
 [discrete]
 [[obs-ai-known-issues]]

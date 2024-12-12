@@ -38,9 +38,9 @@ create-next-release: prepare-next-release create-prs-next-release
 .PHONY: update-labels
 update-labels:
 	echo '  - name: backport patches to $(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION) branch' >> ../.mergify.yml
-	echo '    conditions:'                                                          >> ../.mergify.yml
-	echo '      - merged'                                                           >> ../.mergify.yml
-	echo '      - label=backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)' >> ../.mergify.yml
+	echo '    conditions:'                                                          >>  ../.mergify.yml
+	echo '      - merged'                                                           >>  ../.mergify.yml
+	echo '      - label=backport-$(PROJECT_MAJOR_VERSION).$(PROJECT_MINOR_VERSION)' >>  ../.mergify.yml
 	echo '    actions:'                                                            	>>	../.mergify.yml
 	echo '      backport:'                                                          >>	../.mergify.yml
 	echo '        assignees:'                                                       >>	../.mergify.yml
@@ -69,7 +69,7 @@ create-branch-major-minor-release:
 .PHONY: prepare-next-release
 prepare-next-release:
 	git checkout main
-	git checkout -b $(BACKPORT_BRANCH_NAME)
+	git checkout -b $(BACKPORT_BRANCH_NAME) main
 	$(MAKE) update-labels
 	$(MAKE) git-diff
 	if [ ! -z "$$(git status -s)" ]; then \
