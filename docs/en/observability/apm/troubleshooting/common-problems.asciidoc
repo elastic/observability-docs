@@ -17,6 +17,7 @@ This section describes common problems you might encounter when using APM Server
 * <<troubleshooting-unknown-route>>
 * <<troubleshooting-fields-unsearchable>>
 * <<service-map-rum-connections>>
+* <<troubleshooting-apm-infra-data>>
 
 [float]
 [[apm-no-data-indexed]]
@@ -282,10 +283,42 @@ If the service map is not showing an expected connection between the client and 
 it's likely because you haven't configured
 {apm-rum-ref}/distributed-tracing-guide.html[`distributedTracingOrigins`].
 
-
 This setting is necessary, for example, for cross-origin requests.
 If you have a basic web application that provides data via an API on `localhost:4000`,
 and serves HTML from `localhost:4001`, you'd need to set `distributedTracingOrigins: ['https://localhost:4000']`
 to ensure the origin is monitored as a part of distributed tracing.
 In other words, `distributedTracingOrigins` is consulted prior to the APM agent adding the
 distributed tracing `traceparent` header to each request.
+
+// This info is not confirmed, but hopefully provides a structure
+// for product/dev to react to and follow!
+[float]
+[[troubleshooting-apm-infra-data]]
+== No data shown in the infrastructure tab
+
+If you don't see any data in the *Infrastructure* tab for a selected service in the Applications UI,
+there are a few possible causes and solutions.
+
+// Does it make sense to include something like this?
+*If you also do _not_ see the data in the* <<view-infrastructure-metrics,*Infrastructure inventory*>>
+
+Refer to the <<troubleshooting-infrastructure-monitoring,Infrastructure troubleshooting docs>>.
+
+*If you _do_ see the data in the* <<view-infrastructure-metrics,*Infrastructure inventory*>>
+
+// Why this happens
+It's likely that there is a problem correlating APM and infrastructure data. The `host.hostname`
+field value in the APM data and the `host.name` field value in infrastructure data are used to
+correlate data, and the queries used to correlate the data are case sensitive.
+
+// Potential fix?
+To fix this, make sure these two fields match exactly.
+
+// From https://www.elastic.co/guide/en/observability/current/analyze-hosts.html#analyze-hosts-troubleshooting
+For example, if the APM agent is not configured to use the correct host name,
+the host name might be set to the container name or the Kubernetes pod name.
+To get the correct host name, you need to set some additional configuration options,
+specifically `system.kubernetes.node.name` as described in <<apm-api-kubernetes-data>>.
+
+// Are there other reasons why this can happen?
+// How can users fix the issue?
