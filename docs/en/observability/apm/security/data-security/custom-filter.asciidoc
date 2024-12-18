@@ -1,19 +1,48 @@
 [[apm-custom-filter]]
 = Custom filters
 
-include::{observability-docs-root}/docs/en/observability/apm/security/data-security/index.asciidoc[tag=custom-filters]
+Custom filters, including <<apm-filters-ingest-pipeline,ingest pipeline filters>> and
+<<apm-filters-in-agent,APM agent filters>>, allow you to filter or redact APM data on ingestion.
 
 [discrete]
 [[apm-filters-ingest-pipeline]]
-== Create an ingest pipeline filter
+== Ingest pipeline filters
 
-Ingest node pipelines specify a series of processors that transform data in a specific way.
+Ingest pipelines specify a series of processors that transform data in a specific way.
 Transformation happens prior to indexing--inflicting no performance overhead on the monitored application.
 Pipelines are a flexible and easy way to filter or obfuscate Elastic APM data.
 
+Features of this approach:
+
+* Filters are applied at ingestion time.
+* All Elastic APM agents and fields are supported.
+* Data leaves the instrumented service.
+* There are no performance overhead implications on the instrumented service.
+
+For a step-by-step example, refer to <<apm-filters-ingest-pipeline-tutorial>>.
+
+[discrete]
+[[apm-filters-in-agent]]
+== APM agent filters
+
+Some APM agents offer a way to manipulate or drop APM events _before_ they are sent to APM Server.
+
+Features of this approach:
+
+* Data is sanitized before leaving the instrumented service.
+* Not supported by all Elastic APM agents.
+* Potential overhead implications on the instrumented service.
+
+Refer to the relevant agent's documentation for more information and examples:
+
+* .NET: {apm-dotnet-ref-v}/public-api.html#filter-api[Filter API].
+* Node.js: {apm-node-ref-v}/agent-api.html#apm-add-filter[`addFilter()`].
+* Python: {apm-py-ref-v}/sanitizing-data.html[custom processors].
+* Ruby: {apm-ruby-ref-v}/api.html#api-agent-add-filter[`add_filter()`].
+
 [discrete]
 [[apm-filters-ingest-pipeline-tutorial]]
-=== Tutorial: redact sensitive information
+== Tutorial: Use an ingest pipeline to redact sensitive information
 
 Say you decide to <<apm-filters-http-body,capture HTTP request bodies>>
 but quickly notice that sensitive information is being collected in the
@@ -27,10 +56,16 @@ but quickly notice that sensitive information is being collected in the
 }
 ----
 
-**Create a pipeline**
+To obfuscate the passwords stored in the request body, you can use a series of {ref}/processors.html[ingest processors].
 
-To obfuscate the passwords stored in the request body,
-you can use a series of {ref}/processors.html[ingest processors].
+[discrete]
+=== Create a pipeline
+
+TIP: This tutorial uses the {ref}/ingest-apis.html[Ingest APIs], but it's also possible
+to create a pipeline using the UI. In Kibana, go to *Stack Management* →
+*Ingest Pipelines* → *Create pipeline* → *New pipeline* or use the
+{kibana-ref}/introduction.html#kibana-navigation-search[global search field].
+
 To start, create a pipeline with a simple description and an empty array of processors:
 
 [source,json]
@@ -44,7 +79,8 @@ To start, create a pipeline with a simple description and an empty array of proc
 ----
 <1> The processors defined below will go in this array
 
-**Add a JSON processor**
+[discrete]
+==== Add a JSON processor
 
 Add your first processor to the processors array.
 Because the agent captures the request body as a string, use the
@@ -62,7 +98,8 @@ Save this JSON object in a new field:
 }
 ----
 
-**Add a set processor**
+[discrete]
+==== Add a set processor
 
 If `body.original_json` is not `null`, i.e., it exists, we'll redact the `password` with the {ref}/set-processor.html[set processor],
 by setting the value of `body.original_json.password` to `"redacted"`:
@@ -78,7 +115,8 @@ by setting the value of `body.original_json.password` to `"redacted"`:
 }
 ----
 
-**Add a convert processor**
+[discrete]
+==== Add a convert processor
 
 Use the {ref}/convert-processor.html[convert processor] to convert the JSON value of `body.original_json` to a string and set it as the `body.original` value:
 
@@ -95,7 +133,8 @@ Use the {ref}/convert-processor.html[convert processor] to convert the JSON valu
 }
 ----
 
-**Add a remove processor**
+[discrete]
+==== Add a remove processor
 
 Finally, use the {ref}/remove-processor.html[remove processor] to remove the `body.original_json` field:
 
@@ -103,17 +142,18 @@ Finally, use the {ref}/remove-processor.html[remove processor] to remove the `bo
 ----
 {
   "remove": {
-    "field": "http.request.body.original",
+    "field": "http.request.body.original_json",
     "if": "ctx?.http?.request?.body?.original_json != null",
     "ignore_failure": true
   }
 }
 ----
 
-**Register the pipeline**
+[discrete]
+==== Register the pipeline
 
-Now we'll put it all together.
-Use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
+Then put it all together,
+and use the {ref}/put-pipeline-api.html[create or update pipeline API] to register the new pipeline in {es}.
 Name the pipeline `apm_redacted_body_password`:
 
 [source,console]
@@ -156,7 +196,8 @@ PUT _ingest/pipeline/apm_redacted_body_password
 }
 ----
 
-**Test the pipeline**
+[discrete]
+=== Test the pipeline
 
 Prior to enabling this new pipeline, you can test it with the {ref}/simulate-pipeline-api.html[simulate pipeline API].
 This API allows you to run multiple documents through a pipeline to ensure it is working correctly.
@@ -251,7 +292,8 @@ The API response should be similar to this:
 As expected, only the first simulated document has a redacted password field.
 All other documents are unaffected.
 
-**Create an `@custom` pipeline**
+[discrete]
+=== Create a `@custom` pipeline
 
 The final step in this process is to call the newly created `apm_redacted_body_password` pipeline
 from the `@custom` pipeline of the data stream you wish to edit.
@@ -276,25 +318,9 @@ PUT _ingest/pipeline/traces-apm@custom
 ----
 <1> The name of the pipeline we previously created
 
-TIP: If you prefer using a GUI, you can instead use the **Ingest Pipelines** page in {kib}.
-To open **Ingest Pipelines**, find **Stack Management** in the main menu or use the {kibana-ref}/introduction.html#kibana-navigation-search[global search field].
-Click **Create pipeline** and use the same naming convention explained previously to ensure your new pipeline matches the correct APM data stream.
-
 That's it! Passwords will now be redacted from your APM HTTP body data.
 
-To learn more about ingest pipelines, see <<apm-custom-index-template>>.
-
 [discrete]
-[[apm-filters-in-agent]]
-== APM agent filters
+=== Next steps
 
-Some APM agents offer a way to manipulate or drop APM events _before_ they are sent to the APM Server.
-Please see the relevant agent's documentation for more information and examples:
-
-// * Go: {apm-go-ref-v}/[]
-// * Java: {apm-java-ref-v}/[]
-* .NET: {apm-dotnet-ref-v}/public-api.html#filter-api[Filter API].
-* Node.js: {apm-node-ref-v}/agent-api.html#apm-add-filter[`addFilter()`].
-// * PHP: {apm-php-ref-v}[]
-* Python: {apm-py-ref-v}/sanitizing-data.html[custom processors].
-* Ruby: {apm-ruby-ref-v}/api.html#api-agent-add-filter[`add_filter()`].
+To learn more about ingest pipelines, see <<apm-custom-index-template>>.
