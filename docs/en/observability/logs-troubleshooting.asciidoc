@@ -1,7 +1,7 @@
 [[logs-troubleshooting]]
 = Troubleshoot logs
 
-Use this page to find possible solutions for errors your encountering with your logs. This troubleshooting page is broken into two sections:
+Use this page to find possible solutions for errors your encountering with your logs. This troubleshooting page is broken into the following sections:
 
 - <<logs-onboarding-troubleshooting>>
 - <<logs-common-mapping-troubleshooting, Mapping and pipeline issues>>
@@ -149,11 +149,34 @@ Inspect the {agent} logs for errors. See the {fleet-guide}/debug-standalone-agen
 [[logs-common-mapping-troubleshooting]]
 == Mapping and pipeline issues
 
-This section provides possible solutions for errors you might encounter while onboarding your logs.
+This section provides possible solutions for mapping and pipeline issues you might encounter with your logs.
 
-[[logs-mapping-troubleshooting-keyword]]
+[[logs-mapping-troubleshooting-keyword-limit]]
 === Keyword fields are too long
+The `keyword` field limit is 32,766 bytes. When indexing a document, if your `keyword` field length exceeds this limit, you'll see an error similar to the following:
 
+```
+max_bytes_length_exceeded_exception: bytes can be at most 32766 in length
+```
+
+[discrete]
+[[logs-mapping-troubleshooting-keyword-limit-solution]]
+==== Solution
+Avoid this error using one of the following options:
+
+*Stop indexing the field:* If you don't need the `keyword` field for aggregation or search, set `"index":false` in the index template to stop indexing the field.
+
+*Increase `ignore_above`:* To index any `keyword` fields under the field limit, but not those over the limit, set the `ignore_above` setting in the index template.
+
+NOTE: The value for `ignore_above` is the _character count_, but Lucene counts bytes.
+If you use UTF-8 text with many non-ASCII characters, you may want to set the limit to `32766 / 4 = 8191` since UTF-8 characters may occupy at most 4 bytes.
+
+Refer to the {ref}/ignore-above.html[`ignore_above`] docs for more information.
+
+*Convert the `keyword` field to a `text` field:* To continue indexing the field while avoiding length limits, you can convert the `keyword` field to a `text` field. To do this:
+
+. Create a new index with the `text` field data type.
+. Reindex from the `_source` field of the source index using the {ref}/docs-reindex.html[`_reindex` API].
 
 [[logs-mapping-troubleshooting-format-mismatch]]
 === Date format mismatch
