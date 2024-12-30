@@ -155,9 +155,10 @@ This section provides possible solutions for mapping and pipeline issues you mig
 === Keyword fields are too long
 The `keyword` field limit is 32,766 bytes. When indexing a document, if your `keyword` field length exceeds this limit, you'll see an error similar to the following:
 
-```
+[source, plaintext]
+----
 max_bytes_length_exceeded_exception: bytes can be at most 32766 in length
-```
+----
 
 [discrete]
 [[logs-mapping-troubleshooting-keyword-limit-solution]]
@@ -178,8 +179,40 @@ Refer to the {ref}/ignore-above.html[`ignore_above`] docs for more information.
 . Create a new index with the `text` field data type.
 . Reindex from the `_source` field of the source index using the {ref}/docs-reindex.html[`_reindex` API].
 
-[[logs-mapping-troubleshooting-format-mismatch]]
+[discrete]
+[[logs-mapping-troubleshooting-date-mismatch]]
 === Date format mismatch
+If the format of the `date` field in your document doesn't match the format set in your index template, you'll see an error similar to the following:
+
+[source, plaintext]
+----
+failed to parse field [date] of type [date] in document with id 'KGcZb3cBqhj6kAxank_x'.
+----
+
+[discrete]
+[[logs-mapping-troubleshooting-date-solution]]
+==== Solution
+Avoid this error by adding the format of the mismatched date to your index template.
+Multiple formats can be specified by separating them with `||` as a separator.
+Each format will be tried in turn until a matching format is found.
+For example:
+
+[source,console,id=date-format-example]
+----
+PUT my-index-000001
+{
+  "mappings": {
+    "properties": {
+      "date": {
+        "type":   "date",
+        "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+      }
+    }
+  }
+}
+------
+
+Refer to the {ref}/date.html[`date` field type] docs for more information.
 
 [[logs-mapping-troubleshooting-grok-mismatch]]
 === Grok or dissect pattern mismatch
