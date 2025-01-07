@@ -24,6 +24,16 @@ To learn how, see {ref}/configuring-metricbeat.html[Collect {es} monitoring data
 Alternatively, open the **{stack-monitor-app}** app in {kib} and follow the in-product guide.
 ****
 
+[WARNING]
+====
+*Only use this option if you have _not_ yet enrolled {agent}.*
+If you edit and re-enroll {agent}, you will likely lose the state of the agent.
+
+If you have already enrolled the {agent}, consider using the Fleet UI to change the
+HTTP monitoring port of the agent using the processed outlined in
+{fleet-guide}/agent-policy.html#agent-policy-http-monitoring[Override the default monitoring port].
+====
+
 . Enable monitoring of {agent} by adding the following settings to your `elastic-agent.yml` configuration file:
 +
 --
@@ -86,8 +96,6 @@ When complete, your `modules.d/beat-xpack.yml` file should look similar to this:
   period: 10s
   hosts: ["http://localhost:6791"]
   basepath: "/processes/apm-server-default"
-  username: remote_monitoring_user
-  password: your_password
 ----
 
 .. Do not change the  `module` name or `xpack.enabled` boolean;
@@ -107,18 +115,6 @@ If you configured {agent} to use encrypted communications, you must access
 it via HTTPS. For example, use a `hosts` setting like `https://localhost:5066`.
 
 .. APM Server metrics are exposed at `/processes/apm-server-default`. Add this location as the `basepath`.
-
-.. Set the `username` and `password` settings as required by your
-environment. If Elastic {security-features} are enabled, you must provide a username
-and password so that {metricbeat} can collect metrics successfully:
-
-... Create a user on the {es} cluster that has the
-`remote_monitoring_collector` {ref}/built-in-roles.html[built-in role].
-Alternatively, if it's available in your environment, use the
-`remote_monitoring_user` {ref}/built-in-users.html[built-in user].
-
-... Add the `username` and `password` settings to the beat module configuration
-file.
 --
 
 . Optional: Disable the system module in the {metricbeat}.
