@@ -3,21 +3,20 @@
 
 Universal Profiling has the following known issues:
 
-////
-TEMPLATE
-Note: Add known issues for newer Elastic Stack
-versions to the top of this page
-
 [discrete]
-== Brief description
+== Helm chart `profiling-collector` faulty binary location
 
-_Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
+_Affected: 8.16.0, 8.16.1, 8.16.2, 8.17.0_
+_Fixed in: 8.16.3+, 8.17.1+_
 
-// Detailed description including:
+The installation of Universal Profiling collector using the Helm chart `profiling-collector` produces a Deployment with
+the wrong binary path set in `spec.template.spec.containers['pf-elastic-collector'].command`.
 
-// The conditions in which this issue occurs
-// The behavior of the issue
-// Why it happens
-// If applicable, exact error messages linked to this issue so users searching for the error message end up here
-// If applicable, link to fix
-////
+The correct path should be `/home/nonroot/pf-elastic-collector` while the `command` field references the deprecated path
+`/root/pf-elastic-collector`. This issue prevents the collector from starting and as a result, the Deployment has Pods
+in `CrashLoopBackoff` status.
+
+To fix this issue, a manual edit of the Deployment manifest should be performed, removing entirely the `command` field
+from the `spec` section.
+
+This can be performed by either manipulating the Deployment manifest directly or by using the `kubectl edit` command.
