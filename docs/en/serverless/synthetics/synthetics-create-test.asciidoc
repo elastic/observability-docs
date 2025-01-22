@@ -19,49 +19,22 @@ It's fast, reliable, and features a modern API that automatically waits for page
 
 The synthetics agent exposes an API for creating and running tests, including:
 
-|===
-|  |
-
-| `journey`
-a| Tests one discrete unit of functionality. Takes two parameters: a `name` (string) and a `callback` (function).
-
-Learn more in <<synthetics-create-journey,Create a journey>>.
-
-| `step`
-a| Actions within a journey that should be completed in a specific order. Takes two parameters: a `name` (string) and a `callback` (function).
-
-Learn more in <<synthetics-create-step,Add steps>>.
-
-| `expect`
-a| Check that a value meets a specific condition. There are several supported checks.
-
-Learn more in <<synthetics-make-assertions,Make assertions>>.
-
-| `beforeAll`
-a| Runs a provided function once, before any `journey` runs. If the provided function is a promise, the runner will wait for the  promise to resolve before invoking the `journey`.  Takes one parameter: a `callback` (function).
-
-Learn more in <<before-after,Set up and remove a global state>>.
-
-| `before`
-a| Runs a provided function before a single `journey` runs. Takes one parameter: a `callback` (function).
-
-Learn more in <<before-after,Set up and remove a global state>>.
-
-| `afterAll`
-a| Runs a provided function once, after all the `journey` runs have completed. Takes one parameter: a `callback` (function).
-
-Learn more in <<before-after,Set up and remove a global state>>.
-
-| `after`
-a| Runs a provided function after a single `journey` has completed. Takes one parameter: a `callback` (function).
-
-Learn more in <<before-after,Set up and remove a global state>>.
-
-| `monitor`
-a| The `monitor.use` method allows you to determine a monitor's configuration on a journey-by-journey basis. If you want two journeys to create monitors with different intervals, for example, you should call  `monitor.use` in each of them and set the `schedule` property to different values in each.  Note that this is only relevant when using the `push` command to create monitors in your Observability project.
-
-Learn more in <<observability-synthetics-monitor-use,Configure individual browser monitors>>.
-|===
+`journey`::
+Tests one discrete unit of functionality. Takes two parameters: a `name` (string) and a `callback` (function). Learn more in <<synthetics-create-journey>>.
+`step`::
+Actions within a journey that should be completed in a specific order. Takes two parameters: a `name` (string) and a `callback` (function). Learn more in <<synthetics-create-step>>.
+`expect`::
+Check that a value meets a specific condition. There are several supported checks. Learn more in <<synthetics-make-assertions>>.
+`beforeAll`::
+Runs a provided function once, before any `journey` runs. If the provided function is a promise, the runner will wait for the promise to resolve before invoking the `journey`. Takes one parameter: a `callback` (function). Learn more in <<before-after>>.
+`before`::
+Runs a provided function before a single `journey` runs. Takes one parameter: a `callback` (function). Learn more in <<before-after>>.
+`afterAll`::
+Runs a provided function once, after all the `journey` runs have completed. Takes one parameter: a `callback` (function). Learn more in <<before-after>>.
+`after`::
+Runs a provided function after a single `journey` has completed. Takes one parameter: a `callback` (function). Learn more in <<before-after>>.
+`monitor`::
+The `monitor.use` method allows you to determine a monitor's configuration on a journey-by-journey basis. If you want two journeys to create monitors with different intervals, for example, you should call `monitor.use` in each of them and set the `schedule` property to different values in each. Note that this is only relevant when using the `push` command to create monitors in your Observability project. Learn more in <<observability-synthetics-monitor-use>>.
 
 [discrete]
 [[synthetics-create-journey]]
@@ -88,39 +61,24 @@ journey('Journey name', ({ page, browser, context, params, request }) => {
 [[synthetics-journey-ref]]
 === Arguments
 
-|===
-|  |
+*`name`* (_string_)::
+A user-defined string to describe the journey.
 
-| **`name`** (_string_)
-| A user-defined string to describe the journey.
-
-| **`callback`** (_function_)
-a| A function where you will add steps.
-
-**Instances**:
-
-`page`::
-A https://playwright.dev/docs/api/class-page[page] object from Playwright
-that lets you control the browser's current page.
-
-`browser`::
-A {book['playwright-api-docs']}[browser] object created by Playwright.
-
-`context`::
-A https://playwright.dev/docs/api/class-browsercontext[browser context]
-that doesn't share cookies or cache with other browser contexts.
-
-`params`::
-User-defined variables that allow you to invoke the Synthetics suite with custom parameters.
-For example, if you want to use a different homepage depending on the `env`
-(`localhost` for `dev` and a URL for `prod`). See <<observability-synthetics-params-secrets,Work with params and secrets>>
-for more information.
-
-`request`::
-A request object that can be used to make API requests independently of the browser
-interactions. For example, to get authentication credentials or tokens in service of a
-browser-based test. See <<synthetics-request-param,Make API requests>> for more information.
-|===
+*`callback`* (_function_)::
+A function where you will add steps.
++
+*Instances*:
++
+`page`:::
+A https://playwright.dev/docs/api/class-page[page] object from Playwright that lets you control the browser's current page.
+`browser`:::
+A https://playwright.dev/docs/api/class-playwright[browser] object created by Playwright.
+`context`:::
+A https://playwright.dev/docs/api/class-browsercontext[browser context] that doesn't share cookies or cache with other browser contexts.
+`params`:::
+User-defined variables that allow you to invoke the Synthetics suite with custom parameters. For example, if you want to use a different homepage depending on the `env` (`localhost` for `dev` and a URL for `prod`). See <<observability-synthetics-params-secrets>> for more information.
+`request`:::
+A request object that can be used to make API requests independently of the browser interactions. For example, to get authentication credentials or tokens in service of a browser-based test. See <<synthetics-request-param>> for more information.
 
 [discrete]
 [[synthetics-create-step]]
