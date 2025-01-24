@@ -173,7 +173,10 @@ For example, if you create a {ref}/es-connectors-github.html[GitHub connector] y
 +
 Learn more about configuring and {ref}/es-connectors-usage.html[using connectors] in the Elasticsearch documentation.
 
-After creating your connector, create the embeddings needed by the AI Assistant. You can do this using either <<obs-ai-search-connectors-ml-embeddings, a machine learning (ML) pipeline>>, which requires the ELSER model, or <<obs-ai-search-connectors-semantic-text, a `semantic_text` field type>>, which can use any available model (ELSER, E5, or a custom model).
+After creating your connector, create the embeddings needed by the AI Assistant. You can do this using either:
+
+* <<obs-ai-search-connectors-ml-embeddings, a machine learning (ML) pipeline>>: requires the ELSER ML model.
+* <<obs-ai-search-connectors-semantic-text, a `semantic_text` field type>>: can use any available ML model (ELSER, E5, or a custom model).
 
 [discrete]
 [[obs-ai-search-connectors-ml-embeddings]]
@@ -182,9 +185,9 @@ After creating your connector, create the embeddings needed by the AI Assistant.
 To create the embeddings needed by the AI Assistant (weights and tokens into a sparse vector field) using an *ML Inference Pipeline*:
 
 . Open the previously created connector, and select the *Pipelines* tab.
-. Select *Copy and customize* button at the `Unlock your custom pipelines` box.
-. Select *Add Inference Pipeline* button at the `Machine Learning Inference Pipelines` box.
-. Select *ELSER (Elastic Learned Sparse EncodeR)* ML model to add the necessary embeddings to the data.
+. Select *Copy and customize* under `Unlock your custom pipelines`.
+. Select *Add Inference Pipeline* under `Machine Learning Inference Pipelines`.
+. Select the *ELSER (Elastic Learned Sparse EncodeR)* ML model to add the necessary embeddings to the data.
 . Select the fields that need to be evaluated as part of the inference pipeline.
 . Test and save the inference pipeline and the overall pipeline.
 
@@ -194,8 +197,8 @@ After creating the pipeline, complete the following steps:
 +
 Once the pipeline is set up, perform a *Full Content Sync* of the connector. The inference pipeline will process the data as follows:
 +
-* As data comes in, ELSER is applied to the data, and embeddings (weights and tokens into a sparse vector field) are added to capture semantic meaning and context of the data.
-* When you look at the documents that are ingested, you can see how the weights and token are added to the `predicted_value` field in the documents.
+* As data comes in, ELSER is applied to the data, and embeddings (weights and tokens into a {ref}/query-dsl-sparse-vector-query.html[sparse vector field]) are added to capture semantic meaning and context of the data.
+* When you look at the ingested documents, you can see the embeddings are added to the `predicted_value` field in the documents.
 . Check if AI Assistant can use the index (optional).
 +
 Ask something to the AI Assistant related with the indexed data.
@@ -214,7 +217,8 @@ To create the embeddings needed by the AI Assistant using a {ref}/semantic-text.
 . Add the field to your mapping by selecting *Add field*.
 . Sync the data by selecting *Full Content* from the *Sync* menu.
 
-The AI Assistant will now query the connector you've set up using the model you've selected. Check if the AI Assistant is using the index by asking it something related to the indexed data.
+The AI Assistant will now query the connector you've set up using the model you've selected.
+Check that the AI Assistant is using the index by asking it something related to the indexed data.
 
 [discrete]
 [[obs-ai-interact]]
