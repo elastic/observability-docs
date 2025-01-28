@@ -167,14 +167,11 @@ Avoid this error using one of the following options:
 
 *Stop indexing the field:* If you don't need the `keyword` field for aggregation or search, set `"index":false` in the index template to stop indexing the field.
 
-*Increase `ignore_above`:* To index any `keyword` fields under the field limit, but not those over the limit, set the `ignore_above` setting in the index template.
+*Convert the `keyword` field to a `text` field:* To continue indexing the field while avoiding length limits, you can convert the `keyword` field to a `text` field.
 
-NOTE: The value for `ignore_above` is the _character count_, but Lucene counts bytes.
-If you use UTF-8 text with many non-ASCII characters, you may want to set the limit to `32766 / 4 = 8191` since UTF-8 characters may occupy at most 4 bytes.
+NOTE: Aggregations on this field would no longer be supported, but the contents would be searchable.
 
-Refer to the {ref}/ignore-above.html[`ignore_above`] docs for more information.
-
-*Convert the `keyword` field to a `text` field:* To continue indexing the field while avoiding length limits, you can convert the `keyword` field to a `text` field. To do this:
+To convert the `keyword` field to a `text` field:
 
 . Create a new index with the `text` field data type.
 . Reindex from the `_source` field of the source index using the {ref}/docs-reindex.html[`_reindex` API].
@@ -220,7 +217,7 @@ If the pattern in your grok or dissect processor doesn't match the format of you
 
 [source, plaintext]
 ----
-Provided Grok patterns do not match data in the input
+Provided Grok patterns do not match field value...
 ----
 
 [discrete]
@@ -234,6 +231,3 @@ navigation menu or the global search field.
 From here, you can enter sample data representative of the log document you're trying to ingest and the Grok pattern you want to apply to the data.
 
 If you don't see any *Structured Data* when you simulate the grok pattern, iterate on the pattern until you find the error.
-
-[[logs-mapping-troubleshooting-string-mismatch]]
-=== String/number or Float/int mismatch
