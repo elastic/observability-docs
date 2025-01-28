@@ -9,6 +9,7 @@ Use this page to find possible solutions for errors your encountering with your 
 - <<logs-onboarding-troubleshooting>>
 - <<logs-common-mapping-troubleshooting, Mapping and pipeline issues>>
 
+[discrete]
 [[logs-onboarding-troubleshooting]]
 == Common onboarding issues
 
@@ -147,13 +148,16 @@ If the **Waiting for Logs to be shipped...** step never completes, logs are not 
 
 Inspect the {agent} logs for errors. See the {fleet-guide}/debug-standalone-agents.html#inspect-standalone-agent-logs[Debug standalone {agent}s] documentation for more on finding errors in {agent} logs.
 
+[discrete]
 [[logs-common-mapping-troubleshooting]]
 == Mapping and pipeline issues
 
 This section provides possible solutions for mapping and pipeline issues you might encounter with your logs.
 
+[discrete]
 [[logs-mapping-troubleshooting-keyword-limit]]
 === Keyword fields are too long
+
 The `keyword` field limit is 32,766 bytes. When indexing a document, if your `keyword` field length exceeds this limit, you'll see an error similar to the following:
 
 [source, plaintext]
@@ -164,6 +168,7 @@ max_bytes_length_exceeded_exception: bytes can be at most 32766 in length
 [discrete]
 [[logs-mapping-troubleshooting-keyword-limit-solution]]
 ==== Solution
+
 Avoid this error using one of the following options:
 
 *Stop indexing the field:* If you don't need the `keyword` field for aggregation or search, set `"index":false` in the index template to stop indexing the field.
@@ -180,6 +185,7 @@ To convert the `keyword` field to a `text` field:
 [discrete]
 [[logs-mapping-troubleshooting-date-mismatch]]
 === Date format mismatch
+
 If the format of the `date` field in your document doesn't match the format set in your index template, you'll see an error similar to the following:
 
 [source, plaintext]
@@ -190,6 +196,7 @@ failed to parse field [date] of type [date] in document with id 'KGcZb3cBqhj6kAx
 [discrete]
 [[logs-mapping-troubleshooting-date-solution]]
 ==== Solution
+
 Add the format of the mismatched date to your index template.
 Multiple formats can be specified by separating them with `||` as a separator.
 Each format will be tried in turn until a matching format is found.
@@ -212,8 +219,10 @@ PUT my-index-000001
 
 Refer to the {ref}/date.html[`date` field type] docs for more information.
 
+[discrete]
 [[logs-mapping-troubleshooting-grok-mismatch]]
 === Grok or dissect pattern mismatch
+
 If the pattern in your grok or dissect processor doesn't match the format of your document, you'll see an error similar to the following:
 
 [source, plaintext]
@@ -224,6 +233,7 @@ Provided Grok patterns do not match field value...
 [discrete]
 [[logs-mapping-troubleshooting-grok-solution]]
 ==== Solution
+
 Make sure your {ref}/grok-processor.html[grok] or {ref}/dissect-processor.html[dissect] processor pattern matches your log document format.
 
 You can build and debug grok patterns in {kib} using the {kibana-ref}/xpack-grokdebugger.html[Grok Debugger]. Find the *Grok Debugger* by navigating to the *Developer tools* page using the
