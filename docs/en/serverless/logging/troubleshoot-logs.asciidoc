@@ -4,11 +4,20 @@
 // :description: Find solutions to errors you might encounter while onboarding your logs.
 // :keywords: serverless, observability, troubleshooting
 
+Use this page to find possible solutions for errors your encountering with your logs. This troubleshooting page is broken into the following sections:
+
+- <<logs-onboarding-troubleshooting>>
+- <<logs-common-mapping-troubleshooting, Mapping and pipeline issues>>
+
+[discrete]
+[[logs-onboarding-troubleshooting]]
+== Common onboarding issues
+
 This section provides possible solutions for errors you might encounter while onboarding your logs.
 
 [discrete]
 [[observability-troubleshoot-logs-user-does-not-have-permissions-to-create-api-key]]
-== User does not have permissions to create API key
+=== User does not have permissions to create API key
 
 When adding a new data using the guided instructions in your project (**Add data** → **Collect and analyze logs** → **Stream log files**),
 if you don't have the required privileges to create an API key, you'll see the following error message:
@@ -20,7 +29,7 @@ You need permission to manage API keys
 
 [discrete]
 [[observability-troubleshoot-logs-solution]]
-=== Solution
+==== Solution
 
 You need to either:
 
@@ -48,7 +57,7 @@ Once you have the necessary privileges, restart the onboarding flow. */
 
 [discrete]
 [[observability-troubleshoot-logs-observability-project-not-accessible-from-host]]
-== Observability project not accessible from host
+=== Observability project not accessible from host
 
 If your Observability project is not accessible from the host, you'll see the following error message after pasting the **Install the {agent}** instructions into the host:
 
@@ -59,7 +68,7 @@ Failed to connect to {host} port {port} after 0 ms: Connection refused
 
 [discrete]
 [[observability-troubleshoot-logs-solution-1]]
-=== Solution
+==== Solution
 
 The host needs access to your project. Port `443` must be open and the project's {es} endpoint must be reachable. You can locate your project's endpoint by clicking the help icon (image:images/icons/help.svg[Help icon]) and selecting **Endpoints**. Run the following command, replacing the URL with your endpoint, and you should get an authentication error with more details on resolving your issue:
 
@@ -70,7 +79,7 @@ curl https://your-endpoint.elastic.cloud
 
 [discrete]
 [[observability-troubleshoot-logs-download-agent-failed]]
-== Download {agent} failed
+=== Download {agent} failed
 
 If the host was able to download the installation script but cannot connect to the public artifact repository, you'll see the following error message:
 
@@ -83,7 +92,7 @@ Failed to download Elastic Agent, see script for error.
 
 [discrete]
 [[observability-troubleshoot-logs-solutions]]
-=== Solutions
+==== Solutions
 
 * If the combination of the {agent} version and operating system architecture is not available, you'll see the following error message:
 +
@@ -105,7 +114,7 @@ To fix this, delete previous downloads and restart the onboarding.
 
 [discrete]
 [[observability-troubleshoot-logs-install-agent-failed]]
-== Install {agent} failed
+=== Install {agent} failed
 
 If an {agent} already exists on your host, you'll see the following error message:
 
@@ -118,7 +127,7 @@ Failed to install Elastic Agent, see script for error.
 
 [discrete]
 [[observability-troubleshoot-logs-solution-2]]
-=== Solution
+==== Solution
 
 You can uninstall the current {agent} using the `elastic-agent uninstall` command, and run the script again.
 
@@ -129,12 +138,107 @@ Uninstalling the current {agent} removes the entire current setup, including the
 
 [discrete]
 [[observability-troubleshoot-logs-waiting-for-logs-to-be-shipped-step-never-completes]]
-== Waiting for Logs to be shipped... step never completes
+=== Waiting for Logs to be shipped... step never completes
 
 If the **Waiting for Logs to be shipped...** step never completes, logs are not being shipped to your Observability project, and there is most likely an issue with your {agent} configuration.
 
 [discrete]
 [[observability-troubleshoot-logs-solution-3]]
-=== Solution
+==== Solution
 
 Inspect the {agent} logs for errors. See the {fleet-guide}/debug-standalone-agents.html#inspect-standalone-agent-logs[Debug standalone {agent}s] documentation for more on finding errors in {agent} logs.
+
+[discrete]
+[[logs-common-mapping-troubleshooting]]
+== Mapping and pipeline issues
+
+This section provides possible solutions for mapping and pipeline issues you might encounter with your logs.
+
+[discrete]
+[[logs-mapping-troubleshooting-keyword-limit]]
+=== Keyword fields are too long
+
+The `keyword` field limit is 32,766 bytes. When indexing a document, if your `keyword` field length exceeds this limit, you'll see an error similar to the following:
+
+[source, plaintext]
+----
+max_bytes_length_exceeded_exception: bytes can be at most 32766 in length
+----
+
+[discrete]
+[[logs-mapping-troubleshooting-keyword-limit-solution]]
+==== Solution
+
+Avoid this error using one of the following options:
+
+*Stop indexing the field:* If you don't need the `keyword` field for aggregation or search, set `"index":false` in the index template to stop indexing the field.
+
+*Convert the `keyword` field to a `text` field:* To continue indexing the field while avoiding length limits, you can convert the `keyword` field to a `text` field.
+
+NOTE: Aggregations on this field would no longer be supported, but the contents would be searchable.
+
+To convert the `keyword` field to a `text` field:
+
+. Create a new index with the `text` field data type.
+. Reindex from the `_source` field of the source index using the {ref}/docs-reindex.html[`_reindex` API].
+
+[discrete]
+[[logs-mapping-troubleshooting-date-mismatch]]
+=== Date format mismatch
+
+If the format of the `date` field in your document doesn't match the format set in your index template, you'll see an error similar to the following:
+
+[source, plaintext]
+----
+failed to parse field [date] of type [date] in document with id 'KGcZb3cBqhj6kAxank_x'.
+----
+
+[discrete]
+[[logs-mapping-troubleshooting-date-solution]]
+==== Solution
+
+Add the format of the mismatched date to your index template.
+Multiple formats can be specified by separating them with `||` as a separator.
+Each format will be tried in turn until a matching format is found.
+For example:
+
+[source,console,id=date-format-example]
+----
+PUT my-index-000001
+{
+  "mappings": {
+    "properties": {
+      "date": {
+        "type":   "date",
+        "format": "yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||epoch_millis"
+      }
+    }
+  }
+}
+----
+
+Refer to the {ref}/date.html[`date` field type] docs for more information.
+
+[discrete]
+[[logs-mapping-troubleshooting-grok-mismatch]]
+=== Grok or dissect pattern mismatch
+
+If the pattern in your grok or dissect processor doesn't match the format of your document, you'll see an error similar to the following:
+
+[source, plaintext]
+----
+Provided Grok patterns do not match field value...
+----
+
+[discrete]
+[[logs-mapping-troubleshooting-grok-solution]]
+==== Solution
+
+Make sure your {ref}/grok-processor.html[grok] or {ref}/dissect-processor.html[dissect] processor pattern matches your log document format.
+
+You can build and debug grok patterns in {kib} using the {kibana-ref}/xpack-grokdebugger.html[Grok Debugger]. Find the *Grok Debugger* by navigating to the *Developer tools* page using the
+navigation menu or the global search field.
+
+From here, you can enter sample data representative of the log document you're trying to ingest and the Grok pattern you want to apply to the data.
+
+If you don't see any *Structured Data* when you simulate the grok pattern, iterate on the pattern until you find the error.
