@@ -85,16 +85,25 @@ For more information on how to set up a Amazon Data Firehose delivery stream to 
 
 . Collect {es} endpoint and API key from your deployment on Elastic Cloud.
 +
-- Elasticsearch endpoint URL: Enter the Elasticsearch endpoint URL of your Elasticsearch cluster. To find the Elasticsearch endpoint, go to the Elastic Cloud console and select *Connection details*.
-- API key: Enter the encoded Elastic API key. To create an API key, go to the Elastic Cloud console, select *Connection details* and click *Create and manage API keys*. If you are using an API key with *Restrict privileges*, make sure to review the Indices privileges to provide at least "auto_configure" & "write" permissions for the indices you will be using with this delivery stream.
+- *To find the Elasticsearch endpoint URL*: 
+.. Go to the https://cloud.elastic.co/[Elastic Cloud] console
+.. Find your deployment in the *Hosted deployments* card and select *Manage*.
+.. Under *Applications* click *Copy endpoint* next to *Elasticsearch*.
+
+- *To create the API key*: 
+.. Go to the https://cloud.elastic.co/[Elastic Cloud] console
+.. Select *Open Kibana*.
+.. Expand the left-hand menu, under *Management* select *Stack management > API Keys* and click *Create API key*. If you are using an API key with *Restrict privileges*, make sure to review the Indices privileges to provide at least `auto_configure` and `write` permissions for the indices you will be using with this delivery stream.
 
 . Set up the delivery stream by specifying the following data:
 +
-- Elastic endpoint URL
-- API key
+- Elastic endpoint URL: The URL that you copied in the previous step. 
+- API key: The API key that you created in the previous step.
 - Content encoding: gzip
 - Retry duration: 60 (default)
 - Backup settings: failed data only to s3 bucket
+
+IMPORTANT: Verify that your *Elasticsearch endpoint URL* includes `.es.` between the *deployment name* and *region*. Example: `https://my-deployment.es.us-east-1.aws.elastic-cloud.com`
 
 You now have an Amazon Data Firehose delivery specified with:
 
@@ -104,7 +113,7 @@ You now have an Amazon Data Firehose delivery specified with:
 
 [discrete]
 [[firehose-cloudtrail-step-four]]
-== Step 4: Set up a subscription filter to route Cloudtrail events to a delivery stream
+== Step 4: Set up a subscription filter to route CloudTrail events to a delivery stream
 
 image::firehose-subscription-filter.png[Firehose subscription filter]
 

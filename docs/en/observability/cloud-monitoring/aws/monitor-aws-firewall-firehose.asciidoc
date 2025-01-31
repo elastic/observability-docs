@@ -57,9 +57,15 @@ image::firehose-networkfirewall-stream.png[Firehose stream]
 
 . Collect {es} endpoint and API key from your deployment on Elastic Cloud.
 +
-- Elastic endpoint URL: Enter the Elasticsearch endpoint URL of your Elasticsearch cluster. To find the Elasticsearch endpoint, go to the Elastic Cloud console and select *Connection details*.
-+
-- API key: Enter the encoded Elastic API key. To create an API key, go to the Elastic Cloud console, select *Connection details* and click *Create and manage API keys*. If you are using an API key with *Restrict privileges*, make sure to review the Indices privileges to provide at least "auto_configure" and "write" permissions for the indices you will be using with this delivery stream.
+- *To find the Elasticsearch endpoint URL*: 
+.. Go to the https://cloud.elastic.co/[Elastic Cloud] console
+.. Find your deployment in the *Hosted deployments* card and select *Manage*.
+.. Under *Applications* click *Copy endpoint* next to *Elasticsearch*.
+
+- *To create the API key*: 
+.. Go to the https://cloud.elastic.co/[Elastic Cloud] console
+.. Select *Open Kibana*.
+.. Expand the left-hand menu, under *Management* select *Stack management > API Keys* and click *Create API key*. If you are using an API key with *Restrict privileges*, make sure to review the Indices privileges to provide at least `auto_configure` and `write` permissions for the indices you will be using with this delivery stream.
 
 . Set up the delivery stream by specifying the following data:
 +
@@ -68,7 +74,9 @@ image::firehose-networkfirewall-stream.png[Firehose stream]
 - Content encoding: gzip
 - Retry duration: 60 (default)
 - Parameter *es_datastream_name* = `logs-aws.firewall_logs-default`
-- Backup settings: failed data only to s3 bucket
+- Backup settings: failed data only to S3 bucket
+
+IMPORTANT: Verify that your *Elasticsearch endpoint URL* includes `.es.` between the *deployment name* and *region*. Example: `https://my-deployment.es.us-east-1.aws.elastic-cloud.com`
 
 The Firehose stream is ready to send logs to our Elastic Cloud deployment.
 

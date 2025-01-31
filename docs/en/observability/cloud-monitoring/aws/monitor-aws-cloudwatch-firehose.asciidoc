@@ -100,8 +100,25 @@ image::firehose-cloudwatch-firehose-stream.png[Amazon Firehose Stream]
 +
 NOTE: For advanced use cases, source records can be transformed by invoking a custom Lambda function. When using Elastic integrations, this should not be required.
 
-. In the **Destination settings** section, set the following parameter:
-`es_datastream_name` = `logs-aws.generic-default`
+. From the *Destination settings* panel, specify the following settings:
++
+* *To find the Elasticsearch endpoint URL*: 
+.. Go to the https://cloud.elastic.co/[Elastic Cloud] console
+.. Find your deployment in the *Hosted deployments* card and select *Manage*.
+.. Under *Applications* click *Copy endpoint* next to *Elasticsearch*.
++
+* *To create the API key*: 
+.. Go to the https://cloud.elastic.co/[Elastic Cloud] console
+.. Select *Open Kibana*.
+.. Expand the left-hand menu, under *Management* select *Stack management > API Keys* and click *Create API key*. If you are using an API key with *Restrict privileges*, make sure to review the Indices privileges to provide at least `auto_configure` and `write` permissions for the indices you will be using with this delivery stream.
++
+* *Content encoding*: For a better network efficiency, leave content encoding set to GZIP.
++
+* *Retry duration*: Determines how long Firehose continues retrying the request in the event of an error. A duration of 60-300s should be suitable for most use cases.
++
+* *es_datastream_name*: `logs-aws.generic-default`
+
+IMPORTANT: Verify that your *Elasticsearch endpoint URL* includes `.es.` between the *deployment name* and *region*. Example: `https://my-deployment.es.us-east-1.aws.elastic-cloud.com`
 
 The Firehose stream is now ready to send logs to your Elastic Cloud deployment.
 
