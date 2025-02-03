@@ -67,9 +67,14 @@ This final policy is used to catch remaining trace events that don't match a str
 === Storage limit
 The amount of storage space allocated for trace events matching tail sampling policies. Caution: Setting this limit higher than the allowed space may cause APM Server to become unhealthy.
 
+A value of `0` or equivalent (e.g. `0GB`) means unlimited local tail sampling database size
+but enforces a max 80% disk usage limit on the disk where the database is located,
+i.e. the last 20% of disk will not be used by APM Server.
+It is the recommended value as it automatically scales with the disk size by definition.
+
 If the configured storage limit is insufficient, it logs "configured storage limit reached". The event will bypass sampling and will always be indexed when storage limit is reached.
 
-Default: `3GB`. (text)
+Default: `0`. (text)
 
 |====
 | APM Server binary | `sampling.tail.storage_limit`
