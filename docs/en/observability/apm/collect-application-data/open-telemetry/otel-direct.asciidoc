@@ -150,6 +150,11 @@ If you use the OTLP/gRPC protocol, requests to the APM Server must use either HT
 
 When using a layer 7 (L7) proxy like AWS ALB, requests must be proxied in a way that ensures requests to the APM Server follow the rules outlined above. For example, with ALB you can create rules to select an alternative backend protocol based on the headers of requests coming into ALB. In this example, you'd select the gRPC protocol when the  `"Content-Type: application/grpc"` header exists on a request.
 
+Many L7 load balancers, including **NGINX K8s Ingress**, handle HTTP and gRPC traffic separately. They rely on explicitly defined routes and service configurations to correctly proxy requests. Since APM Server serves both protocols on the same port, an L7 load balancer may not correctly distinguish between the two. The solution is to either:
+
+1. Use the `otlp` exporter with NGINX ingress, applying the GRPC annotation for APM Server.
+2. Use the `otlphttp` exporter with NGINX ingress, applying the HTTP annotation for APM Server.
+
 For more information on how to configure an AWS ALB to support gRPC, see this AWS blog post:
 https://aws.amazon.com/blogs/aws/new-application-load-balancer-support-for-end-to-end-http-2-and-grpc/[Application Load Balancer Support for End-to-End HTTP/2 and gRPC].
 
