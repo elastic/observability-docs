@@ -45,13 +45,12 @@ Use attributes—not to be confused with resource attributes—to add data to sp
 Attributes can be added as a part of the OpenTelemetry instrumentation process or with the https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/attributesprocessor[attributes processor].
 ====
 
-ping, it is **stored under `labels.*`**, with `.` (dots) replaced by `_` (underscores).
+== **Handling of Unmapped Attributes (`labels.*`)**
 
-[cols="2,2,2"]---
-
-## **Handling of Unmapped Attributes (`labels.*`)**
 Only a **subset of OpenTelemetry resource attributes are directly mapped to ECS fields**.
-If an attribute does not have a predefined ECS map
+If an attribute does not have a predefined ECS mapping, it is **stored under `labels.*`**, with `.` (dots) replaced by `_` (underscores).
+
+[cols="2,2,2"]
 |===
 | OpenTelemetry Attribute | Mapped ECS Field | If Unmapped, Stored as
 
@@ -88,10 +87,10 @@ Elastic APM will store:
 }
 ----
 
----
+== **APM Transactions vs. APM Spans**
 
-## **APM Transactions vs. APM Spans**
 Not all OpenTelemetry spans are mapped the same way:
+
 - **Root spans (entry points) → APM Transactions**
 - **Child spans (internal operations, DB queries) → APM Spans**
 
@@ -134,9 +133,8 @@ Transaction: GET /users/{id}
  ├── Span: SELECT FROM users
 ----
 
----
+== **Conditional Attribute Translation**
 
-## **Conditional Attribute Translation**
 Some OpenTelemetry attributes are conditionally **converted based on their value type**.
 
 [cols="3,3,3,3"]
