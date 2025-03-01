@@ -11,6 +11,8 @@ The examples shown here set the Elastic (ECS) `service.environment` field for th
 Note that Elastic maps the OpenTelemetry `deployment.environment` field to
 the ECS `service.environment` field on ingestion.
 
+== **Setting Resource Attributes**
+
 **OpenTelemetry agent**
 
 Use the `OTEL_RESOURCE_ATTRIBUTES` environment variable to pass resource attributes at process invocation.
@@ -42,3 +44,127 @@ Need to add event attributes instead?
 Use attributes—not to be confused with resource attributes—to add data to span, log, or metric events.
 Attributes can be added as a part of the OpenTelemetry instrumentation process or with the https://github.com/open-telemetry/opentelemetry-collector-contrib/blob/main/processor/attributesprocessor[attributes processor].
 ====
+
+ping, it is **stored under `labels.*`**, with `.` (dots) replaced by `_` (underscores).
+
+[cols="2,2,2"]---
+
+## **Handling of Unmapped Attributes (`labels.*`)**
+Only a **subset of OpenTelemetry resource attributes are directly mapped to ECS fields**.
+If an attribute does not have a predefined ECS map
+|===
+| OpenTelemetry Attribute | Mapped ECS Field | If Unmapped, Stored as
+
+| `service.name` | `service.name` | -
+| `service.version` | `service.version` | -
+| `deployment.environment` | `service.environment` | -
+| `cloud.provider` | `cloud.provider` | -
+| `cloud.account.id` | `cloud.account.id` | -
+| `otel.library.name` | ❌ Not mapped | `labels.otel_library_name`
+| `custom.attribute.with.dots` | ❌ Not mapped | `labels.custom_attribute_with_dots`
+|===
+
+For example, if an OpenTelemetry resource contains:
+[source,json]
+----
+{
+  "service.name": "user-service",
+  "deployment.environment": "production",
+  "otel.library.name": "my-lib",
+  "custom.attribute.with.dots": "value"
+}
+----
+
+Elastic APM will store:
+[source,json]
+----
+{
+  "service.name": "user-service",
+  "service.environment": "production",
+  "labels": {
+    "otel_library_name": "my-lib",
+    "custom_attribute_with_dots": "value"
+  }
+}
+----
+
+---
+
+## **APM Transactions vs. APM Spans**
+Not all OpenTelemetry spans are mapped the same way:
+- **Root spans (entry points) → APM Transactions**
+- **Child spans (internal operations, DB queries) → APM Spans**
+
+[cols="2,2,2"]
+|===
+| OpenTelemetry Span Kind | Mapped to APM | Example
+
+| `SERVER` | **Transaction** | Incoming HTTP request (`GET /users/{id}`)
+| `CONSUMER` | **Transaction** | Message queue consumer event
+| `CLIENT` | **Span** | Outgoing database query (`SELECT * FROM users`)
+| `PRODUCER` | **Span** | Sending a message to a queue
+| `INTERNAL` | **Span** | Internal function execution
+|===
+
+Example OpenTelemetry spans:
+[source,json]
+----
+[
+  {
+    "traceId": "abcd1234",
+    "spanId": "root5678",
+    "parentId": null,
+    "name": "GET /users/{id}",
+    "kind": "SERVER"
+  },
+  {
+    "traceId": "abcd1234",
+    "spanId": "db1234",
+    "parentId": "root5678",
+    "name": "SELECT FROM users",
+    "kind": "CLIENT"
+  }
+]
+----
+
+Elastic APM stores:
+[source,json]
+----
+Transaction: GET /users/{id}
+ ├── Span: SELECT FROM users
+----
+
+---
+
+## **Conditional Attribute Translation**
+Some OpenTelemetry attributes are conditionally **converted based on their value type**.
+
+[cols="3,3,3,3"]
+|===
+| OpenTelemetry Attribute | Incoming Value Type | Converted Value | APM Field
+
+| `http.status_code` | `200` (Integer) | `"200"` (String) | `http.response.status_code`
+| `feature.enabled` | `true` (Boolean) | `"enabled"` (String) | `labels.feature_enabled`
+| `http.request_headers` | `["accept:json", "auth:token"]` (Array) | `"accept:json, auth:token"` (String) | `labels.http_request_headers`
+|===
+
+For example:
+[source,json]
+----
+{
+  "http.status_code": 200,
+  "feature.enabled": true,
+  "http.request_headers": ["accept:json", "auth:token"]
+}
+----
+is stored as:
+[source,json]
+----
+{
+  "http.response.status_code": "200",
+  "labels": {
+    "feature_enabled": "enabled",
+    "http_request_headers": "accept:json, auth:token"
+  }
+}
+----
