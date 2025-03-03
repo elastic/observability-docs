@@ -1,93 +1,16 @@
+> [!IMPORTANT]
+> Starting with Elastic Stack v9.0.0 the content in this repo has been moved to other repos.
+>
+> **If you need to update the docs for version 8.17 or earlier**, you can open a PR in this repo targeting the specific version branch and backport to other branches using the [Backport CLI tool](https://github.com/sorenlouv/backport?tab=readme-ov-file#backport-cli-tool).
+>
+> **If you're updating the docs for version 9.0 or later**, you can open a PR in the content's new home:
+>
+> * Observability guide and serverless docs: [elastic/docs-content](https://github.com/elastic/docs-content/tree/main/solutions/observability) (stateless and serverless docs have been consolidated into one doc set)
+> * Integrations developer guide: [elastic/integrations](https://github.com/elastic/integrations/tree/main/docs/extend)
+
 # observability-docs
 
-The home of Elastic Observability documentation.
-
-## Directories
-
-Within this repo, the `/docs/en/` directory is structured as follows:
-
-| Directory             | Description |
-| --------------------- | ----------- |
-| __integrations__      | Contains the source files for the [Integrations Developer Guide](https://www.elastic.co/guide/en/integrations-developer/current/index.html).
-| __observability__     | Contains the source files for the [Observability Guide](https://www.elastic.co/guide/en/observability/current/index.html), which includes content for APM, Logs, Metrics, Synthetics, User experience, and Uptime.|
-| __serverless__ | Contains the source files for the [Elastic Observability Serverless docs](https://www.elastic.co/docs/current/serverless/observability/what-is-observability-serverless).
-| __shared__ | Contains the source files for shared Observability content.|
-| __templates__ | Contains content templates.|
-
-## Contributing
-
-If you find any bugs in our documentation, or want to request an enhancement, then you can open an issue using our template. We also welcome contributions in the form of PRs. Before you submit a PR, make sure that you have signed our [Contributor License Agreement](https://www.elastic.co/contributor-agreement/).
-
-Contributing directly to the docs works differently across the doc sets in this repo.
-
-### Observability Guide
-
-The source files for the Observability Guide are written in [AsciiDoc](https://docs.asciidoctor.org/asciidoc/latest/) and are built using [elastic/docs](https://github.com/elastic/docs).
-
-To build the docs locally:
-
-1. Check out the `elastic/docs` repository, along with any repositories that contain source files.
-2. Run the `build_docs` script, passing in the path to the `index.asciidoc` and resource paths to other repos that contain source files. For example, to build the Observability Guide and open it in the browser, run:
-    ```
-    ../docs/build_docs --doc ./docs/en/observability/index.asciidoc --chunk 3 --resource ../apm-server --resource ../ingest-docs/docs --open
-    ```
-
-The above command assumes that this repo, [elastic/docs](https://github.com/elastic/docs), [elastic/ingest-docs](https://github.com/elastic/ingest-docs), and [elastic/apm-server](https://github.com/elastic/apm-server) are checked out into the same parent directory.
-
-If you prefer to use aliases, you can load the [elastic/docs/doc_build_aliases.sh file](https://github.com/elastic/docs/blob/master/doc_build_aliases.sh), which has the resources defined for you.
-
-### Elastic Observability Serverless docs
-
-The source files for the Serverless docs are written in [AsciiDoc](https://docs.asciidoctor.org/asciidoc/latest/) and are built using [elastic/docs](https://github.com/elastic/docs).
-
-To build the docs locally:
-
-1. Check out the `elastic/docs` repository, along with any repositories that contain source files.
-2. Run the `build_docs` script, passing in the path to the `index.asciidoc` and resource paths to other repos that contain source files. For example, to build the Observability Guide and open it in the browser, run:
-    ```
-    ../docs/build_docs --doc ../docs-content/serverless/index.asciidoc --chunk 5 --open --resource ./docs/en/serverless --resource ../security-docs/docs/serverless --resource ../docs-content/serverless
-    ```
-
-The above command assumes that this repo, [elastic/docs](https://github.com/elastic/docs), [elastic/observability-docs](https://github.com/elastic/observability-docs), [elastic/security-docs](https://github.com/elastic/security-docs), and [elastic/docs-content](https://github.com/elastic/docs-content) are checked out into the same parent directory.
-
-If you prefer to use aliases, you can load the [elastic/docs/doc_build_aliases.sh file](https://github.com/elastic/docs/blob/master/doc_build_aliases.sh), which has the resources defined for you.
-
-### Integrations Developer Guide
-
-The source files for the Integrations Developer Guide are written in [AsciiDoc](https://docs.asciidoctor.org/asciidoc/latest/) and are built using [elastic/docs](https://github.com/elastic/docs).
-
-To build the docs locally:
-
-1. Check out the `elastic/docs` repository, along with any repositories that contain source files.
-2. Run the `build_docs` script, passing in the path to the `index.asciidoc` and resource paths to other repos that contain source files. For example, to build the Observability Guide and open it in the browser, run:
-    ```
-    ../docs/build_docs --doc ./docs/en/integrations/index.asciidoc --resource=../package-spec/versions --chunk 1 --open
-    ```
-
-The above command assumes that this repo, [elastic/docs](https://github.com/elastic/docs), and [elastic/package-spec](https://github.com/elastic/package-spec), are checked out into the same parent directory.
-
-If you prefer to use aliases, you can load the [elastic/docs/doc_build_aliases.sh file](https://github.com/elastic/docs/blob/master/doc_build_aliases.sh), which has the resources defined for you.
-
-## Backporting
-
-Backporting works differently across the doc sets in this repo.
-
-### Observability Guide
-
-Pull requests should be tagged with the target version of the Elastic Stack along with any relevant backport labels. In general, we only backport documentation changes to [live stack versions](https://github.com/elastic/docs/blob/master/conf.yaml#L74). For manual backports, we recommend using the [backport tool](https://github.com/sqren/backport) to easily open backport PRs. If you need help, ping **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** and we'd be happy to handle the backport process for you.
-
-### Elastic Observability Serverless docs
-
-Serverless docs are not versioned, and should never be backported. All changes should be made to the `main` branch.
-If you're backporting Serverless and Stateful content in the same PR, an automation will run that deletes the `docs/en/serverless` dir from your PR.
-
-### Integrations Developer Guide
-
-The Integrations Developer Guide is not versioned, and should never be backported.  All changes should be made to the `main` branch.
-
-## Reviews
-
-All documentation pull requests automatically add the **[@obs-docs](https://github.com/orgs/elastic/teams/obs-docs)** team as a reviewer.
+The home of Elastic Observability documentation v8.17 and earlier.
 
 ## License
 
