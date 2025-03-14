@@ -22,6 +22,44 @@ _Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
 ////
 
 [discrete]
+== APM Server v8.6.x and prior with Elasticsearch v8.15.x and later has broken APM UI
+
+_Elastic Stack versions: 8.15.0+_
+
+// The conditions in which this issue occurs
+The issue occurs when using APM Server versions <= 8.6.x with {stack} versions 8.15.x and later.
+
+// Describe why it happens
+In APM Server versions prior to 8.7.0, the aggregated metrics were indexed in APM's internal data stream. The aggregated metrics require some additional mappings to properly index the data and allow the APM UI to be able to use the data to populate service inventory page properly. From APM Server version 8.7.0, aggregated metrics were moved to their dedicated datastreams (https://github.com/elastic/apm-server/issues/9703[ref]), however, the internal mappings were kept to support backward compatibility. In APM Server version 8.15.0 we migrated to the https://github.com/elastic/elasticsearch/tree/main/x-pack/plugin/apm-data[apm-data plugin] and the internal mappings required to make aggregated metrics work were dropped.
+
+// How to fix it
+If the deployment is running 8.15.0 and APM Server versions are still at 8.6.x or older then the recommendation would be to upgrade the APM Server to the same version as the stack version. If upgrade is not possible then the custom component template should be updated to include custom mappings for making internal datastreams support aggregated metrics:
+
+[source,txt]
+----
+PUT _component_template/metrics-apm.internal@custom
+{
+  "template": {
+    "mappings": {
+      "dynamic_templates": [],
+      "properties": {
+        "transaction.duration.histogram": {
+          "type": "histogram"
+        }
+      }
+    }
+  },
+  "_meta": {
+    "package": {
+      "name": "apm"
+    },
+    "managed_by": "fleet",
+    "managed": true
+  }
+}
+----
+
+[discrete]
 == `prefer_ilm` required in component templates to create custom lifecycle policies
 
 _Elastic Stack versions: 8.15.1+_
