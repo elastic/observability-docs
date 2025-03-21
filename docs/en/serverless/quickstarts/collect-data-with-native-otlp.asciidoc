@@ -1,0 +1,208 @@
+[[collect-data-with-native-otlp]]
+= Quickstart: Collect data with Elastic Cloud Native OpenTelemetry Endpoint
+
+preview::[]
+
+In this quickstart guide, you'll learn how to use the Elastic Cloud Native OpenTelemetry Endpoint to send logs, metrics, and traces to Elastic.
+
+[discrete]
+== What is the Elastic Cloud Native OpenTelemetry Endpoint?
+
+The Elastic Cloud Native OpenTelemetry Endpoint is a fully managed offering exclusively for Elastic Cloud Serverless users that simplifies OpenTelemetry data ingestion. It provides an endpoint for OpenTelemetry SDKs and Collectors to send telemetry data, with Elastic handling scaling, data processing, and storage.
+
+This endpoint is designed for the following use cases:
+
+* Logs & Infrastructure Monitoring: Logs forwarded in OTLP format and host and Kubernetes metrics in OTLP format.
+* APM: Application telemetry in OTLP format.
+
+[%collapsible]
+.Differences from the existing Elastic OTLP Endpoint
+====
+The Elastic Cloud Native OpenTelemetry Endpoint ensures that OpenTelemetry data is stored without any schema translation, preserving both semantic conventions and resource attributes. It supports ingesting OTLP logs, metrics, and traces in a unified manner, ensuring consistent treatment across all telemetry data. This marks a significant improvement over the {observability-guide}/apm-open-telemetry.html[existing functionality], which primarily focuses on traces and the APM use case.
+====
+
+[discrete]
+== Prerequisites
+
+* An {obs-serverless} project. To learn more, refer to <<observability-create-an-observability-project>>.
+* A system forwarding logs, metrics, or traces in OTLP (any OTel Collector or SDK—EDOT or community).
+
+[discrete]
+=== Limitations
+
+* The Elasticsearch exporter only supports histograms with delta temporality. Cumulative histograms are dropped.
+* You may be rate limited if...
+* Resolution concerns may arise for explicit bounded histogram metrics due to Memory issues.
+
+[discrete]
+== Get started
+
+[discrete]
+=== Get your native OTLP endpoint
+
+. <<observability-create-an-observability-project,Create a new {obs-serverless} project>>, or open an existing one.
+
+. In your {obs-serverless} project, go to **Add Data**.
+
+. Under **What do you want to monitor?** select **Application**, and then under **Monitor your application using** select **OpenTelemetry**.
++
+NOTE: Follow this flow for all use cases, including logs and infrastructure monitoring.
+
+. Copy the `OTEL_EXPORTER_OTLP_ENDPOINT` URL. Replace `.apm` with `.ingest` and save this value for later.
+
+[discrete]
+=== Create an API key
+
+. Click "Create an API Key" to generate a new API key. Copy this value for later.
+. (Optional) Test your new API key. You can do this by sending an empty JSON object to the `/v1/traces` endpoint. For example:
++
+[source,bash]
+----
+curl -X POST \
+  -H "Content-Type: application/json" \
+  -H "Authorization: ApiKey <api-key>" \
+  https://{YOUR_CLUSTER}.ingest.us-east-1.aws.elastic.cloud:443/v1/traces \
+  -d '{}'
+----
++
+The response should be similar to:
++
+[source,txt]
+----
+{"partialSuccess":{}}%  
+----
+
+[discrete]
+=== Send data to your native OTLP endpoint
+
+To send data to your native OTLP endpoint, add the above credentials to your OpenTelemetry collector or SDK. If you're unsure how to accomplish this, the following links may be helpful: 
+
+* https://opentelemetry.io/docs/collector/configuration/[OTLP Collector configuration]
+* https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/[OTLP Exporter configuration]
+* https://elastic.github.io/opentelemetry/edot-collector/edot-collector-config.html[Elastic Distributions of OpenTelemetry (EDOT) Collector configuration]
+* https://elastic.github.io/opentelemetry/edot-sdks/index.html[Elastic Distributions of OpenTelemetry (EDOT) SDKs]
+
+// I'm not entirely sure how to be more helpful here
+// Should we expand on some of these in this doc?
+
+That's it. You're now ready to leverage OTel in Elastic Observability.
+
+[discrete]
+==== (Optional) Install EDOT Collector
+
+Don't have a collector or SDK running? No problem. Spin up an EDOT collector in just a few steps:
+
+++++
+<div class="tabs" data-tab-group="custom-tab-group-name">
+  <div role="tablist" aria-label="Human readable name of tab group">
+    <button role="tab"
+            aria-selected="true"
+            aria-controls="helm-tab"
+            id="helm-tab-id">
+      Kubernetes (Operator)
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="linux-tab"
+            id="linux-tab-id"
+            tabindex="-1">
+      Linux (EDOT Collector)
+    </button>
+    <button role="tab"
+            aria-selected="false"
+            aria-controls="mac-tab"
+            id="mac-tab-id"
+            tabindex="-1">
+      Mac (EDOT Collector)
+    </button>
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="helm-tab"
+       aria-labelledby="helm-tab-id">
+++++
+
+include::native-otlp-tabs.asciidoc[tag=helm]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="linux-tab"
+       aria-labelledby="linux-tab-id"
+       hidden="">
+++++
+
+include::native-otlp-tabs.asciidoc[tag=linux]
+
+++++
+  </div>
+  <div tabindex="0"
+       role="tabpanel"
+       id="mac-tab"
+       aria-labelledby="mac-tab-id"
+       hidden="">
+++++
+
+include::native-otlp-tabs.asciidoc[tag=mac]
+
+++++
+  </div>
+</div>
+++++
+
+[discrete]
+== Get Creative with Discover
+
+Attributes and resource attributes are prefixed with `attributes.*` and `resource.attributes.*`.
+You can correlate all signals with a single `resource.attributes.*`.
+
+// screenshots here?
+// is there a specific workflow to call out?
+
+[discrete]
+== Monitor Application Performance
+
+// I'm guessing these are the UIs that work with these attrs?
+
+* UIs
+* Service Inventory
+* Service Map
+* Service Groups
+* Service Specific Views
+** Overview
+** Transactions
+** Dependencies
+** Errors
+** Metrics
+** Logs
+** Infrastructure
+** Traces
+** Dependencies
+
+// screenshots here?
+// is there a specific workflow to call out?
+
+[discrete]
+== Check the Health of Your Infrastructure
+
+* Hosts
+** Hosts UI
+* Kubernetes
+** (Optional) Install the OpenTelemetry Assets integrations to access the ‘[OTEL][Metrics Kubernetes] Cluster Overview’ dashboard.
+
+// screenshots here?
+// is there a specific workflow to call out?
+
+[discrete]
+== Troubleshoot
+
+// are there specific troubleshooting scenarios we should call out?
+
+[discrete]
+== Provide feedback
+
+We love to hear from you!
+Help improve the Elastic Cloud Native OpenTelemetry Endpoint by sending us feedback [link here].
+
+// where do we want feedback?
