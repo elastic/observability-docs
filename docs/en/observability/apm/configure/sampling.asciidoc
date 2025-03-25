@@ -127,3 +127,61 @@ The service environment for events to match a policy. (string)
 
 // end::tbs-policy[]
 :!input-type:
+
+[float]
+[[sampling-tail-monitoring-ref]]
+== Monitoring tail-based sampling
+
+APM Server produces metrics to monitor the performance and estimate the workload being processed by tail-based sampling. In order to use these metrics, you need to [enable monitoring for the APM Server](/solutions/observability/apps/monitor-apm-server.md). The following metrics are produced by the tail-based sampler (note that the metrics might have a different prefix,  for example `beat.stats` for ECH deployments, based on how the APM Server is running):
+
+[float]
+[[sampling-tail-monitoring-dynamic-service-group-ref]]
+=== `apm-server.sampling.tail.dynamic_service_groups`
+
+This metric tracks the number of dynamic services that the tail-based sampler is tracking per policy. Dynamic services are created for tail-based sampling policies that are defined without a `service.name`.
+
+This is a counter metric so, should be visualized with `counter_rate`.
+
+[float]
+[[sampling-tail-monitoring-events-processed-ref]]
+=== `apm-server.sampling.tail.events.processed`
+
+This metric tracks the total number of events (including both transaction and span) processed by the tail-based sampler.
+
+This is a counter metric so, should be visualized with `counter_rate`.
+
+[float]
+[[sampling-tail-monitoring-events-stored-ref]]
+=== `apm-server.sampling.tail.events.stored`
+
+This metric tracks the total number of events stored by the tail-based sampler in the database. Events are stored when the full trace is not yet available to make the sampling decision. This value is directly proportional to the storage required by the tail-based sampler to function.
+
+This is a counter metric so, should be visualized with `counter_rate`.
+
+[float]
+[[sampling-tail-monitoring-events-dropped-ref]]
+=== `apm-server.sampling.tail.events.dropped`
+
+This metric tracks the total number of events dropped by the tail-based sampler. Only the events that are actually dropped by the tail-based sampler are reported as dropped. Additionally, any events that were stored by the processor but never indexed will not be counted by this metric.
+
+This is a counter metric so, should be visualized with `counter_rate`.
+
+[float]
+[[sampling-tail-monitoring-storage-lsm-size-ref]]
+=== `apm-server.sampling.tail.storage.lsm_size`
+
+This metric tracks the storage size of the log-structured merge trees used by the tail-based sampling database in bytes. This metric is one part of the total disk space used by the tail-based sampler. See <<sampling-tail-monitoring-storage-total-size-ref>> for details on how to monitor total disk size used by the tail-based sampler.
+
+[float]
+[[sampling-tail-monitoring-storage-value-log-size-ref]]
+=== `apm-server.sampling.tail.storage.value_log_size`
+
+This metric tracks the storage size for value log files used by the tail-based sampling database in bytes. This metric is one part of the total disk space used by the tail-based sampler. See <<sampling-tail-monitoring-storage-total-size-ref>> for details on how to monitor total disk size used by the tail-based sampler.
+
+[float]
+[[sampling-tail-monitoring-storage-total-size-ref]]
+=== Total storage size
+
+Total storage size is the sum of the <<sampling-tail-monitoring-storage-lsm-size-ref>> and <<sampling-tail-monitoring-storage-value-log-size-ref>>. It is the most crucial metric to track storage requirements for tail-based sampler, especially for big deployments with large distributed traces. Deployments using tail-based sampling extensively should set up alerts and monitoring on this metric.
+
+This metric can also be used to get an estimate of the storage requirements for tail-based sampler before increasing load by extrapolating the metric based on the current usage. It is important to note that before doing any estimation the tail-based sampler should be allowed to run for at least a few TTL cycles and that the estimate will only be useful for similar load patterns.
