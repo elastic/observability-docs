@@ -6,7 +6,7 @@ preview::[]
 In this quickstart guide, you'll learn how to use the Elastic Cloud Managed OTLP Endpoint to send logs, metrics, and traces to Elastic.
 
 [discrete]
-== What is the Elastic Cloud Native OpenTelemetry Endpoint?
+== What is the Elastic Cloud Managed OTLP endpoint?
 
 The Managed OTLP Endpoint is a fully managed offering exclusively for Elastic Cloud users (initially available in Elastic Cloud Serverless only) that simplifies OpenTelemetry data ingestion. It provides an endpoint for OpenTelemetry SDKs and Collectors to send telemetry data, with Elastic handling scaling, data processing, and storage.
 
@@ -73,22 +73,65 @@ The response should be similar to:
 ----
 
 [discrete]
-=== Send data to your native OTLP endpoint
+=== Send data to your Elastic Cloud Managed OTLP endpoint
 
-To send data to your native OTLP endpoint, add the above credentials to your OpenTelemetry collector or SDK. If you're unsure how to accomplish this, the following links may be helpful: 
-
-* https://opentelemetry.io/docs/collector/configuration/[OTLP Collector configuration]
-* https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/[OTLP Exporter configuration]
-* https://elastic.github.io/opentelemetry/edot-collector/edot-collector-config.html[Elastic Distributions of OpenTelemetry (EDOT) Collector configuration]
-* https://elastic.github.io/opentelemetry/edot-sdks/index.html[Elastic Distributions of OpenTelemetry (EDOT) SDKs]
-
-// I'm not entirely sure how to be more helpful here
-// Should we expand on some of these in this doc?
-
-That's it. You're now ready to leverage OTel in Elastic Observability.
+* <<otel-sdk-running>>
+* <<no-sdk-running>>
+* <<instrumentation-please>>
 
 [discrete]
-==== (Optional) Install EDOT Collector
+[[otel-sdk-running]]
+==== I have an OTel Collector/SDK running
+
+If you have an OpenTelemetry Collector or SDK exporting telemetry data,
+configure it with the endpoint and API key generated in the previous steps.
+
+**OpenTelemetry Collector configuration**
+
+Configure your OTel Collector as follows:
+
+[source,yaml]
+----
+exporters:
+  otlp:
+    endpoint: "https://my_cluster.ingest.us-east-1.aws.elastic.cloud:443/v1/traces"
+    headers: "Authorization": "ApiKey <api-key-value-here>"
+----
+
+For more information, see
+https://opentelemetry.io/docs/collector/configuration/[OTLP Collector configuration]
+
+**Elastic Distributions of OpenTelemetry (EDOT) Collector configuration**
+
+Configure an EDOT Collector using the same method described above in **OpenTelemetry Collector configuration**.
+See the https://elastic.github.io/opentelemetry/edot-collector/index.html[EDOT Language SDK documentation] for more information.
+
+**OpenTelemetry SDK configuration**
+
+Configure your OTel SDK with the following environment variables:
+
+* Elastic Cloud Managed OTLP endpoint: `OTEL_EXPORTER_OTLP_ENDPOINT` 
+* Elastic API key: `OTEL_EXPORTER_OTLP_HEADERS`
+
+For example:
+
+[source,terminal]
+----
+export OTEL_EXPORTER_OTLP_ENDPOINT="https://my-api-endpoint:443"
+export OTEL_EXPORTER_OTLP_HEADERS="Authorization=ApiKey <api-key>"
+----
+
+For more information, see
+https://opentelemetry.io/docs/languages/sdk-configuration/otlp-exporter/[OTLP Exporter configuration].
+
+**Elastic Distributions of OpenTelemetry (EDOT) SDK configuration**
+
+Configure an EDOT SDK using the same method described above in **OpenTelemetry SDK configuration**.
+See the https://elastic.github.io/opentelemetry/edot-sdks/index.html[EDOT Language SDK documentation] for more information.
+
+[discrete]
+[[no-sdk-running]]
+==== I need an OTel Collector/SDK
 
 Don't have a collector or SDK running? No problem. Spin up an EDOT collector in just a few steps:
 
@@ -99,56 +142,27 @@ Don't have a collector or SDK running? No problem. Spin up an EDOT collector in 
 // * https://elastic.github.io/opentelemetry/quickstart/serverless/docker.html[Docker Quickstart]
 
 [discrete]
-== Get creative with Discover
+[[instrumentation-please]]
+==== I just want to use the instrumentation
 
-**Discover allows you to quickly search and filter your data, get information about the structure of the fields in your data, and display your findings in a visualization.
-Find **Discover** in your {obs-serverless} project's UI under *Analyze / Discover*.
-
-Attributes and resource attributes are prefixed with `attributes.*` and `resource.attributes.*`.
-You can correlate all signals with a single `resource.attributes.*`.
-
-[role="screenshot"]
-image::images/resource-attrs.png[resource attributes]
-
-See {kibana-ref}/discover.html[Discover] to learn more.
-
-[discrete]
-== Monitor application performance
-
-The Applications UI allows you to monitor your software services and applications in real-time. You can visualize detailed performance information on your services, identify and analyze errors, and monitor host-level metrics.
-
-[discrete]
-== Check the health of your infrastructure
-
-To access the **Hosts** page, in your {obs-serverless} project, go to
-**Infrastructure** → **Hosts**.
-
-On the Hosts page, you can view health and performance metrics to help you quickly:
-
-* Analyze and compare hosts without having to build new dashboards.
-* Identify which hosts trigger the most alerts.
-* Troubleshoot and resolve issues quickly.
-
-[role="screenshot"]
-image::images/hosts-ui-otlp.png[resource attributes]
-
-See {observability-guide}/analyze-hosts.html[Analyze and compare hosts] to learn more.
-
-[discrete]
-=== (Optional) Install the OpenTelemetry Assets integration
-
-Install the OpenTelemetry Assets integrations to access the "[OTEL][Metrics Kubernetes] Cluster Overview" dashboard.
-This dashboard 
-
-In your {obs-serverless} project, go to **Integrations** and toggle **Display beta integrations**.
-Search for "OpenTelemetry" and select and install **Kubernetes OpenTelemetry Assets**.
-
-// Does anyone have a cluster with relevant data that we can use to take a screenshot of this dashboard?
+Docs coming soon to https://elastic.github.io/opentelemetry/use-cases/application/
+Just send data to your Elastic Cloud Managed OTLP endpoint. That's it. 
 
 [discrete]
 == Troubleshoot
 
-// are there specific troubleshooting scenarios we should call out?
+**Api Key prefix not found**
+
+The following error is due to an improperly formatted API key:
+
+[source,terminal]
+----
+Exporting failed. Dropping data.
+{"kind": "exporter", "data_type": }
+"Unauthenticated desc = ApiKey prefix not found"
+----
+
+You must format your API key as `"Authorization": "ApiKey <api-key-value-here>"` or `"Authorization=ApiKey <api-key>"` depending on whether you're using a collector or SDK. See <<otel-sdk-running>> for more information.
 
 [discrete]
 == Provide feedback
@@ -157,3 +171,8 @@ We love to hear from you!
 Help improve the Elastic Cloud Managed OTLP Endpoint by sending us feedback in our https://discuss.elastic.co/c/apm[discussion forum] or https://elasticstack.slack.com/signup#/domain-signup[community Slack].
 
 For EDOT collector feedback, please open an issue in the https://github.com/elastic/elastic-agent/issues[elastic-agent repository].
+
+[discrete]
+== What's next?
+
+Visualize your OpenTelemetry data. Learn more in <<otlp-visualize>>.
