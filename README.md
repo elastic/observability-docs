@@ -12,7 +12,7 @@
 
 # observability-docs
 
-The home of Elastic Observability documentation v8.17 and earlier.
+The home of Elastic Observability documentation prior to version 9.0.0.
 
 ## License
 
