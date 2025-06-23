@@ -7,6 +7,8 @@
 >
 > * Observability guide and serverless docs: [elastic/docs-content](https://github.com/elastic/docs-content/tree/main/solutions/observability) (stateless and serverless docs have been consolidated into one doc set)
 > * Integrations developer guide: [elastic/integrations](https://github.com/elastic/integrations/tree/main/docs/extend)
+> 
+> **If you want to open a documentation issue or request**, please open an issue in [elastic/docs-content](https://github.com/elastic/docs-content/issues).
 
 # observability-docs
 
