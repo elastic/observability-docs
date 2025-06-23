@@ -1,5 +1,5 @@
 > [!IMPORTANT]
-> Starting with Elastic Stack v9.0.0 the content in this repo has been moved to other repos.
+> Starting with Elastic Stack v9.0.0 the source files in this repo have been moved to other repos.
 >
 > **If you need to update the docs for a version prior to 9.0.0**, you can open a PR in this repo targeting the specific version branch and backport to other branches using the [Backport CLI tool](https://github.com/sorenlouv/backport?tab=readme-ov-file#backport-cli-tool).
 >
