@@ -1,0 +1,113 @@
+[[degraded-docs-alert]]
+= Create a degraded docs rule
+
+++++
+<titleabbrev>Degraded docs</titleabbrev>
+++++
+
+NOTE: Users need the *Data Set Quality* role with the *Manage rules* privilege or the *Editor* role or higher to create degraded docs rules. To learn more, refer to {cloud}/ec-user-privileges.html[User roles and privileges].
+
+Based on the data found on the <<monitor-datasets>> page, you can create a rule to notify you when the percentage of degraded documents for a specific data view has exceeded a value over a specific time period.
+
+[role="screenshot"]
+image::images/observability-degraded-docs-rule.png[Host monitoring entry point]
+
+To access this rule from the **Alerts** page:
+
+. Go to **Alerts**.
+. Click **Manage Rules** → **Create rule**.
+. Under **Select rule type**, select **Degraded docs**.
+
+You can also access this rule from the **Data Set Quality** page:
+
+. Go to **Stack Management** → **Data Set Quality** or search for "Data Set Quality" using the [global search field](../../../explore-analyze/find-and-organize/find-apps-and-objects.md).
+. Select a data set name from the data set table.
+. Select **Actions** in the upper-right corner of the page.
+. Select **Create rule**.
+
+[discrete]
+[[action-types-degraded-docs-define-conditions]]
+== Define the conditions
+
+
+Define the following conditions for your rule:
+
+. Set the data view you want to create the rule for. If you access the rule from the **Data Set Quality** page, the data view is automatically populated.
+. Set the threshold percentage that, when exceeded for a period of time, the rule sends an alert.
+. Specify how long the threshold must be exceeded before an alert is sent.
+. (Optional) Set one or more **Group alerts by** fields. Every unique value will create an alert.
+. Set how often to check the rule conditions by selecting a time value and unit under **Rule schedule**.
+. (Optional) Configure **Advanced options**:
+   ** Define the number of consecutive matches required before an alert is triggered under **Alert delay**.
+   ** Enable or disable **Flapping Detection** to reduce noise from frequently changing alerts. You can customize the flapping detection settings if you need different thresholds for detecting flapping behavior.
+
+[discrete]
+[[action-types-degraded-docs]]
+== Action types
+
+You can extend your rules with actions that interact with third-party systems, write to logs or indices, or send user notifications. You can add an action to a rule at any time. You can create rules without adding actions, and you can also define multiple actions for a single rule.
+
+To add actions to rules, you must first create a connector for that service (for example, an email or external incident management system), which you can then use for different rules, each with their own action frequency.
+
+include::../shared/alerting-and-rules/alerting-connectors.asciidoc[]
+
+.Action frequency
+[%collapsible]
+====
+After you select a connector, you must set the action frequency. You can choose to create a summary of alerts on each check interval or on a custom interval. Alternatively, you can set the action frequency such that you choose how often the action runs (for example, at each check interval, only when the alert status changes, or at a custom action interval). In this case, you must also select the specific threshold condition that affects when actions run: `Alert`, `No Data`, or `Recovered`.
+
+[role="screenshot"]
+image::images/custom-threshold-run-when.png[Configure when a rule is triggered]
+
+You can also further refine the conditions under which actions run by specifying that actions only run when they match a KQL query or when an alert occurs within a specific time frame:
+
+* **If alert matches query**: Enter a KQL query that defines field-value pairs or query conditions that must be met for notifications to send. The query only searches alert documents in the indices specified for the rule.
+* **If alert is generated during timeframe**: Set timeframe details. Notifications are only sent if alerts are generated within the timeframe you define.
+
+[role="screenshot"]
+image::images/logs-threshold-conditional-alert.png[Configure a conditional alert]
+====
+
+.Action variables
+[%collapsible]
+====
+Use the default notification message or customize it. You can add more context to the message by clicking the Add variable icon ![Add variable](/solutions/images/serverless-indexOpen.svg "") and selecting from a list of available variables.
+
+The following variables are specific to this rule type. You can also specify [variables common to all rules](/explore-analyze/alerts-cases/alerts/rule-action-variables.md).
+
+`context.alertDetailsUrl`
+:   Link to the alert troubleshooting view for further context and details. This will be an empty string if the `server.publicBaseUrl` is not configured.
+
+`context.cloud`
+:   The cloud object defined by ECS if available in the source.
+
+`context.container`
+:   The container object defined by ECS if available in the source.
+
+`context.group`
+:   The object containing groups that are reporting data.
+
+`context.host`
+:   The host object defined by ECS if available in the source.
+
+`context.labels`
+:   List of labels associated with the entity where this alert triggered.
+
+`context.orchestrator`
+:   The orchestrator object defined by ECS if available in the source.
+
+`context.reason`
+:   A concise description of the reason for the alert.
+
+`context.tags`
+:   List of tags associated with the entity where this alert triggered.
+
+`context.timestamp`
+:   A timestamp of when the alert was detected.
+
+`context.value`
+:   List of the condition values.
+
+`context.viewInAppUrl`
+:   Link to the alert source.
+====
