@@ -99,19 +99,12 @@ To set up the AI Assistant:
 [[obs-ai-add-data]]
 == Add data to the AI Assistant knowledge base
 
-[IMPORTANT]
-====
-*If you started using the AI Assistant in technical preview*,
-any knowledge base articles you created before 8.12 will have to be reindexed or upgraded before they can be used.
-Knowledge base articles created before 8.12 use ELSER v1.
-In 8.12, knowledge base articles must use ELSER v2.
-Options include:
+The AI Assistant uses one of the following text embedding models to run  semantic search against the internal knowledge base index. The top results are passed to the LLM as context (retrieval‑augmented generation), producing more accurate and grounded responses:
 
-* Clear all old knowledge base articles manually and reindex them.
-* Upgrade all knowledge base articles indexed with ELSER v1 to ELSER v2 using a https://github.com/elastic/elasticsearch-labs/blob/main/notebooks/model-upgrades/upgrading-index-to-use-elser.ipynb[Python script].
-====
+* {ml-docs}/ml-nlp-elser.html[ELSER]: Recommended for English-only use cases.
+* {ml-docs}/ml-nlp-e5.html[E5]: Supports multilingual use cases.
 
-The AI Assistant uses {ml-docs}/ml-nlp-elser.html[ELSER], Elastic's semantic search engine, to recall data from its internal knowledge base index to create retrieval augmented generation (RAG) responses. Adding data such as Runbooks, GitHub issues, internal documentation, and Slack messages to the knowledge base gives the AI Assistant context to provide more specific assistance.
+Adding data such as Runbooks, GitHub issues, internal documentation, and Slack messages to the knowledge base gives the AI Assistant context to provide more specific assistance.
 
 NOTE: Your AI provider may collect telemetry when using the AI Assistant. Contact your AI provider for information on how data is collected.
 
@@ -223,6 +216,51 @@ To create the embeddings needed by the AI Assistant using a {ref}/semantic-text.
 
 The AI Assistant will now query the connector you've set up using the model you've selected.
 Check that the AI Assistant is using the index by asking it something related to the indexed data.
+
+[discrete]
+[[obs-ai-assistant-user-prompt]]
+=== Add user-specific system prompts
+
+User-specific prompts customize how the AI assistant responds by appending personalized instructions to built-in system prompts. For example, you could specify "Always respond in French," and all subsequent responses will be in French.
+
+A user-specific prompt only applies to the user that sets it.
+
+To edit the **User-specific System Prompt**:
+
+. Go to the **{{obs-ai-assistant}}** management page. You can find it in the **Management** menu or by using the {kibana-ref}/introduction.html#kibana-navigation-search[global search field]..
+. Switch to the **Knowledge base** tab.
+. Select **Edit User-specific Prompt**.
+
+[discrete]
+[[obs-ai-assistant-user-prompt-example]]
+=== User-specific system prompt example
+User-specific prompts are useful when configuring specific workflows. For example, if you want the assistant to respond in a consistent, readable format when asked about Kubernetes metadata, you might add the following **user-specific system prompt**:
+
+[source,txt]
+----
+<kubernetes_info>
+If asked about a Kubernetes pod, namespace, cluster, location, or owner, return the info in this format.  Use the field names to find the relevant information requested.  Don't mention the field names, just the results.
+- Pod: agent.name
+- Namespace: data_stream.namespace
+- Cluster Name: orchestrator.cluster.name
+- Owner: cloud.account.id
+</kubernetes_info>
+----
+
+[discrete]
+[[obs-ai-choose-language-model]]
+=== Choose the Knowledge Base language model
+
+Choose the default language model for the AI Assistant in the AI Assistant settings under **Set text embeddings model**.
+
+* {ml-docs}/ml-nlp-elser.html[ELSER]: Recommended for English-only use cases.
+* {ml-docs}/ml-nlp-e5.html[E5]: supports multilingual use cases.
+
+Select the language model and click **Update**.
+
+When switching models, all existing Knowledge Base entries must be reindexed. Entries will be unavailable until reindexing is complete.
+
+To have the AI Assistant respond in a language other than English, set a <<obs-ai-assistant-user-prompt, user-specific system prompt>>.
 
 [discrete]
 [[obs-ai-interact]]
