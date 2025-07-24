@@ -27,7 +27,7 @@ but is not responsible for the LLM's responses.
 
 [IMPORTANT]
 ====
-Also, the data you provide to the Observability AI assistant is _not_ anonymized, and is stored and processed by the third-party AI provider. This includes any data used in conversations for analysis or context, such as alert or event data, detection rule configurations, and queries. Therefore, be careful about sharing any confidential or sensitive details while using this feature.
+Also, the data you provide to the Observability AI assistant is _not_ anonymized, and is stored and processed by the third-party AI provider. This includes any data used in conversations for analysis or context, such as alert or event data, detection rule configurations, and queries. Therefore, be careful about sharing any confidential or sensitive details while using this feature. If you need to anonymize data, use the <<obs-ai-anonymization,anonymization pipeline>>.
 ====
 
 [discrete]
@@ -424,6 +424,104 @@ Enabling that feature can be done from the *Settings* tab of the AI Assistant Se
 
 IMPORTANT: Installing the product documentation in air gapped environments requires specific installation and configuration instructions,
 which are available in the {kibana-ref}/ai-assistant-settings-kb.html[{kib} Kibana AI Assistants settings documentation].
+
+[discrete]
+[[obs-ai-anonymization]]
+== Anonymization
+
+Anonymization masks personally identifiable or otherwise sensitive information before chat messages leave Kibana for a third-party LLM.
+Enabled rules substitute deterministic tokens (for example `EMAIL_ee4587…`) so the model can keep context without ever seeing the real value.
+When all rules are disabled (the default), data is forwarded unchanged.
+
+[discrete]
+[[obs-ai-anonymization-how-it-works]]
+== How it works
+
+When an anonymization rule is enabled in the <<obs-ai-settings>>, every message in the request (system prompt, message content, function call arguments/responses) is run through an *anonymization pipeline* before it leaves Kibana:
+
+. Each enabled **rule** scans the text and replaces any match with a deterministic token such as
+   `EMAIL_ee4587b4ba681e38996a1b716facbf375786bff7`.
+   The prefix (`EMAIL`, `PER`, `LOC`, …) is the *entity class*; the suffix is a deterministic hash of the original value.
+. The fully masked conversation is sent to the LLM.
+. After the LLM responds, the original values are restored so the user sees deanonymized text and any persisted conversation history stores the original content. Deanonymization information is stored with the conversation messages to enable the UI to highlight anonymized content.
+
+[discrete]
+[[obs-ai-anonymization-rule-types]]
+== Rule types
+
+
+**RegExp**: Runs a JavaScript‑style regular expression. Use for fixed patterns such as email addresses, host names, etc.
+
+[source,json]
+----
+{
+  "type": "RegExp",
+  "pattern": "([a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,})",
+  "entityClass": "EMAIL",
+  "enabled": true
+}
+----
+
+**NER**: Runs a named entity recognition (NER) model on free text.
+
+[source,json]
+----
+{
+  "type": "NER",
+  "modelId": "elastic__distilbert-base-uncased-finetuned-conll03-english",
+  "allowedEntityClasses": ["PER", "ORG", "LOC"],
+  "enabled": true
+}
+----
+
+Rules are evaluated top-to-bottom with `RegExp` rules processed first, then `NER` rules; the first rule that captures a given entity wins. Rules can be configured in the <<obs-ai-settings>> page.
+
+[discrete]
+[[obs-ai-anonymization-examples]]
+=== Examples
+
+The following example shows the anonymized content highlighted in the chat window using a `RegExp` rule to mask GKE hostnames:
+
+[source,json]
+----
+{
+  "entityClass": "GKE_HOST",
+  "type": "RegExp",
+  "pattern": "(gke-[a-zA-Z0-9-]+-[a-f0-9]{8}-[a-zA-Z0-9]+)",
+  "enabled": true
+}
+{
+  "entityClass": "GKE_HOST",
+  "type": "RegExp",
+  "pattern": "(gke-[a-zA-Z0-9-]+-[a-f0-9]{8}-[a-zA-Z0-9]+)",
+  "enabled": true
+}
+----
+
+[role="screenshot"]
+image::images/observability-obs-ai-assistant-anonymization.png[Anonymization example, 60%]
+
+[discrete]
+[[obs-ai-anonymization-requirements]]
+=== Requirements
+
+Anonymization requires the following:
+
+* *Advanced Settings privilege*: Necessary to edit the configuration and enable rules.
+  Once saved, *all* users in the same **Space** benefit from the anonymization the setting is space-awar.
+* *ML privilege and resources*: If you enable a rule of type NER, you must first {ml-docs}/nlp/ml-nlp-ner-example.html[deploy and start an NER model] and have sufficient ML capacity.
+
+[discrete]
+[[obs-ai-anonymization-limitations]]
+=== Limitations
+
+Anonymization has the following limitations:
+
+* *Performance (NER)*: Running an NER model can add latency depending on the request. To improve performance of the model, consider scaling up your ML nodes by adjusting deployment parameters: increase `number_of_allocations` for better throughput and `threads_per_allocation` for faster individual requests. For details, refer to https://www.elastic.co/docs/api/doc/elasticsearch/operation/operation-ml-start-trained-model-deployment[start trained model deployment API].
+* *Structured JSON*: The NER model we validated (`elastic/distilbert-base-uncased-finetuned-conll03-english`) is trained on natural English text and often misses entities inside JSON or other structured data. If thorough masking is required, prefer regex rules and craft them to account for JSON syntax.
+* *False negatives / positives*: No model or pattern is perfect. Model accuracy may vary depending on model and input.
+* *JSON malformation risk*: Both NER inference and regex rules can potentially create malformed JSON when anonymizing JSON data such as function responses. This can occur by replacing text across character boundaries, which may break JSON structure causing the whole request to fail. If this occurs, you may need to adjust your regex pattern or disable the NER rule.
+
 
 [discrete]
 [[obs-ai-known-issues]]
