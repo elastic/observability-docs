@@ -41,14 +41,14 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/run-standalone
 
 During installation, you're prompted with some questions:
 
-. When asked if you want to install the agent as a service, enter `Y`. 
+. When asked if you want to install the agent as a service, enter `Y`.
 . When asked if you want to enroll the agent in Fleet, enter `n`.
 
 [discrete]
 [[logs-stream-agent-config]]
 == Step 3: Configure the {agent}
 
-With your agent installed, configure it by updating the `elastic-agent.yml` file. 
+With your agent installed, configure it by updating the `elastic-agent.yml` file.
 
 [discrete]
 [[logs-stream-yml-location]]
@@ -84,7 +84,7 @@ inputs:
 
 Next, set the values for these fields:
 
-- `hosts` – Copy the {es} endpoint from your deployment's page and add the port (the default port is `443`). For example, `https://my-deployment.es.us-central1.gcp.cloud.es.io:443`.
+- `hosts` – Copy the {es} endpoint from your deployment's page and add the port (the default port is `443`). For example, `<YOUR_ELASTICSEARCH_ENDPOINT>:443`.
 +
 --
 [role="screenshot"]
@@ -95,7 +95,7 @@ image::images/es-endpoint-cluster-id.png[{es} endpoint and cluster id location, 
 NOTE: The API key format should be `<id>:<key>`. Make sure you selected *Beats* when you created your API key. Base64 encoded API keys are not currently supported in this configuration.
 - `inputs.id` – A unique identifier for your input.
 - `type` – The type of input. For collecting logs, set this to `filestream`.
-- `streams.id` – A unique identifier for your stream of log data. 
+- `streams.id` – A unique identifier for your stream of log data.
 - `data_stream.dataset` – The name for your dataset data stream. Name this data stream anything that signifies the source of the data. The default value is `generic`.
 - `paths` – The path to your log files. You can also use a pattern like `/var/log/your-logs.log*`.
 
@@ -117,7 +117,7 @@ include::{ingest-docs-root}/docs/en/ingest-management/tab-widgets/start-widget.a
 [[logs-stream-query-datastreams]]
 = View and search your data
 
-With your {agent} and data streams configured, you can now view, filter, and search your log data. In {kib}, navigate to *Observability → Logs → Stream*, and use the search bar to search for your `data_stream.type` and `data_stream.dataset`. 
+With your {agent} and data streams configured, you can now view, filter, and search your log data. In {kib}, navigate to *Observability → Logs → Stream*, and use the search bar to search for your `data_stream.type` and `data_stream.dataset`.
 
 See the following examples for ways to search specific data types and datasets:
 
@@ -138,7 +138,7 @@ image::images/stream-logs-example.png[example search query on the logs stream pa
 If you're not seeing your log files in {kib}, verify the following in the `elastic-agent.yml` file:
 
 - The path to your logs file under `paths` is correct.
-- Your API key is in `<id>:<key>` format. If not, your API key may be in an unsupported format, and you'll need to create an API key in *Beats* format. 
+- Your API key is in `<id>:<key>` format. If not, your API key may be in an unsupported format, and you'll need to create an API key in *Beats* format.
 
 If you're still running into issues, see {fleet-guide}/fleet-troubleshooting.html[{agent} troubleshooting] and {fleet-guide}/elastic-agent-configuration.html[Configure standalone Elastic Agents].
 
@@ -146,7 +146,7 @@ If you're still running into issues, see {fleet-guide}/fleet-troubleshooting.htm
 [[logs-stream-enhance-logs]]
 = Get the most out of your log data
 
-Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data. 
+Make your logs more useful by extracting structured fields from your unstructured log data. Extracting structured fields makes it easier to search, analyze, and filter your log data.
 
 Let's look at this log example:
 
@@ -248,7 +248,7 @@ To extract the timestamp, you need to:
 [[logs-stream-ingest-pipeline]]
 === Use an ingest pipeline to extract the `@timestamp`
 
-Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The {ref}/dissect-processor.html[dissect processor] extracts structured fields from unstructured log messages based on a pattern you set. 
+Ingest pipelines consist of a series of processors that perform common transformations on incoming documents before they are indexed. To extract the `@timestamp` field from the example log, use an ingest pipeline with a dissect processor. The {ref}/dissect-processor.html[dissect processor] extracts structured fields from unstructured log messages based on a pattern you set.
 
 {es} can parse string timestamps that are in `yyyy-MM-dd'T'HH:mm:ss.SSSZ` and `yyyy-MM-dd` formats into date fields. Since the log example's timestamp is in one of these formats, you don't need additional processors. More complex or nonstandard timestamps require a {ref}/date-processor.html[date processor] to parse the timestamp into a date field. Date processors can also set the timezone, change the target field, and change the output format of the timestamp.
 
@@ -359,7 +359,7 @@ The previous command sets the following values for your index template:
 The component templates that are set in the previous index template are defined as follows:
 
 - `logs-mappings` – general mappings for logs data streams that includes disabling automatic date detection from `string` fields and specifying mappings for {ecs-ref}/ecs-data_stream.html[`data_stream` ECS fields].
-- `logs-settings` – Sets the general settings for logs data streams including the default lifecycle policy and default pipeline: 
+- `logs-settings` – Sets the general settings for logs data streams including the default lifecycle policy and default pipeline:
 ** The default lifecycle policy rolls over when the primary shard reaches 50 GB or after 30 days.
 ** The default pipeline:
 *** Sets a `@timestamp` if there isn't one using the ingest timestamp.
@@ -549,7 +549,7 @@ POST logs-example-default/_bulk
 { "message": "2023-08-08T13:45:16.005Z INFO 192.168.1.102 User changed profile picture." }
 ----
 
-Then, query for documents with a log level of `WARN` or `ERROR` with this command: 
+Then, query for documents with a log level of `WARN` or `ERROR` with this command:
 
 [source,console]
 ----
@@ -606,7 +606,7 @@ You should see the following results showing only your high-severity logs:
 [[logs-stream-extract-host-ip]]
 == Extract the `host.ip` field
 
-Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you’re having issues with or find disparities between hosts. 
+Extracting the `host.ip` field lets you filter logs by host IP addresses allowing you to focus on specific hosts that you’re having issues with or find disparities between hosts.
 
 The `host.ip` field is part of the {ecs-ref}/ecs-reference.html[Elastic Common Schema (ECS)]. Through the ECS, the `host.ip` field is mapped as an {ref}/ip.html[`ip` field type]. `ip` field types allow range queries so you can find logs with IP addresses in a specific range. You can also query `ip` field types using CIDR notation to find logs from a particular network or subnet.
 
@@ -707,7 +707,7 @@ The results should show the `host.ip`, `@timestamp`, and `log.level` fields extr
 [[logs-stream-host-ip-query]]
 === Query logs based on `host.ip`
 
-You can query your logs based on the `host.ip` field in different ways, including using CIDR notation and range queries. 
+You can query your logs based on the `host.ip` field in different ways, including using CIDR notation and range queries.
 
 Before querying your logs, add them to your data stream using this command:
 
@@ -726,7 +726,7 @@ POST logs-example-default/_bulk
 
 [discrete]
 [[logs-stream-ip-cidr]]
-==== CIDR notation 
+==== CIDR notation
 
 You can use https://en.wikipedia.org/wiki/Classless_Inter-Domain_Routing#CIDR_notation[CIDR notation] to query your log data using a block of IP addresses that fall within a certain network segment. CIDR notations uses the format of `[IP address]/[prefix length]`. The following command queries IP addresses in the `192.168.1.0/24` subnet meaning IP addresses from `192.168.1.0` to `192.168.1.255`.
 
@@ -820,7 +820,7 @@ Because all of the example logs are in this range, you'll get the following resu
 [[logs-stream-range-query]]
 ==== Range queries
 
-Use {ref}/query-dsl-range-query.html[range queries] to query logs in a specific range. 
+Use {ref}/query-dsl-range-query.html[range queries] to query logs in a specific range.
 
 The following command searches for IP addresses greater than or equal to `192.168.1.100` and less than or equal to `192.168.1.102`.
 
@@ -908,7 +908,7 @@ PUT /logs-example-default/_mapping
 
 preview::[]
 
-By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization. 
+By default, an ingest pipeline sends your log data to a single data stream. To simplify log data management, use a {ref}/reroute-processor.html[reroute processor] to route data from the generic data stream to a target data stream. For example, you might want to send high-severity logs to a specific data stream to help with categorization.
 
 This section shows you how to use a reroute processor to send the high-severity logs (`WARN` or `ERROR`) from the following example logs to a specific data stream and keep the regular logs (`DEBUG` and `INFO`) in the default data stream:
 
