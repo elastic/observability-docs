@@ -51,19 +51,35 @@ or a time range in which checks were run, and the minimum number of locations th
 Retests are included in the number of checks.
 ====
 
-The *Rule schedule* defines how often to evaluate the condition. Note that checks are queued, and they run as close
-to the defined value as capacity allows. For example, if a check is scheduled to run every 2 minutes, but the check
-takes longer than 2 minutes to run, a check will not run until the previous check has finished.
+**Alert on no data** (optional): Enable this option to receive alerts when a monitor is in a **pending** state—that is, when no ping data has been received from the monitor for the evaluation period. This helps you detect monitors that have stopped reporting (for example, due to a misconfiguration, runner failure, or network issue). When this option is enabled:
 
-You can also set *Advanced options* such as the number of consecutive runs that must meet the rule conditions before
-an alert occurs.
+   * **Pending state**: A monitor is considered pending when no check results (pings) have been received within the rule's evaluation window. The alert reason follows the format: `Monitor "X" from Location Y is pending.`
+   * **Recovery**: The alert recovers automatically once the monitor reports data again, whether the result is up or down. No separate recovery action is required.
+   * **Action variables**: For pending-state alerts, the same <<synthetic-monitor-action-variables,action variables>> are available (such as `context.monitorName`, `context.monitorId`, `context.locationName`, `context.monitorUrl`, and `context.reason`). The `context.reason` and `context.message` fields reflect the pending status and monitor/location details.
+
+The **Rule schedule** defines how often to evaluate the condition. Note that checks are queued, and they run as close to the defined value as capacity allows. For example, if a check is scheduled to run every 2 minutes, but the check takes longer than 2 minutes to run, a check will not run until the previous check has finished.
 
 In this example, the conditions will be met any time a `browser` monitor is down `3` of the last `5` times
 the monitor ran across any locations that match the filter. These conditions will be evaluated every minute,
 and you will only receive an alert when the conditions are met three times consecutively.
 
 [role="screenshot"]
-image::images/synthetic-monitor-conditions.png[Filters and conditions defining a Synthetics monitor status rule,width=600]
+image::images/serverless-synthetic-monitor-conditions.png[Filters and conditions defining a Synthetics monitor status rule,width=600]
+
+You can also set **Advanced options** such as:
+
+- **Alert delay**: The number of consecutive runs that must meet the rule conditions before an alert occurs.
+
+- **Alert flapping detection**: Detect alerts that switch quickly between active and recovered states and reduce unwanted noise for these flapping alerts.
+
+   You can also customize the configuration through the following settings:
+
+   *  **Rule run look back window**: The minimum number of runs in which the threshold must be met.
+
+   *  **Alert status change threshold**: The minimum number of times an alert must switch states in the look-back window. 
+
+[role="screenshot"]
+image::images/serverless-synthetic-monitor-advanced-settings.png[Advanced settings when defining a Synthetics monitor status rule,width=600]
 
 [discrete]
 [[synthetic-monitor-action-types]]
@@ -147,9 +163,8 @@ Learn how in <<migrate-monitor-rule>>.
 Within the {uptime-app}, create a **Monitor Status** rule to receive notifications
 based on errors and outages.
 
-. To access this page, go to **{observability}** → **Uptime**.
-. At the top of the page, click **Alerts and rules** → **Create rule**.
-. Select **Monitor status rule**.
+. To access this page, go to **Syntetics** → **Overview**.
+. At the top of the page, click **Alerts** → **Monitor status rule** → **Create status rule**.
 
 [TIP]
 ===============================
