@@ -22,18 +22,23 @@ _Versions: XX.XX.XX, YY.YY.YY, ZZ.ZZ.ZZ_
 ////
 
 [discrete]
-== HTTP/2 connections may fail with strict clients due to framing issues
+== HTTP/2 connections can fail with strict clients due to framing errors
 
-_Elastic Stack versions: 8.19.12, 8.19.13, 8.19.14_ +
-_Fixed in Elastic Stack version 8.19.15_
+_Elastic Stack versions: >=8.19.12 and <8.19.15_
 
-The issue occurs when using APM Server over HTTP/2 with strict clients.
-Affected clients may report errors such as `Error in the HTTP2 framing layer`,
-`Failure when receiving data from the peer`, or browser `net::ERR_HTTP2_PROTOCOL_ERROR`.
+APM Server can fail HTTP/2 requests from strict clients (for example, curl/nghttp2) after ALPN negotiates `h2`.
+In affected versions, APM Server can send inconsistent SETTINGS values at connection start (an initial empty/default SETTINGS frame followed by a different SETTINGS set), and strict clients treat that sequence as an HTTP/2 protocol error and close the connection.
+When this occurs, clients can report framing/connection errors such as `Error in the HTTP2 framing layer` or `Failure when receiving data from the peer`.
+Browser-based HTTP requests from the RUM agent can also fail with `net::ERR_HTTP2_PROTOCOL_ERROR`.
+When clients close the HTTP/2 connection due to this issue, APM Server logs an error: `http2: received GOAWAY [FrameHeader GOAWAY len=66], starting graceful shutdown`.
 
-As a workaround, use HTTP/1.1 between clients and APM Server, or offload HTTP/2 through a non-strict load balancer or proxy.
+For more information, check https://github.com/elastic/apm-server/issues/20887[issue #20887].
 
-This issue is fixed in 8.19.15 (https://github.com/elastic/apm-server/pull/20908[elastic/apm-server#20908]).
+Use HTTP/1.1 to communicate with APM Server on affected versions.
+
+If clients require HTTP/2, place a non-strict load balancer in front of APM Server and stop HTTP/2 at the load balancer (for example, on some load balancers this can be done by switching from TCP mode to HTTP mode).
+
+This bug will be fixed in 8.19.15.
 
 [discrete]
 == Tail Sampling may not compact / expired TTLs as quickly as desired, causing increased storage usage.
