@@ -1,0 +1,129 @@
+[[network-topology-get-started]]
+= Tutorial: Monitor your network devices with the Network Topology plugin
+
+In this tutorial, you'll install the <<network-topology,Network Topology plugin>> in self-managed {kib}, configure {ls} to collect SNMP data from your network devices, and explore site, device, and routing protocol state in {kib}.
+
+This tutorial is for network engineers and IT operations teams who are familiar with SNMP and want to monitor their network devices with {observability}.
+
+[discrete]
+[[network-topology-what-youll-learn]]
+== What you'll learn
+
+You'll learn how to:
+
+. Install and configure the Network Topology plugin in self-managed {kib} 8.19.
+. Configure SNMP data collection using {ls}.
+. Verify data is flowing into {es}.
+. Explore network topology, device health, and routing protocol state in {kib}.
+
+[discrete]
+[[network-topology-before-you-begin]]
+== Before you begin
+
+You need:
+
+* Self-managed {kib} 8.19 and {es} 8.19. The Network Topology plugin is _not_ compatible with {ess} or {serverless-docs}[{serverless-full}].
+* One or more network devices with SNMP v1, v2c, or v3 enabled.
+* {ls} installed and able to reach your network devices.
+
+TIP: If you don't have SNMP-enabled devices to point at yet, you can evaluate the plugin against simulated data using the sample data generator and Docker Compose dev environment included in the https://github.com/elastic/kibana-network-topology-plugin[Network Topology plugin repository].
+
+[discrete]
+[[network-topology-install-plugin]]
+== Step 1: Install the plugin
+
+NOTE: The version in the plugin `.zip` must exactly match the target {kib} instance version. When you upgrade {kib}, rebuild the plugin from the matching {kib} source tree before installing it.
+
+. Download the latest Network Topology plugin release `.zip` from https://github.com/elastic/kibana-network-topology-plugin/releases[the plugin releases page on GitHub].
+. From your {kib} install directory, install the plugin:
++
+[source,shell]
+----
+bin/kibana-plugin install file:///absolute/path/to/networkTopology-8.19.12.zip
+----
+. Restart {kib}.
+
+[discrete]
+[[network-topology-install-troubleshooting]]
+=== Troubleshooting: plugin installs but doesn't load
+
+If `kibana-plugin install` reports success but the Network Topology plugin doesn't appear in {kib}, check the file permissions on the {kib} `plugins/` directory. The plugin files must be readable by the user that {kib} runs as. Correct the ownership or mode of the plugin directory and restart {kib}.
+
+[discrete]
+[[network-topology-apply-templates]]
+== Step 2: Apply the index templates and ingest pipeline
+
+The plugin ships with index templates and an `snmp-device-enrichment` ingest pipeline that classifies each incoming document by device type and vendor. Install them before you start sending data so that the first documents are enriched correctly.
+
+. In {kib}, open *Stack Management*.
+. Follow the template installation flow provided by the plugin to install the Network Topology index templates and the `snmp-device-enrichment` ingest pipeline.
+
+[discrete]
+[[network-topology-configure-logstash]]
+== Step 3: Configure SNMP data collection using {ls}
+
+The Network Topology plugin reads from an {es} data stream that {ls} populates using the SNMP input plugin.
+
+. Create a {ls} pipeline using the `logstash.conf` reference provided in the https://github.com/elastic/kibana-network-topology-plugin[Network Topology plugin repository]. Edit the SNMP input to list your devices, credentials, and polling interval, and edit the {es} output to point at your cluster.
+. Start {ls} with your pipeline configuration. If you use {logstash-ref}/logstash-centralized-pipeline-management.html[{ls} centralized pipeline management], you can push the pipeline directly from {kib} instead — no SSH access to a {ls} host required.
+
+[discrete]
+[[network-topology-logstash-troubleshooting]]
+=== Troubleshooting: common SNMP input errors
+
+// TODO: Add the common {ls} SNMP input error messages and resolutions that Connor is gathering (for example, timeouts, authentication failures, unknown OIDs).
+
+[discrete]
+[[network-topology-verify-data]]
+== Step 4: Verify data in {kib}
+
+. In {kib}, open the main menu and navigate to *Observability* → *Network Topology*. You can also use the {kibana-ref}/introduction.html#kibana-navigation-search[global search field].
+. Confirm the page shows your configured sites and the network segments that have been discovered.
+
+If the page is empty, the plugin hasn't received any data yet. Check that {ls} is running without errors and that documents are being written to the expected {es} data stream.
+
+[discrete]
+[[network-topology-explore]]
+== Step 5: Explore the Network Topology plugin
+
+[discrete]
+[[network-topology-site-overview]]
+=== Site overview
+
+The site overview shows a grid of health cards, one per site. Each card summarizes the state of the devices in that site.
+
+// TODO: Add a screenshot of the site overview grid and describe what each card state (for example, healthy, degraded, down) means.
+
+[discrete]
+[[network-topology-topology-view]]
+=== Topology view
+
+The topology view builds an adjacency graph from the ARP, MAC forwarding table, BGP, and OSPF data the plugin has collected, and renders it as a force-directed layout. Zoom, pan, and drag nodes to lay out the view, and toggle the L2, L3, BGP, and OSPF layers to focus on a specific protocol. Link colors and styles indicate state.
+
+// TODO: Add a screenshot of the topology view and document the link-state legend.
+
+[discrete]
+[[network-topology-device-detail]]
+=== Device detail
+
+Click a node in the topology view to open the device flyout. The flyout shows the interface table, ARP neighbors, BGP peers, and OSPF adjacencies for the selected device.
+
+// TODO: Add a screenshot of the device flyout.
+
+[discrete]
+[[network-topology-device-inventory]]
+=== Device inventory
+
+The device inventory is a searchable, paginated list of every device the plugin has discovered. Filter the list using KQL to answer operational questions, for example:
+
+* Find every BGP session that isn't established.
+* Find Cisco switches that have interfaces that are administratively up but operationally down.
+
+// TODO: Add a screenshot of the device inventory and KQL filter examples once field names are confirmed.
+
+[discrete]
+[[network-topology-related]]
+== Related
+
+* <<network-topology,Network Topology>> overview
+* https://github.com/elastic/kibana-network-topology-plugin[Network Topology plugin on GitHub]
