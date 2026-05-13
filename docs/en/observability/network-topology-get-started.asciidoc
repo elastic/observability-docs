@@ -71,7 +71,18 @@ The Network Topology plugin reads from an {es} data stream that {ls} populates u
 [[network-topology-logstash-troubleshooting]]
 === Troubleshooting: common SNMP input errors
 
-// TODO: Add the common {ls} SNMP input error messages and resolutions that Connor is gathering (for example, timeouts, authentication failures, unknown OIDs).
+Problems with an SNMP get, walk, or table operation surface as the following error in the {ls} log:
+
+[source,text]
+----
+error invoking 'walk' operation: error sending snmp walk request to target <ip>:<port>: Request timed out., ignoring. {host=<ip>:<port>, oids=[<oid array>]}
+----
+
+Check the following:
+
+* *Wrong community string or v3 credentials* — verify the community string (v1/v2c) or username and password (v3) in your {ls} pipeline config are correct.
+* *Incorrect target IP or port* — confirm the device IP and SNMP port are correct.
+* *Device is unreachable or down* — confirm the device is up and available.
 
 [discrete]
 [[network-topology-verify-data]]
