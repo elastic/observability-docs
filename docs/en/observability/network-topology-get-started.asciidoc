@@ -53,10 +53,11 @@ If `kibana-plugin install` reports success but the Network Topology plugin doesn
 [[network-topology-apply-templates]]
 == Step 2: Apply the index templates and ingest pipeline
 
-The plugin ships with index templates and an `snmp-device-enrichment` ingest pipeline that classifies each incoming document by device type and vendor. Install them before you start sending data so that the first documents are enriched correctly.
+The plugin's *Setup* tab walks you through installing the `snmp-device-enrichment` ingest pipeline and the `logs-snmp.topology@template` index template. Install these before you start sending data so that the first documents are enriched and mapped correctly.
 
-. In {kib}, open *Stack Management*.
-. Follow the template installation flow provided by the plugin to install the Network Topology index templates and the `snmp-device-enrichment` ingest pipeline.
+. In {kib}, navigate to *Observability* → *Network Topology* and select the *Setup* tab.
+. Under *Step 1 — Install Index Template & Ingest Pipeline*, select *Open in DevTools* next to the ingest pipeline, then click the run button (*▶*) to apply it. Install the pipeline first. The index template references it as the default ingest pipeline.
+. Repeat for the index template.
 
 [discrete]
 [[network-topology-configure-logstash]]
@@ -64,7 +65,7 @@ The plugin ships with index templates and an `snmp-device-enrichment` ingest pip
 
 The Network Topology plugin reads from an {es} data stream that {ls} populates using the SNMP input plugin.
 
-. Create a {ls} pipeline using the `logstash.conf` reference provided in the https://github.com/elastic/kibana-network-topology-plugin[Network Topology plugin repository]. Edit the SNMP input to list your devices, credentials, and polling interval, and edit the {es} output to point at your cluster.
+. Create a {ls} pipeline using the `logstash.conf` reference provided in the https://github.com/elastic/kibana-network-topology-plugin/blob/main/docs/collectors/logstash.conf[Network Topology plugin repository]. Edit the SNMP input to list your devices, credentials, and polling interval, and edit the {es} output to point at your cluster.
 . Start {ls} with your pipeline configuration. If you use {logstash-ref}/logstash-centralized-pipeline-management.html[{ls} centralized pipeline management], you can push the pipeline directly from {kib} instead — no SSH access to a {ls} host required.
 
 [discrete]
@@ -140,6 +141,6 @@ image::images/network-topology-device-inventory.png[Network Topology Devices tab
 [[network-topology-related]]
 == Related links
 
-* <<network-topology,Network Topology>> overview
+* <<network-topology,Network Topology overview>>
 * <<network-topology-fields,Network Topology field reference>>
 * https://github.com/elastic/kibana-network-topology-plugin[Network Topology plugin on GitHub]
