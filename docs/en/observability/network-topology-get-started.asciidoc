@@ -32,7 +32,7 @@ TIP: If you don't have SNMP-enabled devices to point at yet, you can evaluate th
 [[network-topology-install-plugin]]
 == Step 1: Install the plugin
 
-NOTE: The version in the plugin `.zip` must exactly match the target {kib} instance version. When you upgrade {kib}, rebuild the plugin from the matching {kib} source tree before installing it.
+NOTE: The {kib} version in the plugin `.zip` must exactly match the target {kib} instance version. When you upgrade {kib}, rebuild the plugin from the matching {kib} source tree before installing it.
 
 . Download the latest Network Topology plugin release `.zip` from https://github.com/elastic/kibana-network-topology-plugin/releases[the plugin releases page on GitHub].
 . From your {kib} install directory, install the plugin:
@@ -68,13 +68,15 @@ NOTE: Install the pipeline first because the index template references it as the
 The Network Topology plugin reads from an {es} data stream that {ls} populates using the SNMP input plugin.
 
 . Create a {ls} pipeline using the `logstash.conf` reference provided in the https://github.com/elastic/kibana-network-topology-plugin/blob/main/docs/collectors/logstash.conf[Network Topology plugin repository]. Edit the SNMP input to list your devices, credentials, and polling interval, and edit the {es} output to point at your cluster.
++
+NOTE: For details on the fields you'll configure in this pipeline, refer to <<network-topology-fields-network,Location and role metadata fields>>.
 . Start {ls} with your pipeline configuration. If you use {logstash-ref}/logstash-centralized-pipeline-management.html[{ls} centralized pipeline management], you can push the pipeline directly from {kib} instead — no SSH access to a {ls} host required.
 
 [discrete]
 [[network-topology-logstash-troubleshooting]]
 === Troubleshooting: common SNMP input errors
 
-Problems with an SNMP get, walk, or table operation surface as the following error in the {ls} log:
+Problems with an SNMP get, walk, or table operation cause the following error in the {ls} log:
 
 [source,text]
 ----
@@ -98,7 +100,7 @@ Check the following:
 [[network-topology-explore]]
 == Step 5: Explore the Network Topology plugin
 
-The plugin gives you the following views into your network: a site-level health summary, an interactive topology graph, a per-device detail flyout, and a searchable device inventory.
+The plugin gives you the following views into your network: a site-level health summary, an interactive topology map, a per-device detail flyout, and a searchable device inventory.
 
 [discrete]
 [[network-topology-site-overview]]
@@ -111,9 +113,9 @@ image::images/network-topology-site-overview.png[Network Topology site overview 
 
 [discrete]
 [[network-topology-topology-view]]
-=== Topology view
+=== Topology map
 
-The topology view builds an adjacency graph from the ARP, MAC forwarding table, BGP, and OSPF data the plugin has collected, and renders it as a force-directed layout. Zoom, pan, and drag nodes to lay out the view, and toggle the L2, L3, BGP, and OSPF layers to focus on a specific protocol. Link colors and styles indicate state.
+The topology map builds an adjacency graph from the ARP, MAC forwarding table, BGP, and OSPF data the plugin has collected, and renders it as a force-directed layout. Zoom, pan, and drag nodes to lay out the view, and toggle the L2, L3, BGP, and OSPF layers to focus on a specific protocol. Link colors and styles indicate state.
 
 [role="screenshot"]
 image::images/network-topology-topology-map.png[Network Topology map view showing a force-directed graph of devices and links for the HQ-DC1 site,75%]
@@ -122,7 +124,7 @@ image::images/network-topology-topology-map.png[Network Topology map view showin
 [[network-topology-device-detail]]
 === Device detail
 
-Click a node in the topology view to open the device flyout. The flyout shows the interface table, ARP neighbors, BGP peers, and OSPF adjacencies for the selected device.
+Click a node in the topology map to open the device flyout. The flyout shows the interface table, ARP neighbors, BGP peers, and OSPF adjacencies for the selected device.
 
 [role="screenshot"]
 image::images/network-topology-device-flyout.png[Device flyout for hq-fw-01 showing interface table with status, speed, and traffic counters,75%]
