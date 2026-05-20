@@ -22,7 +22,7 @@ You'll learn how to:
 
 You need:
 
-* Self-managed {kib} 8.19 and {es} 8.19. The Network Topology plugin is _not_ compatible with {ess} or {serverless-docs}[{serverless-full}].
+* Self-managed {kib} 8.19.12+ and {es} 8.19.12+. The Network Topology plugin is _not_ compatible with {ess} or {serverless-docs}[{serverless-full}].
 * Installation requires system or root level access on the node running {kib}.
 * One or more network devices with SNMP v1, v2c, or v3 enabled.
 * {ls} installed and able to reach your network devices.
@@ -33,14 +33,16 @@ TIP: If you don't have SNMP-enabled devices to point at yet, you can evaluate th
 [[network-topology-install-plugin]]
 == Step 1: Install the plugin
 
-NOTE: The {kib} version in the plugin `.zip` must exactly match the target {kib} instance version. When you upgrade {kib}, rebuild the plugin from the matching {kib} source tree before installing it.
-
 . Download the latest Network Topology plugin release `.zip` from https://github.com/elastic/kibana-network-topology-plugin/releases[the plugin releases page on GitHub].
-. From your {kib} install directory, install the plugin:
+. Unzip the plugin bundle.
+. Open the `kibana/networkTopology/kibana.json` manifest file included in the bundle.
+. Locate the `kibanaVersion` property and replace the placeholder value with your exact {kib} version. Save the file.
+. Re-zip the plugin bundle, preserving the `kibana/networkTopology` folder hierarchy. If the folder structure changes, installation will fail.
+. From the root of your {kib} install directory, run:
 +
 [source,shell]
 ----
-bin/kibana-plugin install file:///absolute/path/to/networkTopology-<version>.zip
+bin/kibana-plugin install file:///absolute/path/to/networkTopology.zip
 ----
 . Restart {kib}.
 
